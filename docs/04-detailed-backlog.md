@@ -366,7 +366,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 
 ## EPIK E01: Fundament infrastrukturalny
 
-### T-E01-001: Inicjalizacja repozytorium Git
+### ✅ T-E01-001: Inicjalizacja repozytorium Git
 
 | Pole | Wartość |
 |---|---|
@@ -380,6 +380,9 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | niska |
 | **Ryzyko** | niskie |
 | **Uwagi** | Ustalić konwencję nazewnictwa branchy. GitFlow light. |
+| **Status** | ✅ DONE |
+| **Repo** | https://github.com/WBInCode/WorkBase |
+| **Commit** | `9405fc8` — chore(init): initialize WorkBase repository |
 
 ### T-E01-002: Utworzenie solution .NET z podziałem na projekty
 
