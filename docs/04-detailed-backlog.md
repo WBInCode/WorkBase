@@ -574,7 +574,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Uwagi** | — |
 | **Status** | ✅ DONE |
 
-### T-E02-003: Frontend auth flow (OIDC PKCE)
+### ✅ T-E02-003: Frontend auth flow (OIDC PKCE)
 
 | Pole | Wartość |
 |---|---|
@@ -588,6 +588,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | średnia |
 | **Ryzyko** | średnie — PKCE flow wymaga poprawnej konfiguracji CORS/redirect |
 | **Uwagi** | Token w memory (nie localStorage) — bezpieczniejsze. Refresh token via httpOnly cookie lub silent refresh. |
+| **Status** | ✅ DONE |
 
 ### T-E02-004: GET /api/auth/me endpoint
 

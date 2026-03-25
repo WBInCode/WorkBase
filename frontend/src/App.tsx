@@ -1,9 +1,26 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from 'react-oidc-context';
+import { oidcConfig, ProtectedRoute } from '@/auth';
+import { HomePage } from '@/pages/HomePage';
+import { AuthCallbackPage } from '@/pages/AuthCallbackPage';
+
 function App() {
   return (
-    <div>
-      <h1>WorkBase</h1>
-      <p>B2B SaaS operational management platform</p>
-    </div>
+    <AuthProvider {...oidcConfig}>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/auth/callback" element={<AuthCallbackPage />} />
+          <Route
+            path="/*"
+            element={
+              <ProtectedRoute>
+                <HomePage />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 
