@@ -418,7 +418,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Status** | ✅ DONE |
 | **Commit** | `4a3fc70` — feat(db): configure PostgreSQL + EF Core |
 
-### T-E01-004: Docker + docker-compose.dev.yml
+### ✅ T-E01-004: Docker + docker-compose.dev.yml
 
 | Pole | Wartość |
 |---|---|
@@ -432,6 +432,8 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | średnia |
 | **Ryzyko** | niskie |
 | **Uwagi** | Zgodnie z 03-technical-architecture.md sekcja 14.2. Dodać .env.example. |
+| **Status** | ✅ DONE |
+| **Commit** | `71f8cca` — chore(docker): add Dockerfile and docker-compose.dev.yml |
 
 ### T-E01-005: CI pipeline (GitHub Actions)
 
