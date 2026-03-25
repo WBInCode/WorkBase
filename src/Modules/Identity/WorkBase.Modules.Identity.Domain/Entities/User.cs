@@ -1,8 +1,9 @@
+using WorkBase.Shared.Domain;
+
 namespace WorkBase.Modules.Identity.Domain.Entities;
 
-public sealed class User
+public sealed class User : Entity<Guid>, ITenantScoped
 {
-    public Guid Id { get; private set; }
     public string KeycloakId { get; private set; } = null!;
     public string Email { get; private set; } = null!;
     public string FirstName { get; private set; } = null!;

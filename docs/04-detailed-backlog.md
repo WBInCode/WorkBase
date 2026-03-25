@@ -640,6 +640,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | niska |
 | **Ryzyko** | niskie |
 | **Uwagi** | Zmiany tutaj wpływają na WSZYSTKIE moduły — dobrze przemyśleć. |
+| **Status** | ✅ DONE |
 
 ### T-E04-002: Result<T> monad
 
