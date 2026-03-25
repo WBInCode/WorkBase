@@ -1,3 +1,5 @@
+using Hangfire;
+using Hangfire.PostgreSql;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,6 +28,19 @@ public static class InfrastructureServiceCollectionExtensions
                 });
 
             options.UseSnakeCaseNamingConvention();
+        });
+
+        services.AddHangfire(config => config
+            .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+            .UseSimpleAssemblyNameTypeSerializer()
+            .UseRecommendedSerializerSettings()
+            .UsePostgreSqlStorage(options =>
+                options.UseNpgsqlConnection(
+                    configuration.GetConnectionString("DefaultConnection"))));
+
+        services.AddHangfireServer(options =>
+        {
+            options.Queues = ["critical", "default", "reports"];
         });
 
         services.AddSingleton<ILogEventEnricher, UserContextEnricher>();

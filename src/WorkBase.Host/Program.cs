@@ -1,5 +1,7 @@
+using Hangfire;
 using Serilog;
 using WorkBase.Infrastructure;
+using WorkBase.Infrastructure.BackgroundJobs;
 using WorkBase.Infrastructure.Seeding;
 
 Log.Logger = new LoggerConfiguration()
@@ -25,6 +27,13 @@ try
             diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value ?? string.Empty);
             diagnosticContext.Set("UserAgent", httpContext.Request.Headers.UserAgent.ToString());
         };
+    });
+
+    app.MapHangfireDashboard("/hangfire", new DashboardOptions
+    {
+        DashboardTitle = "WorkBase Jobs",
+        // TODO: Replace with proper auth filter after T-E02 (JWT + RBAC)
+        Authorization = [new HangfireLocalRequestOnlyFilter()]
     });
 
     app.MapGet("/", () => Results.Ok(new { Service = "WorkBase API", Status = "Running" }));

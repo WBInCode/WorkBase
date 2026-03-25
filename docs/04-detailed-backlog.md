@@ -469,7 +469,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Status** | ✅ DONE |
 | **Commit** | `221f3e0` — feat(logging): add Serilog structured logging with Seq sink |
 
-### T-E01-007: Hangfire setup
+### ✅ T-E01-007: Hangfire setup
 
 | Pole | Wartość |
 |---|---|
@@ -482,7 +482,9 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Owner** | backend |
 | **Złożoność** | niska |
 | **Ryzyko** | niskie |
-| **Uwagi** | Hangfire dashboard dostępny tylko dla admina. |
+| **Uwagi** | Hangfire dashboard dostępny tylko dla admina. Tymczasowy filtr: localhost-only (do wymiany po T-E02). |
+| **Status** | ✅ DONE |
+| **Commit** | `42e5715` — feat(hangfire): add Hangfire with PostgreSQL storage |
 
 ### T-E01-008: File storage adapter (MinIO)
 
