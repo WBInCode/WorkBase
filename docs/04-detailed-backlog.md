@@ -740,6 +740,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | średnia |
 | **Ryzyko** | średnie — closure table wymaga weryfikacji na drzewach testowych |
 | **Uwagi** | **KONFIGURACJA:** org_unit_types jest słownikiem per tenant. org_unit_closure auto-populated przy CRUD. |
+| **Status** | ✅ DONE |
 
 ### T-E05-002: Domain + Application layer MOD-ORG
 
