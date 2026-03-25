@@ -25,6 +25,21 @@ try
             document.Info.Title = "WorkBase API";
             document.Info.Version = "v1";
             document.Info.Description = "WorkBase — B2B SaaS operational management platform";
+
+            document.Components ??= new();
+            document.Components.SecuritySchemes["Bearer"] = new()
+            {
+                Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+                Scheme = "bearer",
+                BearerFormat = "JWT",
+                Description = "Keycloak JWT token. Use: Bearer {token}"
+            };
+
+            document.SecurityRequirements.Add(new()
+            {
+                [new() { Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http, Scheme = "bearer", Reference = new() { Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme, Id = "Bearer" } }] = Array.Empty<string>()
+            });
+
             return Task.CompletedTask;
         });
     });
@@ -43,6 +58,9 @@ try
             options.Theme = ScalarTheme.BluePlanet;
         });
     }
+
+    app.UseAuthentication();
+    app.UseAuthorization();
 
     app.UseSerilogRequestLogging(options =>
     {

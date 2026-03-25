@@ -558,7 +558,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Status** | ✅ DONE |
 | **Commit** | `4e93d40` — feat(auth): configure Keycloak realm with workbase clients |
 
-### T-E02-002: JWT validation middleware
+### ✅ T-E02-002: JWT validation middleware
 
 | Pole | Wartość |
 |---|---|
@@ -572,6 +572,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | średnia |
 | **Ryzyko** | niskie |
 | **Uwagi** | — |
+| **Status** | ✅ DONE |
 
 ### T-E02-003: Frontend auth flow (OIDC PKCE)
 

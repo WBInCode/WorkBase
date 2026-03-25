@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Minio;
 using Serilog.Core;
+using WorkBase.Infrastructure.Auth;
 using WorkBase.Infrastructure.Logging;
 using WorkBase.Infrastructure.Persistence;
 using WorkBase.Infrastructure.Storage;
@@ -20,6 +21,8 @@ public static class InfrastructureServiceCollectionExtensions
         IConfiguration configuration)
     {
         services.AddHttpContextAccessor();
+
+        services.AddWorkBaseAuthentication(configuration);
 
         services.AddDbContext<WorkBaseDbContext>(options =>
         {
