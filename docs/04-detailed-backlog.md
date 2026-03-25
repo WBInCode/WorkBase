@@ -401,7 +401,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Status** | ✅ DONE |
 | **Commit** | `8f56695` — arch(solution): scaffold .NET modular monolith |
 
-### T-E01-003: Konfiguracja PostgreSQL + EF Core
+### ✅ T-E01-003: Konfiguracja PostgreSQL + EF Core
 
 | Pole | Wartość |
 |---|---|
@@ -415,6 +415,8 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | średnia |
 | **Ryzyko** | niskie |
 | **Uwagi** | Użyć Npgsql. Konwencja: snake_case tabele/kolumny. Skonfigurować od razu UUID v7 jako default PK generator. |
+| **Status** | ✅ DONE |
+| **Commit** | `4a3fc70` — feat(db): configure PostgreSQL + EF Core |
 
 ### T-E01-004: Docker + docker-compose.dev.yml
 
