@@ -779,6 +779,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | Pole | Wartość |
 |---|---|
 | **Nazwa** | UI: Drzewo organizacyjne (OrgTreePage) |
+| **Status** | ✅ DONE |
 | **Opis** | Interaktywne drzewo hierarchii: rozwijane/zwijane gałęzie, ikony per typ jednostki. Click → przejście do karty jednostki/zespołu. **Role: Admin, Kierownik, Dyrektor.** |
 | **Typ** | frontend |
 | **Priorytet** | must-have |
