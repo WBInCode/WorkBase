@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.9" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WorkBase.Shared\WorkBase.Shared.csproj" />
+    <ProjectReference Include="..\WorkBase.Contracts\WorkBase.Contracts.csproj" />
+    <ProjectReference Include="..\WorkBase.Infrastructure\WorkBase.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Organization\WorkBase.Modules.Organization.Api\WorkBase.Modules.Organization.Api.csproj" />
+    <ProjectReference Include="..\Modules\Organization\WorkBase.Modules.Organization.Infrastructure\WorkBase.Modules.Organization.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Identity\WorkBase.Modules.Identity.Api\WorkBase.Modules.Identity.Api.csproj" />
+    <ProjectReference Include="..\Modules\Identity\WorkBase.Modules.Identity.Infrastructure\WorkBase.Modules.Identity.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\TimeTracking\WorkBase.Modules.TimeTracking.Api\WorkBase.Modules.TimeTracking.Api.csproj" />
+    <ProjectReference Include="..\Modules\TimeTracking\WorkBase.Modules.TimeTracking.Infrastructure\WorkBase.Modules.TimeTracking.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Leave\WorkBase.Modules.Leave.Api\WorkBase.Modules.Leave.Api.csproj" />
+    <ProjectReference Include="..\Modules\Leave\WorkBase.Modules.Leave.Infrastructure\WorkBase.Modules.Leave.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Tasks\WorkBase.Modules.Tasks.Api\WorkBase.Modules.Tasks.Api.csproj" />
+    <ProjectReference Include="..\Modules\Tasks\WorkBase.Modules.Tasks.Infrastructure\WorkBase.Modules.Tasks.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Workflow\WorkBase.Modules.Workflow.Api\WorkBase.Modules.Workflow.Api.csproj" />
+    <ProjectReference Include="..\Modules\Workflow\WorkBase.Modules.Workflow.Infrastructure\WorkBase.Modules.Workflow.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Dashboard\WorkBase.Modules.Dashboard.Api\WorkBase.Modules.Dashboard.Api.csproj" />
+    <ProjectReference Include="..\Modules\Dashboard\WorkBase.Modules.Dashboard.Infrastructure\WorkBase.Modules.Dashboard.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Notification\WorkBase.Modules.Notification.Api\WorkBase.Modules.Notification.Api.csproj" />
+    <ProjectReference Include="..\Modules\Notification\WorkBase.Modules.Notification.Infrastructure\WorkBase.Modules.Notification.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Documents\WorkBase.Modules.Documents.Api\WorkBase.Modules.Documents.Api.csproj" />
+    <ProjectReference Include="..\Modules\Documents\WorkBase.Modules.Documents.Infrastructure\WorkBase.Modules.Documents.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

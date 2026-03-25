@@ -1,0 +1,8 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\WorkBase.Modules.Notification.Application\WorkBase.Modules.Notification.Application.csproj" />
+    <ProjectReference Include="..\WorkBase.Modules.Notification.Domain\WorkBase.Modules.Notification.Domain.csproj" />
+    <ProjectReference Include="..\..\..\WorkBase.Shared\WorkBase.Shared.csproj" />
+    <ProjectReference Include="..\..\..\WorkBase.Contracts\WorkBase.Contracts.csproj" />
+  </ItemGroup>
+</Project>

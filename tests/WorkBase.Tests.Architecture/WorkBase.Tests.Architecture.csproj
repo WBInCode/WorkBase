@@ -1,0 +1,59 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.4" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
+    <PackageReference Include="NetArchTest.Rules" Version="1.3.2" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Modules\Organization\WorkBase.Modules.Organization.Domain\WorkBase.Modules.Organization.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Organization\WorkBase.Modules.Organization.Application\WorkBase.Modules.Organization.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Organization\WorkBase.Modules.Organization.Infrastructure\WorkBase.Modules.Organization.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Organization\WorkBase.Modules.Organization.Api\WorkBase.Modules.Organization.Api.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Identity\WorkBase.Modules.Identity.Domain\WorkBase.Modules.Identity.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Identity\WorkBase.Modules.Identity.Application\WorkBase.Modules.Identity.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Identity\WorkBase.Modules.Identity.Infrastructure\WorkBase.Modules.Identity.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Identity\WorkBase.Modules.Identity.Api\WorkBase.Modules.Identity.Api.csproj" />
+    <ProjectReference Include="..\..\src\Modules\TimeTracking\WorkBase.Modules.TimeTracking.Domain\WorkBase.Modules.TimeTracking.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\TimeTracking\WorkBase.Modules.TimeTracking.Application\WorkBase.Modules.TimeTracking.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\TimeTracking\WorkBase.Modules.TimeTracking.Infrastructure\WorkBase.Modules.TimeTracking.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\TimeTracking\WorkBase.Modules.TimeTracking.Api\WorkBase.Modules.TimeTracking.Api.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Leave\WorkBase.Modules.Leave.Domain\WorkBase.Modules.Leave.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Leave\WorkBase.Modules.Leave.Application\WorkBase.Modules.Leave.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Leave\WorkBase.Modules.Leave.Infrastructure\WorkBase.Modules.Leave.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Leave\WorkBase.Modules.Leave.Api\WorkBase.Modules.Leave.Api.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Tasks\WorkBase.Modules.Tasks.Domain\WorkBase.Modules.Tasks.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Tasks\WorkBase.Modules.Tasks.Application\WorkBase.Modules.Tasks.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Tasks\WorkBase.Modules.Tasks.Infrastructure\WorkBase.Modules.Tasks.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Tasks\WorkBase.Modules.Tasks.Api\WorkBase.Modules.Tasks.Api.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Workflow\WorkBase.Modules.Workflow.Domain\WorkBase.Modules.Workflow.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Workflow\WorkBase.Modules.Workflow.Application\WorkBase.Modules.Workflow.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Workflow\WorkBase.Modules.Workflow.Infrastructure\WorkBase.Modules.Workflow.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Workflow\WorkBase.Modules.Workflow.Api\WorkBase.Modules.Workflow.Api.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Dashboard\WorkBase.Modules.Dashboard.Domain\WorkBase.Modules.Dashboard.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Dashboard\WorkBase.Modules.Dashboard.Application\WorkBase.Modules.Dashboard.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Dashboard\WorkBase.Modules.Dashboard.Infrastructure\WorkBase.Modules.Dashboard.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Dashboard\WorkBase.Modules.Dashboard.Api\WorkBase.Modules.Dashboard.Api.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Notification\WorkBase.Modules.Notification.Domain\WorkBase.Modules.Notification.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Notification\WorkBase.Modules.Notification.Application\WorkBase.Modules.Notification.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Notification\WorkBase.Modules.Notification.Infrastructure\WorkBase.Modules.Notification.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Notification\WorkBase.Modules.Notification.Api\WorkBase.Modules.Notification.Api.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Documents\WorkBase.Modules.Documents.Domain\WorkBase.Modules.Documents.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Documents\WorkBase.Modules.Documents.Application\WorkBase.Modules.Documents.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Documents\WorkBase.Modules.Documents.Infrastructure\WorkBase.Modules.Documents.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Documents\WorkBase.Modules.Documents.Api\WorkBase.Modules.Documents.Api.csproj" />
+    <ProjectReference Include="..\..\src\WorkBase.Shared\WorkBase.Shared.csproj" />
+    <ProjectReference Include="..\..\src\WorkBase.Contracts\WorkBase.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\WorkBase.Infrastructure\WorkBase.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\WorkBase.Host\WorkBase.Host.csproj" />
+  </ItemGroup>
+
+</Project>

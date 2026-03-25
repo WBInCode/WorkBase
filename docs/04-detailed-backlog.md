@@ -384,7 +384,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Repo** | https://github.com/WBInCode/WorkBase |
 | **Commit** | `9405fc8` — chore(init): initialize WorkBase repository |
 
-### T-E01-002: Utworzenie solution .NET z podziałem na projekty
+### ✅ T-E01-002: Utworzenie solution .NET z podziałem na projekty
 
 | Pole | Wartość |
 |---|---|
@@ -398,6 +398,8 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | średnia |
 | **Ryzyko** | średnie — błędna struktura na start jest kosztowna w naprawie |
 | **Uwagi** | Zgodnie z 03-technical-architecture.md sekcja 4. Dodać ArchUnit test weryfikujący granice modułów. |
+| **Status** | ✅ DONE |
+| **Commit** | `8f56695` — arch(solution): scaffold .NET modular monolith |
 
 ### T-E01-003: Konfiguracja PostgreSQL + EF Core
 
