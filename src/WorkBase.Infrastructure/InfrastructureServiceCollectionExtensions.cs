@@ -1,3 +1,5 @@
+using System.Reflection;
+using FluentValidation;
 using Hangfire;
 using Hangfire.PostgreSql;
 using HealthChecks.Hangfire;
@@ -7,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Minio;
 using Serilog.Core;
 using WorkBase.Infrastructure.Auth;
+using WorkBase.Infrastructure.Behaviors;
 using WorkBase.Infrastructure.Logging;
 using WorkBase.Infrastructure.Persistence;
 using WorkBase.Infrastructure.Storage;
@@ -25,6 +28,18 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddWorkBaseAuthentication(configuration);
 
         services.AddScoped<UserProvisioningService>();
+
+        var moduleApplicationAssemblies = GetModuleApplicationAssemblies().ToArray();
+
+        services.AddMediatR(cfg =>
+        {
+            cfg.RegisterServicesFromAssemblies(moduleApplicationAssemblies);
+            cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
+            cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
+            cfg.AddOpenBehavior(typeof(TenantBehavior<,>));
+        });
+
+        services.AddValidatorsFromAssemblies(moduleApplicationAssemblies, includeInternalTypes: true);
 
         services.AddDbContext<WorkBaseDbContext>(options =>
         {
@@ -89,5 +104,29 @@ public static class InfrastructureServiceCollectionExtensions
         }
 
         return services;
+    }
+
+    private static IEnumerable<Assembly> GetModuleApplicationAssemblies()
+    {
+        var moduleNames = new[]
+        {
+            "WorkBase.Modules.Identity.Application",
+            "WorkBase.Modules.Organization.Application",
+            "WorkBase.Modules.TimeTracking.Application",
+            "WorkBase.Modules.Leave.Application",
+            "WorkBase.Modules.Tasks.Application",
+            "WorkBase.Modules.Workflow.Application",
+            "WorkBase.Modules.Dashboard.Application",
+            "WorkBase.Modules.Notification.Application",
+            "WorkBase.Modules.Documents.Application"
+        };
+
+        foreach (var name in moduleNames)
+        {
+            Assembly? assembly = null;
+            try { assembly = Assembly.Load(name); } catch { /* Module not loaded */ }
+            if (assembly is not null)
+                yield return assembly;
+        }
     }
 }

@@ -672,6 +672,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | średnia |
 | **Ryzyko** | niskie |
 | **Uwagi** | Auto-discovery handlers i validators z modułów. |
+| **Status** | ✅ DONE |
 
 ### T-E04-004: Domain event bus (in-process)
 
