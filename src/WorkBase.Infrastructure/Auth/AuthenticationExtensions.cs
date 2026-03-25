@@ -38,10 +38,16 @@ public static class AuthenticationExtensions
 
                 options.Events = new JwtBearerEvents
                 {
-                    OnTokenValidated = context =>
+                    OnTokenValidated = async context =>
                     {
                         MapKeycloakClaims(context);
-                        return Task.CompletedTask;
+
+                        if (context.Principal is not null)
+                        {
+                            await UserProvisioningService.OnTokenValidatedAsync(
+                                context.HttpContext.RequestServices,
+                                context.Principal);
+                        }
                     }
                 };
             });

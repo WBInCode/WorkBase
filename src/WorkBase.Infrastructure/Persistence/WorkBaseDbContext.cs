@@ -1,3 +1,4 @@
+using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 
 namespace WorkBase.Infrastructure.Persistence;
@@ -16,6 +17,11 @@ public class WorkBaseDbContext : DbContext
         ApplyUuidV7Convention(modelBuilder);
 
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(WorkBaseDbContext).Assembly);
+
+        foreach (var assembly in GetModuleInfrastructureAssemblies())
+        {
+            modelBuilder.ApplyConfigurationsFromAssembly(assembly);
+        }
     }
 
     private static void ApplyUuidV7Convention(ModelBuilder modelBuilder)
@@ -28,6 +34,30 @@ public class WorkBaseDbContext : DbContext
                 idProperty.SetValueGeneratorFactory((_, _) => new UuidV7ValueGenerator());
                 idProperty.SetDefaultValueSql(null);
             }
+        }
+    }
+
+    private static IEnumerable<Assembly> GetModuleInfrastructureAssemblies()
+    {
+        var moduleNames = new[]
+        {
+            "WorkBase.Modules.Identity.Infrastructure",
+            "WorkBase.Modules.Organization.Infrastructure",
+            "WorkBase.Modules.TimeTracking.Infrastructure",
+            "WorkBase.Modules.Leave.Infrastructure",
+            "WorkBase.Modules.Tasks.Infrastructure",
+            "WorkBase.Modules.Workflow.Infrastructure",
+            "WorkBase.Modules.Dashboard.Infrastructure",
+            "WorkBase.Modules.Notification.Infrastructure",
+            "WorkBase.Modules.Documents.Infrastructure"
+        };
+
+        foreach (var name in moduleNames)
+        {
+            Assembly? assembly = null;
+            try { assembly = Assembly.Load(name); } catch { /* Module not loaded */ }
+            if (assembly is not null)
+                yield return assembly;
         }
     }
 }

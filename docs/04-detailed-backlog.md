@@ -620,6 +620,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | średnia |
 | **Ryzyko** | średnie |
 | **Uwagi** | Na MVP: provisioning at first login (lazy). Post-MVP: admin invite flow. |
+| **Status** | ✅ DONE |
 
 ---
 

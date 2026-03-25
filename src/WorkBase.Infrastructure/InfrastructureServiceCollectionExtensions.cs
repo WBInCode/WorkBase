@@ -24,6 +24,8 @@ public static class InfrastructureServiceCollectionExtensions
 
         services.AddWorkBaseAuthentication(configuration);
 
+        services.AddScoped<UserProvisioningService>();
+
         services.AddDbContext<WorkBaseDbContext>(options =>
         {
             options.UseNpgsql(

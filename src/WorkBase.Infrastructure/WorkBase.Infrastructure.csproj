@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
     <ProjectReference Include="..\WorkBase.Shared\WorkBase.Shared.csproj" />
+    <ProjectReference Include="..\Modules\Identity\WorkBase.Modules.Identity.Domain\WorkBase.Modules.Identity.Domain.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="AspNetCore.HealthChecks.Hangfire" Version="9.0.0" />
