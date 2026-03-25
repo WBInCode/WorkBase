@@ -520,7 +520,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Status** | ✅ DONE |
 | **Commit** | `5e1f7f1` — feat(health): add health check endpoints |
 
-### T-E01-010: OpenAPI / Swagger
+### ✅ T-E01-010: OpenAPI / Swagger
 
 | Pole | Wartość |
 |---|---|
@@ -534,6 +534,8 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | niska |
 | **Ryzyko** | niskie |
 | **Uwagi** | Spec jest źródłem do TypeScript codegen (T-E19-007). |
+| **Status** | ✅ DONE |
+| **Commit** | `eea7dbf` — feat(openapi): add OpenAPI spec generation with Scalar UI |
 
 ---
 

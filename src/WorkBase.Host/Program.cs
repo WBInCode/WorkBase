@@ -1,5 +1,6 @@
 using Hangfire;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Scalar.AspNetCore;
 using Serilog;
 using WorkBase.Infrastructure;
 using WorkBase.Infrastructure.BackgroundJobs;
@@ -17,9 +18,31 @@ try
         .ReadFrom.Configuration(context.Configuration)
         .ReadFrom.Services(services));
 
+    builder.Services.AddOpenApi(options =>
+    {
+        options.AddDocumentTransformer((document, _, _) =>
+        {
+            document.Info.Title = "WorkBase API";
+            document.Info.Version = "v1";
+            document.Info.Description = "WorkBase — B2B SaaS operational management platform";
+            return Task.CompletedTask;
+        });
+    });
+
     builder.Services.AddWorkBaseInfrastructure(builder.Configuration);
 
     var app = builder.Build();
+
+    app.MapOpenApi();
+
+    if (app.Environment.IsDevelopment())
+    {
+        app.MapScalarApiReference(options =>
+        {
+            options.Title = "WorkBase API";
+            options.Theme = ScalarTheme.BluePlanet;
+        });
+    }
 
     app.UseSerilogRequestLogging(options =>
     {

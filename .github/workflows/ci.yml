@@ -50,6 +50,25 @@ jobs:
         env:
           ConnectionStrings__WorkBase: "Host=localhost;Port=5432;Database=workbase_test;Username=workbase;Password=workbase"
 
+      - name: Generate OpenAPI spec
+        run: |
+          dotnet run --project src/WorkBase.Host/WorkBase.Host.csproj --configuration Release --urls "http://localhost:5099" &
+          APP_PID=$!
+          sleep 10
+          mkdir -p artifacts
+          curl -sf http://localhost:5099/openapi/v1.json -o artifacts/openapi.json
+          kill $APP_PID || true
+        env:
+          ConnectionStrings__WorkBase: "Host=localhost;Port=5432;Database=workbase_test;Username=workbase;Password=workbase"
+        continue-on-error: true
+
+      - name: Upload OpenAPI spec
+        uses: actions/upload-artifact@v4
+        with:
+          name: openapi-spec
+          path: artifacts/openapi.json
+          if-no-files-found: warn
+
   # frontend:
   #   name: Frontend (build + lint + test)
   #   runs-on: ubuntu-latest
