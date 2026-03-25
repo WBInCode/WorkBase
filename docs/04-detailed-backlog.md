@@ -435,7 +435,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Status** | ✅ DONE |
 | **Commit** | `71f8cca` — chore(docker): add Dockerfile and docker-compose.dev.yml |
 
-### T-E01-005: CI pipeline (GitHub Actions)
+### ✅ T-E01-005: CI pipeline (GitHub Actions)
 
 | Pole | Wartość |
 |---|---|
@@ -448,7 +448,9 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Owner** | devops |
 | **Złożoność** | średnia |
 | **Ryzyko** | niskie |
-| **Uwagi** | Dodać service container PostgreSQL do testów integracyjnych. |
+| **Uwagi** | Dodać service container PostgreSQL do testów integracyjnych. Frontend job zakomentowany — odblokować po T-E19-001. |
+| **Status** | ✅ DONE |
+| **Commit** | `845d011` — ci(actions): add GitHub Actions CI workflow |
 
 ### T-E01-006: Serilog structured logging
 

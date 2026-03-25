@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (build + test)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: workbase_test
+          POSTGRES_USER: workbase
+          POSTGRES_PASSWORD: workbase
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U workbase"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore WorkBase.sln
+
+      - name: Build
+        run: dotnet build WorkBase.sln --no-restore --configuration Release
+
+      - name: Test
+        run: dotnet test WorkBase.sln --no-build --configuration Release --verbosity normal
+        env:
+          ConnectionStrings__WorkBase: "Host=localhost;Port=5432;Database=workbase_test;Username=workbase;Password=workbase"
+
+  # frontend:
+  #   name: Frontend (build + lint + test)
+  #   runs-on: ubuntu-latest
+  #   # Odblokować po T-E19-001 (frontend shell setup)
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: actions/setup-node@v4
+  #       with:
+  #         node-version: '20'
+  #     - run: npm ci
+  #       working-directory: frontend
+  #     - run: npm run lint
+  #       working-directory: frontend
+  #     - run: npm run type-check
+  #       working-directory: frontend
+  #     - run: npm run test
+  #       working-directory: frontend
+  #     - run: npm run build
+  #       working-directory: frontend
