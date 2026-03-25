@@ -86,7 +86,7 @@ launchSettings.json.user
 # !**/Migrations/
 
 # -----------------------------------------------------------------------------
-# Node.js / React / TypeScript (workbase-web/)
+# Node.js / React / TypeScript (frontend/)
 # -----------------------------------------------------------------------------
 node_modules/
 dist/
@@ -96,7 +96,7 @@ build/
 .eslintcache
 
 ## Vite
-workbase-web/.vite/
+frontend/.vite/
 
 ## Environment (local overrides only — .env.example IS tracked)
 .env
@@ -105,8 +105,8 @@ workbase-web/.vite/
 !.env.example
 
 ## Capacitor (generated)
-workbase-web/android/
-workbase-web/ios/
+frontend/android/
+frontend/ios/
 
 # -----------------------------------------------------------------------------
 # Docker
