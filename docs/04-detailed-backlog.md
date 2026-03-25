@@ -720,6 +720,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | średnia |
 | **Ryzyko** | niskie |
 | **Uwagi** | Performance: diff serializowany do JSONB. Nie logować blob/attachment content. |
+| **Status** | ✅ DONE |
 
 ---
 

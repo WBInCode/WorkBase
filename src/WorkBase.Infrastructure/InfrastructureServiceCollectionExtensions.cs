@@ -45,6 +45,7 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddValidatorsFromAssemblies(moduleApplicationAssemblies, includeInternalTypes: true);
 
         services.AddScoped<DomainEventInterceptor>();
+        services.AddScoped<AuditSaveChangesInterceptor>();
 
         services.AddDbContext<WorkBaseDbContext>((sp, options) =>
         {
@@ -58,7 +59,9 @@ public static class InfrastructureServiceCollectionExtensions
 
             options.UseSnakeCaseNamingConvention();
 
-            options.AddInterceptors(sp.GetRequiredService<DomainEventInterceptor>());
+            options.AddInterceptors(
+                sp.GetRequiredService<AuditSaveChangesInterceptor>(),
+                sp.GetRequiredService<DomainEventInterceptor>());
         });
 
         services.AddHangfire(config => config
