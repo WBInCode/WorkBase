@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Serilog.Core;
+using WorkBase.Infrastructure.Logging;
 using WorkBase.Infrastructure.Persistence;
 
 namespace WorkBase.Infrastructure;
@@ -11,6 +13,8 @@ public static class InfrastructureServiceCollectionExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        services.AddHttpContextAccessor();
+
         services.AddDbContext<WorkBaseDbContext>(options =>
         {
             options.UseNpgsql(
@@ -23,6 +27,8 @@ public static class InfrastructureServiceCollectionExtensions
 
             options.UseSnakeCaseNamingConvention();
         });
+
+        services.AddSingleton<ILogEventEnricher, UserContextEnricher>();
 
         return services;
     }

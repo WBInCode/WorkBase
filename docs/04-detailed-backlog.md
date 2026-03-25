@@ -452,7 +452,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Status** | ✅ DONE |
 | **Commit** | `845d011` — ci(actions): add GitHub Actions CI workflow |
 
-### T-E01-006: Serilog structured logging
+### ✅ T-E01-006: Serilog structured logging
 
 | Pole | Wartość |
 |---|---|
@@ -466,6 +466,8 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | niska |
 | **Ryzyko** | niskie |
 | **Uwagi** | — |
+| **Status** | ✅ DONE |
+| **Commit** | `221f3e0` — feat(logging): add Serilog structured logging with Seq sink |
 
 ### T-E01-007: Hangfire setup
 

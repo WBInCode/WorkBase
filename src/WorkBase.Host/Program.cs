@@ -1,17 +1,46 @@
+using Serilog;
 using WorkBase.Infrastructure;
 using WorkBase.Infrastructure.Seeding;
 
-var builder = WebApplication.CreateBuilder(args);
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .CreateBootstrapLogger();
 
-builder.Services.AddWorkBaseInfrastructure(builder.Configuration);
+try
+{
+    var builder = WebApplication.CreateBuilder(args);
 
-var app = builder.Build();
+    builder.Host.UseSerilog((context, services, configuration) => configuration
+        .ReadFrom.Configuration(context.Configuration)
+        .ReadFrom.Services(services));
 
-app.MapGet("/", () => Results.Ok(new { Service = "WorkBase API", Status = "Running" }));
+    builder.Services.AddWorkBaseInfrastructure(builder.Configuration);
 
-await DatabaseSeeder.SeedAsync(app.Services);
+    var app = builder.Build();
 
-app.Run();
+    app.UseSerilogRequestLogging(options =>
+    {
+        options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
+        {
+            diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value ?? string.Empty);
+            diagnosticContext.Set("UserAgent", httpContext.Request.Headers.UserAgent.ToString());
+        };
+    });
+
+    app.MapGet("/", () => Results.Ok(new { Service = "WorkBase API", Status = "Running" }));
+
+    await DatabaseSeeder.SeedAsync(app.Services);
+
+    app.Run();
+}
+catch (Exception ex) when (ex is not HostAbortedException)
+{
+    Log.Fatal(ex, "Application terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
+}
 
 namespace WorkBase.Host
 {
