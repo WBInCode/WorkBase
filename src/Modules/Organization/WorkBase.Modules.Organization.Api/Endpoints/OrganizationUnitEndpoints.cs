@@ -1,0 +1,73 @@
+using MediatR;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
+using WorkBase.Modules.Organization.Application.Commands.Units;
+using WorkBase.Modules.Organization.Application.Dtos;
+using WorkBase.Modules.Organization.Application.Queries.Units;
+
+namespace WorkBase.Modules.Organization.Api.Endpoints;
+
+public static class OrganizationUnitEndpoints
+{
+    public static IEndpointRouteBuilder MapOrganizationUnitEndpoints(this IEndpointRouteBuilder endpoints)
+    {
+        var group = endpoints.MapGroup("/api/org/units")
+            .WithTags("Organization Units")
+            .RequireAuthorization();
+
+        group.MapPost("/", CreateUnit)
+            .WithName("CreateOrganizationUnit")
+            .WithSummary("Utwórz jednostkę organizacyjną")
+            .Produces<Guid>(StatusCodes.Status201Created)
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status409Conflict);
+
+        group.MapGet("/tree", GetUnitTree)
+            .WithName("GetUnitTree")
+            .WithSummary("Pobierz drzewo hierarchii organizacyjnej")
+            .Produces<List<OrganizationUnitTreeNodeDto>>();
+
+        group.MapPut("/{id:guid}", UpdateUnit)
+            .WithName("UpdateOrganizationUnit")
+            .WithSummary("Zaktualizuj jednostkę organizacyjną")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status404NotFound);
+
+        return endpoints;
+    }
+
+    private static async Task<IResult> CreateUnit(
+        CreateOrganizationUnitCommand command,
+        ISender sender)
+    {
+        var result = await sender.Send(command);
+
+        return result.IsSuccess
+            ? Results.CreatedAtRoute("GetUnitTree", null, new { id = result.Value })
+            : result.ToHttpResult();
+    }
+
+    private static async Task<IResult> GetUnitTree(
+        ISender sender)
+    {
+        var result = await sender.Send(new GetUnitTreeQuery());
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> UpdateUnit(
+        Guid id,
+        UpdateOrganizationUnitRequest request,
+        ISender sender)
+    {
+        var command = new UpdateOrganizationUnitCommand(id, request.Name, request.Code, request.TypeId);
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
+    }
+}
+
+public sealed record UpdateOrganizationUnitRequest(
+    string Name,
+    string? Code,
+    Guid TypeId);

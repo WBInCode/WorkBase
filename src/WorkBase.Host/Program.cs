@@ -6,6 +6,7 @@ using WorkBase.Infrastructure;
 using WorkBase.Infrastructure.BackgroundJobs;
 using WorkBase.Infrastructure.Seeding;
 using WorkBase.Modules.Identity.Api.Endpoints;
+using WorkBase.Modules.Organization.Api.Endpoints;
 using WorkBase.Modules.Organization.Infrastructure;
 
 Log.Logger = new LoggerConfiguration()
@@ -104,6 +105,11 @@ try
     app.MapGet("/", () => Results.Ok(new { Service = "WorkBase API", Status = "Running" }));
 
     app.MapAuthEndpoints();
+
+    app.MapOrganizationUnitEndpoints();
+    app.MapEmployeeEndpoints();
+    app.MapPositionEndpoints();
+    app.MapUnitTypeEndpoints();
 
     app.MapHealthChecks("/health", new HealthCheckOptions
     {

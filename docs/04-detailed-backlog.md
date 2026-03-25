@@ -763,6 +763,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | Pole | Wartość |
 |---|---|
 | **Nazwa** | REST API: Organization endpoints |
+| **Status** | ✅ DONE |
 | **Opis** | OrganizationUnitsController, EmployeesController, PositionsController, UnitTypesController. Endpointy zgodnie z 03-technical-architecture.md sekcja 3.2 MOD-ORG. |
 | **Typ** | backend |
 | **Priorytet** | must-have |
