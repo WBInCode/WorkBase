@@ -811,6 +811,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | Pole | Wartość |
 |---|---|
 | **Nazwa** | UI: Import pracowników z CSV |
+| **Status** | ✅ DONE |
 | **Opis** | Upload CSV → preview (tabela z podglądem) → mapowanie kolumn → walidacja → import. Feedback: ile zaimportowano, ile błędów. |
 | **Typ** | frontend |
 | **Priorytet** | should-have |

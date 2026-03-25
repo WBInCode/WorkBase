@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from 'react-oidc-context';
-import { FolderTree, Users, LogOut, Menu, X } from 'lucide-react';
+import { FolderTree, Users, FileUp, LogOut, Menu, X } from 'lucide-react';
 import { mapUserClaims } from '@/auth';
 
 interface MainLayoutProps {
@@ -10,7 +10,8 @@ interface MainLayoutProps {
 
 const navItems = [
   { path: '/org/tree', label: 'Struktura organizacyjna', icon: FolderTree },
-  { path: '/org/employees', label: 'Pracownicy', icon: Users },
+  { path: '/org/employees', label: 'Pracownicy', icon: Users, exact: true },
+  { path: '/org/employees/import', label: 'Import CSV', icon: FileUp },
 ];
 
 export function MainLayout({ children }: MainLayoutProps) {
@@ -52,7 +53,9 @@ export function MainLayout({ children }: MainLayoutProps) {
         {/* Nav */}
         <nav style={{ flex: 1, padding: '12px 8px' }}>
           {navItems.map((item) => {
-            const isActive = location.pathname.startsWith(item.path);
+            const isActive = item.exact
+              ? location.pathname === item.path
+              : location.pathname.startsWith(item.path);
             const Icon = item.icon;
             return (
               <Link

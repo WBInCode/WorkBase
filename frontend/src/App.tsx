@@ -7,6 +7,7 @@ import { MainLayout } from '@/layouts/MainLayout';
 import { AuthCallbackPage } from '@/pages/AuthCallbackPage';
 import { OrgTreePage } from '@/pages/organization/OrgTreePage';
 import { EmployeeListPage } from '@/pages/organization/EmployeeListPage';
+import { CsvImportPage } from '@/pages/organization/CsvImportPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -28,6 +29,7 @@ function AppRoutes() {
       <Routes>
         <Route path="/org/tree" element={<OrgTreePage />} />
         <Route path="/org/employees" element={<EmployeeListPage />} />
+        <Route path="/org/employees/import" element={<CsvImportPage />} />
         <Route path="*" element={<Navigate to="/org/tree" replace />} />
       </Routes>
     </MainLayout>
