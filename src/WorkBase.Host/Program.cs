@@ -6,6 +6,7 @@ using WorkBase.Infrastructure;
 using WorkBase.Infrastructure.BackgroundJobs;
 using WorkBase.Infrastructure.Seeding;
 using WorkBase.Modules.Identity.Api.Endpoints;
+using WorkBase.Modules.Organization.Infrastructure;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -46,6 +47,8 @@ try
     });
 
     builder.Services.AddWorkBaseInfrastructure(builder.Configuration);
+
+    builder.Services.AddOrganizationModule();
 
     var allowedOrigins = builder.Configuration
         .GetSection("Cors:AllowedOrigins")

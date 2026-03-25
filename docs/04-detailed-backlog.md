@@ -747,6 +747,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | Pole | Wartość |
 |---|---|
 | **Nazwa** | Implementacja domeny: Organization Module |
+| **Status** | ✅ DONE |
 | **Opis** | Entities: OrganizationUnit, Employee, EmployeeAssignment, SupervisorRelation etc. Commands: CreateUnit, UpdateUnit, CreateEmployee, AssignEmployee, SetSupervisor. Queries: GetUnitTree, GetEmployees, GetEmployeeById. Validators. |
 | **Typ** | backend |
 | **Priorytet** | must-have |

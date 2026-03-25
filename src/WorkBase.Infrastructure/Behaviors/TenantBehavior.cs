@@ -1,18 +1,10 @@
 using System.Security.Claims;
 using MediatR;
 using Microsoft.AspNetCore.Http;
+using WorkBase.Shared.Cqrs;
 using WorkBase.Shared.Domain;
 
 namespace WorkBase.Infrastructure.Behaviors;
-
-/// <summary>
-/// Marker interface for requests that require tenant context.
-/// TenantId will be resolved from the current user's JWT claims.
-/// </summary>
-public interface ITenantRequest
-{
-    Guid TenantId { get; set; }
-}
 
 public sealed class TenantBehavior<TRequest, TResponse>(
     IHttpContextAccessor httpContextAccessor)

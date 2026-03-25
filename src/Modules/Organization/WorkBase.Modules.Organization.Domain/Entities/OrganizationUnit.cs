@@ -1,3 +1,4 @@
+using WorkBase.Modules.Organization.Domain.Events;
 using WorkBase.Shared.Domain;
 
 namespace WorkBase.Modules.Organization.Domain.Entities;
@@ -20,7 +21,7 @@ public sealed class OrganizationUnit : AuditableEntity<Guid>, ITenantScoped, IAu
         Guid typeId,
         Guid? parentId)
     {
-        return new OrganizationUnit
+        var unit = new OrganizationUnit
         {
             TenantId = tenantId,
             Name = name,
@@ -29,6 +30,9 @@ public sealed class OrganizationUnit : AuditableEntity<Guid>, ITenantScoped, IAu
             ParentId = parentId,
             IsActive = true
         };
+
+        unit.RaiseDomainEvent(new OrganizationUnitCreatedEvent(unit.Id, tenantId));
+        return unit;
     }
 
     public void Update(string name, string? code, Guid typeId)
@@ -36,6 +40,7 @@ public sealed class OrganizationUnit : AuditableEntity<Guid>, ITenantScoped, IAu
         Name = name;
         Code = code;
         TypeId = typeId;
+        RaiseDomainEvent(new OrganizationUnitUpdatedEvent(Id, TenantId));
     }
 
     public void Move(Guid? newParentId)

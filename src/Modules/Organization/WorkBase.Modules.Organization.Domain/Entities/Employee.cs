@@ -1,3 +1,4 @@
+using WorkBase.Modules.Organization.Domain.Events;
 using WorkBase.Shared.Domain;
 
 namespace WorkBase.Modules.Organization.Domain.Entities;
@@ -26,7 +27,7 @@ public sealed class Employee : AuditableEntity<Guid>, ITenantScoped, IAuditable
         DateTime hireDate,
         Guid? userId = null)
     {
-        return new Employee
+        var employee = new Employee
         {
             TenantId = tenantId,
             UserId = userId,
@@ -37,6 +38,9 @@ public sealed class Employee : AuditableEntity<Guid>, ITenantScoped, IAuditable
             HireDate = hireDate,
             Status = EmployeeStatus.Active
         };
+
+        employee.RaiseDomainEvent(new EmployeeCreatedEvent(employee.Id, tenantId));
+        return employee;
     }
 
     public void Update(string firstName, string lastName, string email, string? employeeNumber)
@@ -56,6 +60,7 @@ public sealed class Employee : AuditableEntity<Guid>, ITenantScoped, IAuditable
     {
         Status = EmployeeStatus.Inactive;
         TerminationDate = terminationDate;
+        RaiseDomainEvent(new EmployeeDeactivatedEvent(Id, TenantId));
     }
 
     public void Activate()
