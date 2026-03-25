@@ -1,4 +1,5 @@
 using Hangfire;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Serilog;
 using WorkBase.Infrastructure;
 using WorkBase.Infrastructure.BackgroundJobs;
@@ -37,6 +38,32 @@ try
     });
 
     app.MapGet("/", () => Results.Ok(new { Service = "WorkBase API", Status = "Running" }));
+
+    app.MapHealthChecks("/health", new HealthCheckOptions
+    {
+        ResponseWriter = async (context, report) =>
+        {
+            context.Response.ContentType = "application/json";
+            var result = new
+            {
+                status = report.Status.ToString(),
+                checks = report.Entries.Select(e => new
+                {
+                    name = e.Key,
+                    status = e.Value.Status.ToString(),
+                    description = e.Value.Description,
+                    duration = e.Value.Duration.TotalMilliseconds
+                }),
+                totalDuration = report.TotalDuration.TotalMilliseconds
+            };
+            await context.Response.WriteAsJsonAsync(result);
+        }
+    });
+
+    app.MapHealthChecks("/health/ready", new HealthCheckOptions
+    {
+        Predicate = check => check.Tags.Contains("ready")
+    });
 
     await DatabaseSeeder.SeedAsync(app.Services);
 

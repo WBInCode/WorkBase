@@ -1,5 +1,6 @@
 using Hangfire;
 using Hangfire.PostgreSql;
+using HealthChecks.Hangfire;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -67,6 +68,20 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddSingleton<IFileStorage, MinioFileStorage>();
 
         services.AddSingleton<ILogEventEnricher, UserContextEnricher>();
+
+        var connectionString = configuration.GetConnectionString("DefaultConnection")!;
+        var keycloakAuthority = configuration["Keycloak:Authority"];
+
+        services.AddHealthChecks()
+            .AddNpgSql(connectionString, name: "postgresql", tags: ["db", "ready"])
+            .AddHangfire(options => options.MinimumAvailableServers = 1, name: "hangfire", tags: ["jobs", "ready"])
+            .AddCheck<MinioHealthCheck>("minio", tags: ["storage", "ready"]);
+
+        if (!string.IsNullOrEmpty(keycloakAuthority))
+        {
+            services.AddHealthChecks()
+                .AddUrlGroup(new Uri(keycloakAuthority), name: "keycloak", tags: ["auth", "ready"]);
+        }
 
         return services;
     }

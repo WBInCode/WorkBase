@@ -503,7 +503,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Status** | ✅ DONE |
 | **Commit** | `c40b4d2` — feat(storage): add IFileStorage interface and MinIO adapter |
 
-### T-E01-009: Health check endpoint
+### ✅ T-E01-009: Health check endpoint
 
 | Pole | Wartość |
 |---|---|
@@ -517,6 +517,8 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | niska |
 | **Ryzyko** | niskie |
 | **Uwagi** | — |
+| **Status** | ✅ DONE |
+| **Commit** | `5e1f7f1` — feat(health): add health check endpoints |
 
 ### T-E01-010: OpenAPI / Swagger
 
