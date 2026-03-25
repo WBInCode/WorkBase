@@ -12,6 +12,7 @@ services:
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-workbase}
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./postgres/init-schemas.sql:/docker-entrypoint-initdb.d/01-init-schemas.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-workbase} -d ${DATABASE_NAME:-workbase}"]
       interval: 5s
@@ -33,16 +34,18 @@ services:
       KC_DB_PASSWORD: ${DATABASE_PASSWORD:-workbase}
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
-    command: start-dev
+    command: start-dev --import-realm
+    volumes:
+      - ./keycloak/workbase-realm.json:/opt/keycloak/data/import/workbase-realm.json:ro
     depends_on:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/8080 && echo -e 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\n\\r\\n' >&3 && cat <&3 | grep -q '200'"]
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/8080"]
       interval: 10s
       timeout: 5s
-      retries: 10
-      start_period: 30s
+      retries: 15
+      start_period: 60s
 
   # --- MinIO (S3-compatible file storage) ---
   minio:

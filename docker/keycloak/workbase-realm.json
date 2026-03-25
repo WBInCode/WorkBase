@@ -1,0 +1,209 @@
+{
+  "realm": "workbase",
+  "enabled": true,
+  "displayName": "WorkBase",
+  "displayNameHtml": "<strong>WorkBase</strong>",
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+  "permanentLockout": false,
+  "maxFailureWaitSeconds": 900,
+  "minimumQuickLoginWaitSeconds": 60,
+  "waitIncrementSeconds": 60,
+  "quickLoginCheckMilliSeconds": 1000,
+  "maxDeltaTimeSeconds": 43200,
+  "failureFactor": 5,
+  "accessTokenLifespan": 300,
+  "accessTokenLifespanForImplicitFlow": 900,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
+  "offlineSessionIdleTimeout": 2592000,
+  "offlineSessionMaxLifespanEnabled": false,
+  "accessCodeLifespan": 60,
+  "accessCodeLifespanUserAction": 300,
+  "accessCodeLifespanLogin": 1800,
+  "actionTokenGeneratedByAdminLifespan": 43200,
+  "actionTokenGeneratedByUserLifespan": 300,
+  "defaultSignatureAlgorithm": "RS256",
+  "roles": {
+    "realm": [
+      {
+        "name": "workbase-admin",
+        "description": "WorkBase platform administrator",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "name": "workbase-user",
+        "description": "WorkBase standard user",
+        "composite": false,
+        "clientRole": false
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "workbase-web",
+      "name": "WorkBase Web SPA",
+      "description": "Public client for React SPA — Authorization Code Flow with PKCE",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "protocol": "openid-connect",
+      "rootUrl": "http://localhost:5173",
+      "baseUrl": "/",
+      "redirectUris": [
+        "http://localhost:5173/*",
+        "http://localhost:5174/*"
+      ],
+      "webOrigins": [
+        "http://localhost:5173",
+        "http://localhost:5174"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:5173/*"
+      },
+      "defaultClientScopes": [
+        "workbase-scope"
+      ],
+      "optionalClientScopes": [
+        "offline_access"
+      ]
+    },
+    {
+      "clientId": "workbase-api",
+      "name": "WorkBase API",
+      "description": "Confidential client for backend API — service-to-service and token validation",
+      "enabled": true,
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "workbase-api-dev-secret",
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": true,
+      "protocol": "openid-connect",
+      "redirectUris": [
+        "http://localhost:5000/*",
+        "http://localhost:5055/*"
+      ],
+      "webOrigins": [
+        "http://localhost:5000",
+        "http://localhost:5055"
+      ],
+      "defaultClientScopes": [
+        "workbase-scope"
+      ]
+    }
+  ],
+  "clientScopes": [
+    {
+      "name": "workbase-scope",
+      "description": "WorkBase custom claims (tenant_id, employee_id)",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "false"
+      },
+      "protocolMappers": [
+        {
+          "name": "tenant_id",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "userinfo.token.claim": "true",
+            "user.attribute": "tenant_id",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "tenant_id",
+            "jsonType.label": "String"
+          }
+        },
+        {
+          "name": "employee_id",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "userinfo.token.claim": "true",
+            "user.attribute": "employee_id",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "employee_id",
+            "jsonType.label": "String"
+          }
+        },
+        {
+          "name": "realm-roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "userinfo.token.claim": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "roles",
+            "multivalued": "true",
+            "jsonType.label": "String"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "admin@workbase.local",
+      "email": "admin@workbase.local",
+      "emailVerified": true,
+      "enabled": true,
+      "firstName": "Admin",
+      "lastName": "WorkBase",
+      "attributes": {
+        "tenant_id": ["00000000-0000-0000-0000-000000000001"],
+        "employee_id": ["00000000-0000-0000-0000-000000000001"]
+      },
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "workbase-admin",
+        "workbase-user"
+      ]
+    },
+    {
+      "username": "user@workbase.local",
+      "email": "user@workbase.local",
+      "emailVerified": true,
+      "enabled": true,
+      "firstName": "Jan",
+      "lastName": "Kowalski",
+      "attributes": {
+        "tenant_id": ["00000000-0000-0000-0000-000000000001"],
+        "employee_id": ["00000000-0000-0000-0000-000000000002"]
+      },
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "workbase-user"
+      ]
+    }
+  ]
+}

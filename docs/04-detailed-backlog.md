@@ -541,7 +541,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 
 ## EPIK E02: Autentykacja i IAM
 
-### T-E02-001: Konfiguracja Keycloak realm
+### ✅ T-E02-001: Konfiguracja Keycloak realm
 
 | Pole | Wartość |
 |---|---|
@@ -555,6 +555,8 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | średnia |
 | **Ryzyko** | średnie — Keycloak ma steep learning curve |
 | **Uwagi** | Realm config w repo (IaC). Custom claim mapper dla tenant_id. Spike: warto poświęcić 1–2 dni na Keycloak POC. |
+| **Status** | ✅ DONE |
+| **Commit** | `4e93d40` — feat(auth): configure Keycloak realm with workbase clients |
 
 ### T-E02-002: JWT validation middleware
 
