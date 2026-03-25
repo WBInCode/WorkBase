@@ -77,6 +77,8 @@ try
 
     app.UseCors();
 
+    app.UseExceptionHandler();
+
     app.UseAuthentication();
     app.UseAuthorization();
 

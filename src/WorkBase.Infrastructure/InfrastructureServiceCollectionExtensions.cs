@@ -25,6 +25,9 @@ public static class InfrastructureServiceCollectionExtensions
     {
         services.AddHttpContextAccessor();
 
+        services.AddExceptionHandler<Middleware.GlobalExceptionHandler>();
+        services.AddProblemDetails();
+
         services.AddWorkBaseAuthentication(configuration);
 
         services.AddScoped<UserProvisioningService>();

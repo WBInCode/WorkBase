@@ -704,6 +704,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | niska |
 | **Ryzyko** | niskie |
 | **Uwagi** | — |
+| **Status** | ✅ DONE |
 
 ### T-E04-006: Audit interceptor (EF Core SaveChanges)
 
