@@ -6,6 +6,7 @@ import { setTokenProvider } from '@/api/client';
 import { MainLayout } from '@/layouts/MainLayout';
 import { AuthCallbackPage } from '@/pages/AuthCallbackPage';
 import { OrgTreePage } from '@/pages/organization/OrgTreePage';
+import { EmployeeListPage } from '@/pages/organization/EmployeeListPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -26,6 +27,7 @@ function AppRoutes() {
     <MainLayout>
       <Routes>
         <Route path="/org/tree" element={<OrgTreePage />} />
+        <Route path="/org/employees" element={<EmployeeListPage />} />
         <Route path="*" element={<Navigate to="/org/tree" replace />} />
       </Routes>
     </MainLayout>

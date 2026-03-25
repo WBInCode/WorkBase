@@ -795,6 +795,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | Pole | Wartość |
 |---|---|
 | **Nazwa** | UI: Lista pracowników + formularz tworzenia/edycji |
+| **Status** | ✅ DONE |
 | **Opis** | EmployeeListPage: tabela z filtrowaniem (zespół, dział, status), search, paginacja. EmployeeForm: modal/drawer z polami (imię, nazwisko, email, stanowisko, jednostka, przełożony). **Role: Admin, HR, Kierownik.** |
 | **Typ** | frontend |
 | **Priorytet** | must-have |

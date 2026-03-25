@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from 'react-oidc-context';
-import { FolderTree, LogOut, Menu, X } from 'lucide-react';
+import { FolderTree, Users, LogOut, Menu, X } from 'lucide-react';
 import { mapUserClaims } from '@/auth';
 
 interface MainLayoutProps {
@@ -10,6 +10,7 @@ interface MainLayoutProps {
 
 const navItems = [
   { path: '/org/tree', label: 'Struktura organizacyjna', icon: FolderTree },
+  { path: '/org/employees', label: 'Pracownicy', icon: Users },
 ];
 
 export function MainLayout({ children }: MainLayoutProps) {
