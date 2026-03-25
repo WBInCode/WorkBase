@@ -688,6 +688,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | średnia |
 | **Ryzyko** | niskie |
 | **Uwagi** | Fundament komunikacji między modułami. |
+| **Status** | ✅ DONE |
 
 ### T-E04-005: Exception handling middleware (RFC 7807)
 

@@ -41,7 +41,9 @@ public static class InfrastructureServiceCollectionExtensions
 
         services.AddValidatorsFromAssemblies(moduleApplicationAssemblies, includeInternalTypes: true);
 
-        services.AddDbContext<WorkBaseDbContext>(options =>
+        services.AddScoped<DomainEventInterceptor>();
+
+        services.AddDbContext<WorkBaseDbContext>((sp, options) =>
         {
             options.UseNpgsql(
                 configuration.GetConnectionString("DefaultConnection"),
@@ -52,6 +54,8 @@ public static class InfrastructureServiceCollectionExtensions
                 });
 
             options.UseSnakeCaseNamingConvention();
+
+            options.AddInterceptors(sp.GetRequiredService<DomainEventInterceptor>());
         });
 
         services.AddHangfire(config => config
