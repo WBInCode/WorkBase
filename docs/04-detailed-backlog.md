@@ -486,7 +486,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Status** | ✅ DONE |
 | **Commit** | `42e5715` — feat(hangfire): add Hangfire with PostgreSQL storage |
 
-### T-E01-008: File storage adapter (MinIO)
+### ✅ T-E01-008: File storage adapter (MinIO)
 
 | Pole | Wartość |
 |---|---|
@@ -500,6 +500,8 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | niska |
 | **Ryzyko** | niskie |
 | **Uwagi** | Abstrakcja pozwala na zamianę na S3/Azure Blob bez zmian w kodzie biznesowym. |
+| **Status** | ✅ DONE |
+| **Commit** | `c40b4d2` — feat(storage): add IFileStorage interface and MinIO adapter |
 
 ### T-E01-009: Health check endpoint
 

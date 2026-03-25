@@ -3,9 +3,12 @@ using Hangfire.PostgreSql;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Minio;
 using Serilog.Core;
 using WorkBase.Infrastructure.Logging;
 using WorkBase.Infrastructure.Persistence;
+using WorkBase.Infrastructure.Storage;
+using WorkBase.Shared.Storage;
 
 namespace WorkBase.Infrastructure;
 
@@ -42,6 +45,26 @@ public static class InfrastructureServiceCollectionExtensions
         {
             options.Queues = ["critical", "default", "reports"];
         });
+
+        var storageOptions = configuration
+            .GetSection(StorageOptions.SectionName)
+            .Get<StorageOptions>() ?? new StorageOptions();
+
+        services.AddSingleton<IMinioClient>(_ =>
+        {
+            var client = new MinioClient()
+                .WithEndpoint(storageOptions.Endpoint)
+                .WithCredentials(storageOptions.AccessKey, storageOptions.SecretKey);
+
+            if (storageOptions.UseSSL)
+            {
+                client = client.WithSSL();
+            }
+
+            return client.Build();
+        });
+
+        services.AddSingleton<IFileStorage, MinioFileStorage>();
 
         services.AddSingleton<ILogEventEnricher, UserContextEnricher>();
 
