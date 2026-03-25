@@ -590,7 +590,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Uwagi** | Token w memory (nie localStorage) — bezpieczniejsze. Refresh token via httpOnly cookie lub silent refresh. |
 | **Status** | ✅ DONE |
 
-### T-E02-004: GET /api/auth/me endpoint
+### ✅ T-E02-004: GET /api/auth/me endpoint
 
 | Pole | Wartość |
 |---|---|
@@ -604,6 +604,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | niska |
 | **Ryzyko** | niskie |
 | **Uwagi** | Critical path — frontend zależy od tego endpointu. |
+| **Status** | ✅ DONE |
 
 ### T-E02-005: User provisioning (Keycloak → WorkBase sync)
 

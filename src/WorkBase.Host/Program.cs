@@ -5,6 +5,7 @@ using Serilog;
 using WorkBase.Infrastructure;
 using WorkBase.Infrastructure.BackgroundJobs;
 using WorkBase.Infrastructure.Seeding;
+using WorkBase.Modules.Identity.Api.Endpoints;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -96,6 +97,8 @@ try
     });
 
     app.MapGet("/", () => Results.Ok(new { Service = "WorkBase API", Status = "Running" }));
+
+    app.MapAuthEndpoints();
 
     app.MapHealthChecks("/health", new HealthCheckOptions
     {
