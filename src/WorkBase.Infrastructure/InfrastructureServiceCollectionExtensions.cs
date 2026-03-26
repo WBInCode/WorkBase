@@ -3,6 +3,7 @@ using FluentValidation;
 using Hangfire;
 using Hangfire.PostgreSql;
 using HealthChecks.Hangfire;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,6 +14,7 @@ using WorkBase.Infrastructure.Behaviors;
 using WorkBase.Infrastructure.Logging;
 using WorkBase.Infrastructure.Persistence;
 using WorkBase.Infrastructure.Storage;
+using WorkBase.Shared.Auth;
 using WorkBase.Shared.Storage;
 
 namespace WorkBase.Infrastructure;
@@ -29,6 +31,10 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddProblemDetails();
 
         services.AddWorkBaseAuthentication(configuration);
+
+        services.AddMemoryCache();
+        services.AddScoped<IPermissionService, PermissionService>();
+        services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
 
         services.AddScoped<UserProvisioningService>();
 

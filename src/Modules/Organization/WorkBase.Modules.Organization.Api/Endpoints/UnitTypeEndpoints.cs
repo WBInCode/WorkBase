@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Routing;
 using WorkBase.Modules.Organization.Application.Commands.UnitTypes;
 using WorkBase.Modules.Organization.Application.Dtos;
 using WorkBase.Modules.Organization.Application.Queries.UnitTypes;
+using WorkBase.Shared.Auth;
 
 namespace WorkBase.Modules.Organization.Api.Endpoints;
 
@@ -19,11 +20,13 @@ public static class UnitTypeEndpoints
         group.MapGet("/", GetUnitTypes)
             .WithName("GetUnitTypes")
             .WithSummary("Pobierz listę typów jednostek (słownik per tenant)")
+            .RequirePermission("org.view")
             .Produces<List<OrganizationUnitTypeDto>>();
 
         group.MapPost("/", CreateUnitType)
             .WithName("CreateUnitType")
             .WithSummary("Utwórz typ jednostki organizacyjnej")
+            .RequirePermission("org.create")
             .Produces<Guid>(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status409Conflict);
@@ -31,6 +34,7 @@ public static class UnitTypeEndpoints
         group.MapPut("/{id:guid}", UpdateUnitType)
             .WithName("UpdateUnitType")
             .WithSummary("Zaktualizuj typ jednostki organizacyjnej")
+            .RequirePermission("org.edit")
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound);

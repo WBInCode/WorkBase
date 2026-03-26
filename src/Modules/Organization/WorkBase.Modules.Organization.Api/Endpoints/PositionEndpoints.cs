@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Routing;
 using WorkBase.Modules.Organization.Application.Commands.Positions;
 using WorkBase.Modules.Organization.Application.Dtos;
 using WorkBase.Modules.Organization.Application.Queries.Positions;
+using WorkBase.Shared.Auth;
 
 namespace WorkBase.Modules.Organization.Api.Endpoints;
 
@@ -19,11 +20,13 @@ public static class PositionEndpoints
         group.MapGet("/", GetPositions)
             .WithName("GetPositions")
             .WithSummary("Pobierz listę stanowisk (słownik per tenant)")
+            .RequirePermission("org.view")
             .Produces<List<PositionDto>>();
 
         group.MapPost("/", CreatePosition)
             .WithName("CreatePosition")
             .WithSummary("Utwórz stanowisko")
+            .RequirePermission("org.create")
             .Produces<Guid>(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status409Conflict);
@@ -31,6 +34,7 @@ public static class PositionEndpoints
         group.MapPut("/{id:guid}", UpdatePosition)
             .WithName("UpdatePosition")
             .WithSummary("Zaktualizuj stanowisko")
+            .RequirePermission("org.edit")
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound);

@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using WorkBase.Shared.Auth;
 
 namespace WorkBase.Modules.Identity.Api.Endpoints;
 
@@ -22,23 +23,32 @@ public static class AuthEndpoints
         return endpoints;
     }
 
-    private static IResult GetCurrentUser(ClaimsPrincipal user)
+    private static async Task<IResult> GetCurrentUser(ClaimsPrincipal user, IPermissionService permissionService)
     {
         if (user.Identity?.IsAuthenticated != true)
             return Results.Unauthorized();
 
+        var sub = user.FindFirstValue("sub") ?? "";
+        var tenantIdClaim = user.FindFirstValue("tenant_id") ?? "";
+
+        string[] permissions = [];
+        if (Guid.TryParse(sub, out var userId) && Guid.TryParse(tenantIdClaim, out var tenantId))
+        {
+            var userPermissions = await permissionService.GetUserPermissionsAsync(userId, tenantId);
+            permissions = [.. userPermissions];
+        }
+
         var response = new CurrentUserResponse
         {
-            UserId = user.FindFirstValue("sub") ?? "",
+            UserId = sub,
             Email = user.FindFirstValue("email") ?? "",
             Name = user.FindFirstValue("name")
                 ?? user.FindFirstValue("preferred_username")
                 ?? "",
-            TenantId = user.FindFirstValue("tenant_id") ?? "",
+            TenantId = tenantIdClaim,
             EmployeeId = user.FindFirstValue("employee_id") ?? "",
             Roles = user.FindAll("roles").Select(c => c.Value).ToArray(),
-            // Populated after E06 (RBAC) implementation
-            Permissions = [],
+            Permissions = permissions,
             OrgUnitIds = [],
             ScopeLevel = "self"
         };

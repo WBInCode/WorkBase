@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Routing;
 using WorkBase.Modules.Organization.Application.Commands.Units;
 using WorkBase.Modules.Organization.Application.Dtos;
 using WorkBase.Modules.Organization.Application.Queries.Units;
+using WorkBase.Shared.Auth;
 
 namespace WorkBase.Modules.Organization.Api.Endpoints;
 
@@ -19,6 +20,7 @@ public static class OrganizationUnitEndpoints
         group.MapPost("/", CreateUnit)
             .WithName("CreateOrganizationUnit")
             .WithSummary("Utwórz jednostkę organizacyjną")
+            .RequirePermission("org.create")
             .Produces<Guid>(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status409Conflict);
@@ -26,11 +28,13 @@ public static class OrganizationUnitEndpoints
         group.MapGet("/tree", GetUnitTree)
             .WithName("GetUnitTree")
             .WithSummary("Pobierz drzewo hierarchii organizacyjnej")
+            .RequirePermission("org.view")
             .Produces<List<OrganizationUnitTreeNodeDto>>();
 
         group.MapPut("/{id:guid}", UpdateUnit)
             .WithName("UpdateOrganizationUnit")
             .WithSummary("Zaktualizuj jednostkę organizacyjną")
+            .RequirePermission("org.edit")
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound);

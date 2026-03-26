@@ -6,6 +6,7 @@ using WorkBase.Modules.Organization.Application.Commands.Employees;
 using WorkBase.Modules.Organization.Application.Dtos;
 using WorkBase.Modules.Organization.Application.Queries.Employees;
 using WorkBase.Modules.Organization.Domain.Entities;
+using WorkBase.Shared.Auth;
 
 namespace WorkBase.Modules.Organization.Api.Endpoints;
 
@@ -20,6 +21,7 @@ public static class EmployeeEndpoints
         group.MapPost("/", CreateEmployee)
             .WithName("CreateEmployee")
             .WithSummary("Utwórz pracownika")
+            .RequirePermission("org.create")
             .Produces<Guid>(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status409Conflict);
@@ -27,17 +29,20 @@ public static class EmployeeEndpoints
         group.MapGet("/", GetEmployees)
             .WithName("GetEmployees")
             .WithSummary("Pobierz listę pracowników (paginacja, filtry)")
+            .RequirePermission("org.view")
             .Produces<PagedResultDto<EmployeeDto>>();
 
         group.MapGet("/{id:guid}", GetEmployeeById)
             .WithName("GetEmployeeById")
             .WithSummary("Pobierz szczegóły pracownika")
+            .RequirePermission("org.view")
             .Produces<EmployeeDetailDto>()
             .Produces(StatusCodes.Status404NotFound);
 
         group.MapPut("/{id:guid}/assignment", AssignEmployee)
             .WithName("AssignEmployee")
             .WithSummary("Przypisz pracownika do jednostki i stanowiska")
+            .RequirePermission("org.edit")
             .Produces<Guid>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound);
@@ -45,6 +50,7 @@ public static class EmployeeEndpoints
         group.MapPut("/{id:guid}/supervisor", SetSupervisor)
             .WithName("SetSupervisor")
             .WithSummary("Ustaw przełożonego pracownika")
+            .RequirePermission("org.edit")
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound);
