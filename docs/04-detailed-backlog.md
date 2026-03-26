@@ -843,7 +843,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Status** | ✅ DONE |
 | **Commit** | `a1ea142` — feat(identity): T-E06-001 IAM tables migration + seed data |
 
-### T-E06-002: RBAC engine + middleware
+### ✅ T-E06-002: RBAC engine + middleware
 
 | Pole | Wartość |
 |---|---|
@@ -857,6 +857,8 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | wysoka |
 | **Ryzyko** | wysokie — każdy błąd = luka bezpieczeństwa |
 | **Uwagi** | Unit testy na każdą kombinację rola/moduł/akcja. Integration testy na endpointach. |
+| **Status** | ✅ DONE |
+| **Commit** | `9af7302` — feat(identity): T-E06-002 RBAC engine + permission middleware |
 
 ### T-E06-003: Frontend — panel ról i uprawnień
 
