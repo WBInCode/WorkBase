@@ -1,5 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.9" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\WorkBase.Modules.TimeTracking.Application\WorkBase.Modules.TimeTracking.Application.csproj" />
     <ProjectReference Include="..\WorkBase.Modules.TimeTracking.Domain\WorkBase.Modules.TimeTracking.Domain.csproj" />
     <ProjectReference Include="..\..\..\WorkBase.Shared\WorkBase.Shared.csproj" />

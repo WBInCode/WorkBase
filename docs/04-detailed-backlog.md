@@ -880,7 +880,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 
 ## EPIK E08: Czas pracy — backend + frontend
 
-### T-E08-001: Tabele time_ (migracja)
+### ✅ T-E08-001: Tabele time_ (migracja)
 
 | Pole | Wartość |
 |---|---|
@@ -894,6 +894,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | średnia |
 | **Ryzyko** | niskie |
 | **Uwagi** | — |
+| **Status** | ✅ DONE |
 
 ### T-E08-002: Domain + Application: clock-in/out, przerwy
 
