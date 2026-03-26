@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from 'react-oidc-context';
-import { FolderTree, Users, FileUp, LogOut, Menu, X } from 'lucide-react';
+import { FolderTree, Users, FileUp, LogOut, Menu, X, Shield, Grid3X3 } from 'lucide-react';
 import { mapUserClaims } from '@/auth';
 
 interface MainLayoutProps {
@@ -12,6 +12,11 @@ const navItems = [
   { path: '/org/tree', label: 'Struktura organizacyjna', icon: FolderTree },
   { path: '/org/employees', label: 'Pracownicy', icon: Users, exact: true },
   { path: '/org/employees/import', label: 'Import CSV', icon: FileUp },
+];
+
+const adminNavItems = [
+  { path: '/admin/roles', label: 'Role', icon: Shield },
+  { path: '/admin/permissions', label: 'Matryca uprawnień', icon: Grid3X3 },
 ];
 
 export function MainLayout({ children }: MainLayoutProps) {
@@ -56,6 +61,38 @@ export function MainLayout({ children }: MainLayoutProps) {
             const isActive = item.exact
               ? location.pathname === item.path
               : location.pathname.startsWith(item.path);
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  padding: '10px 12px',
+                  borderRadius: '6px',
+                  color: isActive ? '#ffffff' : '#94a3b8',
+                  backgroundColor: isActive ? '#334155' : 'transparent',
+                  textDecoration: 'none',
+                  fontSize: '14px',
+                  fontWeight: isActive ? 600 : 400,
+                  whiteSpace: 'nowrap',
+                  transition: 'background-color 0.15s',
+                }}
+              >
+                <Icon size={18} />
+                {item.label}
+              </Link>
+            );
+          })}
+
+          {/* Admin section */}
+          <div style={{ margin: '16px 0 4px', padding: '0 12px', fontSize: '11px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
+            Administracja
+          </div>
+          {adminNavItems.map((item) => {
+            const isActive = location.pathname.startsWith(item.path);
             const Icon = item.icon;
             return (
               <Link

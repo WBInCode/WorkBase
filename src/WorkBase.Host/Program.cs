@@ -105,6 +105,9 @@ try
     app.MapGet("/", () => Results.Ok(new { Service = "WorkBase API", Status = "Running" }));
 
     app.MapAuthEndpoints();
+    app.MapRoleEndpoints();
+    app.MapPermissionEndpoints();
+    app.MapUserRoleEndpoints();
 
     app.MapOrganizationUnitEndpoints();
     app.MapEmployeeEndpoints();

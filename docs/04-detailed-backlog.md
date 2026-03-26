@@ -860,7 +860,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Status** | ✅ DONE |
 | **Commit** | `9af7302` — feat(identity): T-E06-002 RBAC engine + permission middleware |
 
-### T-E06-003: Frontend — panel ról i uprawnień
+### ✅ T-E06-003: Frontend — panel ról i uprawnień
 
 | Pole | Wartość |
 |---|---|
@@ -874,6 +874,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | wysoka |
 | **Ryzyko** | średnie |
 | **Uwagi** | **KONFIGURACJA:** Cała matryca edytowalna. Role systemowe (Super Admin, Admin) mają zablokowane checkboxy. |
+| **Status** | ✅ DONE |
 
 ---
 
