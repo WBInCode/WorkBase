@@ -826,7 +826,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 
 ## EPIK E06: Role i uprawnienia — backend + frontend
 
-### T-E06-001: Tabele iam_ (migracja)
+### ✅ T-E06-001: Tabele iam_ (migracja)
 
 | Pole | Wartość |
 |---|---|
@@ -840,6 +840,8 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | średnia |
 | **Ryzyko** | średnie — matryca uprawnień wymaga starannego designu |
 | **Uwagi** | Seed data musi zawierać pełną matrycę permissions per moduł per akcja. |
+| **Status** | ✅ DONE |
+| **Commit** | `a1ea142` — feat(identity): T-E06-001 IAM tables migration + seed data |
 
 ### T-E06-002: RBAC engine + middleware
 
