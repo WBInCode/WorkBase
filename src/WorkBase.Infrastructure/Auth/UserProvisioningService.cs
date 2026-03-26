@@ -20,6 +20,11 @@ public sealed class UserProvisioningService
         _logger = logger;
     }
 
+    /// <summary>
+    /// Admin role ID from IamSeeder — assigned by default to newly provisioned users.
+    /// </summary>
+    private static readonly Guid DefaultRoleId = Guid.Parse("10000000-0000-0000-0000-000000000002");
+
     public async Task EnsureUserProvisionedAsync(ClaimsPrincipal principal, CancellationToken cancellationToken = default)
     {
         var keycloakId = principal.FindFirstValue("sub");
@@ -32,6 +37,24 @@ public sealed class UserProvisioningService
         if (existingUser is not null)
         {
             existingUser.UpdateLastLogin();
+
+            // Ensure user has at least one role (retroactive fix for users provisioned before role assignment)
+            var hasAnyRole = await _dbContext.Set<UserRole>()
+                .AnyAsync(ur => ur.UserId == existingUser.Id, cancellationToken);
+
+            if (!hasAnyRole)
+            {
+                var defaultRoleExists = await _dbContext.Set<Role>()
+                    .AnyAsync(r => r.Id == DefaultRoleId, cancellationToken);
+
+                if (defaultRoleExists)
+                {
+                    var userRole = UserRole.Create(existingUser.Id, DefaultRoleId, existingUser.TenantId, "system");
+                    _dbContext.Set<UserRole>().Add(userRole);
+                    _logger.LogInformation("Assigned default Admin role to existing user {UserId}", existingUser.Id);
+                }
+            }
+
             await _dbContext.SaveChangesAsync(cancellationToken);
             return;
         }
@@ -50,10 +73,21 @@ public sealed class UserProvisioningService
         var user = User.Create(keycloakId, email, firstName, lastName, tenantId);
 
         _dbContext.Set<User>().Add(user);
+
+        // Assign default Admin role if it exists
+        var roleExists = await _dbContext.Set<Role>()
+            .AnyAsync(r => r.Id == DefaultRoleId, cancellationToken);
+
+        if (roleExists)
+        {
+            var userRole = UserRole.Create(user.Id, DefaultRoleId, tenantId, "system");
+            _dbContext.Set<UserRole>().Add(userRole);
+        }
+
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation(
-            "Provisioned new user {UserId} (Keycloak: {KeycloakId}, Tenant: {TenantId})",
+            "Provisioned new user {UserId} (Keycloak: {KeycloakId}, Tenant: {TenantId}) with default Admin role",
             user.Id, keycloakId, tenantId);
     }
 

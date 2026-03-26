@@ -23,8 +23,22 @@ public sealed class PermissionService(
         if (cache.TryGetValue<IReadOnlySet<string>>(key, out var cached) && cached is not null)
             return cached;
 
+        // userId may be either the internal User.Id or the Keycloak sub (parsed as Guid).
+        // Resolve to internal User.Id via the users table so UserRole join works.
+        var internalUserId = await dbContext.Set<User>()
+            .Where(u => u.Id == userId || u.KeycloakId == userId.ToString())
+            .Select(u => u.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (internalUserId == Guid.Empty)
+        {
+            var empty = (IReadOnlySet<string>)new HashSet<string>();
+            cache.Set(key, empty, CacheDuration);
+            return empty;
+        }
+
         var permissions = await dbContext.Set<UserRole>()
-            .Where(ur => ur.UserId == userId && ur.TenantId == tenantId)
+            .Where(ur => ur.UserId == internalUserId && ur.TenantId == tenantId)
             .Join(
                 dbContext.Set<Role>().Where(r => r.IsActive),
                 ur => ur.RoleId,
