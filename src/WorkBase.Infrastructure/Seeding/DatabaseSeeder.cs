@@ -17,6 +17,8 @@ public static class DatabaseSeeder
         await dbContext.Database.MigrateAsync();
         logger.LogInformation("Database migrations applied successfully.");
 
+        await IamSeeder.SeedAsync(dbContext, logger);
+
         logger.LogInformation("Database seeding completed.");
     }
 }
