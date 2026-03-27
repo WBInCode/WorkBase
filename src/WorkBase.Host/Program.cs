@@ -119,6 +119,7 @@ try
 
     app.MapTimeEntryEndpoints();
     app.MapQrTokenEndpoints();
+    app.MapScheduleEndpoints();
 
     app.MapHealthChecks("/health", new HealthCheckOptions
     {

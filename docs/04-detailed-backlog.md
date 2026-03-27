@@ -942,6 +942,8 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | średnia |
 | **Ryzyko** | niskie |
 | **Uwagi** | Materialized view lub on-demand calculation. |
+| **Status** | ✅ DONE |
+| **Commit** | `0682da0` — feat(time): T-E08-004 TimeSheet daily/weekly/monthly aggregation API |
 
 ### T-E08-005: Schedule (grafik) CRUD
 
