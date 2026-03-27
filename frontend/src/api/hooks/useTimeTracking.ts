@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/api/client';
-import type { TimeStatusDto, ClockRequest, TimeSheetPeriodDto } from '@/api/types/time';
+import type { TimeStatusDto, ClockRequest, TimeSheetPeriodDto, TimeAnomalyDto } from '@/api/types/time';
 
 export function useTimeStatus(employeeId: string | undefined) {
   return useQuery({
@@ -74,5 +74,40 @@ export function useTimesheet(filter: TimesheetFilter) {
     queryFn: () =>
       api.get<TimeSheetPeriodDto>(`/api/time/timesheet/${filter.employeeId}?${params}`),
     enabled: !!filter.employeeId,
+  });
+}
+
+export interface AnomaliesFilter {
+  from: string;
+  to: string;
+  status?: string;
+}
+
+export function useAnomalies(filter: AnomaliesFilter) {
+  const params = new URLSearchParams({ from: filter.from, to: filter.to });
+  if (filter.status) params.set('status', filter.status);
+
+  return useQuery({
+    queryKey: ['time', 'anomalies', filter],
+    queryFn: () => api.get<TimeAnomalyDto[]>(`/api/time/anomalies?${params}`),
+  });
+}
+
+export function useTeamTimesheets(
+  employeeIds: string[],
+  from: string,
+  to: string,
+  period: 'day' | 'week' | 'month',
+) {
+  return useQuery({
+    queryKey: ['time', 'team-timesheets', employeeIds, from, to, period],
+    queryFn: () =>
+      Promise.all(
+        employeeIds.map((id) => {
+          const params = new URLSearchParams({ from, to, period });
+          return api.get<TimeSheetPeriodDto>(`/api/time/timesheet/${id}?${params}`);
+        }),
+      ),
+    enabled: employeeIds.length > 0,
   });
 }

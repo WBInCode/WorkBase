@@ -1027,6 +1027,8 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | średnia |
 | **Ryzyko** | niskie |
 | **Uwagi** | — |
+| **Status** | ✅ DONE |
+| **Commit** | `5bd0853` — feat(time-ui): T-E08-009 TeamAttendancePage with team grid report and CSV export |
 
 ### T-E08-010: Frontend — Grafik (widok/edycja)
 

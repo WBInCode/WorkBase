@@ -32,3 +32,16 @@ export interface TimeSheetPeriodDto {
   daysIncomplete: number;
   days: TimeSheetDayDto[];
 }
+
+export interface TimeAnomalyDto {
+  id: string;
+  employeeId: string;
+  date: string;
+  type: string;
+  status: string;
+  description: string | null;
+  details: string | null;
+  reviewedBy: string | null;
+  reviewedAt: string | null;
+  createdAt: string;
+}
