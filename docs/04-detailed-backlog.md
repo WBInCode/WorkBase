@@ -1066,7 +1066,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Ryzyko** | niskie |
 | **Uwagi** | wf_definitions.definition_json — JSONB column. |
 | **Status** | ✅ DONE |
-| **Commit** | `47b8aa5` — feat(workflow): T-E09-001 workflow engine database tables migration |
+| **Commit** | `5382923` — feat(workflow): T-E09-001 workflow engine database tables migration |
 
 ### T-E09-002: State machine engine (generic)
 
@@ -1083,7 +1083,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Ryzyko** | wysokie — to fundament wielu modułów, musi być generyczny |
 | **Uwagi** | **MECHANIZM/FRAMEWORK**, nie twarda impl. Definicja w JSON. JSON Schema validation. Testy jednostkowe na wielu scenariuszach. |
 | **Status** | ✅ DONE |
-| **Commit** | `9aaa41e` — feat(workflow): T-E09-002 generic state machine engine with unit tests |
+| **Commit** | `5c724c2` — feat(workflow): T-E09-002 generic state machine engine with unit tests |
 
 ### T-E09-003: Approval flow — single level
 
