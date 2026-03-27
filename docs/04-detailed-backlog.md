@@ -959,6 +959,8 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | średnia |
 | **Ryzyko** | niskie |
 | **Uwagi** | **KONFIGURACJA:** Schedule templates per tenant (typy zmian). |
+| **Status** | ✅ DONE |
+| **Commit** | `eb676b8` — feat(time): T-E08-005 Schedule CRUD + ScheduleTemplate CRUD API |
 
 ### T-E08-006: Anomaly detection engine
 
@@ -974,6 +976,8 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | wysoka |
 | **Ryzyko** | średnie — reguły muszą być elastyczne |
 | **Uwagi** | **KONFIGURACJA:** Progi anomalii per tenant (cfg_tenant_configs). Mechanizm reguł, NIE hardkodowane wartości. |
+| **Status** | ✅ DONE |
+| **Commit** | `b761825` — feat(time): T-E08-006 anomaly detection engine with Hangfire job |
 
 ### T-E08-007: Frontend — Clock-in/out button + status
 

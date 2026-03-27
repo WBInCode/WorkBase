@@ -10,6 +10,7 @@ using WorkBase.Modules.Organization.Api.Endpoints;
 using WorkBase.Modules.Organization.Infrastructure;
 using WorkBase.Modules.TimeTracking.Api.Endpoints;
 using WorkBase.Modules.TimeTracking.Infrastructure;
+using WorkBase.Modules.TimeTracking.Infrastructure.Jobs;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -120,6 +121,13 @@ try
     app.MapTimeEntryEndpoints();
     app.MapQrTokenEndpoints();
     app.MapScheduleEndpoints();
+    app.MapAnomalyEndpoints();
+
+    RecurringJob.AddOrUpdate<EndOfDayAnomalyCheckJob>(
+        "anomaly-detection-daily",
+        job => job.ExecuteAsync(),
+        "0 1 * * *",
+        new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
 
     app.MapHealthChecks("/health", new HealthCheckOptions
     {
