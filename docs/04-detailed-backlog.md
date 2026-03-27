@@ -910,6 +910,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | średnia |
 | **Ryzyko** | średnie — edge cases czasu pracy (północ, zmiana dnia) |
 | **Uwagi** | Timezone handling — przechowywać UTC, konwertować per tenant timezone. |
+| **Status** | ✅ DONE |
 
 ### T-E08-003: QR token generator + verify API
 

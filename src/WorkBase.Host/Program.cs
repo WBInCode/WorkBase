@@ -8,6 +8,8 @@ using WorkBase.Infrastructure.Seeding;
 using WorkBase.Modules.Identity.Api.Endpoints;
 using WorkBase.Modules.Organization.Api.Endpoints;
 using WorkBase.Modules.Organization.Infrastructure;
+using WorkBase.Modules.TimeTracking.Api.Endpoints;
+using WorkBase.Modules.TimeTracking.Infrastructure;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -50,6 +52,7 @@ try
     builder.Services.AddWorkBaseInfrastructure(builder.Configuration);
 
     builder.Services.AddOrganizationModule();
+    builder.Services.AddTimeTrackingModule();
 
     var allowedOrigins = builder.Configuration
         .GetSection("Cors:AllowedOrigins")
@@ -113,6 +116,8 @@ try
     app.MapEmployeeEndpoints();
     app.MapPositionEndpoints();
     app.MapUnitTypeEndpoints();
+
+    app.MapTimeEntryEndpoints();
 
     app.MapHealthChecks("/health", new HealthCheckOptions
     {
