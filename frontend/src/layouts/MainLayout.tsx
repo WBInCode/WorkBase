@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from 'react-oidc-context';
-import { FolderTree, Users, FileUp, LogOut, Menu, X, Shield, Grid3X3 } from 'lucide-react';
+import { FolderTree, Users, FileUp, LogOut, Menu, X, Shield, Grid3X3, CalendarDays } from 'lucide-react';
 import { mapUserClaims } from '@/auth';
 import { ClockButton } from '@/components/TimeTracking';
 
@@ -13,6 +13,7 @@ const navItems = [
   { path: '/org/tree', label: 'Struktura organizacyjna', icon: FolderTree },
   { path: '/org/employees', label: 'Pracownicy', icon: Users, exact: true },
   { path: '/org/employees/import', label: 'Import CSV', icon: FileUp },
+  { path: '/time/timesheet', label: 'Karta czasu pracy', icon: CalendarDays },
 ];
 
 const adminNavItems = [

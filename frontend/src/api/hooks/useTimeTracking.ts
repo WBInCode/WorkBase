@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/api/client';
-import type { TimeStatusDto, ClockRequest } from '@/api/types/time';
+import type { TimeStatusDto, ClockRequest, TimeSheetPeriodDto } from '@/api/types/time';
 
 export function useTimeStatus(employeeId: string | undefined) {
   return useQuery({
@@ -52,5 +52,27 @@ export function useEndBreak() {
     onSuccess: (_data, variables) => {
       qc.invalidateQueries({ queryKey: ['time', 'status', variables.employeeId] });
     },
+  });
+}
+
+export interface TimesheetFilter {
+  employeeId: string;
+  from: string;
+  to: string;
+  period: 'day' | 'week' | 'month';
+}
+
+export function useTimesheet(filter: TimesheetFilter) {
+  const params = new URLSearchParams({
+    from: filter.from,
+    to: filter.to,
+    period: filter.period,
+  });
+
+  return useQuery({
+    queryKey: ['time', 'timesheet', filter],
+    queryFn: () =>
+      api.get<TimeSheetPeriodDto>(`/api/time/timesheet/${filter.employeeId}?${params}`),
+    enabled: !!filter.employeeId,
   });
 }

@@ -1010,6 +1010,8 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | średnia |
 | **Ryzyko** | niskie |
 | **Uwagi** | — |
+| **Status** | ✅ DONE |
+| **Commit** | `32f9782` — feat(time-ui): T-E08-008 TimesheetPage with day/week/month views |
 
 ### T-E08-009: Frontend — Raport czasu pracy zespołu
 
