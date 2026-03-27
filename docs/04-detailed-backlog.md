@@ -926,6 +926,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | średnia |
 | **Ryzyko** | niskie |
 | **Uwagi** | Token jednorazowy lub czas-owy (rolling). Zabezpieczenie: rate limit na verify. |
+| **Status** | ✅ DONE |
 
 ### T-E08-004: TimeSheet — agregat dzienny + tygodniowy
 

@@ -10,6 +10,7 @@ public static class TimeTrackingServiceCollectionExtensions
     {
         services.AddScoped<ITimeEntryRepository, TimeEntryRepository>();
         services.AddScoped<ITimeSheetRepository, TimeSheetRepository>();
+        services.AddScoped<IQrTokenRepository, QrTokenRepository>();
 
         return services;
     }
