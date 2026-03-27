@@ -1065,6 +1065,8 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | średnia |
 | **Ryzyko** | niskie |
 | **Uwagi** | wf_definitions.definition_json — JSONB column. |
+| **Status** | ✅ DONE |
+| **Commit** | `47b8aa5` — feat(workflow): T-E09-001 workflow engine database tables migration |
 
 ### T-E09-002: State machine engine (generic)
 

@@ -11,6 +11,7 @@ using WorkBase.Modules.Organization.Infrastructure;
 using WorkBase.Modules.TimeTracking.Api.Endpoints;
 using WorkBase.Modules.TimeTracking.Infrastructure;
 using WorkBase.Modules.TimeTracking.Infrastructure.Jobs;
+using WorkBase.Modules.Workflow.Infrastructure;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -54,6 +55,7 @@ try
 
     builder.Services.AddOrganizationModule();
     builder.Services.AddTimeTrackingModule();
+    builder.Services.AddWorkflowModule();
 
     var allowedOrigins = builder.Configuration
         .GetSection("Cors:AllowedOrigins")
