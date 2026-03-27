@@ -18,6 +18,19 @@ public sealed class TimeSheetRepository(WorkBaseDbContext dbContext) : ITimeShee
             cancellationToken);
     }
 
+    public async Task<List<TimeSheet>> GetByDateRangeAsync(
+        Guid tenantId, Guid employeeId, DateOnly from, DateOnly to, CancellationToken cancellationToken = default)
+    {
+        return await dbContext.Set<TimeSheet>()
+            .Where(ts =>
+                ts.TenantId == tenantId
+                && ts.EmployeeId == employeeId
+                && ts.Date >= from
+                && ts.Date <= to)
+            .OrderBy(ts => ts.Date)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task AddAsync(TimeSheet timeSheet, CancellationToken cancellationToken = default)
     {
         await dbContext.Set<TimeSheet>().AddAsync(timeSheet, cancellationToken);

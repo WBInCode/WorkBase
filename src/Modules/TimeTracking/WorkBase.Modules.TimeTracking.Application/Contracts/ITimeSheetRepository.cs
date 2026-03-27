@@ -5,6 +5,7 @@ namespace WorkBase.Modules.TimeTracking.Application.Contracts;
 public interface ITimeSheetRepository
 {
     Task<TimeSheet?> GetByDateAsync(Guid tenantId, Guid employeeId, DateOnly date, CancellationToken cancellationToken = default);
+    Task<List<TimeSheet>> GetByDateRangeAsync(Guid tenantId, Guid employeeId, DateOnly from, DateOnly to, CancellationToken cancellationToken = default);
     Task AddAsync(TimeSheet timeSheet, CancellationToken cancellationToken = default);
     void Update(TimeSheet timeSheet);
 }

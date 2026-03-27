@@ -52,6 +52,12 @@ public static class TimeEntryEndpoints
             .RequirePermission("time.view")
             .Produces<TimeStatusDto>();
 
+        group.MapGet("/timesheet/{employeeId:guid}", GetTimeSheet)
+            .WithName("GetTimeSheet")
+            .WithSummary("Pobierz kartę czasu pracy za okres (dzień/tydzień/miesiąc)")
+            .RequirePermission("time.view")
+            .Produces<TimeSheetPeriodDto>();
+
         return endpoints;
     }
 
@@ -121,9 +127,24 @@ public static class TimeEntryEndpoints
         var result = await sender.Send(query);
         return result.ToHttpResult();
     }
+
+    private static async Task<IResult> GetTimeSheet(
+        Guid employeeId,
+        [Microsoft.AspNetCore.Http.AsParameters] TimeSheetRequest request,
+        ISender sender)
+    {
+        var from = request.From ?? DateOnly.FromDateTime(DateTime.UtcNow);
+        var to = request.To ?? from;
+        var period = request.Period ?? "day";
+
+        var query = new GetTimeSheetQuery(employeeId, from, to, period);
+        var result = await sender.Send(query);
+        return result.ToHttpResult();
+    }
 }
 
 public sealed record ClockInRequest(Guid EmployeeId, string? Note = null);
 public sealed record ClockOutRequest(Guid EmployeeId, string? Note = null);
 public sealed record StartBreakRequest(Guid EmployeeId, string? Note = null);
 public sealed record EndBreakRequest(Guid EmployeeId, string? Note = null);
+public sealed record TimeSheetRequest(DateOnly? From, DateOnly? To, string? Period);
