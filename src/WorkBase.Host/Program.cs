@@ -11,6 +11,7 @@ using WorkBase.Modules.Organization.Infrastructure;
 using WorkBase.Modules.TimeTracking.Api.Endpoints;
 using WorkBase.Modules.TimeTracking.Infrastructure;
 using WorkBase.Modules.TimeTracking.Infrastructure.Jobs;
+using WorkBase.Modules.Workflow.Api.Endpoints;
 using WorkBase.Modules.Workflow.Infrastructure;
 
 Log.Logger = new LoggerConfiguration()
@@ -124,6 +125,8 @@ try
     app.MapQrTokenEndpoints();
     app.MapScheduleEndpoints();
     app.MapAnomalyEndpoints();
+
+    app.MapWorkflowEndpoints();
 
     RecurringJob.AddOrUpdate<EndOfDayAnomalyCheckJob>(
         "anomaly-detection-daily",

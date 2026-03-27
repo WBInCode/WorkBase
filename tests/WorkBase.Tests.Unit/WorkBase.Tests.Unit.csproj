@@ -17,6 +17,8 @@
     <ProjectReference Include="..\..\src\WorkBase.Shared\WorkBase.Shared.csproj" />
     <ProjectReference Include="..\..\src\WorkBase.Infrastructure\WorkBase.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\Modules\Identity\WorkBase.Modules.Identity.Domain\WorkBase.Modules.Identity.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Workflow\WorkBase.Modules.Workflow.Application\WorkBase.Modules.Workflow.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Workflow\WorkBase.Modules.Workflow.Domain\WorkBase.Modules.Workflow.Domain.csproj" />
   </ItemGroup>
 
 </Project>
