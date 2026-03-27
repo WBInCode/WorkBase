@@ -27,7 +27,8 @@ public sealed class UserProvisioningService
 
     public async Task EnsureUserProvisionedAsync(ClaimsPrincipal principal, CancellationToken cancellationToken = default)
     {
-        var keycloakId = principal.FindFirstValue("sub");
+        var keycloakId = principal.FindFirstValue("sub") 
+            ?? principal.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(keycloakId))
             return;
 
@@ -64,10 +65,12 @@ public sealed class UserProvisioningService
         var lastName = principal.FindFirstValue("family_name") ?? "";
         var tenantIdClaim = principal.FindFirstValue("tenant_id");
 
-        if (!Guid.TryParse(tenantIdClaim, out var tenantId))
+        Guid tenantId;
+        if (!Guid.TryParse(tenantIdClaim, out tenantId))
         {
-            _logger.LogWarning("User {KeycloakId} has no valid tenant_id claim, skipping provisioning", keycloakId);
-            return;
+            // Default tenant for users without tenant_id claim (dev/MVP)
+            tenantId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+            _logger.LogInformation("User {KeycloakId} has no tenant_id claim, using default tenant {TenantId}", keycloakId, tenantId);
         }
 
         var user = User.Create(keycloakId, email, firstName, lastName, tenantId);
@@ -94,7 +97,15 @@ public sealed class UserProvisioningService
     public static async Task OnTokenValidatedAsync(IServiceProvider serviceProvider, ClaimsPrincipal principal)
     {
         using var scope = serviceProvider.CreateScope();
-        var provisioningService = scope.ServiceProvider.GetRequiredService<UserProvisioningService>();
-        await provisioningService.EnsureUserProvisionedAsync(principal);
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<UserProvisioningService>>();
+        try
+        {
+            var provisioningService = scope.ServiceProvider.GetRequiredService<UserProvisioningService>();
+            await provisioningService.EnsureUserProvisionedAsync(principal);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "User provisioning failed for sub={Sub}", principal.FindFirstValue("sub"));
+        }
     }
 }

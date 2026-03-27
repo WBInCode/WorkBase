@@ -17,27 +17,27 @@ public static class RoleEndpoints
         group.MapGet("/", GetRoles)
             .WithName("GetRoles")
             .WithSummary("Pobierz listę ról")
-            .RequirePermission("iam.view")
+            .RequirePermission("identity.view")
             .Produces<IReadOnlyList<RoleDto>>();
 
         group.MapGet("/{id:guid}", GetRoleById)
             .WithName("GetRoleById")
             .WithSummary("Pobierz rolę po ID")
-            .RequirePermission("iam.view")
+            .RequirePermission("identity.view")
             .Produces<RoleDto>()
             .Produces(StatusCodes.Status404NotFound);
 
         group.MapPost("/", CreateRole)
             .WithName("CreateRole")
             .WithSummary("Utwórz nową rolę")
-            .RequirePermission("iam.create")
+            .RequirePermission("identity.create")
             .Produces<Guid>(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest);
 
         group.MapPut("/{id:guid}", UpdateRole)
             .WithName("UpdateRole")
             .WithSummary("Zaktualizuj rolę")
-            .RequirePermission("iam.edit")
+            .RequirePermission("identity.edit")
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound);
@@ -45,13 +45,13 @@ public static class RoleEndpoints
         group.MapGet("/{id:guid}/permissions", GetRolePermissions)
             .WithName("GetRolePermissions")
             .WithSummary("Pobierz uprawnienia roli")
-            .RequirePermission("iam.view")
+            .RequirePermission("identity.view")
             .Produces<IReadOnlyList<Guid>>();
 
         group.MapPut("/{id:guid}/permissions", UpdateRolePermissions)
             .WithName("UpdateRolePermissions")
             .WithSummary("Ustaw uprawnienia roli")
-            .RequirePermission("iam.edit")
+            .RequirePermission("identity.edit")
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status400BadRequest);
 

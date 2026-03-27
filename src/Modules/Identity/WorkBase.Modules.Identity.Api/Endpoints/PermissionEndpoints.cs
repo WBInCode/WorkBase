@@ -16,7 +16,7 @@ public static class PermissionEndpoints
         group.MapGet("/", GetAllPermissions)
             .WithName("GetAllPermissions")
             .WithSummary("Pobierz listę wszystkich uprawnień")
-            .RequirePermission("iam.view")
+            .RequirePermission("identity.view")
             .Produces<IReadOnlyList<PermissionDto>>();
 
         return endpoints;

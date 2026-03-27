@@ -23,6 +23,7 @@ public static class AuthenticationExtensions
                 options.Authority = authority;
                 options.Audience = audience;
                 options.RequireHttpsMetadata = requireHttps;
+                options.MapInboundClaims = false;
 
                 options.TokenValidationParameters = new TokenValidationParameters
                 {

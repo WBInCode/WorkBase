@@ -17,20 +17,20 @@ public static class UserRoleEndpoints
         group.MapGet("/{userId:guid}/roles", GetUserRoles)
             .WithName("GetUserRoles")
             .WithSummary("Pobierz role użytkownika")
-            .RequirePermission("iam.view")
+            .RequirePermission("identity.view")
             .Produces<IReadOnlyList<UserRoleDto>>();
 
         group.MapPost("/{userId:guid}/roles", AssignUserRole)
             .WithName("AssignUserRole")
             .WithSummary("Przypisz rolę do użytkownika")
-            .RequirePermission("iam.assign")
+            .RequirePermission("identity.assign-roles")
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status400BadRequest);
 
         group.MapDelete("/{userId:guid}/roles/{roleId:guid}", UnassignUserRole)
             .WithName("UnassignUserRole")
             .WithSummary("Usuń rolę z użytkownika")
-            .RequirePermission("iam.assign")
+            .RequirePermission("identity.assign-roles")
             .Produces(StatusCodes.Status204NoContent);
 
         return endpoints;
