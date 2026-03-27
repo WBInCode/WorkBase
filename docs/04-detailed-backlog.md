@@ -993,6 +993,8 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | średnia |
 | **Ryzyko** | niskie |
 | **Uwagi** | Współdzielony komponent (web + mobile). |
+| **Status** | ✅ DONE |
+| **Commit** | `f2fe262` — feat(time-ui): T-E08-007 ClockButton component with live timer |
 
 ### T-E08-008: Frontend — Timesheet (dzień/tydzień/miesiąc)
 

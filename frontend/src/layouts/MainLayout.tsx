@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from 'react-oidc-context';
 import { FolderTree, Users, FileUp, LogOut, Menu, X, Shield, Grid3X3 } from 'lucide-react';
 import { mapUserClaims } from '@/auth';
+import { ClockButton } from '@/components/TimeTracking';
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -181,6 +182,12 @@ export function MainLayout({ children }: MainLayoutProps) {
           >
             {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
+
+          <div style={{ flex: 1 }} />
+
+          {user?.employeeId && (
+            <ClockButton employeeId={user.employeeId} />
+          )}
         </header>
 
         {/* Page content */}
