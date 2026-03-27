@@ -45,3 +45,37 @@ export interface TimeAnomalyDto {
   reviewedAt: string | null;
   createdAt: string;
 }
+
+export interface ScheduleDto {
+  id: string;
+  employeeId: string;
+  date: string;
+  plannedStart: string;
+  plannedEnd: string;
+  shiftType: string | null;
+  templateId: string | null;
+  plannedDuration: string;
+}
+
+export interface CreateScheduleRequest {
+  employeeId: string;
+  date: string;
+  plannedStart: string;
+  plannedEnd: string;
+  shiftType?: string;
+  templateId?: string;
+}
+
+export interface UpdateScheduleRequest {
+  plannedStart: string;
+  plannedEnd: string;
+  shiftType?: string;
+}
+
+export interface ScheduleTemplateDto {
+  id: string;
+  name: string;
+  description: string | null;
+  definition: string;
+  isActive: boolean;
+}

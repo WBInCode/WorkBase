@@ -1044,6 +1044,8 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | wysoka |
 | **Ryzyko** | średnie — UX kalendarza grafiku jest złożony |
 | **Uwagi** | — |
+| **Status** | ✅ DONE |
+| **Commit** | `e5523be` — feat(time-ui): T-E08-010 SchedulePage with weekly/monthly calendar and modal editing |
 
 ---
 

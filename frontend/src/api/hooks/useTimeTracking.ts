@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/api/client';
-import type { TimeStatusDto, ClockRequest, TimeSheetPeriodDto, TimeAnomalyDto } from '@/api/types/time';
+import type { TimeStatusDto, ClockRequest, TimeSheetPeriodDto, TimeAnomalyDto, ScheduleDto, CreateScheduleRequest, UpdateScheduleRequest, ScheduleTemplateDto } from '@/api/types/time';
 
 export function useTimeStatus(employeeId: string | undefined) {
   return useQuery({
@@ -109,5 +109,63 @@ export function useTeamTimesheets(
         }),
       ),
     enabled: employeeIds.length > 0,
+  });
+}
+
+/* ── Schedule hooks ── */
+
+export function useSchedules(employeeId: string, from: string, to: string) {
+  const params = new URLSearchParams({ from, to });
+  return useQuery({
+    queryKey: ['time', 'schedules', employeeId, from, to],
+    queryFn: () => api.get<ScheduleDto[]>(`/api/time/schedules/${employeeId}?${params}`),
+    enabled: !!employeeId,
+  });
+}
+
+export function useTeamSchedules(employeeIds: string[], from: string, to: string) {
+  return useQuery({
+    queryKey: ['time', 'team-schedules', employeeIds, from, to],
+    queryFn: () =>
+      Promise.all(
+        employeeIds.map((id) => {
+          const params = new URLSearchParams({ from, to });
+          return api.get<ScheduleDto[]>(`/api/time/schedules/${id}?${params}`);
+        }),
+      ).then((results) => results.flat()),
+    enabled: employeeIds.length > 0,
+  });
+}
+
+export function useCreateSchedule() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: CreateScheduleRequest) =>
+      api.post<string>('/api/time/schedules', data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['time', 'schedules'] }),
+  });
+}
+
+export function useUpdateSchedule() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...data }: UpdateScheduleRequest & { id: string }) =>
+      api.put<void>(`/api/time/schedules/${id}`, data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['time', 'schedules'] }),
+  });
+}
+
+export function useDeleteSchedule() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.delete<void>(`/api/time/schedules/${id}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['time', 'schedules'] }),
+  });
+}
+
+export function useScheduleTemplates() {
+  return useQuery({
+    queryKey: ['time', 'schedule-templates'],
+    queryFn: () => api.get<ScheduleTemplateDto[]>('/api/time/schedule-templates'),
   });
 }

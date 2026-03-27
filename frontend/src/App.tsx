@@ -12,6 +12,7 @@ import { RolesPage } from '@/pages/admin/RolesPage';
 import { PermissionsMatrixPage } from '@/pages/admin/PermissionsMatrixPage';
 import { TimesheetPage } from '@/pages/time/TimesheetPage';
 import { TeamAttendancePage } from '@/pages/time/TeamAttendancePage';
+import { SchedulePage } from '@/pages/time/SchedulePage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -36,6 +37,7 @@ function AppRoutes() {
         <Route path="/org/employees/import" element={<CsvImportPage />} />
         <Route path="/time/timesheet" element={<TimesheetPage />} />
         <Route path="/time/team-report" element={<TeamAttendancePage />} />
+        <Route path="/time/schedule" element={<SchedulePage />} />
         <Route path="/admin/roles" element={<RolesPage />} />
         <Route path="/admin/permissions" element={<PermissionsMatrixPage />} />
         <Route path="*" element={<Navigate to="/org/tree" replace />} />
