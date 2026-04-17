@@ -1260,7 +1260,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 
 ## EPIK E14–E15–E16: Dashboard + Workspace + Karty (Faza 5)
 
-### T-E14-001: Dashboard backend (Dapper queries)
+### T-E14-001: Dashboard backend (Dapper queries) ✅ DONE
 
 | Pole | Wartość |
 |---|---|
@@ -1274,6 +1274,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | średnia |
 | **Ryzyko** | średnie — performance zależy od indeksów i wolumenu |
 | **Uwagi** | Read-only. Nie przechodzi przez EF Core (Dapper bezpośrednie SQL). |
+| **Commit** | `60099f4` — feat(dashboard): T-E14-001 dashboard backend with Dapper aggregate queries |
 
 ### T-E14-002: Frontend — DashboardPage
 

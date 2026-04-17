@@ -1,0 +1,72 @@
+import { RefreshCw } from 'lucide-react';
+import { useDashboardSummary } from '@/api/hooks/useDashboard';
+import {
+  AttendanceWidget,
+  TaskSummaryWidget,
+  PendingApprovalsWidget,
+  AlertsWidget,
+} from '@/components/Dashboard';
+
+export function DashboardPage() {
+  const { data, isLoading, dataUpdatedAt, refetch, isFetching } = useDashboardSummary();
+
+  const lastUpdate = dataUpdatedAt
+    ? new Date(dataUpdatedAt).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })
+    : null;
+
+  return (
+    <div style={{ padding: '24px', maxWidth: '1100px' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+        <div>
+          <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 700, color: '#111827' }}>
+            Dashboard
+          </h1>
+          <p style={{ margin: '4px 0 0', fontSize: '14px', color: '#6b7280' }}>
+            Podsumowanie operacyjne
+            {lastUpdate && (
+              <span style={{ marginLeft: '8px', fontSize: '12px', color: '#9ca3af' }}>
+                · odświeżono {lastUpdate}
+              </span>
+            )}
+          </p>
+        </div>
+        <button
+          onClick={() => refetch()}
+          disabled={isFetching}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: '6px',
+            padding: '8px 14px', fontSize: '13px', fontWeight: 500,
+            color: '#374151', backgroundColor: '#fff',
+            border: '1px solid #d1d5db', borderRadius: '6px',
+            cursor: isFetching ? 'default' : 'pointer',
+            opacity: isFetching ? 0.6 : 1,
+          }}
+        >
+          <RefreshCw size={14} style={{ animation: isFetching ? 'spin 1s linear infinite' : 'none' }} />
+          Odśwież
+        </button>
+      </div>
+
+      {/* Widget grid */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+        gap: '20px',
+      }}>
+        <AttendanceWidget data={data?.attendance} isLoading={isLoading} />
+        <TaskSummaryWidget data={data?.tasks} isLoading={isLoading} />
+        <PendingApprovalsWidget data={data?.leave} isLoading={isLoading} />
+        <AlertsWidget data={data?.anomalies} isLoading={isLoading} />
+      </div>
+
+      {/* CSS animation for spinner */}
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
+    </div>
+  );
+}

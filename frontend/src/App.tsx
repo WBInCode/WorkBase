@@ -19,6 +19,7 @@ import { PendingApprovalsPage } from '@/pages/leave/PendingApprovalsPage';
 import { TaskListPage } from '@/pages/tasks/TaskListPage';
 import { TaskCardPage } from '@/pages/tasks/TaskCardPage';
 import { MyTasksPage } from '@/pages/tasks/MyTasksPage';
+import { DashboardPage } from '@/pages/DashboardPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -38,6 +39,7 @@ function AppRoutes() {
   return (
     <MainLayout>
       <Routes>
+        <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/org/tree" element={<OrgTreePage />} />
         <Route path="/org/employees" element={<EmployeeListPage />} />
         <Route path="/org/employees/import" element={<CsvImportPage />} />
@@ -52,7 +54,7 @@ function AppRoutes() {
         <Route path="/tasks/:id" element={<TaskCardPage />} />
         <Route path="/admin/roles" element={<RolesPage />} />
         <Route path="/admin/permissions" element={<PermissionsMatrixPage />} />
-        <Route path="*" element={<Navigate to="/org/tree" replace />} />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </MainLayout>
   );
