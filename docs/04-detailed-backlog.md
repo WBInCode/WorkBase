@@ -1116,6 +1116,8 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | niska |
 | **Ryzyko** | niskie |
 | **Uwagi** | **KONFIGURACJA:** Tenant admin może edytować definicje (post-MVP UI). |
+| **Status** | ✅ DONE |
+| **Commit** | `4993666` — feat(workflow): T-E09-004 seed leave-request-v1 and task-acceptance-v1 workflow definitions |
 
 ### T-E10-001: Tabele leave_ (migracja)
 
