@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
-import { Search, Plus, RefreshCw, ChevronLeft, ChevronRight, User, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Search, Plus, RefreshCw, ChevronLeft, ChevronRight, User, X, ExternalLink } from 'lucide-react';
 import {
   useEmployees,
   useEmployeeDetail,
@@ -306,10 +307,12 @@ export function EmployeeListPage() {
 /* ---- Sub-components ---- */
 
 function EmployeeRow({ employee, isSelected, onClick }: { employee: EmployeeDto; isSelected: boolean; onClick: () => void }) {
+  const navigate = useNavigate();
   const color = statusColors[employee.status];
   return (
     <tr
       onClick={onClick}
+      onDoubleClick={() => navigate(`/org/employees/${employee.id}`)}
       style={{
         cursor: 'pointer',
         backgroundColor: isSelected ? '#eff6ff' : undefined,
@@ -352,6 +355,7 @@ function EmployeeDetailPanel({
   isLoading: boolean;
   onClose: () => void;
 }) {
+  const navigate = useNavigate();
   return (
     <aside
       style={{
@@ -441,6 +445,30 @@ function EmployeeDetailPanel({
               {detail.supervisor.firstName} {detail.supervisor.lastName}
             </DetailField>
           )}
+
+          {/* Card 360 link */}
+          <button
+            onClick={() => navigate(`/org/employees/${detail.id}`)}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 14px',
+              fontSize: '13px',
+              fontWeight: 500,
+              color: '#fff',
+              backgroundColor: '#2563eb',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              width: '100%',
+              justifyContent: 'center',
+              marginBottom: '16px',
+            }}
+          >
+            <ExternalLink size={14} />
+            Karta pracownika 360°
+          </button>
 
           {/* Assignments */}
           {detail.assignments.length > 0 && (

@@ -8,6 +8,7 @@ import { AuthCallbackPage } from '@/pages/AuthCallbackPage';
 import { OrgTreePage } from '@/pages/organization/OrgTreePage';
 import { EmployeeListPage } from '@/pages/organization/EmployeeListPage';
 import { CsvImportPage } from '@/pages/organization/CsvImportPage';
+import { EmployeeCardPage } from '@/pages/organization/EmployeeCardPage';
 import { RolesPage } from '@/pages/admin/RolesPage';
 import { PermissionsMatrixPage } from '@/pages/admin/PermissionsMatrixPage';
 import { TimesheetPage } from '@/pages/time/TimesheetPage';
@@ -45,6 +46,7 @@ function AppRoutes() {
         <Route path="/org/tree" element={<OrgTreePage />} />
         <Route path="/org/employees" element={<EmployeeListPage />} />
         <Route path="/org/employees/import" element={<CsvImportPage />} />
+        <Route path="/org/employees/:id" element={<EmployeeCardPage />} />
         <Route path="/time/timesheet" element={<TimesheetPage />} />
         <Route path="/time/team-report" element={<TeamAttendancePage />} />
         <Route path="/time/schedule" element={<SchedulePage />} />
