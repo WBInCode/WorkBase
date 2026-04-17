@@ -1150,6 +1150,8 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | wysoka |
 | **Ryzyko** | średnie — naliczanie proporcjonalne ma edge cases |
 | **Uwagi** | — |
+| **Status** | ✅ DONE |
+| **Commit** | `a7dacfd` — feat(leave): T-E10-002 leave domain, balance calculator, workflow integration + unit tests |
 
 ### T-E10-003: Frontend — wniosek urlopowy + kalendarz
 
