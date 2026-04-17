@@ -1357,16 +1357,16 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 
 ## T-E02-003: Frontend auth flow — subtaski
 
-| SID | Subtask | Owner |
-|---|---|---|
-| T-E02-003-a | Instalacja i konfiguracja oidc-client-ts | frontend |
-| T-E02-003-b | AuthProvider context (React) | frontend |
-| T-E02-003-c | Login redirect → Keycloak | frontend |
-| T-E02-003-d | Callback handler (token parsing, storage) | frontend |
-| T-E02-003-e | Token refresh (silent renew) | frontend |
-| T-E02-003-f | Logout (clear tokens, redirect) | frontend |
-| T-E02-003-g | ProtectedRoute component (redirect if unauthenticated) | frontend |
-| T-E02-003-h | useAuth hook (isAuthenticated, user, token) | frontend |
+| SID | Subtask | Owner | Status |
+|---|---|---|---|
+| T-E02-003-a | Instalacja i konfiguracja oidc-client-ts | frontend | ✅ DONE |
+| T-E02-003-b | AuthProvider context (React) | frontend | ✅ DONE |
+| T-E02-003-c | Login redirect → Keycloak | frontend | ✅ DONE |
+| T-E02-003-d | Callback handler (token parsing, storage) | frontend | ✅ DONE |
+| T-E02-003-e | Token refresh (silent renew) | frontend | ✅ DONE |
+| T-E02-003-f | Logout (clear tokens, redirect) | frontend | ✅ DONE |
+| T-E02-003-g | ProtectedRoute component (redirect if unauthenticated) | frontend | ✅ DONE |
+| T-E02-003-h | useAuth hook (isAuthenticated, user, token) | frontend | ✅ DONE |
 
 ---
 
