@@ -1306,6 +1306,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | średnia |
 | **Ryzyko** | niskie |
 | **Uwagi** | Strona startowa po logowaniu (default route). |
+| **Status** | ✅ DONE (24bb2f8) |
 
 ### T-E16-001: Frontend — Karta pracownika 360
 
