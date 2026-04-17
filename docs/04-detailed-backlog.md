@@ -1133,6 +1133,8 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | średnia |
 | **Ryzyko** | niskie |
 | **Uwagi** | **KONFIGURACJA:** leave_types jest słownikiem edytowalnym per tenant. |
+| **Status** | ✅ DONE |
+| **Commit** | `b8b23f6` — feat(leave): T-E10-001 leave tables migration + seed default leave types |
 
 ### T-E10-002: Leave domain + balance calculator
 
