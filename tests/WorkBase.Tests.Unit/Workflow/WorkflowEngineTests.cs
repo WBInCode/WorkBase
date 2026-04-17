@@ -1,6 +1,7 @@
 using NSubstitute;
 using WorkBase.Modules.Workflow.Application;
 using WorkBase.Modules.Workflow.Application.Contracts;
+using WorkBase.Modules.Workflow.Application.Services;
 using WorkBase.Modules.Workflow.Domain.Entities;
 using Xunit;
 
@@ -48,11 +49,13 @@ public class WorkflowEngineTests
     private readonly IWorkflowInstanceRepository _instanceRepo = Substitute.For<IWorkflowInstanceRepository>();
     private readonly IWorkflowStepRepository _stepRepo = Substitute.For<IWorkflowStepRepository>();
     private readonly IWorkflowActionRepository _actionRepo = Substitute.For<IWorkflowActionRepository>();
+    private readonly IApprovalRequestRepository _approvalRequestRepo = Substitute.For<IApprovalRequestRepository>();
+    private readonly IApproverResolver _approverResolver = Substitute.For<IApproverResolver>();
     private readonly WorkflowEngine _engine;
 
     public WorkflowEngineTests()
     {
-        _engine = new WorkflowEngine(_definitionRepo, _instanceRepo, _stepRepo, _actionRepo);
+        _engine = new WorkflowEngine(_definitionRepo, _instanceRepo, _stepRepo, _actionRepo, _approvalRequestRepo, _approverResolver);
     }
 
     private WorkflowDefinition CreateDefinition(Guid? id = null)

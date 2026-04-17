@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from 'react-oidc-context';
-import { FolderTree, Users, FileUp, LogOut, Menu, X, Shield, Grid3X3, CalendarDays, UsersRound, CalendarClock } from 'lucide-react';
+import { FolderTree, Users, FileUp, LogOut, Menu, X, Shield, Grid3X3, CalendarDays, UsersRound, CalendarClock, Palmtree, CalendarRange, ClipboardCheck } from 'lucide-react';
 import { mapUserClaims } from '@/auth';
 import { ClockButton } from '@/components/TimeTracking';
 
@@ -16,6 +16,9 @@ const navItems = [
   { path: '/time/timesheet', label: 'Karta czasu pracy', icon: CalendarDays },
   { path: '/time/team-report', label: 'Raport zespołu', icon: UsersRound },
   { path: '/time/schedule', label: 'Grafik pracy', icon: CalendarClock },
+  { path: '/leave/request', label: 'Urlopy', icon: Palmtree },
+  { path: '/leave/approvals', label: 'Akceptacje', icon: ClipboardCheck },
+  { path: '/leave/calendar', label: 'Kalendarz nieobecności', icon: CalendarRange },
 ];
 
 const adminNavItems = [

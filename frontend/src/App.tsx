@@ -13,6 +13,9 @@ import { PermissionsMatrixPage } from '@/pages/admin/PermissionsMatrixPage';
 import { TimesheetPage } from '@/pages/time/TimesheetPage';
 import { TeamAttendancePage } from '@/pages/time/TeamAttendancePage';
 import { SchedulePage } from '@/pages/time/SchedulePage';
+import { LeaveRequestPage } from '@/pages/leave/LeaveRequestPage';
+import { LeaveCalendarPage } from '@/pages/leave/LeaveCalendarPage';
+import { PendingApprovalsPage } from '@/pages/leave/PendingApprovalsPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -38,6 +41,9 @@ function AppRoutes() {
         <Route path="/time/timesheet" element={<TimesheetPage />} />
         <Route path="/time/team-report" element={<TeamAttendancePage />} />
         <Route path="/time/schedule" element={<SchedulePage />} />
+        <Route path="/leave/request" element={<LeaveRequestPage />} />
+        <Route path="/leave/approvals" element={<PendingApprovalsPage />} />
+        <Route path="/leave/calendar" element={<LeaveCalendarPage />} />
         <Route path="/admin/roles" element={<RolesPage />} />
         <Route path="/admin/permissions" element={<PermissionsMatrixPage />} />
         <Route path="*" element={<Navigate to="/org/tree" replace />} />

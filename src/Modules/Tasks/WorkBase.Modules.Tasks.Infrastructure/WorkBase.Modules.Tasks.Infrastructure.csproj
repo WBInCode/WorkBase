@@ -4,6 +4,7 @@
     <ProjectReference Include="..\WorkBase.Modules.Tasks.Domain\WorkBase.Modules.Tasks.Domain.csproj" />
     <ProjectReference Include="..\..\..\WorkBase.Shared\WorkBase.Shared.csproj" />
     <ProjectReference Include="..\..\..\WorkBase.Contracts\WorkBase.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\WorkBase.Infrastructure\WorkBase.Infrastructure.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.9" />

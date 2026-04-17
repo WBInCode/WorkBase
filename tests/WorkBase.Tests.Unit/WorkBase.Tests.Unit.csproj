@@ -21,6 +21,8 @@
     <ProjectReference Include="..\..\src\Modules\Workflow\WorkBase.Modules.Workflow.Domain\WorkBase.Modules.Workflow.Domain.csproj" />
     <ProjectReference Include="..\..\src\Modules\Leave\WorkBase.Modules.Leave.Application\WorkBase.Modules.Leave.Application.csproj" />
     <ProjectReference Include="..\..\src\Modules\Leave\WorkBase.Modules.Leave.Domain\WorkBase.Modules.Leave.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Tasks\WorkBase.Modules.Tasks.Application\WorkBase.Modules.Tasks.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Tasks\WorkBase.Modules.Tasks.Domain\WorkBase.Modules.Tasks.Domain.csproj" />
   </ItemGroup>
 
 </Project>

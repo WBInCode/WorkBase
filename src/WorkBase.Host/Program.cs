@@ -13,6 +13,10 @@ using WorkBase.Modules.TimeTracking.Infrastructure;
 using WorkBase.Modules.TimeTracking.Infrastructure.Jobs;
 using WorkBase.Modules.Workflow.Api.Endpoints;
 using WorkBase.Modules.Workflow.Infrastructure;
+using WorkBase.Modules.Leave.Api.Endpoints;
+using WorkBase.Modules.Leave.Infrastructure;
+using WorkBase.Modules.Tasks.Api.Endpoints;
+using WorkBase.Modules.Tasks.Infrastructure;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -57,6 +61,8 @@ try
     builder.Services.AddOrganizationModule();
     builder.Services.AddTimeTrackingModule();
     builder.Services.AddWorkflowModule();
+    builder.Services.AddLeaveModule();
+    builder.Services.AddTasksModule();
 
     var allowedOrigins = builder.Configuration
         .GetSection("Cors:AllowedOrigins")
@@ -127,6 +133,10 @@ try
     app.MapAnomalyEndpoints();
 
     app.MapWorkflowEndpoints();
+
+    app.MapLeaveEndpoints();
+
+    app.MapTaskEndpoints();
 
     RecurringJob.AddOrUpdate<EndOfDayAnomalyCheckJob>(
         "anomaly-detection-daily",
