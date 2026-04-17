@@ -17,6 +17,7 @@ using WorkBase.Modules.Leave.Api.Endpoints;
 using WorkBase.Modules.Leave.Infrastructure;
 using WorkBase.Modules.Tasks.Api.Endpoints;
 using WorkBase.Modules.Tasks.Infrastructure;
+using WorkBase.Modules.Tasks.Infrastructure.Jobs;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -142,6 +143,12 @@ try
         "anomaly-detection-daily",
         job => job.ExecuteAsync(),
         "0 1 * * *",
+        new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
+
+    RecurringJob.AddOrUpdate<TaskOverdueDetectorJob>(
+        "task-overdue-detection-daily",
+        job => job.ExecuteAsync(),
+        "0 6 * * *",
         new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
 
     app.MapHealthChecks("/health", new HealthCheckOptions

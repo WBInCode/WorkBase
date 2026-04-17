@@ -17,3 +17,7 @@ public sealed record TaskAssignedEvent(
 public sealed record TaskCommentAddedEvent(
     Guid CommentId, Guid TaskId, Guid TenantId,
     Guid AuthorId) : DomainEvent;
+
+public sealed record TaskOverdueEvent(
+    Guid TaskId, Guid TenantId, Guid AssigneeId,
+    string Title, DateTime DueDate) : DomainEvent;

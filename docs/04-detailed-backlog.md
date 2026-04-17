@@ -1208,7 +1208,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Status** | ✅ DONE |
 | **Commit** | `5028087` — feat(tasks): T-E11-001 task tables migration + seed default statuses and priorities |
 
-### T-E11-002: Task domain + status machine
+### T-E11-002: Task domain + status machine ✅ DONE
 
 | Pole | Wartość |
 |---|---|
@@ -1222,6 +1222,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | średnia |
 | **Ryzyko** | niskie |
 | **Uwagi** | — |
+| **Commit** | `b2c5d90` — feat(tasks): T-E11-002 task domain, status machine, CQRS commands, API endpoints + unit tests |
 
 ### T-E11-003: Task overdue detector (Hangfire)
 
