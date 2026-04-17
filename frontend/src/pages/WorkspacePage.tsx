@@ -10,6 +10,7 @@ import {
   MyTasksList,
   MyApprovalsWidget,
   MyLeaveWidget,
+  ActivityFeed,
 } from '@/components/Workspace';
 
 export function WorkspacePage() {
@@ -52,6 +53,11 @@ export function WorkspacePage() {
           <MyApprovalsWidget approvals={approvals} isLoading={approvalsLoading} />
           <MyLeaveWidget requests={leaveRequests} isLoading={leaveLoading} />
         </div>
+      </div>
+
+      {/* Activity feed */}
+      <div style={{ marginTop: '20px' }}>
+        <ActivityFeed employeeId={employeeId} tasks={tasks} leaveRequests={leaveRequests} />
       </div>
     </div>
   );

@@ -1397,43 +1397,43 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 
 ---
 
-# 6. Główne API / use-case'y per moduł
+# 6. Główne API / use-case'y per moduł ✅
 
-| Moduł | Endpoint prefix | Główne API (resources + key operations) |
-|---|---|---|
-| **MOD-ORG** | `/api/org/` | `units` (CRUD, tree), `employees` (CRUD, assign, import), `positions` (CRUD), `unit-types` (CRUD) |
-| **MOD-IDENTITY** | `/api/auth/`, `/api/roles/` | `auth/me` (current user), `roles` (CRUD), `permissions` (matrix), `user-roles` (assign), `data-scopes` (CRUD), `feature-flags` (toggle) |
-| **MOD-TIME** | `/api/time/` | `entries` (clock-in, clock-out, break), `timesheets` (daily/weekly/monthly), `schedules` (CRUD, templates), `anomalies` (list, dismiss), `corrections` (CRUD), `qr` (generate, verify) |
-| **MOD-LEAVE** | `/api/leave/` | `types` (CRUD), `policies` (CRUD), `balances` (get, adjust), `requests` (submit, cancel), `calendar` (team view), `conflicts` (check) |
-| **MOD-TASKS** | `/api/tasks/` | `tasks` (CRUD, change-status, assign, my), `statuses` (CRUD + transitions), `priorities` (CRUD), `comments` (CRUD), `attachments` (upload, download) |
-| **MOD-WORKFLOW** | `/api/workflow/` | `definitions` (CRUD, versions), `instances` (create, advance), `approvals` (pending-for-me, approve, reject, return), `escalations` (config) |
-| **MOD-DASHBOARD** | `/api/dashboard/` | `attendance-today`, `late-arrivals`, `open-tasks`, `pending-approvals`, `anomalies`, `alerts`, `reports/export` |
-| **MOD-NOTIFICATION** | `/api/notifications/` | `notifications` (list, unread-count, mark-read, mark-all-read), `templates` (CRUD), `preferences` (get, update), SignalR hub: `/hubs/notifications` |
-| **MOD-DOCS** | `/api/documents/` | `documents` (upload, download, list, soft-delete), `categories` (CRUD), `audit` (per-entity, per-user) |
+| Moduł | Endpoint prefix | Główne API (resources + key operations) | Status |
+|---|---|---|---|
+| **MOD-ORG** | `/api/org/` | `units` (CRUD, tree), `employees` (CRUD, assign, import), `positions` (CRUD), `unit-types` (CRUD) | ✅ |
+| **MOD-IDENTITY** | `/api/auth/`, `/api/roles/` | `auth/me` (current user), `roles` (CRUD), `permissions` (matrix), `user-roles` (assign), `data-scopes` (CRUD), `feature-flags` (toggle) | ✅ |
+| **MOD-TIME** | `/api/time/` | `entries` (clock-in, clock-out, break), `timesheets` (daily/weekly/monthly), `schedules` (CRUD, templates), `anomalies` (list, dismiss), `corrections` (CRUD), `qr` (generate, verify) | ✅ |
+| **MOD-LEAVE** | `/api/leave/` | `types` (CRUD), `policies` (CRUD), `balances` (get, adjust), `requests` (submit, cancel), `calendar` (team view), `conflicts` (check) | ✅ |
+| **MOD-TASKS** | `/api/tasks/` | `tasks` (CRUD, change-status, assign, my), `statuses` (CRUD + transitions), `priorities` (CRUD), `comments` (CRUD), `attachments` (upload, download) | ✅ |
+| **MOD-WORKFLOW** | `/api/workflow/` | `definitions` (CRUD, versions), `instances` (create, advance), `approvals` (pending-for-me, approve, reject, return), `escalations` (config) | ✅ |
+| **MOD-DASHBOARD** | `/api/dashboard/` | `attendance-today`, `late-arrivals`, `open-tasks`, `pending-approvals`, `anomalies`, `alerts`, `reports/export` | ✅ |
+| **MOD-NOTIFICATION** | `/api/notifications/` | `notifications` (list, unread-count, mark-read, mark-all-read), `templates` (CRUD), `preferences` (get, update), SignalR hub: `/hubs/notifications` | ✅ |
+| **MOD-DOCS** | `/api/documents/` | `documents` (upload, download, list, soft-delete), `categories` (CRUD), `audit` (per-entity, per-user) | ✅ |
 
 ---
 
-# 7. Taski UX / Design
+# 7. Taski UX / Design ✅
 
-| ID | Nazwa | Opis | Priorytet | Etap | Złożoność | Zależności |
-|---|---|---|---|---|---|---|
-| T-UX-001 | Design system — tokens i paleta kolorów | Definicja kolorów (primary, secondary, semantic), typografii, spacingów, border-radius. Tailwind theme config. | must-have | MVP | średnia | — |
-| T-UX-002 | Wireframes — MainLayout (sidebar + topbar) | Layout nawigacji: sidebar (zwijany), topbar (user, notifications, clock), content area. Wersja desktop + tablet. | must-have | MVP | średnia | — |
-| T-UX-003 | Wireframes — Workspace (Mój dzień) | Strona startowa: clock status, moje zadania, moje akceptacje, mój czas, feed. Mobile-first. | must-have | MVP | średnia | — |
-| T-UX-004 | Wireframes — Dashboard kierowniczy | Grid widżetów: obecność, spóźnienia, zadania, akceptacje, alerty. Responsywny grid. | must-have | MVP | średnia | — |
-| T-UX-005 | Wireframes — Timesheet (dzień/tydzień/miesiąc) | Widok timeline dnia, tabela tygodnia, podsumowanie miesiąca. Kolorystyka statusów. | must-have | MVP | średnia | — |
-| T-UX-006 | Wireframes — Formularz wniosku urlopowego | Date range picker, typ nieobecności, saldo, komentarz, submit. Modal/drawer. | must-have | MVP | niska | — |
-| T-UX-007 | Wireframes — Karta pracownika 360 | Sekcje: dane, zespół, czas pracy dzisiejszy, saldo urlopów, zadania, historia. Tab navigation. | must-have | MVP | średnia | — |
-| T-UX-008 | Wireframes — Drzewo organizacyjne | Interaktywne drzewo: rozwijanie/zwijanie, ikony typów, click-through do karty. | should-have | MVP | niska | — |
-| T-UX-009 | Wireframes — Lista zadań + karta zadania | Tabela z filtrami, status badges, priority indicators. Karta: timeline zmian, komentarze, attachmenty. | must-have | MVP | średnia | — |
-| T-UX-010 | Wireframes — Grafik pracy (calendar view) | Widok tygodniowy, kolorowe shift-bars, drag-to-assign. | should-have | MVP | wysoka | — |
-| T-UX-011 | Wireframes — Akceptacje (lista + action bar) | Lista wniosków, preview detali, approve/reject/return buttons, komentarz. | must-have | MVP | niska | — |
-| T-UX-012 | Wireframes — Admin: matryca uprawnień | Checkbox matrix (role × modules × actions). Grouping, batch edit. | should-have | MVP | średnia | — |
-| T-UX-013 | Mobile wireframes (bottom tab layout) | Bottom tabs: Mój dzień, Zadania, Wnioski, Więcej. Uproszczony layout. | must-have | MVP | średnia | — |
-| T-UX-014 | Kiosk wireframes (fullscreen clock-in) | Large clock button, PIN input, QR display, success/error feedback. Large touch targets. | should-have | MVP | niska | — |
-| T-UX-015 | Icon set + status color system | Definicja ikon per moduł, status badges (colors + shapes), accessibility (WCAG AA). | should-have | MVP | niska | — |
-| T-UX-016 | Loading/empty/error state patterns | Skeleton loaders, empty states (ilustracja + CTA), error states (retry). Spójne w całej aplikacji. | must-have | MVP | niska | — |
-| T-UX-017 | Notification UX: bell icon + dropdown + toast | Bell z badge count, dropdown lista, real-time toast on new notification. | must-have | MVP | niska | T-FE-024 |
+| ID | Nazwa | Opis | Priorytet | Etap | Złożoność | Zależności | Status |
+|---|---|---|---|---|---|---|---|
+| T-UX-001 | Design system — tokens i paleta kolorów | Definicja kolorów (primary, secondary, semantic), typografii, spacingów, border-radius. Tailwind theme config. | must-have | MVP | średnia | — | ✅ |
+| T-UX-002 | Wireframes — MainLayout (sidebar + topbar) | Layout nawigacji: sidebar (zwijany), topbar (user, notifications, clock), content area. Wersja desktop + tablet. | must-have | MVP | średnia | — | ✅ |
+| T-UX-003 | Wireframes — Workspace (Mój dzień) | Strona startowa: clock status, moje zadania, moje akceptacje, mój czas, feed. Mobile-first. | must-have | MVP | średnia | — | ✅ |
+| T-UX-004 | Wireframes — Dashboard kierowniczy | Grid widżetów: obecność, spóźnienia, zadania, akceptacje, alerty. Responsywny grid. | must-have | MVP | średnia | — | ✅ |
+| T-UX-005 | Wireframes — Timesheet (dzień/tydzień/miesiąc) | Widok timeline dnia, tabela tygodnia, podsumowanie miesiąca. Kolorystyka statusów. | must-have | MVP | średnia | — | ✅ |
+| T-UX-006 | Wireframes — Formularz wniosku urlopowego | Date range picker, typ nieobecności, saldo, komentarz, submit. Modal/drawer. | must-have | MVP | niska | — | ✅ |
+| T-UX-007 | Wireframes — Karta pracownika 360 | Sekcje: dane, zespół, czas pracy dzisiejszy, saldo urlopów, zadania, historia. Tab navigation. | must-have | MVP | średnia | — | ✅ |
+| T-UX-008 | Wireframes — Drzewo organizacyjne | Interaktywne drzewo: rozwijanie/zwijanie, ikony typów, click-through do karty. | should-have | MVP | niska | — | ✅ |
+| T-UX-009 | Wireframes — Lista zadań + karta zadania | Tabela z filtrami, status badges, priority indicators. Karta: timeline zmian, komentarze, attachmenty. | must-have | MVP | średnia | — | ✅ |
+| T-UX-010 | Wireframes — Grafik pracy (calendar view) | Widok tygodniowy, kolorowe shift-bars, drag-to-assign. | should-have | MVP | wysoka | — | ✅ |
+| T-UX-011 | Wireframes — Akceptacje (lista + action bar) | Lista wniosków, preview detali, approve/reject/return buttons, komentarz. | must-have | MVP | niska | — | ✅ |
+| T-UX-012 | Wireframes — Admin: matryca uprawnień | Checkbox matrix (role × modules × actions). Grouping, batch edit. | should-have | MVP | średnia | — | ✅ |
+| T-UX-013 | Mobile wireframes (bottom tab layout) | Bottom tabs: Mój dzień, Zadania, Wnioski, Więcej. Uproszczony layout. | must-have | MVP | średnia | — | ✅ |
+| T-UX-014 | Kiosk wireframes (fullscreen clock-in) | Large clock button, PIN input, QR display, success/error feedback. Large touch targets. | should-have | MVP | niska | — | ✅ |
+| T-UX-015 | Icon set + status color system | Definicja ikon per moduł, status badges (colors + shapes), accessibility (WCAG AA). | should-have | MVP | niska | — | ✅ |
+| T-UX-016 | Loading/empty/error state patterns | Skeleton loaders, empty states (ilustracja + CTA), error states (retry). Spójne w całej aplikacji. | must-have | MVP | niska | — | ✅ |
+| T-UX-017 | Notification UX: bell icon + dropdown + toast | Bell z badge count, dropdown lista, real-time toast on new notification. | must-have | MVP | niska | T-FE-024 | ✅ |
 
 ---
 

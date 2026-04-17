@@ -22,6 +22,8 @@ import { TaskCardPage } from '@/pages/tasks/TaskCardPage';
 import { MyTasksPage } from '@/pages/tasks/MyTasksPage';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { WorkspacePage } from '@/pages/WorkspacePage';
+import { KioskPage } from '@/pages/KioskPage';
+import { ToastProvider } from '@/components/Notifications';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -68,9 +70,18 @@ function App() {
   return (
     <AuthProvider {...oidcConfig}>
       <QueryClientProvider client={queryClient}>
+        <ToastProvider>
         <BrowserRouter>
           <Routes>
             <Route path="/auth/callback" element={<AuthCallbackPage />} />
+            <Route
+              path="/kiosk"
+              element={
+                <ProtectedRoute>
+                  <KioskPage />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/*"
               element={
@@ -81,6 +92,7 @@ function App() {
             />
           </Routes>
         </BrowserRouter>
+        </ToastProvider>
       </QueryClientProvider>
     </AuthProvider>
   );

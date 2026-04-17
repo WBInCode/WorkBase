@@ -1,4 +1,5 @@
-import { Users, UserCheck, UserX, Clock } from 'lucide-react';
+import { Users, UserCheck, UserX, Clock, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import type { AttendanceSummaryDto } from '@/api/types/dashboard';
 
 interface Props {
@@ -32,6 +33,10 @@ export function AttendanceWidget({ data, isLoading }: Props) {
         <Metric icon={<UserX size={14} color="#dc2626" />} label="Nieobecni" value={data.absentToday} color="#dc2626" />
         <Metric icon={<Users size={14} color="#6b7280" />} label="Zaplanowani" value={data.totalScheduled} color="#6b7280" />
       </div>
+
+      <Link to="/time/team-report" style={drillDownStyle}>
+        Raport zespołu <ArrowRight size={14} />
+      </Link>
     </div>
   );
 }
@@ -90,4 +95,17 @@ const metricsGrid: React.CSSProperties = {
   marginTop: '12px',
   paddingTop: '12px',
   borderTop: '1px solid #f3f4f6',
+};
+
+const drillDownStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '4px',
+  marginTop: '12px',
+  paddingTop: '12px',
+  borderTop: '1px solid #f3f4f6',
+  fontSize: '13px',
+  fontWeight: 500,
+  color: '#2563eb',
+  textDecoration: 'none',
 };

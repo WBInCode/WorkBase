@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Send, UserCircle, Clock, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Send, UserCircle, Clock, AlertTriangle, Paperclip, Download, Upload } from 'lucide-react';
 import { useAuth } from 'react-oidc-context';
 import { mapUserClaims } from '@/auth';
 import {
@@ -8,9 +8,12 @@ import {
   useTaskStatuses,
   useTaskPriorities,
   useTaskComments,
+  useTaskAttachments,
   useChangeTaskStatus,
   useAssignTask,
   useAddTaskComment,
+  useUploadTaskAttachment,
+  useDownloadTaskAttachment,
 } from '@/api/hooks/useTasks';
 import { useEmployees } from '@/api/hooks/useOrganization';
 
@@ -32,6 +35,10 @@ export function TaskCardPage() {
   const changeStatusMutation = useChangeTaskStatus(id ?? '');
   const assignMutation = useAssignTask(id ?? '');
   const addCommentMutation = useAddTaskComment(id ?? '');
+  const { data: attachments = [] } = useTaskAttachments(id ?? null);
+  const uploadMutation = useUploadTaskAttachment(id ?? '');
+  const downloadMutation = useDownloadTaskAttachment();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [commentText, setCommentText] = useState('');
   const [newStatusId, setNewStatusId] = useState('');
@@ -174,6 +181,78 @@ export function TaskCardPage() {
         </div>
       </div>
 
+      {/* Attachments */}
+      <div style={{ marginBottom: '28px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+          <h2 style={{ fontSize: '16px', fontWeight: 600, color: '#111827', margin: 0 }}>
+            <Paperclip size={16} style={{ verticalAlign: 'middle', marginRight: '6px' }} />
+            Załączniki ({attachments.length})
+          </h2>
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploadMutation.isPending}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '6px',
+              padding: '6px 12px', fontSize: '13px', fontWeight: 500,
+              color: '#2563eb', backgroundColor: '#eff6ff', border: '1px solid #bfdbfe',
+              borderRadius: '6px', cursor: 'pointer',
+            }}
+          >
+            <Upload size={14} />
+            {uploadMutation.isPending ? 'Wysyłanie...' : 'Dodaj plik'}
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            style={{ display: 'none' }}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) uploadMutation.mutate(file);
+              e.target.value = '';
+            }}
+          />
+        </div>
+
+        {attachments.length === 0 ? (
+          <div style={{
+            padding: '20px', textAlign: 'center', color: '#9ca3af', fontSize: '14px',
+            backgroundColor: '#f9fafb', borderRadius: '8px', border: '1px dashed #d1d5db',
+          }}>
+            Brak załączników.
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            {attachments.map((a) => (
+              <div key={a.id} style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '10px 14px', backgroundColor: '#f9fafb', borderRadius: '8px',
+                border: '1px solid #e5e7eb',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                  <Paperclip size={14} color="#9ca3af" />
+                  <span style={{ fontSize: '14px', color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {a.fileName}
+                  </span>
+                  <span style={{ fontSize: '12px', color: '#9ca3af', flexShrink: 0 }}>
+                    ({formatFileSize(a.fileSizeBytes)})
+                  </span>
+                </div>
+                <button
+                  onClick={() => downloadMutation.mutate({ taskId: id!, attachmentId: a.id, fileName: a.fileName })}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '4px',
+                    padding: '4px 8px', fontSize: '12px', color: '#2563eb',
+                    backgroundColor: 'transparent', border: 'none', cursor: 'pointer',
+                  }}
+                >
+                  <Download size={14} /> Pobierz
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* Comments */}
       <div>
         <h2 style={{ fontSize: '16px', fontWeight: 600, color: '#111827', marginBottom: '12px' }}>
@@ -287,3 +366,9 @@ const actionBtnStyle: React.CSSProperties = {
 const errorStyle: React.CSSProperties = {
   marginTop: '6px', fontSize: '12px', color: '#dc2626',
 };
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / 1048576).toFixed(1)} MB`;
+}

@@ -1,4 +1,5 @@
-import { ShieldAlert, AlertCircle, CheckCircle } from 'lucide-react';
+import { ShieldAlert, AlertCircle, CheckCircle, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import type { AnomalySummaryDto } from '@/api/types/dashboard';
 
 interface Props {
@@ -38,6 +39,10 @@ export function AlertsWidget({ data, isLoading }: Props) {
           color="#16a34a"
         />
       </div>
+
+      <Link to="/time/team-report" style={drillDownStyle}>
+        Raport anomalii <ArrowRight size={14} />
+      </Link>
     </div>
   );
 }
@@ -101,4 +106,17 @@ const metricsGrid: React.CSSProperties = {
   marginTop: '12px',
   paddingTop: '12px',
   borderTop: '1px solid #f3f4f6',
+};
+
+const drillDownStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '4px',
+  marginTop: '12px',
+  paddingTop: '12px',
+  borderTop: '1px solid #f3f4f6',
+  fontSize: '13px',
+  fontWeight: 500,
+  color: '#2563eb',
+  textDecoration: 'none',
 };

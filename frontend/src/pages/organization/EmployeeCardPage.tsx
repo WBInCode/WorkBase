@@ -6,6 +6,7 @@ import { useLeaveBalances, useLeaveRequests } from '@/api/hooks/useLeave';
 import { useTasks } from '@/api/hooks/useTasks';
 import {
   EmployeeInfoSection,
+  EmployeeTeamSection,
   EmployeeTimesheetSection,
   EmployeeLeaveSection,
   EmployeeTasksSection,
@@ -91,6 +92,12 @@ export function EmployeeCardPage() {
       {/* Sections stacked vertically */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         <EmployeeInfoSection employee={employee} />
+
+        <EmployeeTeamSection
+          employeeId={employee.id}
+          primaryUnitId={employee.assignments.find(a => a.isPrimary)?.organizationUnitId ?? employee.assignments[0]?.organizationUnitId ?? null}
+          primaryUnitName={employee.assignments.find(a => a.isPrimary)?.organizationUnitName ?? employee.assignments[0]?.organizationUnitName ?? null}
+        />
 
         <EmployeeTimesheetSection
           timeStatus={timeStatus}

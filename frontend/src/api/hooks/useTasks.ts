@@ -5,6 +5,7 @@ import type {
   TaskStatusDto,
   TaskPriorityDto,
   TaskCommentDto,
+  TaskAttachmentDto,
   CreateTaskRequest,
   UpdateTaskRequest,
   ChangeTaskStatusRequest,
@@ -96,6 +97,42 @@ export function useAddTaskComment(taskId: string) {
       api.post<string>(`/api/tasks/${taskId}/comments`, data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['tasks', 'comments', taskId] });
+    },
+  });
+}
+
+export function useTaskAttachments(taskId: string | null) {
+  return useQuery({
+    queryKey: ['tasks', 'attachments', taskId],
+    queryFn: () => api.get<TaskAttachmentDto[]>(`/api/tasks/${taskId}/attachments`),
+    enabled: !!taskId,
+  });
+}
+
+export function useUploadTaskAttachment(taskId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (file: File) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      return api.postForm<string>(`/api/tasks/${taskId}/attachments`, formData);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['tasks', 'attachments', taskId] });
+    },
+  });
+}
+
+export function useDownloadTaskAttachment() {
+  return useMutation({
+    mutationFn: async ({ taskId, attachmentId, fileName }: { taskId: string; attachmentId: string; fileName: string }) => {
+      const blob = await api.download(`/api/tasks/${taskId}/attachments/${attachmentId}/download`);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      a.click();
+      URL.revokeObjectURL(url);
     },
   });
 }

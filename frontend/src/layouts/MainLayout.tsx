@@ -1,7 +1,7 @@
 import { useState, useEffect, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from 'react-oidc-context';
-import { FolderTree, Users, FileUp, LogOut, Menu, X, Shield, Grid3X3, CalendarDays, UsersRound, CalendarClock, Palmtree, CalendarRange, ClipboardCheck, ListTodo, ClipboardList, LayoutDashboard, Briefcase } from 'lucide-react';
+import { FolderTree, Users, FileUp, LogOut, Menu, X, Shield, Grid3X3, CalendarDays, UsersRound, CalendarClock, Palmtree, CalendarRange, ClipboardCheck, ListTodo, ClipboardList, LayoutDashboard, Briefcase, Clock, MoreHorizontal } from 'lucide-react';
 import { mapUserClaims } from '@/auth';
 import { ClockButton } from '@/components/TimeTracking';
 import { NotificationBell } from '@/components/Notifications';
@@ -14,6 +14,15 @@ function useIsMobile(breakpoint = 768) {
     return () => window.removeEventListener('resize', handler);
   }, [breakpoint]);
   return isMobile;
+}
+
+function useLiveClock() {
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  return now;
 }
 
 interface MainLayoutProps {
@@ -47,6 +56,7 @@ export function MainLayout({ children }: MainLayoutProps) {
   const user = auth.user ? mapUserClaims(auth.user) : null;
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
+  const now = useLiveClock();
 
   useEffect(() => {
     setSidebarOpen(!isMobile);
@@ -230,6 +240,15 @@ export function MainLayout({ children }: MainLayoutProps) {
 
           <div style={{ flex: 1 }} />
 
+          {!isMobile && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#6b7280', fontSize: '13px', marginRight: '12px' }}>
+              <Clock size={14} />
+              <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+                {now.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+              </span>
+            </div>
+          )}
+
           {user?.sub && (
             <NotificationBell userId={user.sub} />
           )}
@@ -240,10 +259,69 @@ export function MainLayout({ children }: MainLayoutProps) {
         </header>
 
         {/* Page content */}
-        <main style={{ flex: 1, overflow: 'auto', backgroundColor: '#ffffff' }}>
+        <main style={{ flex: 1, overflow: 'auto', backgroundColor: '#ffffff', paddingBottom: isMobile ? '60px' : undefined }}>
           {children}
         </main>
+
+        {/* Mobile bottom tabs */}
+        {isMobile && (
+          <nav style={{
+            position: 'fixed', bottom: 0, left: 0, right: 0,
+            height: '56px',
+            backgroundColor: '#fff',
+            borderTop: '1px solid #e5e7eb',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-around',
+            zIndex: 50,
+          }}>
+            <BottomTab icon={Briefcase} label="Mój dzień" path="/workspace" currentPath={location.pathname} />
+            <BottomTab icon={ListTodo} label="Zadania" path="/tasks" currentPath={location.pathname} />
+            <BottomTab icon={Palmtree} label="Wnioski" path="/leave/request" currentPath={location.pathname} />
+            <BottomTabMore onClick={() => setSidebarOpen(true)} />
+          </nav>
+        )}
       </div>
     </div>
+  );
+}
+
+function BottomTab({ icon: Icon, label, path, currentPath }: {
+  icon: React.ComponentType<{ size?: number; color?: string }>;
+  label: string;
+  path: string;
+  currentPath: string;
+}) {
+  const isActive = currentPath.startsWith(path);
+  return (
+    <Link
+      to={path}
+      style={{
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
+        textDecoration: 'none',
+        color: isActive ? '#2563eb' : '#9ca3af',
+        fontSize: '11px', fontWeight: isActive ? 600 : 400,
+        padding: '4px 12px',
+      }}
+    >
+      <Icon size={20} color={isActive ? '#2563eb' : '#9ca3af'} />
+      {label}
+    </Link>
+  );
+}
+
+function BottomTabMore({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
+        background: 'none', border: 'none', cursor: 'pointer',
+        color: '#9ca3af', fontSize: '11px', padding: '4px 12px',
+      }}
+    >
+      <MoreHorizontal size={20} color="#9ca3af" />
+      Więcej
+    </button>
   );
 }

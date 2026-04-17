@@ -1,4 +1,5 @@
-import { Palmtree, Clock, CalendarCheck, Sun } from 'lucide-react';
+import { Palmtree, Clock, CalendarCheck, Sun, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import type { LeaveSummaryDto } from '@/api/types/dashboard';
 
 interface Props {
@@ -44,6 +45,10 @@ export function PendingApprovalsWidget({ data, isLoading }: Props) {
           color="#2563eb"
         />
       </div>
+
+      <Link to="/leave/approvals" style={drillDownStyle}>
+        Akceptacje <ArrowRight size={14} />
+      </Link>
     </div>
   );
 }
@@ -107,4 +112,17 @@ const metricsGrid: React.CSSProperties = {
   marginTop: '12px',
   paddingTop: '12px',
   borderTop: '1px solid #f3f4f6',
+};
+
+const drillDownStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '4px',
+  marginTop: '12px',
+  paddingTop: '12px',
+  borderTop: '1px solid #f3f4f6',
+  fontSize: '13px',
+  fontWeight: 500,
+  color: '#2563eb',
+  textDecoration: 'none',
 };

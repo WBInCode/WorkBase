@@ -1,4 +1,5 @@
-import { ListTodo, AlertTriangle, CheckCircle2, BarChart3 } from 'lucide-react';
+import { ListTodo, AlertTriangle, CheckCircle2, BarChart3, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import type { TaskSummaryDto } from '@/api/types/dashboard';
 
 interface Props {
@@ -44,6 +45,10 @@ export function TaskSummaryWidget({ data, isLoading }: Props) {
           color="#6b7280"
         />
       </div>
+
+      <Link to="/tasks" style={drillDownStyle}>
+        Wszystkie zadania <ArrowRight size={14} />
+      </Link>
     </div>
   );
 }
@@ -107,4 +112,17 @@ const metricsGrid: React.CSSProperties = {
   marginTop: '12px',
   paddingTop: '12px',
   borderTop: '1px solid #f3f4f6',
+};
+
+const drillDownStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '4px',
+  marginTop: '12px',
+  paddingTop: '12px',
+  borderTop: '1px solid #f3f4f6',
+  fontSize: '13px',
+  fontWeight: 500,
+  color: '#2563eb',
+  textDecoration: 'none',
 };
