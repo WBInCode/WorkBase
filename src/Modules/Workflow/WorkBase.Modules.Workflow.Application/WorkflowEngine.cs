@@ -64,7 +64,8 @@ public sealed class WorkflowEngine(
     IWorkflowStepRepository stepRepository,
     IWorkflowActionRepository actionRepository,
     IApprovalRequestRepository approvalRequestRepository,
-    IApproverResolver approverResolver) : IWorkflowEngine
+    IApproverResolver approverResolver,
+    IWorkflowActionExecutor actionExecutor) : IWorkflowEngine
 {
     public Result<WorkflowDefinitionModel> LoadDefinition(string definitionJson)
     {
@@ -122,6 +123,7 @@ public sealed class WorkflowEngine(
                         ? System.Text.Json.JsonSerializer.Serialize(actionDef.Payload)
                         : null);
                 await actionRepository.AddAsync(action, cancellationToken);
+                await actionExecutor.ExecuteAsync(action, cancellationToken);
             }
         }
 
@@ -201,6 +203,7 @@ public sealed class WorkflowEngine(
                             ? System.Text.Json.JsonSerializer.Serialize(actionDef.Payload)
                             : null);
                     await actionRepository.AddAsync(action, cancellationToken);
+                    await actionExecutor.ExecuteAsync(action, cancellationToken);
                 }
             }
 
@@ -265,6 +268,7 @@ public sealed class WorkflowEngine(
                         ? System.Text.Json.JsonSerializer.Serialize(actionDef.Payload)
                         : null);
                 await actionRepository.AddAsync(action, cancellationToken);
+                await actionExecutor.ExecuteAsync(action, cancellationToken);
             }
         }
 

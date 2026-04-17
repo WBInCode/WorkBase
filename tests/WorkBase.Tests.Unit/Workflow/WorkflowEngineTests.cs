@@ -51,11 +51,12 @@ public class WorkflowEngineTests
     private readonly IWorkflowActionRepository _actionRepo = Substitute.For<IWorkflowActionRepository>();
     private readonly IApprovalRequestRepository _approvalRequestRepo = Substitute.For<IApprovalRequestRepository>();
     private readonly IApproverResolver _approverResolver = Substitute.For<IApproverResolver>();
+    private readonly IWorkflowActionExecutor _actionExecutor = Substitute.For<IWorkflowActionExecutor>();
     private readonly WorkflowEngine _engine;
 
     public WorkflowEngineTests()
     {
-        _engine = new WorkflowEngine(_definitionRepo, _instanceRepo, _stepRepo, _actionRepo, _approvalRequestRepo, _approverResolver);
+        _engine = new WorkflowEngine(_definitionRepo, _instanceRepo, _stepRepo, _actionRepo, _approvalRequestRepo, _approverResolver, _actionExecutor);
     }
 
     private WorkflowDefinition CreateDefinition(Guid? id = null)
@@ -149,6 +150,11 @@ public class WorkflowEngineTests
         // "submitted" step has one on_enter action (notify)
         await _actionRepo.Received(1).AddAsync(Arg.Is<WorkflowAction>(a =>
             a.ActionType == "notify"), Arg.Any<CancellationToken>());
+
+        // Action executor should have been called for the notify action
+        await _actionExecutor.Received(1).ExecuteAsync(
+            Arg.Is<WorkflowAction>(a => a.ActionType == "notify"),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]

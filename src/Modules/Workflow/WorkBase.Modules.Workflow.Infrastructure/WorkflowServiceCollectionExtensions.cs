@@ -21,6 +21,7 @@ public static class WorkflowServiceCollectionExtensions
         services.AddScoped<IWorkflowEngine, WorkflowEngine>();
         services.AddScoped<IApproverResolver, ApproverResolver>();
         services.AddScoped<IWorkflowService, WorkflowService>();
+        services.AddScoped<IWorkflowActionExecutor, WorkflowActionExecutor>();
 
         return services;
     }
