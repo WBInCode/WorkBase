@@ -30,3 +30,24 @@ public sealed record WorkflowStepDto(
     string? CompletedBy,
     string? Outcome,
     string? Comment);
+
+public sealed record ApprovalRequestDto(
+    Guid Id,
+    Guid InstanceId,
+    Guid StepId,
+    Guid RequesterId,
+    Guid ApproverId,
+    string Status,
+    DateTime? DueDate,
+    int Order,
+    DateTime CreatedAt,
+    string? WorkflowEntityType,
+    Guid? WorkflowEntityId);
+
+public sealed record ApprovalDecisionDto(
+    Guid Id,
+    Guid RequestId,
+    Guid DecidedBy,
+    string Decision,
+    string? Comment,
+    DateTime DecidedAt);

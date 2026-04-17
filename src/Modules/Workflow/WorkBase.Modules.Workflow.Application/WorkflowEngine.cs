@@ -62,7 +62,9 @@ public sealed class WorkflowEngine(
     IWorkflowDefinitionRepository definitionRepository,
     IWorkflowInstanceRepository instanceRepository,
     IWorkflowStepRepository stepRepository,
-    IWorkflowActionRepository actionRepository) : IWorkflowEngine
+    IWorkflowActionRepository actionRepository,
+    IApprovalRequestRepository approvalRequestRepository,
+    IApproverResolver approverResolver) : IWorkflowEngine
 {
     public Result<WorkflowDefinitionModel> LoadDefinition(string definitionJson)
     {
@@ -121,6 +123,20 @@ public sealed class WorkflowEngine(
                         : null);
                 await actionRepository.AddAsync(action, cancellationToken);
             }
+        }
+
+        // Create approval request if initial step is an approval step
+        if (stepDef?.Type == "approval" && stepDef.ApproverStrategy is not null)
+        {
+            var approverResult = await approverResolver.ResolveApproverAsync(
+                stepDef.ApproverStrategy, initiatedBy, cancellationToken);
+            if (approverResult is null || approverResult.IsFailure)
+                return Result.Failure<Guid>(approverResult?.Error
+                    ?? new Error("Approval.ResolverFailed", "Nie udało się rozwiązać akceptanta."));
+
+            var approvalRequest = ApprovalRequest.Create(
+                tenantId, step.Id, instance.Id, initiatedBy, approverResult.Value);
+            await approvalRequestRepository.AddAsync(approvalRequest, cancellationToken);
         }
 
         return instance.Id;
@@ -249,6 +265,20 @@ public sealed class WorkflowEngine(
                         ? System.Text.Json.JsonSerializer.Serialize(actionDef.Payload)
                         : null);
                 await actionRepository.AddAsync(action, cancellationToken);
+            }
+        }
+
+        // Create approval request if target step is an approval step
+        if (targetStepDef?.Type == "approval" && targetStepDef.ApproverStrategy is not null)
+        {
+            var approverResult = await approverResolver.ResolveApproverAsync(
+                targetStepDef.ApproverStrategy, instance.InitiatedBy, cancellationToken);
+            if (approverResult is { IsSuccess: true })
+            {
+                var approvalRequest = ApprovalRequest.Create(
+                    instance.TenantId, newStep.Id, instanceId,
+                    instance.InitiatedBy, approverResult.Value);
+                await approvalRequestRepository.AddAsync(approvalRequest, cancellationToken);
             }
         }
 

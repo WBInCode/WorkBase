@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using WorkBase.Modules.Workflow.Application;
 using WorkBase.Modules.Workflow.Application.Contracts;
+using WorkBase.Modules.Workflow.Application.Services;
 using WorkBase.Modules.Workflow.Infrastructure.Repositories;
 
 namespace WorkBase.Modules.Workflow.Infrastructure;
@@ -13,8 +14,11 @@ public static class WorkflowServiceCollectionExtensions
         services.AddScoped<IWorkflowInstanceRepository, WorkflowInstanceRepository>();
         services.AddScoped<IWorkflowStepRepository, WorkflowStepRepository>();
         services.AddScoped<IWorkflowActionRepository, WorkflowActionRepository>();
+        services.AddScoped<IApprovalRequestRepository, ApprovalRequestRepository>();
+        services.AddScoped<IApprovalDecisionRepository, ApprovalDecisionRepository>();
 
         services.AddScoped<IWorkflowEngine, WorkflowEngine>();
+        services.AddScoped<IApproverResolver, ApproverResolver>();
 
         return services;
     }

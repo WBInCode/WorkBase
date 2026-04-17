@@ -68,6 +68,25 @@ public static class WorkflowEndpoints
             .RequirePermission("workflow.manage")
             .Produces(StatusCodes.Status204NoContent);
 
+        // --- Approvals ---
+        group.MapGet("/approvals/pending/{approverEmployeeId:guid}", GetPendingApprovals)
+            .WithName("GetPendingApprovals")
+            .WithSummary("Pobierz oczekujące wnioski o akceptację dla danego akceptanta")
+            .RequirePermission("workflow.view")
+            .Produces<List<ApprovalRequestDto>>();
+
+        group.MapGet("/approvals/{id:guid}", GetApprovalRequest)
+            .WithName("GetApprovalRequest")
+            .WithSummary("Pobierz szczegóły wniosku o akceptację")
+            .RequirePermission("workflow.view")
+            .Produces<ApprovalRequestDto>();
+
+        group.MapPost("/approvals/{id:guid}/decide", SubmitApprovalDecision)
+            .WithName("SubmitApprovalDecision")
+            .WithSummary("Zatwierdź, odrzuć lub zwróć wniosek o akceptację")
+            .RequirePermission("workflow.create")
+            .Produces(StatusCodes.Status204NoContent);
+
         return endpoints;
     }
 
@@ -161,9 +180,39 @@ public static class WorkflowEndpoints
         var result = await sender.Send(command);
         return result.ToHttpResult();
     }
+
+    private static async Task<IResult> GetPendingApprovals(Guid approverEmployeeId, ISender sender)
+    {
+        var query = new GetPendingApprovalsQuery(approverEmployeeId);
+        var result = await sender.Send(query);
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> GetApprovalRequest(Guid id, ISender sender)
+    {
+        var query = new GetApprovalRequestQuery(id);
+        var result = await sender.Send(query);
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> SubmitApprovalDecision(
+        Guid id,
+        SubmitApprovalDecisionRequest request,
+        ISender sender)
+    {
+        var command = new SubmitApprovalDecisionCommand(
+            id,
+            request.Decision,
+            request.DecidedByEmployeeId,
+            request.Comment);
+
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
+    }
 }
 
 public sealed record CreateWorkflowDefinitionRequest(string Name, string DefinitionJson, string? Description = null);
 public sealed record UpdateWorkflowDefinitionRequest(string Name, string DefinitionJson, string? Description = null);
 public sealed record CreateWorkflowInstanceRequest(Guid DefinitionId, string EntityType, Guid EntityId, Guid InitiatedBy);
 public sealed record AdvanceWorkflowRequest(string Outcome, string? CompletedBy = null, string? Comment = null);
+public sealed record SubmitApprovalDecisionRequest(string Decision, Guid DecidedByEmployeeId, string? Comment = null);

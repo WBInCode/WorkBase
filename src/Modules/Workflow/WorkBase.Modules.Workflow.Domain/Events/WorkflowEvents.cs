@@ -40,3 +40,19 @@ public sealed record WorkflowStepAdvancedEvent(
     string ToStep,
     string EntityType,
     Guid EntityId) : DomainEvent;
+
+public sealed record ApprovalRequestCreatedEvent(
+    Guid RequestId,
+    Guid TenantId,
+    Guid InstanceId,
+    Guid StepId,
+    Guid RequesterId,
+    Guid ApproverId) : DomainEvent;
+
+public sealed record ApprovalDecisionMadeEvent(
+    Guid DecisionId,
+    Guid RequestId,
+    Guid TenantId,
+    Guid InstanceId,
+    Guid DecidedBy,
+    string Decision) : DomainEvent;

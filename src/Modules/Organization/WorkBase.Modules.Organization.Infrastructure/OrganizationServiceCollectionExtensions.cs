@@ -1,6 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
+using WorkBase.Contracts;
 using WorkBase.Modules.Organization.Application.Contracts;
 using WorkBase.Modules.Organization.Infrastructure.Repositories;
+using WorkBase.Modules.Organization.Infrastructure.Services;
 
 namespace WorkBase.Modules.Organization.Infrastructure;
 
@@ -14,6 +16,7 @@ public static class OrganizationServiceCollectionExtensions
         services.AddScoped<IEmployeeAssignmentRepository, EmployeeAssignmentRepository>();
         services.AddScoped<IPositionRepository, PositionRepository>();
         services.AddScoped<ISupervisorRelationRepository, SupervisorRelationRepository>();
+        services.AddScoped<ISupervisorLookupService, SupervisorLookupService>();
 
         return services;
     }

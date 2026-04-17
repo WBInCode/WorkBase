@@ -21,6 +21,9 @@ public sealed class ApprovalRequestConfiguration : IEntityTypeConfiguration<Appr
         builder.Property(e => e.InstanceId)
             .IsRequired();
 
+        builder.Property(e => e.RequesterId)
+            .IsRequired();
+
         builder.Property(e => e.ApproverId)
             .IsRequired();
 
