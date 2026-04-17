@@ -1322,6 +1322,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | wysoka |
 | **Ryzyko** | niskie |
 | **Uwagi** | Agreguje dane z wielu modułów. |
+| **Status** | ✅ DONE (f909fd1) |
 
 ---
 
