@@ -10,12 +10,12 @@ namespace WorkBase.Modules.TimeTracking.Infrastructure.Jobs;
 public sealed class EndOfDayAnomalyCheckJob(
     WorkBaseDbContext dbContext,
     AnomalyDetectionService anomalyDetectionService,
+    IAnomalySettingsProvider settingsProvider,
     ILogger<EndOfDayAnomalyCheckJob> logger)
 {
     public async Task ExecuteAsync()
     {
         var yesterday = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1));
-        var settings = new AnomalyDetectionSettings();
 
         logger.LogInformation("Starting anomaly detection for date {Date}", yesterday);
 
@@ -41,11 +41,18 @@ public sealed class EndOfDayAnomalyCheckJob(
             .ToList();
 
         var totalAnomalies = 0;
+        var tenantSettingsCache = new Dictionary<Guid, AnomalyDetectionSettings>();
 
         foreach (var pair in allPairs)
         {
             try
             {
+                if (!tenantSettingsCache.TryGetValue(pair.TenantId, out var settings))
+                {
+                    settings = await settingsProvider.GetSettingsAsync(pair.TenantId);
+                    tenantSettingsCache[pair.TenantId] = settings;
+                }
+
                 var anomalies = await anomalyDetectionService.DetectAnomaliesForDateAsync(
                     pair.TenantId, pair.EmployeeId, yesterday, settings);
 

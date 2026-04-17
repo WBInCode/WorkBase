@@ -9,6 +9,7 @@ public sealed class AnomalyDetectionService(
     IScheduleRepository scheduleRepository,
     ITimeAnomalyRepository anomalyRepository,
     ITimeSheetRepository timeSheetRepository,
+    IEnumerable<IAnomalyRule> rules,
     ILogger<AnomalyDetectionService> logger)
 {
     public async Task<List<TimeAnomaly>> DetectAnomaliesForDateAsync(
@@ -18,8 +19,6 @@ public sealed class AnomalyDetectionService(
         AnomalyDetectionSettings settings,
         CancellationToken cancellationToken = default)
     {
-        var anomalies = new List<TimeAnomaly>();
-
         var entries = await timeEntryRepository.GetEntriesForDateAsync(
             tenantId, employeeId, date, cancellationToken);
 
@@ -31,94 +30,31 @@ public sealed class AnomalyDetectionService(
 
         var ordered = entries.OrderBy(e => e.EntryTime).ToList();
 
-        // Rule 1: Missing clock-out
-        if (settings.DetectMissingClockOut)
+        var context = new AnomalyRuleContext
         {
-            var lastEntry = ordered.LastOrDefault();
-            if (lastEntry is not null && lastEntry.Type is TimeEntryType.ClockIn or TimeEntryType.BreakEnd)
+            TenantId = tenantId,
+            EmployeeId = employeeId,
+            Date = date,
+            Entries = ordered,
+            Schedule = schedule,
+            TimeSheet = timeSheet,
+            Settings = settings,
+            AlreadyDetected = (type, ct) => anomalyRepository.ExistsAsync(tenantId, employeeId, date, type, ct),
+        };
+
+        var anomalies = new List<TimeAnomaly>();
+
+        foreach (var rule in rules)
+        {
+            try
             {
-                if (!await AlreadyDetectedAsync(tenantId, employeeId, date, AnomalyType.MissingClockOut, cancellationToken))
-                {
-                    anomalies.Add(TimeAnomaly.Create(
-                        tenantId, employeeId, date,
-                        AnomalyType.MissingClockOut,
-                        "Pracownik nie zarejestrował wyjścia.",
-                        timeSheetId: timeSheet?.Id));
-                }
+                var detected = await rule.EvaluateAsync(context, cancellationToken);
+                anomalies.AddRange(detected);
             }
-        }
-
-        // Rule 2: Missing clock-in (schedule exists but no entries)
-        if (settings.DetectMissingClockIn && schedule is not null && ordered.Count == 0)
-        {
-            if (!await AlreadyDetectedAsync(tenantId, employeeId, date, AnomalyType.MissingClockIn, cancellationToken))
+            catch (Exception ex)
             {
-                anomalies.Add(TimeAnomaly.Create(
-                    tenantId, employeeId, date,
-                    AnomalyType.MissingClockIn,
-                    $"Brak rejestracji czasu pracy mimo zaplanowanej zmiany ({schedule.PlannedStart}–{schedule.PlannedEnd}).",
-                    timeSheetId: timeSheet?.Id));
-            }
-        }
-
-        // Rule 3: Late arrival
-        if (settings.DetectLateArrival && schedule is not null)
-        {
-            var firstClockIn = ordered.FirstOrDefault(e => e.Type == TimeEntryType.ClockIn);
-            if (firstClockIn is not null)
-            {
-                var clockInTime = TimeOnly.FromDateTime(firstClockIn.EntryTime);
-                var delay = clockInTime - schedule.PlannedStart;
-
-                if (delay > settings.LateArrivalThreshold)
-                {
-                    if (!await AlreadyDetectedAsync(tenantId, employeeId, date, AnomalyType.LateArrival, cancellationToken))
-                    {
-                        anomalies.Add(TimeAnomaly.Create(
-                            tenantId, employeeId, date,
-                            AnomalyType.LateArrival,
-                            $"Spóźnienie {delay.TotalMinutes:F0} min (próg: {settings.LateArrivalThreshold.TotalMinutes:F0} min). Plan: {schedule.PlannedStart}, rzeczywiste: {clockInTime}.",
-                            System.Text.Json.JsonSerializer.Serialize(new { PlannedStart = schedule.PlannedStart.ToString(), ActualStart = clockInTime.ToString(), DelayMinutes = delay.TotalMinutes }),
-                            timeSheet?.Id));
-                    }
-                }
-            }
-        }
-
-        // Rule 4: Double clock-in
-        if (settings.DetectDoubleClockIn)
-        {
-            for (var i = 1; i < ordered.Count; i++)
-            {
-                if (ordered[i].Type == TimeEntryType.ClockIn && ordered[i - 1].Type == TimeEntryType.ClockIn)
-                {
-                    if (!await AlreadyDetectedAsync(tenantId, employeeId, date, AnomalyType.DoubleClockIn, cancellationToken))
-                    {
-                        anomalies.Add(TimeAnomaly.Create(
-                            tenantId, employeeId, date,
-                            AnomalyType.DoubleClockIn,
-                            "Wykryto podwójną rejestrację wejścia.",
-                            timeSheetId: timeSheet?.Id));
-                    }
-                    break;
-                }
-            }
-        }
-
-        // Rule 5: Excessive shift
-        if (settings.DetectExcessiveShift && timeSheet is not null)
-        {
-            if (timeSheet.TotalWorked > settings.ExcessiveShiftThreshold)
-            {
-                if (!await AlreadyDetectedAsync(tenantId, employeeId, date, AnomalyType.ExcessiveShift, cancellationToken))
-                {
-                    anomalies.Add(TimeAnomaly.Create(
-                        tenantId, employeeId, date,
-                        AnomalyType.ExcessiveShift,
-                        $"Zmiana trwała {timeSheet.TotalWorked.TotalHours:F1}h (próg: {settings.ExcessiveShiftThreshold.TotalHours:F0}h).",
-                        System.Text.Json.JsonSerializer.Serialize(new { WorkedHours = timeSheet.TotalWorked.TotalHours, ThresholdHours = settings.ExcessiveShiftThreshold.TotalHours }),
-                        timeSheet.Id));
-                }
+                logger.LogError(ex, "Rule {RuleName} failed for employee {EmployeeId} on {Date}",
+                    rule.GetType().Name, employeeId, date);
             }
         }
 
@@ -136,12 +72,5 @@ public sealed class AnomalyDetectionService(
         }
 
         return anomalies;
-    }
-
-    private async Task<bool> AlreadyDetectedAsync(
-        Guid tenantId, Guid employeeId, DateOnly date, AnomalyType type,
-        CancellationToken cancellationToken)
-    {
-        return await anomalyRepository.ExistsAsync(tenantId, employeeId, date, type, cancellationToken);
     }
 }
