@@ -1343,17 +1343,17 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 
 ## T-E08-006: Anomaly detection — subtaski
 
-| SID | Subtask | Owner |
-|---|---|---|
-| T-E08-006-a | IAnomalyRule interface + rule executor | backend |
-| T-E08-006-b | Rule: MissingClockOutRule | backend |
-| T-E08-006-c | Rule: LateArrivalRule (porównanie z Schedule) | backend |
-| T-E08-006-d | Rule: DoubleClockInRule | backend |
-| T-E08-006-e | Rule: OverlongShiftRule (konfigurowalny próg) | backend |
-| T-E08-006-f | Konfiguracja progów per tenant (cfg_tenant_configs) | backend |
-| T-E08-006-g | Hangfire job: EndOfDayAnomalyCheck | backend |
-| T-E08-006-h | Event: AnomalyDetected → notify manager | backend |
-| T-E08-006-i | Anomaly list API + review/dismiss endpoints | backend |
+| SID | Subtask | Owner | Status |
+|---|---|---|---|
+| T-E08-006-a | IAnomalyRule interface + rule executor | backend | ✅ DONE (22c13f1) |
+| T-E08-006-b | Rule: MissingClockOutRule | backend | ✅ DONE |
+| T-E08-006-c | Rule: LateArrivalRule (porównanie z Schedule) | backend | ✅ DONE |
+| T-E08-006-d | Rule: DoubleClockInRule | backend | ✅ DONE |
+| T-E08-006-e | Rule: OverlongShiftRule (konfigurowalny próg) | backend | ✅ DONE |
+| T-E08-006-f | Konfiguracja progów per tenant (cfg_tenant_configs) | backend | ✅ DONE (22c13f1) |
+| T-E08-006-g | Hangfire job: EndOfDayAnomalyCheck | backend | ✅ DONE |
+| T-E08-006-h | Event: AnomalyDetected → notify manager | backend | ✅ DONE (22c13f1) |
+| T-E08-006-i | Anomaly list API + review/dismiss endpoints | backend | ✅ DONE |
 
 ## T-E02-003: Frontend auth flow — subtaski
 
