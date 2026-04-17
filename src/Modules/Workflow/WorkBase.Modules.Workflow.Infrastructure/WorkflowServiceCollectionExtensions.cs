@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using WorkBase.Contracts;
 using WorkBase.Modules.Workflow.Application;
 using WorkBase.Modules.Workflow.Application.Contracts;
 using WorkBase.Modules.Workflow.Application.Services;
@@ -19,6 +20,7 @@ public static class WorkflowServiceCollectionExtensions
 
         services.AddScoped<IWorkflowEngine, WorkflowEngine>();
         services.AddScoped<IApproverResolver, ApproverResolver>();
+        services.AddScoped<IWorkflowService, WorkflowService>();
 
         return services;
     }

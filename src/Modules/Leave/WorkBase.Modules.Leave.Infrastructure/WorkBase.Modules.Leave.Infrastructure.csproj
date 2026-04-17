@@ -1,8 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.9" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\WorkBase.Modules.Leave.Application\WorkBase.Modules.Leave.Application.csproj" />
     <ProjectReference Include="..\WorkBase.Modules.Leave.Domain\WorkBase.Modules.Leave.Domain.csproj" />
     <ProjectReference Include="..\..\..\WorkBase.Shared\WorkBase.Shared.csproj" />
     <ProjectReference Include="..\..\..\WorkBase.Contracts\WorkBase.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\WorkBase.Infrastructure\WorkBase.Infrastructure.csproj" />
   </ItemGroup>
 </Project>
