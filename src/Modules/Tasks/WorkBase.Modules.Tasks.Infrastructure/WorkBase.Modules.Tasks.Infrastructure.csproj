@@ -5,4 +5,8 @@
     <ProjectReference Include="..\..\..\WorkBase.Shared\WorkBase.Shared.csproj" />
     <ProjectReference Include="..\..\..\WorkBase.Contracts\WorkBase.Contracts.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.9" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.9" />
+  </ItemGroup>
 </Project>

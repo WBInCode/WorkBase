@@ -20,6 +20,7 @@ public static class DatabaseSeeder
         await IamSeeder.SeedAsync(dbContext, logger);
         await WorkflowSeeder.SeedAsync(dbContext, logger);
         await LeaveSeeder.SeedAsync(dbContext, logger);
+        await TaskSeeder.SeedAsync(dbContext, logger);
 
         logger.LogInformation("Database seeding completed.");
     }
