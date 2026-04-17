@@ -1167,6 +1167,8 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | średnia |
 | **Ryzyko** | niskie |
 | **Uwagi** | — |
+| **Status** | ✅ DONE |
+| **Commit** | `28d1e2c` — feat(leave-ui): T-E10-003 leave request page, calendar page, balance cards |
 
 ### T-E09-005: Frontend — oczekujące akceptacje
 
