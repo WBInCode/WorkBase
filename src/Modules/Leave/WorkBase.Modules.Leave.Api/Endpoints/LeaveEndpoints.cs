@@ -52,6 +52,46 @@ public static class LeaveEndpoints
             .RequirePermission("leave.view")
             .Produces<List<LeaveCalendarEntryDto>>();
 
+        // --- Cancel ---
+        group.MapPost("/requests/{id:guid}/cancel", CancelLeaveRequest)
+            .WithName("CancelLeaveRequest")
+            .WithSummary("Anuluj wniosek urlopowy")
+            .RequirePermission("leave.create");
+
+        // --- Types CRUD ---
+        group.MapPost("/types", CreateLeaveType)
+            .WithName("CreateLeaveType")
+            .WithSummary("Utwórz typ nieobecności")
+            .RequirePermission("leave.manage");
+
+        group.MapPut("/types/{id:guid}", UpdateLeaveType)
+            .WithName("UpdateLeaveType")
+            .WithSummary("Aktualizuj typ nieobecności")
+            .RequirePermission("leave.manage");
+
+        // --- Policies ---
+        group.MapGet("/policies", GetLeavePolicies)
+            .WithName("GetLeavePolicies")
+            .WithSummary("Pobierz polityki urlopowe")
+            .RequirePermission("leave.view")
+            .Produces<List<LeavePolicyDto>>();
+
+        group.MapPost("/policies", CreateLeavePolicy)
+            .WithName("CreateLeavePolicy")
+            .WithSummary("Utwórz politykę urlopową")
+            .RequirePermission("leave.manage");
+
+        group.MapPut("/policies/{id:guid}", UpdateLeavePolicy)
+            .WithName("UpdateLeavePolicy")
+            .WithSummary("Aktualizuj politykę urlopową")
+            .RequirePermission("leave.manage");
+
+        // --- Balance adjust ---
+        group.MapPost("/balances/{employeeId:guid}/adjust", AdjustLeaveBalance)
+            .WithName("AdjustLeaveBalance")
+            .WithSummary("Dostosuj saldo urlopowe")
+            .RequirePermission("leave.manage");
+
         return endpoints;
     }
 
@@ -103,6 +143,51 @@ public static class LeaveEndpoints
         var result = await sender.Send(query);
         return result.ToHttpResult();
     }
+
+    private static async Task<IResult> CancelLeaveRequest(Guid id, ISender sender)
+    {
+        var command = new CancelLeaveRequestCommand(id);
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> CreateLeaveType(CreateLeaveTypeCommand command, ISender sender)
+    {
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> UpdateLeaveType(Guid id, UpdateLeaveTypeCommand command, ISender sender)
+    {
+        var result = await sender.Send(command with { LeaveTypeId = id });
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> GetLeavePolicies(ISender sender)
+    {
+        var query = new GetLeavePoliciesQuery();
+        var result = await sender.Send(query);
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> CreateLeavePolicy(CreateLeavePolicyCommand command, ISender sender)
+    {
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> UpdateLeavePolicy(Guid id, UpdateLeavePolicyCommand command, ISender sender)
+    {
+        var result = await sender.Send(command with { PolicyId = id });
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> AdjustLeaveBalance(Guid employeeId, AdjustBalanceBody body, ISender sender)
+    {
+        var command = new AdjustLeaveBalanceCommand(employeeId, body.LeaveTypeId, body.Year, body.NewTotalDays);
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
+    }
 }
 
 public sealed record SubmitLeaveRequestBody(
@@ -117,3 +202,5 @@ public sealed record LeaveCalendarRequestBody(
     List<Guid> EmployeeIds,
     DateTime From,
     DateTime To);
+
+public sealed record AdjustBalanceBody(Guid LeaveTypeId, int Year, decimal NewTotalDays);

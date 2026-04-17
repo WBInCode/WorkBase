@@ -70,6 +70,13 @@ public static class ScheduleEndpoints
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound);
 
+        templates.MapDelete("/{id:guid}", DeleteTemplate)
+            .WithName("DeleteScheduleTemplate")
+            .WithSummary("Usuń szablon grafiku")
+            .RequirePermission("time.manage")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status404NotFound);
+
         return endpoints;
     }
 
@@ -157,6 +164,12 @@ public static class ScheduleEndpoints
         return result.IsSuccess
             ? Results.NoContent()
             : result.ToHttpResult();
+    }
+
+    private static async Task<IResult> DeleteTemplate(Guid id, ISender sender)
+    {
+        var result = await sender.Send(new DeleteScheduleTemplateCommand(id));
+        return result.IsSuccess ? Results.NoContent() : result.ToHttpResult();
     }
 }
 

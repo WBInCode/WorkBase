@@ -55,6 +55,13 @@ public static class RoleEndpoints
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status400BadRequest);
 
+        group.MapDelete("/{id:guid}", DeleteRole)
+            .WithName("DeleteRole")
+            .WithSummary("Usuń rolę")
+            .RequirePermission("identity.edit")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status400BadRequest);
+
         return endpoints;
     }
 
@@ -133,6 +140,22 @@ public static class RoleEndpoints
         try
         {
             await service.UpdateRolePermissionsAsync(id, request.PermissionIds, ct);
+            return Results.NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Results.BadRequest(new { ex.Message });
+        }
+    }
+
+    private static async Task<IResult> DeleteRole(
+        Guid id,
+        IRoleManagementService service,
+        CancellationToken ct)
+    {
+        try
+        {
+            await service.DeleteRoleAsync(id, ct);
             return Results.NoContent();
         }
         catch (InvalidOperationException ex)

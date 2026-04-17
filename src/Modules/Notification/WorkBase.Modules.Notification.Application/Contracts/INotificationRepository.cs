@@ -7,5 +7,6 @@ public interface INotificationRepository
     Task<int> GetUnreadCountAsync(Guid tenantId, Guid recipientUserId, CancellationToken ct = default);
     Task AddAsync(Domain.Entities.Notification notification, CancellationToken ct = default);
     void Update(Domain.Entities.Notification notification);
+    Task MarkAllReadAsync(Guid tenantId, Guid recipientUserId, CancellationToken ct = default);
     Task SaveChangesAsync(CancellationToken ct = default);
 }

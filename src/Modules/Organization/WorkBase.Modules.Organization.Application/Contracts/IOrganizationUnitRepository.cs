@@ -10,6 +10,7 @@ public interface IOrganizationUnitRepository
     Task<bool> CodeExistsInTenantAsync(Guid tenantId, string code, Guid? excludeId = null, CancellationToken cancellationToken = default);
     Task AddAsync(OrganizationUnit unit, CancellationToken cancellationToken = default);
     void Update(OrganizationUnit unit);
+    void Remove(OrganizationUnit unit);
     Task RebuildClosureAsync(Guid unitId, Guid? oldParentId, Guid? newParentId, CancellationToken cancellationToken = default);
     Task InsertClosureForNewUnitAsync(Guid unitId, Guid? parentId, CancellationToken cancellationToken = default);
     Task<List<OrganizationUnit>> GetAllByTenantAsync(Guid tenantId, CancellationToken cancellationToken = default);

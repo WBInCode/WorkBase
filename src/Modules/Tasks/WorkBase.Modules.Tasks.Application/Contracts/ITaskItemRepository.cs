@@ -9,4 +9,5 @@ public interface ITaskItemRepository
     Task<List<TaskItem>> GetByTenantAsync(Guid tenantId, CancellationToken cancellationToken = default);
     Task AddAsync(TaskItem task, CancellationToken cancellationToken = default);
     void Update(TaskItem task);
+    void Remove(TaskItem task);
 }

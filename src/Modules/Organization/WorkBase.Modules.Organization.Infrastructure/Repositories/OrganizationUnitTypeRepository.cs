@@ -48,4 +48,9 @@ public sealed class OrganizationUnitTypeRepository(WorkBaseDbContext dbContext) 
     {
         dbContext.Set<OrganizationUnitType>().Update(unitType);
     }
+
+    public void Remove(OrganizationUnitType unitType)
+    {
+        dbContext.Set<OrganizationUnitType>().Remove(unitType);
+    }
 }

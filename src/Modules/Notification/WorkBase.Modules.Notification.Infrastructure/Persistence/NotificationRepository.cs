@@ -34,6 +34,11 @@ public sealed class NotificationRepository(WorkBaseDbContext db) : INotification
     public void Update(Domain.Entities.Notification notification)
         => db.Set<Domain.Entities.Notification>().Update(notification);
 
+    public async Task MarkAllReadAsync(Guid tenantId, Guid recipientUserId, CancellationToken ct = default)
+        => await db.Set<Domain.Entities.Notification>()
+            .Where(n => n.TenantId == tenantId && n.RecipientUserId == recipientUserId && !n.IsRead)
+            .ExecuteUpdateAsync(s => s.SetProperty(n => n.IsRead, true).SetProperty(n => n.ReadAt, DateTime.UtcNow), ct);
+
     public async Task SaveChangesAsync(CancellationToken ct = default)
         => await db.SaveChangesAsync(ct);
 }

@@ -31,6 +31,10 @@ public static class NotificationEndpoints
             .WithName("MarkNotificationRead")
             .WithSummary("Mark a notification as read");
 
+        group.MapPost("/mark-all-read", MarkAllRead)
+            .WithName("MarkAllNotificationsRead")
+            .WithSummary("Mark all notifications as read for a user");
+
         return endpoints;
     }
 
@@ -52,6 +56,13 @@ public static class NotificationEndpoints
     private static async Task<IResult> MarkAsRead(Guid id, ISender sender)
     {
         var command = new MarkNotificationReadCommand(id);
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> MarkAllRead(Guid recipientUserId, ISender sender)
+    {
+        var command = new MarkAllNotificationsReadCommand(recipientUserId);
         var result = await sender.Send(command);
         return result.ToHttpResult();
     }

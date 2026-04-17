@@ -10,4 +10,5 @@ public interface IPositionRepository
     Task<List<Position>> GetAllByTenantAsync(Guid tenantId, CancellationToken cancellationToken = default);
     Task AddAsync(Position position, CancellationToken cancellationToken = default);
     void Update(Position position);
+    void Remove(Position position);
 }

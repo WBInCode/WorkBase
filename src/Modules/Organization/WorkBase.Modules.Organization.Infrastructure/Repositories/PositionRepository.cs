@@ -47,4 +47,9 @@ public sealed class PositionRepository(WorkBaseDbContext dbContext) : IPositionR
     {
         dbContext.Set<Position>().Update(position);
     }
+
+    public void Remove(Position position)
+    {
+        dbContext.Set<Position>().Remove(position);
+    }
 }

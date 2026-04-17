@@ -9,4 +9,5 @@ public interface IWorkflowDefinitionRepository
     Task<List<WorkflowDefinition>> GetAllAsync(Guid tenantId, CancellationToken cancellationToken = default);
     Task AddAsync(WorkflowDefinition definition, CancellationToken cancellationToken = default);
     void Update(WorkflowDefinition definition);
+    void Remove(WorkflowDefinition definition);
 }

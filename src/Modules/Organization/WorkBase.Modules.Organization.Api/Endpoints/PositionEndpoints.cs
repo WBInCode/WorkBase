@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Routing;
 using WorkBase.Modules.Organization.Application.Commands.Positions;
 using WorkBase.Modules.Organization.Application.Dtos;
 using WorkBase.Modules.Organization.Application.Queries.Positions;
+using WorkBase.Shared.Api;
 using WorkBase.Shared.Auth;
 
 namespace WorkBase.Modules.Organization.Api.Endpoints;
@@ -39,6 +40,13 @@ public static class PositionEndpoints
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound);
 
+        group.MapDelete("/{id:guid}", DeletePosition)
+            .WithName("DeletePosition")
+            .WithSummary("Usuń stanowisko")
+            .RequirePermission("org.edit")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status404NotFound);
+
         return endpoints;
     }
 
@@ -67,6 +75,12 @@ public static class PositionEndpoints
         var command = new UpdatePositionCommand(id, request.Name, request.Description);
         var result = await sender.Send(command);
         return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> DeletePosition(Guid id, ISender sender)
+    {
+        var result = await sender.Send(new DeletePositionCommand(id));
+        return result.IsSuccess ? Results.NoContent() : result.ToHttpResult();
     }
 }
 

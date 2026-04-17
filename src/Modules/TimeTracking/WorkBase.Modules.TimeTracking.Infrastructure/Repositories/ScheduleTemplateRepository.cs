@@ -43,4 +43,9 @@ public sealed class ScheduleTemplateRepository(WorkBaseDbContext dbContext) : IS
     {
         dbContext.Set<ScheduleTemplate>().Update(template);
     }
+
+    public void Remove(ScheduleTemplate template)
+    {
+        dbContext.Set<ScheduleTemplate>().Remove(template);
+    }
 }

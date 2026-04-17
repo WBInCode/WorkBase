@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Routing;
 using WorkBase.Modules.Organization.Application.Commands.UnitTypes;
 using WorkBase.Modules.Organization.Application.Dtos;
 using WorkBase.Modules.Organization.Application.Queries.UnitTypes;
+using WorkBase.Shared.Api;
 using WorkBase.Shared.Auth;
 
 namespace WorkBase.Modules.Organization.Api.Endpoints;
@@ -39,6 +40,13 @@ public static class UnitTypeEndpoints
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound);
 
+        group.MapDelete("/{id:guid}", DeleteUnitType)
+            .WithName("DeleteUnitType")
+            .WithSummary("Usuń typ jednostki organizacyjnej")
+            .RequirePermission("org.edit")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status404NotFound);
+
         return endpoints;
     }
 
@@ -67,6 +75,12 @@ public static class UnitTypeEndpoints
         var command = new UpdateUnitTypeCommand(id, request.Name, request.Description, request.SortOrder);
         var result = await sender.Send(command);
         return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> DeleteUnitType(Guid id, ISender sender)
+    {
+        var result = await sender.Send(new DeleteUnitTypeCommand(id));
+        return result.IsSuccess ? Results.NoContent() : result.ToHttpResult();
     }
 }
 

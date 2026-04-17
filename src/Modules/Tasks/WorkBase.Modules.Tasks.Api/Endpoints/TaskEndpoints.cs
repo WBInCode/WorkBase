@@ -39,6 +39,13 @@ public static class TaskEndpoints
             .RequirePermission("tasks.view")
             .Produces<List<TaskItemDto>>();
 
+        group.MapGet("/{id:guid}", GetTaskById)
+            .WithName("GetTaskById")
+            .WithSummary("Pobierz szczegóły zadania")
+            .RequirePermission("tasks.view")
+            .Produces<TaskItemDto>()
+            .Produces(StatusCodes.Status404NotFound);
+
         group.MapPost("/", CreateTask)
             .WithName("CreateTask")
             .WithSummary("Utwórz nowe zadanie")
@@ -77,6 +84,13 @@ public static class TaskEndpoints
             .RequirePermission("tasks.edit")
             .Produces<Guid>(StatusCodes.Status201Created);
 
+        group.MapDelete("/{id:guid}", DeleteTask)
+            .WithName("DeleteTask")
+            .WithSummary("Usuń zadanie")
+            .RequirePermission("tasks.edit")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status404NotFound);
+
         return endpoints;
     }
 
@@ -95,6 +109,12 @@ public static class TaskEndpoints
     private static async Task<IResult> GetTasks(Guid? assigneeId, ISender sender)
     {
         var result = await sender.Send(new GetTasksQuery(assigneeId));
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> GetTaskById(Guid id, ISender sender)
+    {
+        var result = await sender.Send(new GetTaskByIdQuery(id));
         return result.ToHttpResult();
     }
 
@@ -144,6 +164,12 @@ public static class TaskEndpoints
         return result.IsSuccess
             ? Results.Created($"/api/tasks/{id}/attachments/{result.Value}", result.Value)
             : result.ToHttpResult();
+    }
+
+    private static async Task<IResult> DeleteTask(Guid id, ISender sender)
+    {
+        var result = await sender.Send(new DeleteTaskCommand(id));
+        return result.IsSuccess ? Results.NoContent() : result.ToHttpResult();
     }
 }
 

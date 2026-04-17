@@ -23,6 +23,8 @@ using WorkBase.Modules.Dashboard.Infrastructure;
 using WorkBase.Modules.Notification.Api.Endpoints;
 using WorkBase.Modules.Notification.Infrastructure;
 using WorkBase.Modules.Notification.Infrastructure.Hubs;
+using WorkBase.Modules.Documents.Api.Endpoints;
+using WorkBase.Modules.Documents.Infrastructure;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -71,6 +73,7 @@ try
     builder.Services.AddTasksModule();
     builder.Services.AddDashboardModule();
     builder.Services.AddNotificationModule();
+    builder.Services.AddDocumentsModule();
     builder.Services.AddSignalR();
 
     var allowedOrigins = builder.Configuration
@@ -140,6 +143,7 @@ try
     app.MapQrTokenEndpoints();
     app.MapScheduleEndpoints();
     app.MapAnomalyEndpoints();
+    app.MapTimeCorrectionEndpoints();
 
     app.MapWorkflowEndpoints();
 
@@ -151,6 +155,8 @@ try
 
     app.MapNotificationEndpoints();
     app.MapHub<NotificationHub>("/hubs/notifications");
+
+    app.MapDocumentEndpoints();
 
     RecurringJob.AddOrUpdate<EndOfDayAnomalyCheckJob>(
         "anomaly-detection-daily",

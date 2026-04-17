@@ -36,4 +36,9 @@ public sealed class WorkflowDefinitionRepository(WorkBaseDbContext dbContext) : 
     {
         dbContext.Set<WorkflowDefinition>().Update(definition);
     }
+
+    public void Remove(WorkflowDefinition definition)
+    {
+        dbContext.Set<WorkflowDefinition>().Remove(definition);
+    }
 }

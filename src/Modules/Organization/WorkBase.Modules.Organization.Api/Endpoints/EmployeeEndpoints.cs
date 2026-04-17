@@ -6,6 +6,7 @@ using WorkBase.Modules.Organization.Application.Commands.Employees;
 using WorkBase.Modules.Organization.Application.Dtos;
 using WorkBase.Modules.Organization.Application.Queries.Employees;
 using WorkBase.Modules.Organization.Domain.Entities;
+using WorkBase.Shared.Api;
 using WorkBase.Shared.Auth;
 
 namespace WorkBase.Modules.Organization.Api.Endpoints;
@@ -53,6 +54,20 @@ public static class EmployeeEndpoints
             .RequirePermission("org.edit")
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status404NotFound);
+
+        group.MapPut("/{id:guid}", UpdateEmployee)
+            .WithName("UpdateEmployee")
+            .WithSummary("Zaktualizuj dane pracownika")
+            .RequirePermission("org.edit")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status404NotFound);
+
+        group.MapDelete("/{id:guid}", DeactivateEmployee)
+            .WithName("DeactivateEmployee")
+            .WithSummary("Dezaktywuj pracownika")
+            .RequirePermission("org.edit")
+            .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound);
 
         return endpoints;
@@ -115,6 +130,25 @@ public static class EmployeeEndpoints
         var result = await sender.Send(command);
         return result.ToHttpResult();
     }
+
+    private static async Task<IResult> UpdateEmployee(
+        Guid id,
+        UpdateEmployeeRequest request,
+        ISender sender)
+    {
+        var command = new UpdateEmployeeCommand(
+            id, request.FirstName, request.LastName, request.Email, request.EmployeeNumber);
+        var result = await sender.Send(command);
+        return result.IsSuccess ? Results.NoContent() : result.ToHttpResult();
+    }
+
+    private static async Task<IResult> DeactivateEmployee(
+        Guid id,
+        ISender sender)
+    {
+        var result = await sender.Send(new DeactivateEmployeeCommand(id));
+        return result.IsSuccess ? Results.NoContent() : result.ToHttpResult();
+    }
 }
 
 public sealed record AssignEmployeeRequest(
@@ -125,3 +159,9 @@ public sealed record AssignEmployeeRequest(
 
 public sealed record SetSupervisorRequest(
     Guid SupervisorEmployeeId);
+
+public sealed record UpdateEmployeeRequest(
+    string FirstName,
+    string LastName,
+    string Email,
+    string? EmployeeNumber);

@@ -20,4 +20,9 @@ public sealed class LeaveTypeRepository(WorkBaseDbContext dbContext) : ILeaveTyp
             .OrderBy(t => t.SortOrder)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task AddAsync(LeaveType type, CancellationToken cancellationToken = default)
+        => await dbContext.Set<LeaveType>().AddAsync(type, cancellationToken);
+
+    public void Update(LeaveType type) => dbContext.Set<LeaveType>().Update(type);
 }

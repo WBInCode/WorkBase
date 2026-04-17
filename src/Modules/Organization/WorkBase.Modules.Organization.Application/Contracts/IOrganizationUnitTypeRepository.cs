@@ -10,4 +10,5 @@ public interface IOrganizationUnitTypeRepository
     Task<List<OrganizationUnitType>> GetAllByTenantAsync(Guid tenantId, CancellationToken cancellationToken = default);
     Task AddAsync(OrganizationUnitType unitType, CancellationToken cancellationToken = default);
     void Update(OrganizationUnitType unitType);
+    void Remove(OrganizationUnitType unitType);
 }

@@ -27,4 +27,7 @@ public sealed class TaskItemRepository(WorkBaseDbContext dbContext) : ITaskItemR
 
     public void Update(TaskItem task)
         => dbContext.Set<TaskItem>().Update(task);
+
+    public void Remove(TaskItem task)
+        => dbContext.Set<TaskItem>().Remove(task);
 }

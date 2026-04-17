@@ -6,6 +6,7 @@ public interface IRoleManagementService
     Task<RoleDto?> GetRoleByIdAsync(Guid roleId, CancellationToken ct = default);
     Task<Guid> CreateRoleAsync(Guid tenantId, string name, string? description, int level, CancellationToken ct = default);
     Task UpdateRoleAsync(Guid roleId, string name, string? description, int level, CancellationToken ct = default);
+    Task DeleteRoleAsync(Guid roleId, CancellationToken ct = default);
     Task<IReadOnlyList<PermissionDto>> GetAllPermissionsAsync(CancellationToken ct = default);
     Task<IReadOnlyList<Guid>> GetRolePermissionIdsAsync(Guid roleId, CancellationToken ct = default);
     Task UpdateRolePermissionsAsync(Guid roleId, IReadOnlyList<Guid> permissionIds, CancellationToken ct = default);

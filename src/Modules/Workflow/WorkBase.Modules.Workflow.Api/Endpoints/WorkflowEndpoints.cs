@@ -37,6 +37,20 @@ public static class WorkflowEndpoints
             .RequirePermission("workflow.manage")
             .Produces(StatusCodes.Status204NoContent);
 
+        group.MapGet("/definitions/{id:guid}", GetDefinitionById)
+            .WithName("GetWorkflowDefinitionById")
+            .WithSummary("Pobierz definicję workflow po ID")
+            .RequirePermission("workflow.view")
+            .Produces<WorkflowDefinitionDto>()
+            .Produces(StatusCodes.Status404NotFound);
+
+        group.MapDelete("/definitions/{id:guid}", DeleteDefinition)
+            .WithName("DeleteWorkflowDefinition")
+            .WithSummary("Usuń definicję workflow")
+            .RequirePermission("workflow.manage")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status404NotFound);
+
         // --- Instances ---
         group.MapPost("/instances", CreateInstance)
             .WithName("CreateWorkflowInstance")
@@ -126,6 +140,18 @@ public static class WorkflowEndpoints
 
         var result = await sender.Send(command);
         return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> GetDefinitionById(Guid id, ISender sender)
+    {
+        var result = await sender.Send(new GetWorkflowDefinitionByIdQuery(id));
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> DeleteDefinition(Guid id, ISender sender)
+    {
+        var result = await sender.Send(new DeleteWorkflowDefinitionCommand(id));
+        return result.IsSuccess ? Results.NoContent() : result.ToHttpResult();
     }
 
     private static async Task<IResult> CreateInstance(

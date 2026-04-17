@@ -61,6 +61,26 @@ public sealed class RoleManagementService(WorkBaseDbContext dbContext) : IRoleMa
         await dbContext.SaveChangesAsync(ct);
     }
 
+    public async Task DeleteRoleAsync(Guid roleId, CancellationToken ct = default)
+    {
+        var role = await dbContext.Set<Role>().FindAsync([roleId], ct)
+            ?? throw new InvalidOperationException($"Role {roleId} not found.");
+
+        if (role.IsSystemRole)
+            throw new InvalidOperationException("Cannot delete system roles.");
+
+        var permissions = await dbContext.Set<RolePermission>()
+            .Where(rp => rp.RoleId == roleId).ToListAsync(ct);
+        dbContext.Set<RolePermission>().RemoveRange(permissions);
+
+        var userRoles = await dbContext.Set<UserRole>()
+            .Where(ur => ur.RoleId == roleId).ToListAsync(ct);
+        dbContext.Set<UserRole>().RemoveRange(userRoles);
+
+        dbContext.Set<Role>().Remove(role);
+        await dbContext.SaveChangesAsync(ct);
+    }
+
     public async Task<IReadOnlyList<PermissionDto>> GetAllPermissionsAsync(CancellationToken ct = default)
     {
         return await dbContext.Set<Permission>()

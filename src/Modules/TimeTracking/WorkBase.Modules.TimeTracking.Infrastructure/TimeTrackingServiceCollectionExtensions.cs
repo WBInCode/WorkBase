@@ -17,6 +17,7 @@ public static class TimeTrackingServiceCollectionExtensions
         services.AddScoped<IScheduleRepository, ScheduleRepository>();
         services.AddScoped<IScheduleTemplateRepository, ScheduleTemplateRepository>();
         services.AddScoped<ITimeAnomalyRepository, TimeAnomalyRepository>();
+        services.AddScoped<ITimeCorrectionRepository, TimeCorrectionRepository>();
 
         // Anomaly rules (Strategy pattern — each rule is an IAnomalyRule)
         services.AddScoped<IAnomalyRule, MissingClockOutRule>();
