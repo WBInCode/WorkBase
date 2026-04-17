@@ -18,6 +18,8 @@ public static class DatabaseSeeder
         logger.LogInformation("Database migrations applied successfully.");
 
         await IamSeeder.SeedAsync(dbContext, logger);
+        await WorkflowSeeder.SeedAsync(dbContext, logger);
+        await LeaveSeeder.SeedAsync(dbContext, logger);
 
         logger.LogInformation("Database seeding completed.");
     }
