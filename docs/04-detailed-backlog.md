@@ -1240,7 +1240,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Uwagi** | — |
 | **Commit** | `9798d7d` — feat(tasks): T-E11-003 task overdue detector Hangfire job + TaskOverdueEvent |
 
-### T-E11-004: Frontend — lista zadań + karta zadania
+### T-E11-004: Frontend — lista zadań + karta zadania ✅ DONE
 
 | Pole | Wartość |
 |---|---|
@@ -1254,6 +1254,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | średnia |
 | **Ryzyko** | niskie |
 | **Uwagi** | — |
+| **Commit** | `f51cecc` — feat(tasks): T-E11-004 frontend task list, task card, my tasks pages + routing |
 
 ---
 

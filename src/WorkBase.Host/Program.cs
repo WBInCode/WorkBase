@@ -18,6 +18,8 @@ using WorkBase.Modules.Leave.Infrastructure;
 using WorkBase.Modules.Tasks.Api.Endpoints;
 using WorkBase.Modules.Tasks.Infrastructure;
 using WorkBase.Modules.Tasks.Infrastructure.Jobs;
+using WorkBase.Modules.Dashboard.Api.Endpoints;
+using WorkBase.Modules.Dashboard.Infrastructure;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -64,6 +66,7 @@ try
     builder.Services.AddWorkflowModule();
     builder.Services.AddLeaveModule();
     builder.Services.AddTasksModule();
+    builder.Services.AddDashboardModule();
 
     var allowedOrigins = builder.Configuration
         .GetSection("Cors:AllowedOrigins")
@@ -138,6 +141,8 @@ try
     app.MapLeaveEndpoints();
 
     app.MapTaskEndpoints();
+
+    app.MapDashboardEndpoints();
 
     RecurringJob.AddOrUpdate<EndOfDayAnomalyCheckJob>(
         "anomaly-detection-daily",
