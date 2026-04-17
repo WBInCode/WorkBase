@@ -25,19 +25,19 @@ function parseDuration(duration: string): number {
   let seconds = 0;
 
   if (parts.length === 3) {
-    const hourPart = parts[0];
+    const hourPart = parts[0] ?? '';
     // Handle "D.HH" format
     if (hourPart.includes('.')) {
       const [days, h] = hourPart.split('.');
-      hours = parseInt(days) * 24 + parseInt(h);
+      hours = parseInt(days ?? '0') * 24 + parseInt(h ?? '0');
     } else {
       hours = parseInt(hourPart);
     }
-    minutes = parseInt(parts[1]);
-    seconds = parseFloat(parts[2]);
+    minutes = parseInt(parts[1] ?? '0');
+    seconds = parseFloat(parts[2] ?? '0');
   } else if (parts.length === 2) {
-    minutes = parseInt(parts[0]);
-    seconds = parseFloat(parts[1]);
+    minutes = parseInt(parts[0] ?? '0');
+    seconds = parseFloat(parts[1] ?? '0');
   }
 
   return Math.floor(hours * 3600 + minutes * 60 + seconds);

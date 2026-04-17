@@ -6,7 +6,7 @@ import {
   useRolePermissions,
   useUpdateRolePermissions,
 } from '@/api/hooks/useIam';
-import type { PermissionDto, RoleDto } from '@/api/types/iam';
+import type { PermissionDto } from '@/api/types/iam';
 
 interface ModuleGroup {
   module: string;
@@ -37,7 +37,7 @@ export function PermissionsMatrixPage() {
   useEffect(() => {
     if (!selectedRoleId && roles && roles.length > 0) {
       const nonSystem = roles.find((r) => r.type !== 'System');
-      setSelectedRoleId(nonSystem?.id ?? roles[0].id);
+      setSelectedRoleId(nonSystem?.id ?? roles[0]?.id ?? null);
     }
   }, [roles, selectedRoleId]);
 

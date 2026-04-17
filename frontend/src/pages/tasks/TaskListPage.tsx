@@ -5,7 +5,7 @@ import { useAuth } from 'react-oidc-context';
 import { mapUserClaims } from '@/auth';
 import { useTasks, useTaskStatuses, useTaskPriorities, useCreateTask } from '@/api/hooks/useTasks';
 import { useEmployees } from '@/api/hooks/useOrganization';
-import type { TaskItemDto, CreateTaskRequest } from '@/api/types/tasks';
+import type { CreateTaskRequest } from '@/api/types/tasks';
 
 export function TaskListPage() {
   const auth = useAuth();

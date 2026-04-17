@@ -13,14 +13,14 @@ function formatDuration(duration: string): string {
   if (parts.length < 2) return '00:00';
 
   let hours = 0;
-  const hourPart = parts[0];
+  const hourPart = parts[0] ?? '';
   if (hourPart.includes('.')) {
     const [days, h] = hourPart.split('.');
-    hours = parseInt(days) * 24 + parseInt(h);
+    hours = parseInt(days ?? '0') * 24 + parseInt(h ?? '0');
   } else {
     hours = parseInt(hourPart);
   }
-  const minutes = parseInt(parts[1]);
+  const minutes = parseInt(parts[1] ?? '0');
   return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 }
 
@@ -29,14 +29,14 @@ function durationToMinutes(duration: string): number {
   const parts = duration.split(':');
   if (parts.length < 2) return 0;
   let hours = 0;
-  const hourPart = parts[0];
+  const hourPart = parts[0] ?? '';
   if (hourPart.includes('.')) {
     const [days, h] = hourPart.split('.');
-    hours = parseInt(days) * 24 + parseInt(h);
+    hours = parseInt(days ?? '0') * 24 + parseInt(h ?? '0');
   } else {
     hours = parseInt(hourPart);
   }
-  return hours * 60 + parseInt(parts[1]);
+  return hours * 60 + parseInt(parts[1] ?? '0');
 }
 
 function formatDate(dateStr: string): string {
@@ -50,7 +50,7 @@ function formatDateLong(dateStr: string): string {
 }
 
 function toDateString(date: Date): string {
-  return date.toISOString().split('T')[0];
+  return date.toISOString().split('T')[0] ?? '';
 }
 
 function getWeekRange(date: Date): { from: string; to: string } {
@@ -268,6 +268,7 @@ function NavButton({ onClick, icon }: { onClick: () => void; icon: React.ReactNo
 
 function StatusBadge({ status }: { status: string }) {
   const s = STATUS_STYLES[status] ?? STATUS_STYLES.empty;
+  if (!s) return null;
   return (
     <span style={{
       display: 'inline-block', padding: '2px 8px', borderRadius: '10px',

@@ -13,7 +13,7 @@ import type { EmployeeDto, OrganizationUnitTreeNode } from '@/api/types/organiza
 /* ── helpers ── */
 
 function toDateString(d: Date): string {
-  return d.toISOString().split('T')[0];
+  return d.toISOString().split('T')[0] ?? '';
 }
 
 function getWeekRange(date: Date) {
@@ -435,7 +435,7 @@ function ScheduleModal({
     // definition format: "HH:mm-HH:mm" e.g. "06:00-14:00"
     const match = tpl.definition.match(/^(\d{2}:\d{2})-(\d{2}:\d{2})$/);
     if (match) {
-      onChange({ ...state, plannedStart: match[1], plannedEnd: match[2], shiftType: tpl.name, templateId: tpl.id });
+      onChange({ ...state, plannedStart: match[1] ?? '', plannedEnd: match[2] ?? '', shiftType: tpl.name, templateId: tpl.id });
     }
   };
 

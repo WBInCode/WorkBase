@@ -194,11 +194,11 @@ export function PendingApprovalsPage() {
                           borderRadius: '4px',
                           fontSize: '12px',
                           fontWeight: 500,
-                          backgroundColor: statusCfg.bg,
-                          color: statusCfg.color,
+                          backgroundColor: statusCfg?.bg,
+                          color: statusCfg?.color,
                         }}
                       >
-                        {statusCfg.label}
+                        {statusCfg?.label}
                       </span>
                     </td>
                     <td style={{ ...tdStyle, color: approval.dueDate ? '#111827' : '#9ca3af' }}>

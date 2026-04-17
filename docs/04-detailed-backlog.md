@@ -1391,9 +1391,9 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 **Jeśli brakuje choćby jednego z punktów 1–11, system jest bezużyteczny jako produkt operacyjny.**
 
 **Warunkowe minimum (must-have ale z opóźnieniem dopuszczalnym):**
-- Zadania (E11) — mogą wejść 2–4 tygodnie po uruchomieniu
-- Dashboard kierowniczy (E14) — kierownicy mogą początkowo korzystać z list
-- Mobile (E17) — PWA wystarczy jako pierwszy krok
+- Zadania (E11) — mogą wejść 2–4 tygodnie po uruchomieniu — ✅ DONE (CRUD, status machine, priorities, comments, attachments, overdue detection, 3 strony)
+- Dashboard kierowniczy (E14) — kierownicy mogą początkowo korzystać z list — ✅ DONE (4 widgety Dapper, auto-refresh, filtrowanie po jednostce org.)
+- Mobile (E17) — PWA wystarczy jako pierwszy krok — ✅ DONE (vite-plugin-pwa, manifest, service worker, offline cache, mobile-responsive layout)
 
 ---
 

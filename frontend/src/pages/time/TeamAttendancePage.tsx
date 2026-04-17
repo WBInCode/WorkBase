@@ -8,7 +8,7 @@ import type { EmployeeDto, OrganizationUnitTreeNode } from '@/api/types/organiza
 /* ── helpers ── */
 
 function toDateString(d: Date): string {
-  return d.toISOString().split('T')[0];
+  return d.toISOString().split('T')[0] ?? '';
 }
 
 function getWeekRange(date: Date) {
@@ -33,14 +33,14 @@ function formatDuration(duration: string): string {
   const parts = duration.split(':');
   if (parts.length < 2) return '00:00';
   let hours = 0;
-  const hourPart = parts[0];
+  const hourPart = parts[0] ?? '';
   if (hourPart.includes('.')) {
     const [days, h] = hourPart.split('.');
-    hours = parseInt(days) * 24 + parseInt(h);
+    hours = parseInt(days ?? '0') * 24 + parseInt(h ?? '0');
   } else {
     hours = parseInt(hourPart);
   }
-  const minutes = parseInt(parts[1]);
+  const minutes = parseInt(parts[1] ?? '0');
   return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 }
 
@@ -49,14 +49,14 @@ function durationToMinutes(duration: string): number {
   const parts = duration.split(':');
   if (parts.length < 2) return 0;
   let hours = 0;
-  const hourPart = parts[0];
+  const hourPart = parts[0] ?? '';
   if (hourPart.includes('.')) {
     const [days, h] = hourPart.split('.');
-    hours = parseInt(days) * 24 + parseInt(h);
+    hours = parseInt(days ?? '0') * 24 + parseInt(h ?? '0');
   } else {
     hours = parseInt(hourPart);
   }
-  return hours * 60 + parseInt(parts[1]);
+  return hours * 60 + parseInt(parts[1] ?? '0');
 }
 
 function formatDateShort(dateStr: string): string {
@@ -413,7 +413,7 @@ export function TeamAttendancePage() {
                             <span style={{ position: 'absolute', top: 2, right: 2 }}>
                               <AlertTriangle
                                 size={10}
-                                color={ANOMALY_COLORS[cellAnomalies[0].type] ?? '#dc2626'}
+                                color={ANOMALY_COLORS[cellAnomalies[0]!.type] ?? '#dc2626'}
                               />
                             </span>
                           )}

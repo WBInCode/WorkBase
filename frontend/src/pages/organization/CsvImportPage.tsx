@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
-import { Upload, ArrowRight, ArrowLeft, CheckCircle2, XCircle, AlertTriangle, FileSpreadsheet } from 'lucide-react';
+import { ArrowRight, ArrowLeft, CheckCircle2, FileSpreadsheet } from 'lucide-react';
 import { parseCsv, type ParsedCsv } from '@/utils/csvParser';
 import { api } from '@/api/client';
 import { ApiError } from '@/api/client';
@@ -101,7 +101,7 @@ export function CsvImportPage() {
       const obj: Record<string, string> = {};
       for (const field of EMPLOYEE_FIELDS) {
         const colIdx = mapping[field.key];
-        obj[field.key] = colIdx !== null && colIdx < row.length ? row[colIdx] : '';
+        obj[field.key] = colIdx !== null && colIdx < row.length ? (row[colIdx] ?? '') : '';
       }
       return obj;
     });
@@ -124,7 +124,7 @@ export function CsvImportPage() {
 
     for (let i = 0; i < rows.length; i++) {
       if (abortRef.current) break;
-      const row = rows[i];
+      const row = rows[i]!;
       const v = validateRow(row, i);
       if (v.errors.length > 0) {
         results.push({ rowIndex: i, success: false, error: v.errors.join('; ') });
@@ -134,11 +134,11 @@ export function CsvImportPage() {
       }
 
       const req: CreateEmployeeRequest = {
-        firstName: row.firstName.trim(),
-        lastName: row.lastName.trim(),
-        email: row.email.trim(),
+        firstName: (row.firstName ?? '').trim(),
+        lastName: (row.lastName ?? '').trim(),
+        email: (row.email ?? '').trim(),
         employeeNumber: row.employeeNumber?.trim() || undefined,
-        hireDate: new Date(row.hireDate.trim()).toISOString(),
+        hireDate: new Date((row.hireDate ?? '').trim()).toISOString(),
       };
 
       try {
@@ -271,7 +271,7 @@ export function CsvImportPage() {
               </thead>
               <tbody>
                 {mappedRows.slice(0, 50).map((row, i) => {
-                  const v = validations[i];
+                  const v = validations[i]!;
                   const hasErrors = v.errors.length > 0;
                   return (
                     <tr
@@ -288,7 +288,7 @@ export function CsvImportPage() {
                       <td style={tdStyle}>
                         {hasErrors ? (
                           <span style={{ color: '#dc2626', fontSize: '12px' }}>
-                            {v.errors.join(', ')}
+                            {v!.errors.join(', ')}
                           </span>
                         ) : (
                           <CheckCircle2 size={14} style={{ color: '#16a34a' }} />

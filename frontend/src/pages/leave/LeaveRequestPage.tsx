@@ -23,7 +23,7 @@ export function LeaveRequestPage() {
   const [year, setYear] = useState(currentYear);
   const [showForm, setShowForm] = useState(false);
 
-  const { data: leaveTypes = [], isLoading: typesLoading } = useLeaveTypes();
+  const { data: leaveTypes = [] } = useLeaveTypes();
   const { data: balances = [], isLoading: balancesLoading } = useLeaveBalances(employeeId, year);
   const { data: requests = [], isLoading: requestsLoading } = useLeaveRequests(employeeId, year);
   const submitMutation = useSubmitLeaveRequest();

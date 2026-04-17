@@ -59,12 +59,12 @@ export function EmployeeTasksSection({ tasks, isLoading }: Props) {
                     {t.title}
                   </td>
                   <td style={tdStyle}>
-                    <span style={{ padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 500, backgroundColor: t.priorityColor + '20', color: t.priorityColor }}>
+                    <span style={{ padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 500, backgroundColor: (t.priorityColor ?? '') + '20', color: t.priorityColor ?? undefined }}>
                       {t.priorityName}
                     </span>
                   </td>
                   <td style={tdStyle}>
-                    <span style={{ padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 500, backgroundColor: t.statusColor + '20', color: t.statusColor }}>
+                    <span style={{ padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 500, backgroundColor: (t.statusColor ?? '') + '20', color: t.statusColor ?? undefined }}>
                       {t.statusName}
                     </span>
                   </td>

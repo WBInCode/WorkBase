@@ -166,8 +166,8 @@ function RoleRow({ role, onEdit }: { role: RoleDto; onEdit: () => void }) {
           borderRadius: '999px',
           fontSize: '12px',
           fontWeight: 500,
-          backgroundColor: tc.bg,
-          color: tc.text,
+          backgroundColor: tc?.bg,
+          color: tc?.text,
         }}>
           {typeLabels[role.type] ?? role.type}
         </span>

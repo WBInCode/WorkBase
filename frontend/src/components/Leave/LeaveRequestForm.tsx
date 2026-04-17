@@ -40,7 +40,7 @@ export function LeaveRequestForm({
   error,
 }: LeaveRequestFormProps) {
   const [leaveTypeId, setLeaveTypeId] = useState('');
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date().toISOString().split('T')[0] ?? '';
   const [startDate, setStartDate] = useState(today);
   const [endDate, setEndDate] = useState(today);
   const [reason, setReason] = useState('');
@@ -164,7 +164,7 @@ export function LeaveRequestForm({
                   value={startDate}
                   onChange={(e) => {
                     setStartDate(e.target.value);
-                    if (e.target.value > endDate) setEndDate(e.target.value);
+                    if (e.target.value > (endDate ?? '')) setEndDate(e.target.value);
                   }}
                   required
                   style={inputStyle}

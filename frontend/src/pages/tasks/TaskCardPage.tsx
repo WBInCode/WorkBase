@@ -22,7 +22,7 @@ export function TaskCardPage() {
 
   const { data: tasks = [] } = useTasks();
   const { data: statuses = [] } = useTaskStatuses();
-  const { data: priorities = [] } = useTaskPriorities();
+  useTaskPriorities();
   const { data: comments = [] } = useTaskComments(id ?? null);
   const { data: employeesPage } = useEmployees({ page: 1, pageSize: 500 });
   const employees = employeesPage?.items ?? [];

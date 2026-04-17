@@ -12,7 +12,7 @@ export function parseCsv(text: string): ParsedCsv {
   const lines = splitCsvLines(text.trim());
   if (lines.length === 0) return { headers: [], rows: [] };
 
-  const headers = parseCsvLine(lines[0]);
+  const headers = parseCsvLine(lines[0] ?? '');
   const rows = lines.slice(1).filter((l) => l.trim()).map(parseCsvLine);
 
   return { headers, rows };

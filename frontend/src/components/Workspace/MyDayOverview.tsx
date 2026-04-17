@@ -24,6 +24,7 @@ export function MyDayOverview({ data, isLoading }: Props) {
   }
 
   const cfg = STATUS_MAP[data.status] ?? STATUS_MAP['not-started'];
+  if (!cfg) return null;
   const Icon = cfg.icon;
 
   return (

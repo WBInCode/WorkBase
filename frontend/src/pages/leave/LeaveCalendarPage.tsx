@@ -22,7 +22,7 @@ function isWeekend(date: Date): boolean {
 }
 
 function formatDateKey(date: Date): string {
-  return date.toISOString().split('T')[0];
+  return date.toISOString().split('T')[0] ?? '';
 }
 
 const DAY_NAMES = ['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'So', 'Nd'];
@@ -68,7 +68,7 @@ export function LeaveCalendarPage() {
     const map = new Map<string, Map<string, LeaveCalendarEntryDto[]>>();
     for (const entry of calendarEntries) {
       if (!map.has(entry.employeeId)) map.set(entry.employeeId, new Map());
-      const dateKey = entry.date.split('T')[0];
+      const dateKey = entry.date.split('T')[0] ?? '';
       const dayMap = map.get(entry.employeeId)!;
       if (!dayMap.has(dateKey)) dayMap.set(dateKey, []);
       dayMap.get(dateKey)!.push(entry);
@@ -294,7 +294,7 @@ export function LeaveCalendarPage() {
                       let title = '';
 
                       if (entries && entries.length > 0) {
-                        const e = entries[0];
+                        const e = entries[0]!;
                         cellColor = e.leaveTypeColor ?? DEFAULT_COLORS[e.leaveTypeCode] ?? '#6b7280';
                         cellBg = `${cellColor}33`;
                         title = `${e.leaveTypeName}${e.dayFraction < 1 ? ` (${Math.round(e.dayFraction * 100)}%)` : ''}`;
@@ -320,7 +320,7 @@ export function LeaveCalendarPage() {
                                 borderRadius: '4px',
                                 backgroundColor: cellColor,
                                 margin: '0 auto',
-                                opacity: entries[0].dayFraction < 1 ? 0.5 : 0.85,
+                                opacity: entries[0]!.dayFraction < 1 ? 0.5 : 0.85,
                               }}
                             />
                           )}

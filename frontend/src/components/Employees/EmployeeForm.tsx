@@ -23,7 +23,7 @@ export function EmployeeForm({ onSubmit, onClose, isSubmitting, error }: Employe
       lastName: lastName.trim(),
       email: email.trim(),
       employeeNumber: employeeNumber.trim() || undefined,
-      hireDate: new Date(hireDate).toISOString(),
+      hireDate: new Date(hireDate ?? '').toISOString(),
     });
   };
 

@@ -40,8 +40,8 @@ export function EmployeeTimesheetSection({ timeStatus, timesheet, isLoading }: P
       {timeStatus && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: sc.dot }} />
-            <span style={{ padding: '3px 10px', borderRadius: '9999px', fontSize: '13px', fontWeight: 500, backgroundColor: sc.bg, color: sc.text }}>
+            <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: sc?.dot }} />
+            <span style={{ padding: '3px 10px', borderRadius: '9999px', fontSize: '13px', fontWeight: 500, backgroundColor: sc?.bg, color: sc?.text }}>
               {STATUS_LABELS[timeStatus.status] ?? timeStatus.status}
             </span>
           </div>

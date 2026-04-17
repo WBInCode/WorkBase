@@ -36,7 +36,7 @@ export function WorkspacePage() {
             {new Date().toLocaleDateString('pl-PL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
           </p>
         </div>
-        <ClockButton />
+        <ClockButton employeeId={employeeId ?? ''} />
       </div>
 
       {/* Grid */}
