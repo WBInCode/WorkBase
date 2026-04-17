@@ -1184,6 +1184,8 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | średnia |
 | **Ryzyko** | niskie |
 | **Uwagi** | Widoczne też na Dashboard i w Workspace. |
+| **Status** | ✅ DONE |
+| **Commit** | `46c99ff` — feat(workflow-ui): T-E09-005 pending approvals page with approve/reject/return actions |
 
 ---
 
