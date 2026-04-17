@@ -1374,19 +1374,19 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 
 > Bez tych elementów system nie ma prawa istnieć — jest bezużyteczny.
 
-| # | Element | Epik | Uzasadnienie |
-|---|---|---|---|
-| 1 | Multi-tenancy z izolacją danych | E03 | Bez izolacji nie można uruchomić żadnego klienta — fundament SaaS |
-| 2 | Autentykacja (login, JWT, sesja) | E02 | Bez logowania nie ma użytkowników |
-| 3 | Struktura organizacyjna (jednostki + pracownicy) | E05 | Bez pracowników nie ma komu rejestrować czasu, urlopów, zadań |
-| 4 | Hierarchia przełożony–podwładny | E05 | Bez niej nie działają akceptacje, delegowanie, widoczność danych |
-| 5 | Role i uprawnienia (RBAC) | E06 | Bez ról każdy widzi wszystko — nie do przyjęcia w firmie |
-| 6 | Data scope (zakres widoczności) | E07 | Kierownik musi widzieć TYLKO swój zespół — bez tego brak sensu |
-| 7 | Clock-in / clock-out | E08 | Rejestracja obecności to główny przypadek użycia MVP |
-| 8 | Timesheet (dzienny / tygodniowy) | E08 | Bez niego dane z clock-in nie są użyteczne |
-| 9 | Workflow — single-level approval | E09 | Bez akceptacji wnioski urlopowe/zadania nie mają flow |
-| 10 | Wniosek urlopowy + saldo | E10 | Drugi główny przypadek użycia MVP |
-| 11 | Powiadomienia (in-app minimum) | E12 | Bez powiadomień nikt nie wie o oczekującej akceptacji |
+| # | Element | Epik | Uzasadnienie | Status |
+|---|---|---|---|---|
+| 1 | Multi-tenancy z izolacją danych | E03 | Bez izolacji nie można uruchomić żadnego klienta — fundament SaaS | ✅ DONE — ITenantScoped + TenantBehavior + EF HasQueryFilter |
+| 2 | Autentykacja (login, JWT, sesja) | E02 | Bez logowania nie ma użytkowników | ✅ DONE |
+| 3 | Struktura organizacyjna (jednostki + pracownicy) | E05 | Bez pracowników nie ma komu rejestrować czasu, urlopów, zadań | ✅ DONE |
+| 4 | Hierarchia przełożony–podwładny | E05 | Bez niej nie działają akceptacje, delegowanie, widoczność danych | ✅ DONE |
+| 5 | Role i uprawnienia (RBAC) | E06 | Bez ról każdy widzi wszystko — nie do przyjęcia w firmie | ✅ DONE |
+| 6 | Data scope (zakres widoczności) | E07 | Kierownik musi widzieć TYLKO swój zespół — bez tego brak sensu | ✅ DONE — DataScope entity + IDataScopeService + DataScopeService |
+| 7 | Clock-in / clock-out | E08 | Rejestracja obecności to główny przypadek użycia MVP | ✅ DONE |
+| 8 | Timesheet (dzienny / tygodniowy) | E08 | Bez niego dane z clock-in nie są użyteczne | ✅ DONE |
+| 9 | Workflow — single-level approval | E09 | Bez akceptacji wnioski urlopowe/zadania nie mają flow | ✅ DONE |
+| 10 | Wniosek urlopowy + saldo | E10 | Drugi główny przypadek użycia MVP | ✅ DONE |
+| 11 | Powiadomienia (in-app minimum) | E12 | Bez powiadomień nikt nie wie o oczekującej akceptacji | ✅ DONE — Notification entity + repo + CQRS + SignalR hub + API + bell UI |
 
 **Jeśli brakuje choćby jednego z punktów 1–11, system jest bezużyteczny jako produkt operacyjny.**
 

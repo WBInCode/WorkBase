@@ -20,6 +20,9 @@ using WorkBase.Modules.Tasks.Infrastructure;
 using WorkBase.Modules.Tasks.Infrastructure.Jobs;
 using WorkBase.Modules.Dashboard.Api.Endpoints;
 using WorkBase.Modules.Dashboard.Infrastructure;
+using WorkBase.Modules.Notification.Api.Endpoints;
+using WorkBase.Modules.Notification.Infrastructure;
+using WorkBase.Modules.Notification.Infrastructure.Hubs;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -67,6 +70,8 @@ try
     builder.Services.AddLeaveModule();
     builder.Services.AddTasksModule();
     builder.Services.AddDashboardModule();
+    builder.Services.AddNotificationModule();
+    builder.Services.AddSignalR();
 
     var allowedOrigins = builder.Configuration
         .GetSection("Cors:AllowedOrigins")
@@ -143,6 +148,9 @@ try
     app.MapTaskEndpoints();
 
     app.MapDashboardEndpoints();
+
+    app.MapNotificationEndpoints();
+    app.MapHub<NotificationHub>("/hubs/notifications");
 
     RecurringJob.AddOrUpdate<EndOfDayAnomalyCheckJob>(
         "anomaly-detection-daily",

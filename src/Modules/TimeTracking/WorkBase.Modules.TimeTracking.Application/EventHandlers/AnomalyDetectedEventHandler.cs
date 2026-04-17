@@ -6,12 +6,12 @@ using WorkBase.Modules.TimeTracking.Domain.Events;
 namespace WorkBase.Modules.TimeTracking.Application.EventHandlers;
 
 /// <summary>
-/// Handles AnomalyDetectedEvent by notifying the employee's supervisor (manager).
-/// When the Notification module (SignalR/email) is available, this will dispatch
-/// through INotificationService. For now, logs the notification intent.
+/// Handles AnomalyDetectedEvent by notifying the employee's supervisor (manager)
+/// via INotificationService (in-app + SignalR push).
 /// </summary>
 public sealed class AnomalyDetectedEventHandler(
     ISupervisorLookupService supervisorLookup,
+    INotificationService notificationService,
     ILogger<AnomalyDetectedEventHandler> logger) : INotificationHandler<AnomalyDetectedEvent>
 {
     public async Task Handle(AnomalyDetectedEvent notification, CancellationToken cancellationToken)
@@ -27,10 +27,18 @@ public sealed class AnomalyDetectedEventHandler(
             return;
         }
 
-        // TODO: When Notification module is ready, dispatch via INotificationService:
-        //   await notificationService.SendAsync(supervisorId.Value, "anomaly_detected", payload, cancellationToken);
+        await notificationService.SendAsync(
+            notification.TenantId,
+            supervisorId.Value,
+            $"Anomalia: {notification.AnomalyType}",
+            $"Wykryto anomalię typu {notification.AnomalyType} dla pracownika {notification.EmployeeId} w dniu {notification.Date:yyyy-MM-dd}.",
+            "anomaly_detected",
+            "anomaly",
+            notification.AnomalyId,
+            cancellationToken);
+
         logger.LogInformation(
-            "Anomaly notification: type={AnomalyType}, employee={EmployeeId}, date={Date}, supervisor={SupervisorId}, anomalyId={AnomalyId}",
-            notification.AnomalyType, notification.EmployeeId, notification.Date, supervisorId.Value, notification.AnomalyId);
+            "Anomaly notification sent: type={AnomalyType}, employee={EmployeeId}, date={Date}, supervisor={SupervisorId}",
+            notification.AnomalyType, notification.EmployeeId, notification.Date, supervisorId.Value);
     }
 }

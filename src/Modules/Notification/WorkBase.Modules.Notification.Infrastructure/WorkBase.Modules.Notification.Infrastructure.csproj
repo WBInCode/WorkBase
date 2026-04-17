@@ -4,5 +4,9 @@
     <ProjectReference Include="..\WorkBase.Modules.Notification.Domain\WorkBase.Modules.Notification.Domain.csproj" />
     <ProjectReference Include="..\..\..\WorkBase.Shared\WorkBase.Shared.csproj" />
     <ProjectReference Include="..\..\..\WorkBase.Contracts\WorkBase.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\WorkBase.Infrastructure\WorkBase.Infrastructure.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 </Project>

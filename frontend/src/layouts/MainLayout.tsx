@@ -4,6 +4,7 @@ import { useAuth } from 'react-oidc-context';
 import { FolderTree, Users, FileUp, LogOut, Menu, X, Shield, Grid3X3, CalendarDays, UsersRound, CalendarClock, Palmtree, CalendarRange, ClipboardCheck, ListTodo, ClipboardList, LayoutDashboard, Briefcase } from 'lucide-react';
 import { mapUserClaims } from '@/auth';
 import { ClockButton } from '@/components/TimeTracking';
+import { NotificationBell } from '@/components/Notifications';
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -194,6 +195,10 @@ export function MainLayout({ children }: MainLayoutProps) {
           </button>
 
           <div style={{ flex: 1 }} />
+
+          {user?.sub && (
+            <NotificationBell userId={user.sub} />
+          )}
 
           {user?.employeeId && (
             <ClockButton employeeId={user.employeeId} />

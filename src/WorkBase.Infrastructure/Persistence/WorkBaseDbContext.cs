@@ -1,13 +1,23 @@
+using System.Linq.Expressions;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
+using WorkBase.Shared.Domain;
 
 namespace WorkBase.Infrastructure.Persistence;
 
 public class WorkBaseDbContext : DbContext
 {
+    private readonly ICurrentTenantService? _tenantService;
+
     public WorkBaseDbContext(DbContextOptions<WorkBaseDbContext> options)
         : base(options)
     {
+    }
+
+    public WorkBaseDbContext(DbContextOptions<WorkBaseDbContext> options, ICurrentTenantService tenantService)
+        : base(options)
+    {
+        _tenantService = tenantService;
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -22,7 +32,35 @@ public class WorkBaseDbContext : DbContext
         {
             modelBuilder.ApplyConfigurationsFromAssembly(assembly);
         }
+
+        ApplyTenantQueryFilters(modelBuilder);
     }
+
+    private void ApplyTenantQueryFilters(ModelBuilder modelBuilder)
+    {
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            if (!typeof(ITenantScoped).IsAssignableFrom(entityType.ClrType))
+                continue;
+
+            var parameter = Expression.Parameter(entityType.ClrType, "e");
+            var tenantIdProperty = Expression.Property(parameter, nameof(ITenantScoped.TenantId));
+            var tenantService = Expression.Constant(this);
+            var currentTenantProp = Expression.Property(tenantService, nameof(CurrentTenantId));
+
+            var filter = Expression.Lambda(
+                Expression.OrElse(
+                    Expression.Equal(currentTenantProp, Expression.Constant(null, typeof(Guid?))),
+                    Expression.Equal(tenantIdProperty, Expression.Property(
+                        Expression.Convert(currentTenantProp, typeof(Guid?)),
+                        nameof(Nullable<Guid>.Value)))),
+                parameter);
+
+            entityType.SetQueryFilter(filter);
+        }
+    }
+
+    public Guid? CurrentTenantId => _tenantService?.TenantId;
 
     private static void ApplyUuidV7Convention(ModelBuilder modelBuilder)
     {

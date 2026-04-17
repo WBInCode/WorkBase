@@ -1,4 +1,6 @@
+using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using WorkBase.Contracts;
 using WorkBase.Modules.Workflow.Application.Contracts;
 using WorkBase.Modules.Workflow.Domain.Entities;
 
@@ -8,7 +10,9 @@ namespace WorkBase.Modules.Workflow.Infrastructure;
 /// Dispatches workflow actions by type (notify, create_task, update_entity).
 /// Each action is marked as Success or Failed after execution.
 /// </summary>
-public sealed class WorkflowActionExecutor(ILogger<WorkflowActionExecutor> logger) : IWorkflowActionExecutor
+public sealed class WorkflowActionExecutor(
+    ILogger<WorkflowActionExecutor> logger,
+    INotificationService notificationService) : IWorkflowActionExecutor
 {
     public async Task ExecuteAsync(WorkflowAction action, CancellationToken cancellationToken = default)
     {
@@ -51,15 +55,39 @@ public sealed class WorkflowActionExecutor(ILogger<WorkflowActionExecutor> logge
         }
     }
 
-    private Task ExecuteNotifyAsync(WorkflowAction action, CancellationToken cancellationToken)
+    private async Task ExecuteNotifyAsync(WorkflowAction action, CancellationToken cancellationToken)
     {
-        // Log the notification intent. When Notification module (SignalR/email) is ready,
-        // this will dispatch through INotificationService.
-        logger.LogInformation(
-            "Notify action for instance {InstanceId}, step {StepId}: {Payload}",
-            action.InstanceId, action.StepId, action.PayloadJson ?? "(no payload)");
+        var recipientId = Guid.Empty;
+        var title = "Workflow Notification";
+        var body = action.PayloadJson ?? string.Empty;
 
-        return Task.CompletedTask;
+        if (!string.IsNullOrEmpty(action.PayloadJson))
+        {
+            try
+            {
+                using var doc = JsonDocument.Parse(action.PayloadJson);
+                if (doc.RootElement.TryGetProperty("recipientUserId", out var rid) && rid.TryGetGuid(out var parsed))
+                    recipientId = parsed;
+                if (doc.RootElement.TryGetProperty("title", out var t))
+                    title = t.GetString() ?? title;
+                if (doc.RootElement.TryGetProperty("body", out var b))
+                    body = b.GetString() ?? body;
+            }
+            catch (JsonException)
+            {
+                // fallback to defaults
+            }
+        }
+
+        if (recipientId == Guid.Empty)
+        {
+            logger.LogWarning("Notify action {ActionId} has no recipientUserId in payload", action.Id);
+            return;
+        }
+
+        await notificationService.SendAsync(
+            action.TenantId, recipientId, title, body, "workflow",
+            "workflow_instance", action.InstanceId, cancellationToken);
     }
 
     private Task ExecuteCreateTaskAsync(WorkflowAction action, CancellationToken cancellationToken)

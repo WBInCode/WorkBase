@@ -10,27 +10,35 @@ namespace WorkBase.Tests.Unit.TimeTracking;
 public class AnomalyDetectedEventHandlerTests
 {
     private readonly ISupervisorLookupService _supervisorLookup = Substitute.For<ISupervisorLookupService>();
+    private readonly INotificationService _notificationService = Substitute.For<INotificationService>();
     private readonly ILogger<AnomalyDetectedEventHandler> _logger = Substitute.For<ILogger<AnomalyDetectedEventHandler>>();
     private readonly AnomalyDetectedEventHandler _handler;
 
     public AnomalyDetectedEventHandlerTests()
     {
-        _handler = new AnomalyDetectedEventHandler(_supervisorLookup, _logger);
+        _handler = new AnomalyDetectedEventHandler(_supervisorLookup, _notificationService, _logger);
     }
 
     [Fact]
-    public async Task Handle_SupervisorExists_LogsNotification()
+    public async Task Handle_SupervisorExists_SendsNotification()
     {
         var employeeId = Guid.NewGuid();
         var supervisorId = Guid.NewGuid();
+        var tenantId = Guid.NewGuid();
         _supervisorLookup.GetSupervisorEmployeeIdAsync(employeeId, Arg.Any<CancellationToken>())
             .Returns(supervisorId);
 
-        var evt = new AnomalyDetectedEvent(Guid.NewGuid(), Guid.NewGuid(), employeeId, "MissingClockOut", new DateOnly(2026, 4, 16));
+        var evt = new AnomalyDetectedEvent(Guid.NewGuid(), tenantId, employeeId, "MissingClockOut", new DateOnly(2026, 4, 16));
 
         await _handler.Handle(evt, CancellationToken.None);
 
         await _supervisorLookup.Received(1).GetSupervisorEmployeeIdAsync(employeeId, Arg.Any<CancellationToken>());
+        await _notificationService.Received(1).SendAsync(
+            tenantId, supervisorId,
+            Arg.Any<string>(), Arg.Any<string>(),
+            "anomaly_detected",
+            "anomaly", evt.AnomalyId,
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -44,7 +52,8 @@ public class AnomalyDetectedEventHandlerTests
 
         await _handler.Handle(evt, CancellationToken.None);
 
-        // Should not throw, just log and skip
         await _supervisorLookup.Received(1).GetSupervisorEmployeeIdAsync(employeeId, Arg.Any<CancellationToken>());
+        await _notificationService.DidNotReceiveWithAnyArgs().SendAsync(
+            default, default, default!, default!, default!, default, default, default);
     }
 }

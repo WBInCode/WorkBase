@@ -15,6 +15,7 @@ using WorkBase.Infrastructure.Logging;
 using WorkBase.Infrastructure.Persistence;
 using WorkBase.Infrastructure.Storage;
 using WorkBase.Shared.Auth;
+using WorkBase.Shared.Domain;
 using WorkBase.Shared.Storage;
 
 namespace WorkBase.Infrastructure;
@@ -38,6 +39,9 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
 
         services.AddScoped<UserProvisioningService>();
+
+        services.AddScoped<ICurrentTenantService, HttpContextTenantService>();
+        services.AddScoped<IDataScopeService, DataScopeService>();
 
         var moduleApplicationAssemblies = GetModuleApplicationAssemblies().ToArray();
 
