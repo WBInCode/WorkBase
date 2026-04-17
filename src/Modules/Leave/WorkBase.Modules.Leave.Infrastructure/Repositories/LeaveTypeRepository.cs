@@ -25,4 +25,6 @@ public sealed class LeaveTypeRepository(WorkBaseDbContext dbContext) : ILeaveTyp
         => await dbContext.Set<LeaveType>().AddAsync(type, cancellationToken);
 
     public void Update(LeaveType type) => dbContext.Set<LeaveType>().Update(type);
+
+    public void Remove(LeaveType type) => dbContext.Set<LeaveType>().Remove(type);
 }

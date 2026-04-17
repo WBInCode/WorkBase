@@ -51,6 +51,37 @@ public static class WorkflowEndpoints
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound);
 
+        group.MapGet("/definitions/{id:guid}/versions", GetDefinitionVersions)
+            .WithName("GetWorkflowDefinitionVersions")
+            .WithSummary("Pobierz historię wersji definicji")
+            .RequirePermission("workflow.view")
+            .Produces<List<WorkflowDefinitionVersionDto>>();
+
+        // --- Escalation Rules ---
+        group.MapGet("/escalations", GetEscalationRules)
+            .WithName("GetEscalationRules")
+            .WithSummary("Pobierz reguły eskalacji")
+            .RequirePermission("workflow.view")
+            .Produces<List<EscalationRuleDto>>();
+
+        group.MapPost("/escalations", CreateEscalationRule)
+            .WithName("CreateEscalationRule")
+            .WithSummary("Utwórz regułę eskalacji")
+            .RequirePermission("workflow.manage")
+            .Produces<Guid>(StatusCodes.Status201Created);
+
+        group.MapPut("/escalations/{id:guid}", UpdateEscalationRule)
+            .WithName("UpdateEscalationRule")
+            .WithSummary("Zaktualizuj regułę eskalacji")
+            .RequirePermission("workflow.manage")
+            .Produces(StatusCodes.Status204NoContent);
+
+        group.MapDelete("/escalations/{id:guid}", DeleteEscalationRule)
+            .WithName("DeleteEscalationRule")
+            .WithSummary("Usuń regułę eskalacji")
+            .RequirePermission("workflow.manage")
+            .Produces(StatusCodes.Status204NoContent);
+
         // --- Instances ---
         group.MapPost("/instances", CreateInstance)
             .WithName("CreateWorkflowInstance")
@@ -154,6 +185,42 @@ public static class WorkflowEndpoints
         return result.IsSuccess ? Results.NoContent() : result.ToHttpResult();
     }
 
+    private static async Task<IResult> GetDefinitionVersions(Guid id, ISender sender)
+    {
+        var result = await sender.Send(new GetWorkflowDefinitionVersionsQuery(id));
+        return result.ToHttpResult();
+    }
+
+    // --- Escalation Rules ---
+    private static async Task<IResult> GetEscalationRules(Guid? definitionId, ISender sender)
+    {
+        var result = await sender.Send(new GetEscalationRulesQuery(definitionId));
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> CreateEscalationRule(CreateEscalationRuleBody body, ISender sender)
+    {
+        var result = await sender.Send(new CreateEscalationRuleCommand(
+            body.DefinitionId, body.StepName, body.TimeoutMinutes,
+            body.ActionType, body.ActionPayloadJson));
+        return result.IsSuccess
+            ? Results.Created($"/api/workflow/escalations/{result.Value}", result.Value)
+            : result.ToHttpResult();
+    }
+
+    private static async Task<IResult> UpdateEscalationRule(Guid id, UpdateEscalationRuleBody body, ISender sender)
+    {
+        var result = await sender.Send(new UpdateEscalationRuleCommand(
+            id, body.TimeoutMinutes, body.ActionType, body.ActionPayloadJson));
+        return result.IsSuccess ? Results.NoContent() : result.ToHttpResult();
+    }
+
+    private static async Task<IResult> DeleteEscalationRule(Guid id, ISender sender)
+    {
+        var result = await sender.Send(new DeleteEscalationRuleCommand(id));
+        return result.IsSuccess ? Results.NoContent() : result.ToHttpResult();
+    }
+
     private static async Task<IResult> CreateInstance(
         CreateWorkflowInstanceRequest request,
         ISender sender)
@@ -242,3 +309,10 @@ public sealed record UpdateWorkflowDefinitionRequest(string Name, string Definit
 public sealed record CreateWorkflowInstanceRequest(Guid DefinitionId, string EntityType, Guid EntityId, Guid InitiatedBy);
 public sealed record AdvanceWorkflowRequest(string Outcome, string? CompletedBy = null, string? Comment = null);
 public sealed record SubmitApprovalDecisionRequest(string Decision, Guid DecidedByEmployeeId, string? Comment = null);
+
+public sealed record CreateEscalationRuleBody(
+    Guid DefinitionId, string StepName, int TimeoutMinutes,
+    string ActionType, string? ActionPayloadJson = null);
+
+public sealed record UpdateEscalationRuleBody(
+    int TimeoutMinutes, string ActionType, string? ActionPayloadJson = null);

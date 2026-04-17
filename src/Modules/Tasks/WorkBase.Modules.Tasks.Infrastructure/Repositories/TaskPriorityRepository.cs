@@ -15,4 +15,10 @@ public sealed class TaskPriorityRepository(WorkBaseDbContext dbContext) : ITaskP
             .Where(p => p.TenantId == tenantId && p.IsActive)
             .OrderBy(p => p.SortOrder)
             .ToListAsync(cancellationToken);
+
+    public async Task AddAsync(TaskPriority priority, CancellationToken cancellationToken = default)
+        => await dbContext.Set<TaskPriority>().AddAsync(priority, cancellationToken);
+
+    public void Remove(TaskPriority priority)
+        => dbContext.Set<TaskPriority>().Remove(priority);
 }

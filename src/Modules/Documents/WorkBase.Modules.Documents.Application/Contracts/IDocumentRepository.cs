@@ -6,6 +6,7 @@ public interface IDocumentRepository
 {
     Task<Document?> GetByIdAsync(Guid id, CancellationToken ct = default);
     Task<List<Document>> GetByTenantAsync(Guid tenantId, Guid? categoryId, string? entityType, Guid? entityId, bool includeDeleted, CancellationToken ct = default);
+    Task<List<Document>> GetByUploadedByAsync(Guid tenantId, Guid userId, CancellationToken ct = default);
     Task AddAsync(Document document, CancellationToken ct = default);
     void Update(Document document);
     Task SaveChangesAsync(CancellationToken ct = default);

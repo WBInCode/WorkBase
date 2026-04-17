@@ -65,6 +65,23 @@ public static class DocumentEndpoints
             .WithSummary("Delete a document category")
             .RequirePermission("documents.delete");
 
+        // --- Audit ---
+        var auditGroup = endpoints.MapGroup("/api/documents/audit")
+            .WithTags("DocumentAudit")
+            .RequireAuthorization();
+
+        auditGroup.MapGet("/entity/{entityType}/{entityId:guid}", GetAuditByEntity)
+            .WithName("GetDocumentAuditByEntity")
+            .WithSummary("Pobierz historię dokumentów powiązanych z encją")
+            .RequirePermission("documents.view")
+            .Produces<List<DocumentDto>>();
+
+        auditGroup.MapGet("/user/{userId:guid}", GetAuditByUser)
+            .WithName("GetDocumentAuditByUser")
+            .WithSummary("Pobierz historię dokumentów przesłanych przez użytkownika")
+            .RequirePermission("documents.view")
+            .Produces<List<DocumentDto>>();
+
         return endpoints;
     }
 
@@ -137,6 +154,20 @@ public static class DocumentEndpoints
     {
         var command = new DeleteDocumentCategoryCommand(id);
         var result = await sender.Send(command);
+        return result.ToHttpResult();
+    }
+
+    // --- Audit ---
+    private static async Task<IResult> GetAuditByEntity(string entityType, Guid entityId, ISender sender)
+    {
+        var query = new GetDocumentsQuery(EntityType: entityType, EntityId: entityId, IncludeDeleted: true);
+        var result = await sender.Send(query);
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> GetAuditByUser(Guid userId, ISender sender)
+    {
+        var result = await sender.Send(new GetDocumentAuditByUserQuery(userId));
         return result.ToHttpResult();
     }
 }

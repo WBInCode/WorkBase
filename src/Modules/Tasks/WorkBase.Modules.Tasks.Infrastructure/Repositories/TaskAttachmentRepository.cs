@@ -7,6 +7,9 @@ namespace WorkBase.Modules.Tasks.Infrastructure.Repositories;
 
 public sealed class TaskAttachmentRepository(WorkBaseDbContext dbContext) : ITaskAttachmentRepository
 {
+    public async Task<TaskAttachment?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        => await dbContext.Set<TaskAttachment>().FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
+
     public async Task<List<TaskAttachment>> GetByTaskAsync(Guid tenantId, Guid taskId, CancellationToken cancellationToken = default)
         => await dbContext.Set<TaskAttachment>()
             .Where(a => a.TenantId == tenantId && a.TaskId == taskId)

@@ -8,4 +8,6 @@ public interface ITaskStatusRepository
     Task<TaskStatus?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<TaskStatus?> GetDefaultAsync(Guid tenantId, CancellationToken cancellationToken = default);
     Task<List<TaskStatus>> GetByTenantAsync(Guid tenantId, CancellationToken cancellationToken = default);
+    Task AddAsync(TaskStatus status, CancellationToken cancellationToken = default);
+    void Remove(TaskStatus status);
 }

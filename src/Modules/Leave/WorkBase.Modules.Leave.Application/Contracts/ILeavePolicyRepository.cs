@@ -9,4 +9,5 @@ public interface ILeavePolicyRepository
     Task<List<LeavePolicy>> GetByTenantAsync(Guid tenantId, CancellationToken cancellationToken = default);
     Task AddAsync(LeavePolicy policy, CancellationToken cancellationToken = default);
     void Update(LeavePolicy policy);
+    void Remove(LeavePolicy policy);
 }

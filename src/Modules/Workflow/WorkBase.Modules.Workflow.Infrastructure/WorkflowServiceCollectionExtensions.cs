@@ -17,6 +17,7 @@ public static class WorkflowServiceCollectionExtensions
         services.AddScoped<IWorkflowActionRepository, WorkflowActionRepository>();
         services.AddScoped<IApprovalRequestRepository, ApprovalRequestRepository>();
         services.AddScoped<IApprovalDecisionRepository, ApprovalDecisionRepository>();
+        services.AddScoped<IEscalationRuleRepository, EscalationRuleRepository>();
 
         services.AddScoped<IWorkflowEngine, WorkflowEngine>();
         services.AddScoped<IApproverResolver, ApproverResolver>();

@@ -23,4 +23,6 @@ public sealed class LeavePolicyRepository(WorkBaseDbContext dbContext) : ILeaveP
         => await dbContext.Set<LeavePolicy>().AddAsync(policy, cancellationToken);
 
     public void Update(LeavePolicy policy) => dbContext.Set<LeavePolicy>().Update(policy);
+
+    public void Remove(LeavePolicy policy) => dbContext.Set<LeavePolicy>().Remove(policy);
 }

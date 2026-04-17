@@ -29,6 +29,18 @@ public static class TimeCorrectionEndpoints
             .RequirePermission("time.manage")
             .Produces<Guid>(StatusCodes.Status201Created);
 
+        group.MapPut("/{id:guid}", UpdateCorrection)
+            .WithName("UpdateTimeCorrection")
+            .WithSummary("Zaktualizuj korektę czasu pracy")
+            .RequirePermission("time.manage")
+            .Produces(StatusCodes.Status200OK);
+
+        group.MapDelete("/{id:guid}", DeleteCorrection)
+            .WithName("DeleteTimeCorrection")
+            .WithSummary("Usuń korektę czasu pracy")
+            .RequirePermission("time.manage")
+            .Produces(StatusCodes.Status204NoContent);
+
         return endpoints;
     }
 
@@ -65,6 +77,20 @@ public static class TimeCorrectionEndpoints
             ? Results.Created($"/api/time/corrections/{result.Value}", result.Value)
             : result.ToHttpResult();
     }
+
+    private static async Task<IResult> UpdateCorrection(Guid id, UpdateTimeCorrectionRequest request, ISender sender)
+    {
+        var command = new UpdateTimeCorrectionCommand(
+            id, request.CorrectedClockIn, request.CorrectedClockOut, request.Reason);
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> DeleteCorrection(Guid id, ISender sender)
+    {
+        var result = await sender.Send(new DeleteTimeCorrectionCommand(id));
+        return result.IsSuccess ? Results.NoContent() : result.ToHttpResult();
+    }
 }
 
 public sealed record CreateTimeCorrectionRequest(
@@ -77,3 +103,6 @@ public sealed record CreateTimeCorrectionRequest(
     string Reason,
     string CorrectedBy,
     Guid? TimeSheetId = null);
+
+public sealed record UpdateTimeCorrectionRequest(
+    DateTime CorrectedClockIn, DateTime CorrectedClockOut, string Reason);

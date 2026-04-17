@@ -31,6 +31,12 @@ public sealed class DocumentRepository(WorkBaseDbContext db) : IDocumentReposito
     public async Task AddAsync(Document document, CancellationToken ct = default)
         => await db.Set<Document>().AddAsync(document, ct);
 
+    public async Task<List<Document>> GetByUploadedByAsync(Guid tenantId, Guid userId, CancellationToken ct = default)
+        => await db.Set<Document>()
+            .Where(d => d.TenantId == tenantId && d.UploadedById == userId && !d.IsDeleted)
+            .OrderByDescending(d => d.CreatedAt)
+            .ToListAsync(ct);
+
     public void Update(Document document) => db.Set<Document>().Update(document);
 
     public async Task SaveChangesAsync(CancellationToken ct = default) => await db.SaveChangesAsync(ct);

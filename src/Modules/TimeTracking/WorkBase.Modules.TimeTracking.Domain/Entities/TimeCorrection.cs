@@ -50,6 +50,16 @@ public sealed class TimeCorrection : AuditableEntity<Guid>, ITenantScoped, IAudi
             correction.Id, tenantId, employeeId, date, correctedBy));
         return correction;
     }
+
+    public void Update(
+        DateTime correctedClockIn,
+        DateTime correctedClockOut,
+        string reason)
+    {
+        CorrectedClockIn = correctedClockIn;
+        CorrectedClockOut = correctedClockOut;
+        Reason = reason;
+    }
 }
 
 public enum CorrectionStatus

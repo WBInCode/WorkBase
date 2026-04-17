@@ -11,6 +11,8 @@ public static class NotificationServiceCollectionExtensions
     public static IServiceCollection AddNotificationModule(this IServiceCollection services)
     {
         services.AddScoped<INotificationRepository, NotificationRepository>();
+        services.AddScoped<INotificationTemplateRepository, NotificationTemplateRepository>();
+        services.AddScoped<INotificationPreferenceRepository, NotificationPreferenceRepository>();
         services.AddScoped<INotificationService, NotificationService>();
 
         return services;

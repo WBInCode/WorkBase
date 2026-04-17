@@ -74,6 +74,8 @@ try
     builder.Services.AddDashboardModule();
     builder.Services.AddNotificationModule();
     builder.Services.AddDocumentsModule();
+    builder.Services.AddScoped<WorkBase.Modules.Identity.Application.Contracts.IDataScopeManagementService, WorkBase.Modules.Identity.Infrastructure.Services.DataScopeManagementService>();
+    builder.Services.AddScoped<WorkBase.Modules.Identity.Application.Contracts.IFeatureFlagService, WorkBase.Modules.Identity.Infrastructure.Services.FeatureFlagService>();
     builder.Services.AddSignalR();
 
     var allowedOrigins = builder.Configuration
@@ -133,6 +135,8 @@ try
     app.MapRoleEndpoints();
     app.MapPermissionEndpoints();
     app.MapUserRoleEndpoints();
+    app.MapDataScopeEndpoints();
+    app.MapFeatureFlagEndpoints();
 
     app.MapOrganizationUnitEndpoints();
     app.MapEmployeeEndpoints();

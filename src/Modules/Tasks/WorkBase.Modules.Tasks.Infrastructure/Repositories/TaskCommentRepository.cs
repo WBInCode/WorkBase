@@ -7,6 +7,9 @@ namespace WorkBase.Modules.Tasks.Infrastructure.Repositories;
 
 public sealed class TaskCommentRepository(WorkBaseDbContext dbContext) : ITaskCommentRepository
 {
+    public async Task<TaskComment?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        => await dbContext.Set<TaskComment>().FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
+
     public async Task<List<TaskComment>> GetByTaskAsync(Guid tenantId, Guid taskId, CancellationToken cancellationToken = default)
         => await dbContext.Set<TaskComment>()
             .Where(c => c.TenantId == tenantId && c.TaskId == taskId)
@@ -15,4 +18,7 @@ public sealed class TaskCommentRepository(WorkBaseDbContext dbContext) : ITaskCo
 
     public async Task AddAsync(TaskComment comment, CancellationToken cancellationToken = default)
         => await dbContext.Set<TaskComment>().AddAsync(comment, cancellationToken);
+
+    public void Remove(TaskComment comment)
+        => dbContext.Set<TaskComment>().Remove(comment);
 }

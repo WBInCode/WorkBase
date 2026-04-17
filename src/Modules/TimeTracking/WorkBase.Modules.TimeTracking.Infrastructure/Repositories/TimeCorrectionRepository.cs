@@ -19,4 +19,7 @@ public sealed class TimeCorrectionRepository(WorkBaseDbContext dbContext) : ITim
 
     public async Task AddAsync(TimeCorrection correction, CancellationToken cancellationToken = default)
         => await dbContext.Set<TimeCorrection>().AddAsync(correction, cancellationToken);
+
+    public void Remove(TimeCorrection correction)
+        => dbContext.Set<TimeCorrection>().Remove(correction);
 }

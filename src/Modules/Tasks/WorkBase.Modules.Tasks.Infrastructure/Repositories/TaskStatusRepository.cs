@@ -19,4 +19,10 @@ public sealed class TaskStatusRepository(WorkBaseDbContext dbContext) : ITaskSta
             .Where(s => s.TenantId == tenantId && s.IsActive)
             .OrderBy(s => s.SortOrder)
             .ToListAsync(cancellationToken);
+
+    public async Task AddAsync(TaskStatus status, CancellationToken cancellationToken = default)
+        => await dbContext.Set<TaskStatus>().AddAsync(status, cancellationToken);
+
+    public void Remove(TaskStatus status)
+        => dbContext.Set<TaskStatus>().Remove(status);
 }

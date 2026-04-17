@@ -70,6 +70,12 @@ public static class EmployeeEndpoints
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound);
 
+        group.MapPost("/import", ImportEmployees)
+            .WithName("ImportEmployees")
+            .WithSummary("Importuj pracowników z CSV/JSON")
+            .RequirePermission("org.create")
+            .Produces<ImportEmployeesResult>(StatusCodes.Status200OK);
+
         return endpoints;
     }
 
@@ -148,6 +154,14 @@ public static class EmployeeEndpoints
     {
         var result = await sender.Send(new DeactivateEmployeeCommand(id));
         return result.IsSuccess ? Results.NoContent() : result.ToHttpResult();
+    }
+
+    private static async Task<IResult> ImportEmployees(
+        ImportEmployeesCommand command,
+        ISender sender)
+    {
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
     }
 }
 

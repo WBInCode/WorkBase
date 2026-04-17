@@ -69,6 +69,12 @@ public static class LeaveEndpoints
             .WithSummary("Aktualizuj typ nieobecności")
             .RequirePermission("leave.manage");
 
+        group.MapDelete("/types/{id:guid}", DeleteLeaveType)
+            .WithName("DeleteLeaveType")
+            .WithSummary("Usuń typ nieobecności")
+            .RequirePermission("leave.manage")
+            .Produces(StatusCodes.Status204NoContent);
+
         // --- Policies ---
         group.MapGet("/policies", GetLeavePolicies)
             .WithName("GetLeavePolicies")
@@ -85,6 +91,19 @@ public static class LeaveEndpoints
             .WithName("UpdateLeavePolicy")
             .WithSummary("Aktualizuj politykę urlopową")
             .RequirePermission("leave.manage");
+
+        group.MapDelete("/policies/{id:guid}", DeleteLeavePolicy)
+            .WithName("DeleteLeavePolicy")
+            .WithSummary("Usuń politykę urlopową")
+            .RequirePermission("leave.manage")
+            .Produces(StatusCodes.Status204NoContent);
+
+        // --- Conflict check ---
+        group.MapPost("/conflicts/check", CheckLeaveConflict)
+            .WithName("CheckLeaveConflict")
+            .WithSummary("Sprawdź konflikt dat urlopowych")
+            .RequirePermission("leave.view")
+            .Produces<LeaveConflictResultDto>();
 
         // --- Balance adjust ---
         group.MapPost("/balances/{employeeId:guid}/adjust", AdjustLeaveBalance)
@@ -188,6 +207,25 @@ public static class LeaveEndpoints
         var result = await sender.Send(command);
         return result.ToHttpResult();
     }
+
+    private static async Task<IResult> DeleteLeaveType(Guid id, ISender sender)
+    {
+        var result = await sender.Send(new DeleteLeaveTypeCommand(id));
+        return result.IsSuccess ? Results.NoContent() : result.ToHttpResult();
+    }
+
+    private static async Task<IResult> DeleteLeavePolicy(Guid id, ISender sender)
+    {
+        var result = await sender.Send(new DeleteLeavePolicyCommand(id));
+        return result.IsSuccess ? Results.NoContent() : result.ToHttpResult();
+    }
+
+    private static async Task<IResult> CheckLeaveConflict(CheckConflictBody body, ISender sender)
+    {
+        var result = await sender.Send(new CheckLeaveConflictQuery(
+            body.EmployeeId, body.StartDate, body.EndDate, body.ExcludeRequestId));
+        return result.ToHttpResult();
+    }
 }
 
 public sealed record SubmitLeaveRequestBody(
@@ -204,3 +242,6 @@ public sealed record LeaveCalendarRequestBody(
     DateTime To);
 
 public sealed record AdjustBalanceBody(Guid LeaveTypeId, int Year, decimal NewTotalDays);
+
+public sealed record CheckConflictBody(
+    Guid EmployeeId, DateTime StartDate, DateTime EndDate, Guid? ExcludeRequestId = null);

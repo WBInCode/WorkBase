@@ -23,3 +23,6 @@ public sealed record TaskAttachmentDto(
     Guid Id, Guid TaskId, string FileName,
     string ContentType, long FileSizeBytes,
     Guid UploadedById, DateTime UploadedAt);
+
+public sealed record TaskStatusTransitionDto(
+    Guid Id, Guid FromStatusId, Guid ToStatusId);

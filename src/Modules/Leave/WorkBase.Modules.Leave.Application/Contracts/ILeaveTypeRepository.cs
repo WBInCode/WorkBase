@@ -8,4 +8,5 @@ public interface ILeaveTypeRepository
     Task<List<LeaveType>> GetActiveByTenantAsync(Guid tenantId, CancellationToken cancellationToken = default);
     Task AddAsync(LeaveType type, CancellationToken cancellationToken = default);
     void Update(LeaveType type);
+    void Remove(LeaveType type);
 }
