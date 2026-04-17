@@ -1224,7 +1224,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Uwagi** | — |
 | **Commit** | `b2c5d90` — feat(tasks): T-E11-002 task domain, status machine, CQRS commands, API endpoints + unit tests |
 
-### T-E11-003: Task overdue detector (Hangfire)
+### T-E11-003: Task overdue detector (Hangfire) ✅ DONE
 
 | Pole | Wartość |
 |---|---|
@@ -1238,6 +1238,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | niska |
 | **Ryzyko** | niskie |
 | **Uwagi** | — |
+| **Commit** | `9798d7d` — feat(tasks): T-E11-003 task overdue detector Hangfire job + TaskOverdueEvent |
 
 ### T-E11-004: Frontend — lista zadań + karta zadania
 

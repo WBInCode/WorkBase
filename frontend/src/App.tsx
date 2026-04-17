@@ -16,6 +16,9 @@ import { SchedulePage } from '@/pages/time/SchedulePage';
 import { LeaveRequestPage } from '@/pages/leave/LeaveRequestPage';
 import { LeaveCalendarPage } from '@/pages/leave/LeaveCalendarPage';
 import { PendingApprovalsPage } from '@/pages/leave/PendingApprovalsPage';
+import { TaskListPage } from '@/pages/tasks/TaskListPage';
+import { TaskCardPage } from '@/pages/tasks/TaskCardPage';
+import { MyTasksPage } from '@/pages/tasks/MyTasksPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -44,6 +47,9 @@ function AppRoutes() {
         <Route path="/leave/request" element={<LeaveRequestPage />} />
         <Route path="/leave/approvals" element={<PendingApprovalsPage />} />
         <Route path="/leave/calendar" element={<LeaveCalendarPage />} />
+        <Route path="/tasks" element={<TaskListPage />} />
+        <Route path="/tasks/my" element={<MyTasksPage />} />
+        <Route path="/tasks/:id" element={<TaskCardPage />} />
         <Route path="/admin/roles" element={<RolesPage />} />
         <Route path="/admin/permissions" element={<PermissionsMatrixPage />} />
         <Route path="*" element={<Navigate to="/org/tree" replace />} />
