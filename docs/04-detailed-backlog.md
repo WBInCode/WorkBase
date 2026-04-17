@@ -1276,7 +1276,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Uwagi** | Read-only. Nie przechodzi przez EF Core (Dapper bezpośrednie SQL). |
 | **Commit** | `60099f4` — feat(dashboard): T-E14-001 dashboard backend with Dapper aggregate queries |
 
-### T-E14-002: Frontend — DashboardPage
+### T-E14-002: Frontend — DashboardPage ✅ DONE
 
 | Pole | Wartość |
 |---|---|
@@ -1290,6 +1290,7 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | wysoka |
 | **Ryzyko** | średnie — to main selling point — UX musi być doskonały |
 | **Uwagi** | Widżety jako oddzielne komponenty — gotowe pod przyszłą konfigurowalność. |
+| **Commit** | `851cb24` — feat(dashboard): T-E14-002 frontend dashboard page with widgets |
 
 ### T-E15-001: Frontend — WorkspacePage (Mój dzień)
 

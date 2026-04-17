@@ -20,6 +20,7 @@ import { TaskListPage } from '@/pages/tasks/TaskListPage';
 import { TaskCardPage } from '@/pages/tasks/TaskCardPage';
 import { MyTasksPage } from '@/pages/tasks/MyTasksPage';
 import { DashboardPage } from '@/pages/DashboardPage';
+import { WorkspacePage } from '@/pages/WorkspacePage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -39,6 +40,7 @@ function AppRoutes() {
   return (
     <MainLayout>
       <Routes>
+        <Route path="/workspace" element={<WorkspacePage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/org/tree" element={<OrgTreePage />} />
         <Route path="/org/employees" element={<EmployeeListPage />} />
@@ -54,7 +56,7 @@ function AppRoutes() {
         <Route path="/tasks/:id" element={<TaskCardPage />} />
         <Route path="/admin/roles" element={<RolesPage />} />
         <Route path="/admin/permissions" element={<PermissionsMatrixPage />} />
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/workspace" replace />} />
       </Routes>
     </MainLayout>
   );
