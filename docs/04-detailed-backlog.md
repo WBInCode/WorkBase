@@ -1099,6 +1099,8 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | średnia |
 | **Ryzyko** | średnie |
 | **Uwagi** | — |
+| **Status** | ✅ DONE |
+| **Commit** | `c03d026` — feat(workflow): T-E09-003 approval flow with supervisor resolver and unit tests |
 
 ### T-E09-004: Predefiniowane workflow definitions (seed)
 
