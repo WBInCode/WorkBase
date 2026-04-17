@@ -1330,16 +1330,16 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 
 ## T-E09-002: State machine engine — subtaski
 
-| SID | Subtask | Owner |
-|---|---|---|
-| T-E09-002-a | Definicja JSON Schema dla WorkflowDefinition | backend |
-| T-E09-002-b | Parser JSON → in-memory workflow graph | backend |
-| T-E09-002-c | WorkflowInstance lifecycle (create, init step, advance) | backend |
-| T-E09-002-d | Transition validator (dozwolone przejścia + reguły) | backend |
-| T-E09-002-e | Action executor (notify, create_task, update_entity) | backend |
-| T-E09-002-f | Unit tests: happy path (submit → approve → done) | backend |
-| T-E09-002-g | Unit tests: edge cases (reject, return, re-submit) | backend |
-| T-E09-002-h | Integration test: leave request workflow end-to-end | backend |
+| SID | Subtask | Owner | Status |
+|---|---|---|---|
+| T-E09-002-a | Definicja JSON Schema dla WorkflowDefinition | backend | ✅ DONE |
+| T-E09-002-b | Parser JSON → in-memory workflow graph | backend | ✅ DONE |
+| T-E09-002-c | WorkflowInstance lifecycle (create, init step, advance) | backend | ✅ DONE |
+| T-E09-002-d | Transition validator (dozwolone przejścia + reguły) | backend | ✅ DONE |
+| T-E09-002-e | Action executor (notify, create_task, update_entity) | backend | ✅ DONE (c079507) |
+| T-E09-002-f | Unit tests: happy path (submit → approve → done) | backend | ✅ DONE |
+| T-E09-002-g | Unit tests: edge cases (reject, return, re-submit) | backend | ✅ DONE |
+| T-E09-002-h | Integration test: leave request workflow end-to-end | backend | ✅ DONE (c079507) |
 
 ## T-E08-006: Anomaly detection — subtaski
 
