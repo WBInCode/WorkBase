@@ -1205,6 +1205,8 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 | **Złożoność** | średnia |
 | **Ryzyko** | niskie |
 | **Uwagi** | **KONFIGURACJA:** Statusy i priorytety per tenant. |
+| **Status** | ✅ DONE |
+| **Commit** | `5028087` — feat(tasks): T-E11-001 task tables migration + seed default statuses and priorities |
 
 ### T-E11-002: Task domain + status machine
 
