@@ -1437,44 +1437,47 @@ Przykład: T-E01-001 = pierwszy task epiku E01
 
 ---
 
-# 8. Zależności między epikami
+# 8. Zależności między epikami ✅
+
+> Zweryfikowano vs kod (ProjectReference, Contracts, SQL, frontend imports).
+> Legenda: `←` = zależy od. Deps via `WorkBase.Contracts` (ISupervisorLookupService, IWorkflowService, INotificationService).
 
 ```
-E01 (Fundament)
- ├── E02 (Auth) ─────────────────────────────────────────┐
- ├── E03 (Multi-tenancy) ───────────────────────────────┐│
- ├── E04 (Shared Kernel) ─────────────────────────────┐ ││
- ├── E19 (Frontend shell) ───────────────────────────┐ │ ││
- │                                                    │ │ ││
- │   E05 (Org) ←── E04, E03                         │ │ ││
- │    │                                               │ │ ││
- │    ├── E06 (Role) ←── E04, E02                    │ │ ││
- │    │    │                                          │ │ ││
- │    │    └── E07 (Scope) ←── E06, E05              │ │ ││
- │    │         │                                     │ │ ││
- │    ├─────────┼── E08 (Time) ←── E05, E07          │ │ ││
- │    │         │    │                                │ │ ││
- │    │         │    │                                │ │ ││
- │    ├─────────┼── E09 (Workflow) ←── E05, E06      │ │ ││
- │    │         │    │                                │ │ ││
- │    │         │    ├── E10 (Leave) ←── E09          │ │ ││
- │    │         │    │                                │ │ ││
- │    ├─────────┼── E11 (Tasks) ←── E05, E07         │ │ ││
- │    │         │                                     │ │ ││
- │    │         │                                     │ │ ││
- │    └── E12 (Notifications) ←── E04, E01           │ │ ││
- │         │                                          │ │ ││
- │    E13 (Docs/Audit) ←── E04, E01                  │ │ ││
- │         │                                          │ │ ││
- │    E14 (Dashboard) ←── E08, E10, E11, E09, E07    │ │ ││
- │    E15 (Workspace) ←── E08, E10, E11, E09         │ │ ││
- │    E16 (Karty 360) ←── E05, E08, E10, E11         │ │ ││
- │         │                                          │ │ ││
- │    E17 (Mobile) ←── E08, E10, E11, E19            │ │ ││
- │    E18 (Kiosk) ←── E08, E19                       │ │ ││
- │                                                    │ │ ││
- └── E20 (Jobs) ←── E01, E08, E10, E11, E09         │ │ ││
+E04 (Shared Kernel) ── zero deps, liść drzewa                              ✅
+ │
+E01 (Fundament) ←── E04                                                    ✅
+ ├── E03 (Multi-tenancy) ←── E04                                           ✅
+ ├── E19 (Frontend shell) ←── E08*, E12*                 (* ClockButton)   ✅
+ │
+ ├── E06 (Role/Identity) ←── E04, E01                                      ✅
+ │    ├── E02 (Auth) ←── E01, E06                                          ✅
+ │    └── E07 (Scope) ←── E06                                              ✅
+ │
+ ├── E05 (Org) ←── E04, E01                                                ✅
+ │    ├── E08 (Time) ←── E05, E12                        (Contracts)       ✅
+ │    ├── E09 (Workflow) ←── E05, E12                    (Contracts)       ✅
+ │    │    └── E10 (Leave) ←── E09                       (IWorkflowSvc)   ✅
+ │    └── E11 (Tasks) ←── E04, E01                       (oddzielony)     ✅
+ │
+ ├── E12 (Notifications) ←── E04, E01                                      ✅
+ ├── E13 (Docs/Audit) ←── E04, E01                                         ✅
+ │
+ ├── E14 (Dashboard) ←── E05, E08, E10, E11             (Dapper SQL)      ✅
+ ├── E15 (Workspace) ←── E08, E09, E10, E11             (frontend hooks)  ✅
+ ├── E16 (Karty 360) ←── E05, E08, E10, E11             (frontend hooks)  ✅
+ │
+ ├── E17 (Mobile) ←── E19                                (responsive)      ✅
+ ├── E18 (Kiosk) ←── E08, E19                            (ClockIn/Out)    ✅
+ │
+ └── E20 (Jobs) ←── E01, E08, E11                       (Hangfire)        ✅
 ```
+
+**Kluczowe ustalenia z audytu:**
+1. **E04 (Shared) ma zero deps** — jest korzeniem drzewa, nie zależy od E01 (odwrotnie niż w oryginale)
+2. **E11 (Tasks) jest w pełni oddzielony** — zero importów cross-module mimo koncepcyjnej zależności od E05/E07
+3. **E12 (Notification) jest niezadeklarowaną zależnością** E08 i E09 — oba używają INotificationService
+4. **E14 (Dashboard) omija granice modułów** przez raw SQL (Dapper) — deps są implicit
+5. **WorkBase.Contracts** jest prawidłową granicą cross-module (ISupervisorLookupService, IWorkflowService, INotificationService)
 
 ---
 

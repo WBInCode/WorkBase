@@ -23,6 +23,8 @@ import { MyTasksPage } from '@/pages/tasks/MyTasksPage';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { WorkspacePage } from '@/pages/WorkspacePage';
 import { KioskPage } from '@/pages/KioskPage';
+import { DocumentListPage } from '@/pages/documents/DocumentListPage';
+import { DocumentCategoriesPage } from '@/pages/documents/DocumentCategoriesPage';
 import { ToastProvider } from '@/components/Notifications';
 
 const queryClient = new QueryClient({
@@ -58,6 +60,8 @@ function AppRoutes() {
         <Route path="/tasks" element={<TaskListPage />} />
         <Route path="/tasks/my" element={<MyTasksPage />} />
         <Route path="/tasks/:id" element={<TaskCardPage />} />
+        <Route path="/documents" element={<DocumentListPage />} />
+        <Route path="/documents/categories" element={<DocumentCategoriesPage />} />
         <Route path="/admin/roles" element={<RolesPage />} />
         <Route path="/admin/permissions" element={<PermissionsMatrixPage />} />
         <Route path="*" element={<Navigate to="/workspace" replace />} />

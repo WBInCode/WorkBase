@@ -1,7 +1,7 @@
 import { useState, useEffect, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from 'react-oidc-context';
-import { FolderTree, Users, FileUp, LogOut, Menu, X, Shield, Grid3X3, CalendarDays, UsersRound, CalendarClock, Palmtree, CalendarRange, ClipboardCheck, ListTodo, ClipboardList, LayoutDashboard, Briefcase, Clock, MoreHorizontal } from 'lucide-react';
+import { FolderTree, Users, FileUp, LogOut, Menu, X, Shield, Grid3X3, CalendarDays, UsersRound, CalendarClock, Palmtree, CalendarRange, ClipboardCheck, ListTodo, ClipboardList, LayoutDashboard, Briefcase, Clock, MoreHorizontal, FileArchive, FolderOpen } from 'lucide-react';
 import { mapUserClaims } from '@/auth';
 import { ClockButton } from '@/components/TimeTracking';
 import { NotificationBell } from '@/components/Notifications';
@@ -43,6 +43,8 @@ const navItems = [
   { path: '/leave/calendar', label: 'Kalendarz nieobecności', icon: CalendarRange },
   { path: '/tasks', label: 'Zadania', icon: ListTodo, exact: true },
   { path: '/tasks/my', label: 'Moje zadania', icon: ClipboardList },
+  { path: '/documents', label: 'Dokumenty', icon: FileArchive, exact: true },
+  { path: '/documents/categories', label: 'Kategorie dok.', icon: FolderOpen },
 ];
 
 const adminNavItems = [
