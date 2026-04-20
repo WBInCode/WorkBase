@@ -48,12 +48,12 @@ public class WorkBaseDbContext : DbContext
             var tenantService = Expression.Constant(this);
             var currentTenantProp = Expression.Property(tenantService, nameof(CurrentTenantId));
 
+            var tenantIdAsNullable = Expression.Convert(tenantIdProperty, typeof(Guid?));
+
             var filter = Expression.Lambda(
                 Expression.OrElse(
                     Expression.Equal(currentTenantProp, Expression.Constant(null, typeof(Guid?))),
-                    Expression.Equal(tenantIdProperty, Expression.Property(
-                        Expression.Convert(currentTenantProp, typeof(Guid?)),
-                        nameof(Nullable<Guid>.Value)))),
+                    Expression.Equal(tenantIdAsNullable, currentTenantProp)),
                 parameter);
 
             entityType.SetQueryFilter(filter);

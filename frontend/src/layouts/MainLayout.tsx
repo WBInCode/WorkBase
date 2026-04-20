@@ -1,7 +1,7 @@
 import { useState, useEffect, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from 'react-oidc-context';
-import { FolderTree, Users, FileUp, LogOut, Menu, X, Shield, Grid3X3, CalendarDays, UsersRound, CalendarClock, Palmtree, CalendarRange, ClipboardCheck, ListTodo, ClipboardList, LayoutDashboard, Briefcase, Clock, MoreHorizontal, FileArchive, FolderOpen } from 'lucide-react';
+import { FolderTree, Users, FileUp, LogOut, Menu, X, Shield, Grid3X3, CalendarDays, UsersRound, CalendarClock, Palmtree, CalendarRange, ClipboardCheck, ListTodo, ClipboardList, LayoutDashboard, Briefcase, Clock, MoreHorizontal, FileArchive, FolderOpen, type LucideIcon } from 'lucide-react';
 import { mapUserClaims } from '@/auth';
 import { ClockButton } from '@/components/TimeTracking';
 import { NotificationBell } from '@/components/Notifications';
@@ -29,22 +29,63 @@ interface MainLayoutProps {
   children: ReactNode;
 }
 
-const navItems = [
-  { path: '/workspace', label: 'Mój dzień', icon: Briefcase },
-  { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { path: '/org/tree', label: 'Struktura organizacyjna', icon: FolderTree },
-  { path: '/org/employees', label: 'Pracownicy', icon: Users, exact: true },
-  { path: '/org/employees/import', label: 'Import CSV', icon: FileUp },
-  { path: '/time/timesheet', label: 'Karta czasu pracy', icon: CalendarDays },
-  { path: '/time/team-report', label: 'Raport zespołu', icon: UsersRound },
-  { path: '/time/schedule', label: 'Grafik pracy', icon: CalendarClock },
-  { path: '/leave/request', label: 'Urlopy', icon: Palmtree },
-  { path: '/leave/approvals', label: 'Akceptacje', icon: ClipboardCheck },
-  { path: '/leave/calendar', label: 'Kalendarz nieobecności', icon: CalendarRange },
-  { path: '/tasks', label: 'Zadania', icon: ListTodo, exact: true },
-  { path: '/tasks/my', label: 'Moje zadania', icon: ClipboardList },
-  { path: '/documents', label: 'Dokumenty', icon: FileArchive, exact: true },
-  { path: '/documents/categories', label: 'Kategorie dok.', icon: FolderOpen },
+interface NavItem {
+  path: string;
+  label: string;
+  icon: LucideIcon;
+  exact?: boolean;
+}
+
+interface NavSection {
+  title?: string;
+  items: NavItem[];
+}
+
+const navSections: NavSection[] = [
+  {
+    items: [
+      { path: '/workspace', label: 'Mój dzień', icon: Briefcase },
+      { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    ],
+  },
+  {
+    title: 'Organizacja',
+    items: [
+      { path: '/org/tree', label: 'Struktura', icon: FolderTree },
+      { path: '/org/employees', label: 'Pracownicy', icon: Users, exact: true },
+      { path: '/org/employees/import', label: 'Import CSV', icon: FileUp },
+    ],
+  },
+  {
+    title: 'Czas pracy',
+    items: [
+      { path: '/time/timesheet', label: 'Karta czasu', icon: CalendarDays },
+      { path: '/time/team-report', label: 'Raport zespołu', icon: UsersRound },
+      { path: '/time/schedule', label: 'Grafik pracy', icon: CalendarClock },
+    ],
+  },
+  {
+    title: 'Urlopy',
+    items: [
+      { path: '/leave/request', label: 'Wnioski', icon: Palmtree },
+      { path: '/leave/approvals', label: 'Akceptacje', icon: ClipboardCheck },
+      { path: '/leave/calendar', label: 'Kalendarz', icon: CalendarRange },
+    ],
+  },
+  {
+    title: 'Zadania',
+    items: [
+      { path: '/tasks', label: 'Wszystkie', icon: ListTodo, exact: true },
+      { path: '/tasks/my', label: 'Moje zadania', icon: ClipboardList },
+    ],
+  },
+  {
+    title: 'Dokumenty',
+    items: [
+      { path: '/documents', label: 'Pliki', icon: FileArchive, exact: true },
+      { path: '/documents/categories', label: 'Kategorie', icon: FolderOpen },
+    ],
+  },
 ];
 
 const adminNavItems = [
@@ -87,121 +128,247 @@ export function MainLayout({ children }: MainLayoutProps) {
       {/* Sidebar */}
       <aside
         style={{
-          width: sidebarOpen ? '240px' : '0px',
+          width: sidebarOpen ? '250px' : '0px',
           overflow: 'hidden',
-          backgroundColor: '#1e293b',
+          background: 'linear-gradient(180deg, #0f172a 0%, #1e293b 100%)',
           color: '#e2e8f0',
           display: 'flex',
           flexDirection: 'column',
-          transition: 'width 0.2s',
+          transition: 'width 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
           flexShrink: 0,
+          borderRight: '1px solid rgba(99,102,241,0.1)',
           ...(isMobile ? { position: 'fixed', top: 0, left: 0, bottom: 0, zIndex: 50 } : {}),
         }}
       >
         {/* Logo */}
         <div
           style={{
-            padding: '16px 20px',
-            borderBottom: '1px solid #334155',
+            padding: '20px 20px 16px',
             display: 'flex',
             alignItems: 'center',
             gap: '10px',
           }}
         >
-          <span style={{ fontSize: '20px', fontWeight: 700, color: '#ffffff', whiteSpace: 'nowrap' }}>
+          <div style={{
+            width: 32,
+            height: 32,
+            borderRadius: 8,
+            background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 16,
+            fontWeight: 800,
+            color: '#fff',
+            flexShrink: 0,
+          }}>
+            W
+          </div>
+          <span style={{ fontSize: 18, fontWeight: 700, color: '#f8fafc', whiteSpace: 'nowrap', letterSpacing: '-0.02em' }}>
             WorkBase
           </span>
         </div>
 
         {/* Nav */}
-        <nav style={{ flex: 1, padding: '12px 8px' }}>
-          {navItems.map((item) => {
-            const isActive = item.exact
-              ? location.pathname === item.path
-              : location.pathname.startsWith(item.path);
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                  padding: '10px 12px',
-                  borderRadius: '6px',
-                  color: isActive ? '#ffffff' : '#94a3b8',
-                  backgroundColor: isActive ? '#334155' : 'transparent',
-                  textDecoration: 'none',
-                  fontSize: '14px',
-                  fontWeight: isActive ? 600 : 400,
+        <nav style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '4px 10px 12px' }}>
+          {navSections.map((section, si) => (
+            <div key={si} style={{ marginBottom: 4 }}>
+              {section.title && (
+                <div style={{
+                  padding: '12px 10px 6px',
+                  fontSize: 10,
+                  fontWeight: 700,
+                  color: '#64748b',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.08em',
                   whiteSpace: 'nowrap',
-                  transition: 'background-color 0.15s',
-                }}
-              >
-                <Icon size={18} />
-                {item.label}
-              </Link>
-            );
-          })}
+                }}>
+                  {section.title}
+                </div>
+              )}
+              {section.items.map((item) => {
+                const isActive = item.exact
+                  ? location.pathname === item.path
+                  : location.pathname.startsWith(item.path);
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 10,
+                      padding: '8px 10px',
+                      borderRadius: 8,
+                      color: isActive ? '#f8fafc' : '#94a3b8',
+                      background: isActive
+                        ? 'linear-gradient(90deg, rgba(99,102,241,0.2), rgba(99,102,241,0.05))'
+                        : 'transparent',
+                      textDecoration: 'none',
+                      fontSize: 13,
+                      fontWeight: isActive ? 600 : 400,
+                      whiteSpace: 'nowrap',
+                      transition: 'all 0.15s ease',
+                      position: 'relative',
+                      marginBottom: 1,
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isActive) e.currentTarget.style.background = 'rgba(99,102,241,0.08)';
+                      if (!isActive) e.currentTarget.style.color = '#cbd5e1';
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isActive) e.currentTarget.style.background = 'transparent';
+                      if (!isActive) e.currentTarget.style.color = '#94a3b8';
+                    }}
+                  >
+                    {isActive && (
+                      <div style={{
+                        position: 'absolute',
+                        left: 0,
+                        top: '20%',
+                        bottom: '20%',
+                        width: 3,
+                        borderRadius: 3,
+                        background: 'linear-gradient(180deg, #6366f1, #8b5cf6)',
+                      }} />
+                    )}
+                    <Icon size={17} style={{ opacity: isActive ? 1 : 0.7, flexShrink: 0 }} />
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </div>
+          ))}
 
           {/* Admin section */}
-          <div style={{ margin: '16px 0 4px', padding: '0 12px', fontSize: '11px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
-            Administracja
+          <div style={{
+            marginTop: 8,
+            paddingTop: 8,
+            borderTop: '1px solid rgba(100,116,139,0.2)',
+          }}>
+            <div style={{
+              padding: '4px 10px 6px',
+              fontSize: 10,
+              fontWeight: 700,
+              color: '#64748b',
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              whiteSpace: 'nowrap',
+            }}>
+              Administracja
+            </div>
+            {adminNavItems.map((item) => {
+              const isActive = location.pathname.startsWith(item.path);
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                    padding: '8px 10px',
+                    borderRadius: 8,
+                    color: isActive ? '#f8fafc' : '#94a3b8',
+                    background: isActive
+                      ? 'linear-gradient(90deg, rgba(99,102,241,0.2), rgba(99,102,241,0.05))'
+                      : 'transparent',
+                    textDecoration: 'none',
+                    fontSize: 13,
+                    fontWeight: isActive ? 600 : 400,
+                    whiteSpace: 'nowrap',
+                    transition: 'all 0.15s ease',
+                    position: 'relative',
+                    marginBottom: 1,
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isActive) e.currentTarget.style.background = 'rgba(99,102,241,0.08)';
+                    if (!isActive) e.currentTarget.style.color = '#cbd5e1';
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isActive) e.currentTarget.style.background = 'transparent';
+                    if (!isActive) e.currentTarget.style.color = '#94a3b8';
+                  }}
+                >
+                  {isActive && (
+                    <div style={{
+                      position: 'absolute',
+                      left: 0,
+                      top: '20%',
+                      bottom: '20%',
+                      width: 3,
+                      borderRadius: 3,
+                      background: 'linear-gradient(180deg, #6366f1, #8b5cf6)',
+                    }} />
+                  )}
+                  <Icon size={17} style={{ opacity: isActive ? 1 : 0.7, flexShrink: 0 }} />
+                  {item.label}
+                </Link>
+              );
+            })}
           </div>
-          {adminNavItems.map((item) => {
-            const isActive = location.pathname.startsWith(item.path);
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                  padding: '10px 12px',
-                  borderRadius: '6px',
-                  color: isActive ? '#ffffff' : '#94a3b8',
-                  backgroundColor: isActive ? '#334155' : 'transparent',
-                  textDecoration: 'none',
-                  fontSize: '14px',
-                  fontWeight: isActive ? 600 : 400,
-                  whiteSpace: 'nowrap',
-                  transition: 'background-color 0.15s',
-                }}
-              >
-                <Icon size={18} />
-                {item.label}
-              </Link>
-            );
-          })}
         </nav>
 
         {/* User */}
         {user && (
-          <div style={{ padding: '12px 16px', borderTop: '1px solid #334155' }}>
-            <div style={{ fontSize: '13px', color: '#e2e8f0', marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {user.name}
-            </div>
-            <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '8px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {user.email}
+          <div style={{
+            padding: '14px 16px',
+            borderTop: '1px solid rgba(100,116,139,0.2)',
+            background: 'rgba(15,23,42,0.5)',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+              <div style={{
+                width: 34,
+                height: 34,
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 13,
+                fontWeight: 700,
+                color: '#fff',
+                flexShrink: 0,
+              }}>
+                {(user.name ?? 'U').charAt(0).toUpperCase()}
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: '#f1f5f9', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {user.name}
+                </div>
+                <div style={{ fontSize: 11, color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {user.email}
+                </div>
+              </div>
             </div>
             <button
               onClick={() => auth.signoutRedirect()}
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px',
+                justifyContent: 'center',
+                gap: 6,
                 width: '100%',
-                padding: '6px 8px',
-                fontSize: '13px',
+                padding: '7px 8px',
+                fontSize: 12,
+                fontWeight: 500,
                 color: '#94a3b8',
-                backgroundColor: 'transparent',
-                border: '1px solid #334155',
-                borderRadius: '4px',
+                backgroundColor: 'rgba(51,65,85,0.4)',
+                border: '1px solid rgba(100,116,139,0.25)',
+                borderRadius: 6,
                 cursor: 'pointer',
                 whiteSpace: 'nowrap',
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(51,65,85,0.7)';
+                e.currentTarget.style.color = '#cbd5e1';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(51,65,85,0.4)';
+                e.currentTarget.style.color = '#94a3b8';
               }}
             >
               <LogOut size={14} />
@@ -218,11 +385,12 @@ export function MainLayout({ children }: MainLayoutProps) {
           style={{
             display: 'flex',
             alignItems: 'center',
-            padding: '0 16px',
-            height: '48px',
+            padding: '0 20px',
+            height: '52px',
             borderBottom: '1px solid #e5e7eb',
             backgroundColor: '#ffffff',
             flexShrink: 0,
+            boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
           }}
         >
           <button
@@ -261,7 +429,7 @@ export function MainLayout({ children }: MainLayoutProps) {
         </header>
 
         {/* Page content */}
-        <main style={{ flex: 1, overflow: 'auto', backgroundColor: '#ffffff', paddingBottom: isMobile ? '60px' : undefined }}>
+        <main style={{ flex: 1, overflow: 'auto', backgroundColor: '#f8fafc', paddingBottom: isMobile ? '60px' : undefined }}>
           {children}
         </main>
 

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using WorkBase.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using WorkBase.Infrastructure.Persistence;
 namespace WorkBase.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(WorkBaseDbContext))]
-    partial class WorkBaseDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260420090428_SyncPendingChanges")]
+    partial class SyncPendingChanges
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
