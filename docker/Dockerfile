@@ -85,5 +85,5 @@ COPY --from=build /app/publish .
 
 USER appuser
 EXPOSE 5000
-ENV ASPNETCORE_URLS=http://+:5000
+ENV ASPNETCORE_URLS=http://+:${PORT:-5000}
 ENTRYPOINT ["dotnet", "WorkBase.Host.dll"]

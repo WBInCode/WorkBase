@@ -1,0 +1,11 @@
+FROM quay.io/keycloak/keycloak:24.0
+
+# Copy realm config for auto-import
+COPY docker/keycloak/workbase-realm.json /opt/keycloak/data/import/workbase-realm.json
+
+# Render uses PORT env var
+ENV KC_HTTP_PORT=${PORT:-8080}
+ENV KC_HEALTH_ENABLED=true
+ENV KC_METRICS_ENABLED=false
+
+ENTRYPOINT ["/opt/keycloak/bin/kc.sh", "start-dev", "--import-realm"]
