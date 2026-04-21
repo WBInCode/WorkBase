@@ -169,7 +169,7 @@ export function WorkflowBuilderPage() {
       }));
       setPositions((prev) => {
         const copy = { ...prev };
-        copy[newName] = copy[oldName];
+        copy[newName] = copy[oldName] ?? { x: 0, y: 0 };
         delete copy[oldName];
         return copy;
       });

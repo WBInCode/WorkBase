@@ -67,7 +67,7 @@ export function FormBuilderPage() {
     if (target < 0 || target >= fields.length) return;
     setFields((prev) => {
       const copy = [...prev];
-      [copy[idx], copy[target]] = [copy[target], copy[idx]];
+      [copy[idx]!, copy[target]!] = [copy[target]!, copy[idx]!];
       return copy.map((f, i) => ({ ...f, order: i }));
     });
   };

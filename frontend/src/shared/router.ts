@@ -11,7 +11,7 @@ export function getRouterMode(): RouterMode {
   if (typeof import.meta !== 'undefined' && import.meta.env?.[ROUTER_MODE_KEY] === 'hash') {
     return 'hash';
   }
-  if (typeof window !== 'undefined' && (window as Record<string, unknown>).__TAURI__) {
+  if (typeof window !== 'undefined' && (window as unknown as Record<string, unknown>).__TAURI__) {
     return 'hash';
   }
   return 'browser';
