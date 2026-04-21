@@ -80,3 +80,21 @@ export interface AddTaskCommentRequest {
   authorId: string;
   content: string;
 }
+
+export interface CreateTaskStatusRequest {
+  code: string;
+  name: string;
+  color?: string;
+  isFinal: boolean;
+  isDefault: boolean;
+  sortOrder: number;
+}
+
+export interface UpdateTaskStatusRequest {
+  code: string;
+  name: string;
+  color?: string;
+  isFinal: boolean;
+  isDefault: boolean;
+  sortOrder: number;
+}

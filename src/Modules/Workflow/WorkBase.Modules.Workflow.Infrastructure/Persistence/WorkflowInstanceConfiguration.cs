@@ -36,6 +36,9 @@ public sealed class WorkflowInstanceConfiguration : IEntityTypeConfiguration<Wor
         builder.Property(e => e.InitiatedBy)
             .IsRequired();
 
+        builder.Property(e => e.ContextJson)
+            .HasColumnType("jsonb");
+
         builder.HasIndex(e => e.TenantId);
 
         builder.HasIndex(e => new { e.TenantId, e.EntityType, e.EntityId });

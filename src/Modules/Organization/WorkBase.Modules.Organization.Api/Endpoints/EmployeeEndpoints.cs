@@ -76,6 +76,13 @@ public static class EmployeeEndpoints
             .RequirePermission("org.create")
             .Produces<ImportEmployeesResult>(StatusCodes.Status200OK);
 
+        group.MapGet("/by-number/{employeeNumber}", GetEmployeeByNumber)
+            .WithName("GetEmployeeByNumber")
+            .WithSummary("Wyszukaj pracownika po numerze identyfikacyjnym (badge/PIN)")
+            .RequireAuthorization()
+            .Produces<EmployeeDto>()
+            .Produces(StatusCodes.Status404NotFound);
+
         return endpoints;
     }
 
@@ -161,6 +168,19 @@ public static class EmployeeEndpoints
         ISender sender)
     {
         var result = await sender.Send(command);
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> GetEmployeeByNumber(
+        string employeeNumber,
+        ISender sender,
+        HttpContext httpContext)
+    {
+        var tenantId = httpContext.User.FindFirst("tenant_id")?.Value;
+        if (string.IsNullOrEmpty(tenantId) || !Guid.TryParse(tenantId, out var tid))
+            return Results.Forbid();
+
+        var result = await sender.Send(new GetEmployeeByNumberQuery(tid, employeeNumber));
         return result.ToHttpResult();
     }
 }

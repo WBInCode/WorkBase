@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\WorkBase.Modules.AI.Application\WorkBase.Modules.AI.Application.csproj" />
+    <ProjectReference Include="..\WorkBase.Modules.AI.Domain\WorkBase.Modules.AI.Domain.csproj" />
+    <ProjectReference Include="..\..\..\WorkBase.Shared\WorkBase.Shared.csproj" />
+    <ProjectReference Include="..\..\..\WorkBase.Contracts\WorkBase.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\WorkBase.Infrastructure\WorkBase.Infrastructure.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.9" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.9" />
+  </ItemGroup>
+</Project>

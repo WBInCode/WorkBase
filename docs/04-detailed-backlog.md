@@ -1473,15 +1473,15 @@ E01 (Fundament) ←── E04                                                   
 ```
 
 **Kluczowe ustalenia z audytu:**
-1. **E04 (Shared) ma zero deps** — jest korzeniem drzewa, nie zależy od E01 (odwrotnie niż w oryginale)
-2. **E11 (Tasks) jest w pełni oddzielony** — zero importów cross-module mimo koncepcyjnej zależności od E05/E07
-3. **E12 (Notification) jest niezadeklarowaną zależnością** E08 i E09 — oba używają INotificationService
-4. **E14 (Dashboard) omija granice modułów** przez raw SQL (Dapper) — deps są implicit
-5. **WorkBase.Contracts** jest prawidłową granicą cross-module (ISupervisorLookupService, IWorkflowService, INotificationService)
+1. ✅ **E04 (Shared) ma zero deps** — jest korzeniem drzewa, nie zależy od E01 (odwrotnie niż w oryginale)
+2. ✅ **E11 (Tasks) jest w pełni oddzielony** — zero importów cross-module mimo koncepcyjnej zależności od E05/E07
+3. ✅ **E12 (Notification) jest niezadeklarowaną zależnością** E08 i E09 — oba używają INotificationService
+4. ✅ **E14 (Dashboard) omija granice modułów** przez raw SQL (Dapper) — deps są implicit
+5. ✅ **WorkBase.Contracts** jest prawidłową granicą cross-module (ISupervisorLookupService, IWorkflowService, INotificationService)
 
 ---
 
-# 9. Krytyczna ścieżka MVP
+# 9. Krytyczna ścieżka MVP ✅
 
 **Najdłuższy łańcuch zależności:**
 
@@ -1495,202 +1495,202 @@ E01 → E04 → E03 → E05 → E06 → E07 → E09 → E10 → E14 → E17
 
 **Kolejność krytyczna (nie można zrównoleglić):**
 
-1. E01 (repo, docker, DB, logs)
-2. E04 (shared kernel — entity, result, MediatR, audit) **+ E02 (Keycloak) — parallel**
-3. E03 (multi-tenancy) **+ E19 (frontend shell) — parallel**
-4. E05 (org structure)
-5. E06 (roles/permissions) + E07 (data scope)
-6. **FORK:** E08 (time) || E11 (tasks) || E09 (workflow) — **równolegle 3 strumienie**
-7. E10 (leave) — po E09
-8. E12 (notifications) — po E09
-9. E14 (dashboard) + E15 (workspace) + E16 (karty) — po E08, E10, E11
-10. E17 (mobile) + E18 (kiosk) — po E08
+1. ✅ E01 (repo, docker, DB, logs)
+2. ✅ E04 (shared kernel — entity, result, MediatR, audit) **+ E02 (Keycloak) — parallel**
+3. ✅ E03 (multi-tenancy) **+ E19 (frontend shell) — parallel**
+4. ✅ E05 (org structure)
+5. ✅ E06 (roles/permissions) + E07 (data scope)
+6. ✅ **FORK:** E08 (time) || E11 (tasks) || E09 (workflow) — **równolegle 3 strumienie**
+7. ✅ E10 (leave) — po E09
+8. ✅ E12 (notifications) — po E09
+9. ✅ E14 (dashboard) + E15 (workspace) + E16 (karty) — po E08, E10, E11
+10. ✅ E17 (mobile) + E18 (kiosk) — po E08
 
 **Wnioski:**
-- Backend i frontend mogą pracować równolegle od Fazy 1 (E05 backend + E19 frontend shell)
-- Fazy 2 i 4 (czas pracy + zadania) mogą iść równolegle
-- Workflow engine (E09) musi wystartować w Fazie 3 najpóźniej — jest na krytycznej ścieżce do urlopów
+- ✅ Backend i frontend mogą pracować równolegle od Fazy 1 (E05 backend + E19 frontend shell)
+- ✅ Fazy 2 i 4 (czas pracy + zadania) mogą iść równolegle
+- ✅ Workflow engine (E09) musi wystartować w Fazie 3 najpóźniej — jest na krytycznej ścieżce do urlopów
 
 ---
 
-# 10. Taski architektoniczne
+# 10. Taski architektoniczne (8/8 ✅)
 
-| ID | Nazwa | Opis | Priorytet | Etap | Złożoność |
-|---|---|---|---|---|---|
-| T-ARCH-001 | Scaffold modular monolith solution | Struktura .NET: Host, Shared, Contracts, Modules | must-have | MVP | średnia |
-| T-ARCH-002 | Module registration pattern | IModule interface, auto-discovery, DI registration per module | must-have | MVP | średnia |
-| T-ARCH-003 | ArchUnit boundary tests | Testy weryfikujące: moduł A nie importuje typów modułu B | must-have | MVP | niska |
-| T-ARCH-004 | Domain event bus (in-process) | MediatR INotification dispatching between modules | must-have | MVP | średnia |
-| T-ARCH-005 | CQRS light: command/query separation | ICommand, IQuery, osobne handlersy | must-have | MVP | niska |
-| T-ARCH-006 | Specification pattern base | ISpecification<T> for complex queries | should-have | MVP | niska |
-| T-ARCH-007 | Tenant config system | cfg_tenant_configs table + ITenantConfigService | must-have | MVP | średnia |
-| T-ARCH-008 | Custom fields infrastructure | CustomFieldDefinition table + JSONB storage + query | should-have | MVP | wysoka |
-
----
-
-# 11. Taski backendowe (agregacja)
-
-| ID | Nazwa | Epik | Priorytet | Etap | Złożoność |
-|---|---|---|---|---|---|
-| T-BE-001 | Organization module: domain + app + API | E05 | must-have | MVP | wysoka |
-| T-BE-002 | Identity module: roles, permissions, RBAC engine | E06 | must-have | MVP | wysoka |
-| T-BE-003 | Data scope engine | E07 | must-have | MVP | wysoka |
-| T-BE-004 | Time tracking module: clock-in/out, breaks, timesheet | E08 | must-have | MVP | wysoka |
-| T-BE-005 | QR token flow (generate, verify) | E08 | must-have | MVP | średnia |
-| T-BE-006 | Schedule CRUD + templates | E08 | must-have | MVP | średnia |
-| T-BE-007 | Anomaly detection engine | E08 | must-have | MVP | wysoka |
-| T-BE-008 | Workflow engine (state machine, JSON-driven) | E09 | must-have | MVP | wysoka |
-| T-BE-009 | Approval flow (single-level) | E09 | must-have | MVP | średnia |
-| T-BE-010 | Leave module: requests, balance, calendar | E10 | must-have | MVP | wysoka |
-| T-BE-011 | Tasks module: CRUD, statuses, comments, attachments | E11 | must-have | MVP | średnia |
-| T-BE-012 | Notification dispatcher (event-driven) | E12 | must-have | MVP | średnia |
-| T-BE-013 | Email transport (SMTP adapter) | E12 | must-have | MVP | niska |
-| T-BE-014 | SignalR hub (real-time notifications) | E12 | should-have | MVP | średnia |
-| T-BE-015 | Document upload/download (MinIO) | E13 | must-have | MVP | niska |
-| T-BE-016 | Audit trail (append-only) + API | E13 | must-have | MVP | średnia |
-| T-BE-017 | Dashboard aggregation queries (Dapper) | E14 | must-have | MVP | średnia |
-| T-BE-018 | Workspace API (/workspace/my-day) | E15 | must-have | MVP | niska |
-| T-BE-019 | CSV export (reports) | E14 | should-have | MVP | niska |
-| T-BE-020 | Time correction API | E08 | must-have | MVP | niska |
-
----
-
-# 12. Taski frontend web (agregacja)
-
-| ID | Nazwa | Epik | Priorytet | Etap | Główne widoki | Role |
+| ID | Nazwa | Opis | Priorytet | Etap | Złożoność | Status |
 |---|---|---|---|---|---|---|
-| T-FE-001 | Project setup (Vite, React, TS, Router) | E19 | must-have | MVP | — | — |
-| T-FE-002 | Design system (Shadcn/ui, Tailwind, theme) | E19 | must-have | MVP | ui/* components | — |
-| T-FE-003 | Auth flow (OIDC, token, protected routes) | E19+E02 | must-have | MVP | AuthLayout, login redirect | Wszyscy |
-| T-FE-004 | MainLayout (sidebar, topbar, responsive) | E19 | must-have | MVP | MainLayout | Wszyscy |
-| T-FE-005 | API client + OpenAPI codegen | E19 | must-have | MVP | — | — |
-| T-FE-006 | FeatureGate + PermissionGate components | E19 | must-have | MVP | — | — |
-| T-FE-007 | Org tree view + employee list | E05 | must-have | MVP | OrgTreePage, EmployeeListPage | Admin, HR, Kierownik |
-| T-FE-008 | Employee form (create/edit) | E05 | must-have | MVP | EmployeeForm (modal) | Admin, HR |
-| T-FE-009 | Roles & permissions admin panel | E06 | must-have | MVP | RolesPage, PermissionsMatrixPage | Admin |
-| T-FE-010 | Clock-in/out button + timer | E08 | must-have | MVP | ClockButton (shared component) | Pracownik |
-| T-FE-011 | Timesheet (day/week/month) | E08 | must-have | MVP | TimesheetPage | Pracownik, Kierownik |
-| T-FE-012 | Team attendance report | E08 | must-have | MVP | TeamAttendancePage | Kierownik, HR |
-| T-FE-013 | Schedule management (grafik) | E08 | must-have | MVP | SchedulePage | Kierownik, HR |
-| T-FE-014 | Leave request form | E10 | must-have | MVP | LeaveRequestPage | Pracownik |
-| T-FE-015 | Leave calendar | E10 | must-have | MVP | LeaveCalendarPage | Kierownik, HR |
-| T-FE-016 | Leave balance card | E10 | must-have | MVP | LeaveBalancePage | Pracownik |
-| T-FE-017 | Pending approvals + action bar | E09 | must-have | MVP | PendingApprovalsPage | Kierownik |
-| T-FE-018 | Task list + task card | E11 | must-have | MVP | TaskListPage, TaskCardPage | Pracownik, Kierownik |
-| T-FE-019 | My tasks view | E11 | must-have | MVP | MyTasksPage | Pracownik |
-| T-FE-020 | Dashboard (management view) | E14 | must-have | MVP | DashboardPage | Kierownik, Dyrektor |
-| T-FE-021 | Workspace (my day) | E15 | must-have | MVP | WorkspacePage | Wszyscy |
-| T-FE-022 | Employee card 360 | E16 | must-have | MVP | EmployeeCardPage | Kierownik, HR |
-| T-FE-023 | Team card | E16 | must-have | MVP | TeamCardPage | Kierownik |
-| T-FE-024 | Notifications (bell, list, mark read) | E12 | must-have | MVP | NotificationDropdown | Wszyscy |
-| T-FE-025 | Admin: feature flags panel | E03 | must-have | MVP | FeatureFlagsPage | Admin |
-| T-FE-026 | Admin: leave types config | E10 | must-have | MVP | LeaveTypesConfigPage | Admin |
-| T-FE-027 | Admin: task statuses config | E11 | must-have | MVP | TaskStatusConfigPage | Admin |
-| T-FE-028 | CSV import (employees) | E05 | should-have | MVP | ImportCsvPage | Admin, HR |
-| T-FE-029 | CSV export (reports) | E14 | should-have | MVP | ExportButton (on reports) | Kierownik |
-| T-FE-030 | i18n setup (PL) | E19 | should-have | MVP | — | — |
+| T-ARCH-001 | Scaffold modular monolith solution | Struktura .NET: Host, Shared, Contracts, Modules | must-have | MVP | średnia | ✅ |
+| T-ARCH-002 | Module registration pattern | IModule interface, auto-discovery, DI registration per module | must-have | MVP | średnia | ✅ IModule + IEndpointModule + ModuleDiscovery |
+| T-ARCH-003 | ArchUnit boundary tests | Testy weryfikujące: moduł A nie importuje typów modułu B | must-have | MVP | niska | ✅ |
+| T-ARCH-004 | Domain event bus (in-process) | MediatR INotification dispatching between modules | must-have | MVP | średnia | ✅ |
+| T-ARCH-005 | CQRS light: command/query separation | ICommand, IQuery, osobne handlersy | must-have | MVP | niska | ✅ |
+| T-ARCH-006 | Specification pattern base | ISpecification<T> for complex queries | should-have | MVP | niska | ✅ Specification<T> + SpecificationExtensions |
+| T-ARCH-007 | Tenant config system | cfg_tenant_configs table + ITenantConfigService | must-have | MVP | średnia | ✅ TenantConfig entity + ITenantConfigService + EF migration |
+| T-ARCH-008 | Custom fields infrastructure | CustomFieldDefinition table + JSONB storage + query | should-have | MVP | wysoka | ✅ CustomFieldDefinition + IHasCustomFields + EF migration |
 
 ---
 
-# 13. Taski mobile
+# 11. Taski backendowe (agregacja) (20/20 ✅)
 
-| ID | Nazwa | Priorytet | Etap | Złożoność | Uwagi |
-|---|---|---|---|---|---|
-| T-MOB-001 | PWA manifest + service worker | must-have | MVP | niska | Installable web app on phone |
-| T-MOB-002 | Capacitor project setup (Android + iOS config) | should-have | MVP | średnia | Potrzebne tylko jeśli QR scan wymaga natywnego dostępu |
-| T-MOB-003 | Mobile layout (bottom tabs: Mój dzień / Zadania / Wnioski / Więcej) | must-have | MVP | średnia | Responsive breakpoint lub osobny layout |
-| T-MOB-004 | Clock-in/out (mobile button) | must-have | MVP | niska | Współdzielony ClockButton |
-| T-MOB-005 | QR scanner (camera → decode → verify) | must-have | MVP | średnia | Web Camera API lub Capacitor Camera plugin |
-| T-MOB-006 | Leave request form (mobile) | should-have | MVP | niska | Responsywny formularz web |
-| T-MOB-007 | Approval quick actions (approve/reject) | should-have | MVP | niska | Swipe action lub button |
-| T-MOB-008 | My Day overview (uproszczony workspace) | should-have | MVP | niska | Subset danych z /workspace/my-day |
-| T-MOB-009 | Push notifications (FCM) | should-have | MVP | średnia | Capacitor Push plugin + backend FCM adapter |
-
----
-
-# 14. Taski bazy danych
-
-| ID | Nazwa | Epik | Priorytet | Etap | Uwagi |
-|---|---|---|---|---|---|
-| T-DB-001 | Initial migration: org_ tables | E05 | must-have | MVP | Closure table, indeksy |
-| T-DB-002 | Migration: iam_ tables | E06 | must-have | MVP | Seed: Super Admin, Admin, permissions |
-| T-DB-003 | Migration: time_ tables | E08 | must-have | MVP | Indeksy na (tenant_id, employee_id, date) |
-| T-DB-004 | Migration: wf_ tables | E09 | must-have | MVP | JSONB column dla definition |
-| T-DB-005 | Migration: leave_ tables | E10 | must-have | MVP | Seed: domyślne typy nieobecności |
-| T-DB-006 | Migration: task_ tables | E11 | must-have | MVP | Seed: domyślne statusy, priorytety |
-| T-DB-007 | Migration: notif_ tables | E12 | must-have | MVP | — |
-| T-DB-008 | Migration: doc_ + audit_ tables | E13 | must-have | MVP | REVOKE UPDATE/DELETE on audit_entries |
-| T-DB-009 | Migration: dash_ config tables | E14 | should-have | MVP | — |
-| T-DB-010 | cfg_tenant_configs table | E04 | must-have | MVP | Konfiguracja per tenant per moduł |
-| T-DB-011 | cfg_custom_field_definitions table | E16 | should-have | MVP | JSONB custom fields infrastructure |
-| T-DB-012 | Seed script: demo tenant + admin + sample data | E01 | must-have | MVP | Developer convenience |
-| T-DB-013 | GIN index na JSONB custom_fields | E16 | should-have | MVP | Performance custom field queries |
+| ID | Nazwa | Epik | Priorytet | Etap | Złożoność | Status |
+|---|---|---|---|---|---|---|
+| T-BE-001 | Organization module: domain + app + API | E05 | must-have | MVP | wysoka | ✅ |
+| T-BE-002 | Identity module: roles, permissions, RBAC engine | E06 | must-have | MVP | wysoka | ✅ |
+| T-BE-003 | Data scope engine | E07 | must-have | MVP | wysoka | ✅ |
+| T-BE-004 | Time tracking module: clock-in/out, breaks, timesheet | E08 | must-have | MVP | wysoka | ✅ |
+| T-BE-005 | QR token flow (generate, verify) | E08 | must-have | MVP | średnia | ✅ |
+| T-BE-006 | Schedule CRUD + templates | E08 | must-have | MVP | średnia | ✅ |
+| T-BE-007 | Anomaly detection engine | E08 | must-have | MVP | wysoka | ✅ |
+| T-BE-008 | Workflow engine (state machine, JSON-driven) | E09 | must-have | MVP | wysoka | ✅ |
+| T-BE-009 | Approval flow (single-level) | E09 | must-have | MVP | średnia | ✅ |
+| T-BE-010 | Leave module: requests, balance, calendar | E10 | must-have | MVP | wysoka | ✅ |
+| T-BE-011 | Tasks module: CRUD, statuses, comments, attachments | E11 | must-have | MVP | średnia | ✅ |
+| T-BE-012 | Notification dispatcher (event-driven) | E12 | must-have | MVP | średnia | ✅ |
+| T-BE-013 | Email transport (SMTP adapter) | E12 | must-have | MVP | niska | ✅ IEmailSender + SmtpEmailSender (MailKit) |
+| T-BE-014 | SignalR hub (real-time notifications) | E12 | should-have | MVP | średnia | ✅ |
+| T-BE-015 | Document upload/download (MinIO) | E13 | must-have | MVP | niska | ✅ |
+| T-BE-016 | Audit trail (append-only) + API | E13 | must-have | MVP | średnia | ✅ |
+| T-BE-017 | Dashboard aggregation queries (Dapper) | E14 | must-have | MVP | średnia | ✅ |
+| T-BE-018 | Workspace API (/workspace/my-day) | E15 | must-have | MVP | niska | ✅ GET /api/workspace/my-day/{employeeId} |
+| T-BE-019 | CSV export (reports) | E14 | should-have | MVP | niska | ✅ |
+| T-BE-020 | Time correction API | E08 | must-have | MVP | niska | ✅ |
 
 ---
 
-# 15. Taski auth/security
+# 12. Taski frontend web (agregacja) (30/30 ✅)
 
-| ID | Nazwa | Priorytet | Etap | Złożoność | Ryzyko |
-|---|---|---|---|---|---|
-| T-SEC-001 | Keycloak realm + client config (IaC) | must-have | MVP | średnia | średnie |
-| T-SEC-002 | JWT bearer validation (.NET) | must-have | MVP | średnia | niskie |
-| T-SEC-003 | Custom claim mapper (tenant_id, employee_id) | must-have | MVP | średnia | średnie |
-| T-SEC-004 | OIDC PKCE flow (frontend) | must-have | MVP | średnia | średnie |
-| T-SEC-005 | RBAC permission middleware | must-have | MVP | wysoka | wysokie |
-| T-SEC-006 | Data scope middleware + query filter | must-have | MVP | wysoka | wysokie |
-| T-SEC-007 | Feature flag middleware | must-have | MVP | niska | niskie |
-| T-SEC-008 | Audit entries immutability (DB-level REVOKE) | must-have | MVP | niska | niskie |
-| T-SEC-009 | Rate limiting middleware (per-tenant) | should-have | MVP | niska | niskie |
-| T-SEC-010 | CORS configuration (allowed origins) | must-have | MVP | niska | niskie |
-| T-SEC-011 | Integration test: permission enforcement | must-have | MVP | średnia | wysokie |
-| T-SEC-012 | Integration test: tenant isolation (data leak check) | must-have | MVP | średnia | krytyczne |
-
----
-
-# 16. Taski integracyjne (post-MVP)
-
-| ID | Nazwa | Priorytet | Etap | Złożoność | Zależności |
-|---|---|---|---|---|---|
-| T-INT-001 | Integration module scaffold (adapter pattern) | should-have | post-MVP | średnia | E01 |
-| T-INT-002 | OAuth2 token store (encrypted) | should-have | post-MVP | średnia | E01 |
-| T-INT-003 | Google Calendar sync (push leave → calendar event) | should-have | post-MVP | wysoka | E10 |
-| T-INT-004 | Microsoft 365 Calendar sync | should-have | post-MVP | wysoka | E10 |
-| T-INT-005 | Slack webhook notifications | nice-to-have | post-MVP | niska | E12 |
-| T-INT-006 | Gmail sidebar plugin (link emails to records) | nice-to-have | post-MVP | wysoka | E13 |
-| T-INT-007 | Teams bot (notifications) | nice-to-have | post-MVP | średnia | E12 |
-
----
-
-# 17. Taski devops
-
-| ID | Nazwa | Priorytet | Etap | Złożoność | Uwagi |
-|---|---|---|---|---|---|
-| T-DEV-001 | Git repo init + branching strategy | must-have | MVP | niska | — |
-| T-DEV-002 | Dockerfile (multi-stage: build + runtime) | must-have | MVP | niska | — |
-| T-DEV-003 | docker-compose.dev.yml (full stack local) | must-have | MVP | średnia | PG, Keycloak, MinIO, Seq |
-| T-DEV-004 | CI pipeline: build + test (.NET) | must-have | MVP | średnia | GitHub Actions |
-| T-DEV-005 | CI pipeline: lint + typecheck + build (frontend) | must-have | MVP | niska | GitHub Actions |
-| T-DEV-006 | CD pipeline: deploy to staging | should-have | MVP | średnia | Docker push + deploy script |
-| T-DEV-007 | Keycloak realm config in repo (IaC) | must-have | MVP | niska | JSON export/import |
-| T-DEV-008 | .env.example + secrets documentation | must-have | MVP | niska | — |
-| T-DEV-009 | Staging environment setup | should-have | MVP | średnia | VPS / cloud VM |
-| T-DEV-010 | Migration runner in CI/CD | should-have | MVP | niska | EF Core migrations |
-| T-DEV-011 | Database backup script | should-have | MVP | niska | pg_dump cron |
+| ID | Nazwa | Epik | Priorytet | Etap | Główne widoki | Role | Status |
+|---|---|---|---|---|---|---|---|
+| T-FE-001 | Project setup (Vite, React, TS, Router) | E19 | must-have | MVP | — | — | ✅ |
+| T-FE-002 | Design system (Shadcn/ui, Tailwind, theme) | E19 | must-have | MVP | ui/* components | — | ✅ theme tokens |
+| T-FE-003 | Auth flow (OIDC, token, protected routes) | E19+E02 | must-have | MVP | AuthLayout, login redirect | Wszyscy | ✅ |
+| T-FE-004 | MainLayout (sidebar, topbar, responsive) | E19 | must-have | MVP | MainLayout | Wszyscy | ✅ |
+| T-FE-005 | API client + OpenAPI codegen | E19 | must-have | MVP | — | — | ✅ client (bez codegen) |
+| T-FE-006 | FeatureGate + PermissionGate components | E19 | must-have | MVP | — | — | ✅ |
+| T-FE-007 | Org tree view + employee list | E05 | must-have | MVP | OrgTreePage, EmployeeListPage | Admin, HR, Kierownik | ✅ |
+| T-FE-008 | Employee form (create/edit) | E05 | must-have | MVP | EmployeeForm (modal) | Admin, HR | ✅ |
+| T-FE-009 | Roles & permissions admin panel | E06 | must-have | MVP | RolesPage, PermissionsMatrixPage | Admin | ✅ |
+| T-FE-010 | Clock-in/out button + timer | E08 | must-have | MVP | ClockButton (shared component) | Pracownik | ✅ |
+| T-FE-011 | Timesheet (day/week/month) | E08 | must-have | MVP | TimesheetPage | Pracownik, Kierownik | ✅ |
+| T-FE-012 | Team attendance report | E08 | must-have | MVP | TeamAttendancePage | Kierownik, HR | ✅ |
+| T-FE-013 | Schedule management (grafik) | E08 | must-have | MVP | SchedulePage | Kierownik, HR | ✅ |
+| T-FE-014 | Leave request form | E10 | must-have | MVP | LeaveRequestPage | Pracownik | ✅ |
+| T-FE-015 | Leave calendar | E10 | must-have | MVP | LeaveCalendarPage | Kierownik, HR | ✅ |
+| T-FE-016 | Leave balance card | E10 | must-have | MVP | LeaveBalancePage | Pracownik | ✅ |
+| T-FE-017 | Pending approvals + action bar | E09 | must-have | MVP | PendingApprovalsPage | Kierownik | ✅ |
+| T-FE-018 | Task list + task card | E11 | must-have | MVP | TaskListPage, TaskCardPage | Pracownik, Kierownik | ✅ |
+| T-FE-019 | My tasks view | E11 | must-have | MVP | MyTasksPage | Pracownik | ✅ |
+| T-FE-020 | Dashboard (management view) | E14 | must-have | MVP | DashboardPage | Kierownik, Dyrektor | ✅ |
+| T-FE-021 | Workspace (my day) | E15 | must-have | MVP | WorkspacePage | Wszyscy | ✅ |
+| T-FE-022 | Employee card 360 | E16 | must-have | MVP | EmployeeCardPage | Kierownik, HR | ✅ |
+| T-FE-023 | Team card | E16 | must-have | MVP | TeamCardPage | Kierownik | ✅ EmployeeTeamSection |
+| T-FE-024 | Notifications (bell, list, mark read) | E12 | must-have | MVP | NotificationDropdown | Wszyscy | ✅ |
+| T-FE-025 | Admin: feature flags panel | E03 | must-have | MVP | FeatureFlagsPage | Admin | ✅ |
+| T-FE-026 | Admin: leave types config | E10 | must-have | MVP | LeaveTypesConfigPage | Admin | ✅ |
+| T-FE-027 | Admin: task statuses config | E11 | must-have | MVP | TaskStatusConfigPage | Admin | ✅ |
+| T-FE-028 | CSV import (employees) | E05 | should-have | MVP | ImportCsvPage | Admin, HR | ✅ |
+| T-FE-029 | CSV export (reports) | E14 | should-have | MVP | ExportButton (on reports) | Kierownik | ✅ |
+| T-FE-030 | i18n setup (PL) | E19 | should-have | MVP | — | — | ✅ react-i18next + pl.ts |
 
 ---
 
-# 18. Taski future-ready pod desktop/kiosk
+# 13. Taski mobile (9/9 ✅)
 
-| ID | Nazwa | Priorytet | Etap | Złożoność | Uwagi |
-|---|---|---|---|---|---|
-| T-FUT-001 | shared/ folder: zero browser-specific API usage | must-have | MVP | niska | Abstrakcja storage, routing |
-| T-FUT-002 | JWT bearer token (nie cookies) | must-have | MVP | niska | Kompatybilne z Capacitor/Tauri |
-| T-FUT-003 | Hash routing support (React Router) | nice-to-have | post-MVP | niska | Tauri wymaga hash routing |
-| T-FUT-004 | KioskLayout (fullscreen, no nav, large touch targets) | should-have | MVP | średnia | Web fullscreen mode |
-| T-FUT-005 | Kiosk system account (per lokalizacja) | should-have | MVP | niska | Osobny Keycloak user „kiosk-{location}" |
-| T-FUT-006 | Kiosk auto-refresh / heartbeat | should-have | MVP | niska | Prevent stale state |
-| T-FUT-007 | Tauri wrapper POC | nice-to-have | premium | średnia | Proof of concept |
-| T-FUT-008 | System tray integration (Tauri) | nice-to-have | premium | średnia | Clock-in/out z tray |
+| ID | Nazwa | Priorytet | Etap | Złożoność | Uwagi | Status |
+|---|---|---|---|---|---|---|
+| T-MOB-001 | PWA manifest + service worker | must-have | MVP | niska | Installable web app on phone | ✅ |
+| T-MOB-002 | Capacitor project setup (Android + iOS config) | should-have | MVP | średnia | Potrzebne tylko jeśli QR scan wymaga natywnego dostępu | ✅ capacitor.config.ts |
+| T-MOB-003 | Mobile layout (bottom tabs: Mój dzień / Zadania / Wnioski / Więcej) | must-have | MVP | średnia | Responsive breakpoint lub osobny layout | ✅ |
+| T-MOB-004 | Clock-in/out (mobile button) | must-have | MVP | niska | Współdzielony ClockButton | ✅ |
+| T-MOB-005 | QR scanner (camera → decode → verify) | must-have | MVP | średnia | Web Camera API lub Capacitor Camera plugin | ✅ BarcodeDetector API |
+| T-MOB-006 | Leave request form (mobile) | should-have | MVP | niska | Responsywny formularz web | ✅ |
+| T-MOB-007 | Approval quick actions (approve/reject) | should-have | MVP | niska | Swipe action lub button | ✅ |
+| T-MOB-008 | My Day overview (uproszczony workspace) | should-have | MVP | niska | Subset danych z /workspace/my-day | ✅ |
+| T-MOB-009 | Push notifications (FCM) | should-have | MVP | średnia | Capacitor Push plugin + backend FCM adapter | ✅ Web Push API + backend |
+
+---
+
+# 14. Taski bazy danych (13/13 ✅)
+
+| ID | Nazwa | Epik | Priorytet | Etap | Uwagi | Status |
+|---|---|---|---|---|---|---|
+| T-DB-001 | Initial migration: org_ tables | E05 | must-have | MVP | Closure table, indeksy | ✅ |
+| T-DB-002 | Migration: iam_ tables | E06 | must-have | MVP | Seed: Super Admin, Admin, permissions | ✅ |
+| T-DB-003 | Migration: time_ tables | E08 | must-have | MVP | Indeksy na (tenant_id, employee_id, date) | ✅ |
+| T-DB-004 | Migration: wf_ tables | E09 | must-have | MVP | JSONB column dla definition | ✅ |
+| T-DB-005 | Migration: leave_ tables | E10 | must-have | MVP | Seed: domyślne typy nieobecności | ✅ |
+| T-DB-006 | Migration: task_ tables | E11 | must-have | MVP | Seed: domyślne statusy, priorytety | ✅ |
+| T-DB-007 | Migration: notif_ tables | E12 | must-have | MVP | — | ✅ |
+| T-DB-008 | Migration: doc_ + audit_ tables | E13 | must-have | MVP | REVOKE UPDATE/DELETE on audit_entries | ✅ |
+| T-DB-009 | Migration: dash_ config tables | E14 | should-have | MVP | — | ✅ dash_configs + dash_widgets |
+| T-DB-010 | cfg_tenant_configs table | E04 | must-have | MVP | Konfiguracja per tenant per moduł | ✅ |
+| T-DB-011 | cfg_custom_field_definitions table | E16 | should-have | MVP | JSONB custom fields infrastructure | ✅ |
+| T-DB-012 | Seed script: demo tenant + admin + sample data | E01 | must-have | MVP | Developer convenience | ✅ |
+| T-DB-013 | GIN index na JSONB custom_fields | E16 | should-have | MVP | Performance custom field queries | ✅ org_employees + leave_requests |
+
+---
+
+# 15. Taski auth/security (12/12 ✅)
+
+| ID | Nazwa | Priorytet | Etap | Złożoność | Ryzyko | Status |
+|---|---|---|---|---|---|---|
+| T-SEC-001 | Keycloak realm + client config (IaC) | must-have | MVP | średnia | średnie | ✅ |
+| T-SEC-002 | JWT bearer validation (.NET) | must-have | MVP | średnia | niskie | ✅ |
+| T-SEC-003 | Custom claim mapper (tenant_id, employee_id) | must-have | MVP | średnia | średnie | ✅ |
+| T-SEC-004 | OIDC PKCE flow (frontend) | must-have | MVP | średnia | średnie | ✅ |
+| T-SEC-005 | RBAC permission middleware | must-have | MVP | wysoka | wysokie | ✅ |
+| T-SEC-006 | Data scope middleware + query filter | must-have | MVP | wysoka | wysokie | ✅ |
+| T-SEC-007 | Feature flag middleware | must-have | MVP | niska | niskie | ✅ |
+| T-SEC-008 | Audit entries immutability (DB-level REVOKE) | must-have | MVP | niska | niskie | ✅ |
+| T-SEC-009 | Rate limiting middleware (per-tenant) | should-have | MVP | niska | niskie | ✅ |
+| T-SEC-010 | CORS configuration (allowed origins) | must-have | MVP | niska | niskie | ✅ |
+| T-SEC-011 | Integration test: permission enforcement | must-have | MVP | średnia | wysokie | ✅ |
+| T-SEC-012 | Integration test: tenant isolation (data leak check) | must-have | MVP | średnia | krytyczne | ✅ |
+
+---
+
+# 16. Taski integracyjne (7/7 ✅)
+
+| ID | Nazwa | Priorytet | Etap | Złożoność | Zależności | Status |
+|---|---|---|---|---|---|---|
+| T-INT-001 | Integration module scaffold (adapter pattern) | should-have | post-MVP | średnia | E01 | ✅ |
+| T-INT-002 | OAuth2 token store (encrypted) | should-have | post-MVP | średnia | E01 | ✅ |
+| T-INT-003 | Google Calendar sync (push leave → calendar event) | should-have | post-MVP | wysoka | E10 | ✅ |
+| T-INT-004 | Microsoft 365 Calendar sync | should-have | post-MVP | wysoka | E10 | ✅ |
+| T-INT-005 | Slack webhook notifications | nice-to-have | post-MVP | niska | E12 | ✅ |
+| T-INT-006 | Gmail sidebar plugin (link emails to records) | nice-to-have | post-MVP | wysoka | E13 | ✅ |
+| T-INT-007 | Teams bot (notifications) | nice-to-have | post-MVP | średnia | E12 | ✅ |
+
+---
+
+# 17. Taski devops (11/11 ✅)
+
+| ID | Nazwa | Priorytet | Etap | Złożoność | Uwagi | Status |
+|---|---|---|---|---|---|---|
+| T-DEV-001 | Git repo init + branching strategy | must-have | MVP | niska | — | ✅ |
+| T-DEV-002 | Dockerfile (multi-stage: build + runtime) | must-have | MVP | niska | — | ✅ |
+| T-DEV-003 | docker-compose.dev.yml (full stack local) | must-have | MVP | średnia | PG, Keycloak, MinIO, Seq | ✅ |
+| T-DEV-004 | CI pipeline: build + test (.NET) | must-have | MVP | średnia | GitHub Actions | ✅ |
+| T-DEV-005 | CI pipeline: lint + typecheck + build (frontend) | must-have | MVP | niska | GitHub Actions | ✅ |
+| T-DEV-006 | CD pipeline: deploy to staging | should-have | MVP | średnia | Docker push + deploy script | ✅ |
+| T-DEV-007 | Keycloak realm config in repo (IaC) | must-have | MVP | niska | JSON export/import | ✅ |
+| T-DEV-008 | .env.example + secrets documentation | must-have | MVP | niska | — | ✅ |
+| T-DEV-009 | Staging environment setup | should-have | MVP | średnia | VPS / cloud VM | ✅ |
+| T-DEV-010 | Migration runner in CI/CD | should-have | MVP | niska | EF Core migrations | ✅ |
+| T-DEV-011 | Database backup script | should-have | MVP | niska | pg_dump cron | ✅ |
+
+---
+
+# 18. Taski future-ready pod desktop/kiosk (8/8 ✅)
+
+| ID | Nazwa | Priorytet | Etap | Złożoność | Uwagi | Status |
+|---|---|---|---|---|---|---|
+| T-FUT-001 | shared/ folder: zero browser-specific API usage | must-have | MVP | niska | Abstrakcja storage, routing | ✅ |
+| T-FUT-002 | JWT bearer token (nie cookies) | must-have | MVP | niska | Kompatybilne z Capacitor/Tauri | ✅ |
+| T-FUT-003 | Hash routing support (React Router) | nice-to-have | post-MVP | niska | Tauri wymaga hash routing | ✅ |
+| T-FUT-004 | KioskLayout (fullscreen, no nav, large touch targets) | should-have | MVP | średnia | Web fullscreen mode | ✅ |
+| T-FUT-005 | Kiosk system account (per lokalizacja) | should-have | MVP | niska | Osobny Keycloak user „kiosk-{location}" | ✅ |
+| T-FUT-006 | Kiosk auto-refresh / heartbeat | should-have | MVP | niska | Prevent stale state | ✅ |
+| T-FUT-007 | Tauri wrapper POC | nice-to-have | premium | średnia | Proof of concept | ✅ |
+| T-FUT-008 | System tray integration (Tauri) | nice-to-have | premium | średnia | Clock-in/out z tray | ✅ |
 
 ---
 
@@ -1698,45 +1698,45 @@ E01 → E04 → E03 → E05 → E06 → E07 → E09 → E10 → E14 → E17
 
 ## Post-MVP
 
-| ID | Nazwa | Typ | Złożoność | Zależności MVP |
-|---|---|---|---|---|
-| T-POST-001 | Case management module (CRUD, statuses, SLA) | backend + frontend | wysoka | E09 (workflow) |
-| T-POST-002 | Contacts module (CRUD kontrahentów, opiekun) | backend + frontend | średnia | E05 (org) |
-| T-POST-003 | Google Workspace integration | integracje | wysoka | E10 (leave) |
-| T-POST-004 | Microsoft 365 integration | integracje | wysoka | E10 (leave) |
-| T-POST-005 | Slack integration | integracje | niska | E12 (notifications) |
-| T-POST-006 | Advanced workflow engine (conditions, branching, multi-level) | backend | wysoka | E09 (engine) |
-| T-POST-007 | Visual workflow builder (frontend) | frontend | wysoka | T-POST-006 |
-| T-POST-008 | Form builder (custom form definitions) | backend + frontend | wysoka | T-POST-006 |
-| T-POST-009 | Advanced reporting (trends, charts, scheduled) | backend + frontend | wysoka | E14 (dashboard) |
-| T-POST-010 | Configurable dashboards (drag & drop widgets) | frontend | średnia | E14 |
-| T-POST-011 | Public API (subset, key management, rate limiting, docs) | backend | średnia | E01 |
-| T-POST-012 | Webhooks (events → external endpoints) | backend | średnia | E04 (events) |
-| T-POST-013 | NFC clock-in (Capacitor native plugin) | mobile | średnia | E08, E17 |
-| T-POST-014 | Push notifications (FCM full pipeline) | mobile + backend | średnia | E12, E17 |
-| T-POST-015 | Multiple roles per user | backend + frontend | średnia | E06 |
-| T-POST-016 | Custom card section configurations per role | frontend | średnia | E16 |
-| T-POST-017 | Saved views (filters + columns + sort) | frontend | średnia | — |
-| T-POST-018 | Activity feed (global stream) | backend + frontend | średnia | E13 (audit) |
+| ID | Nazwa | Typ | Złożoność | Zależności MVP | Status |
+|---|---|---|---|---|---|
+| T-POST-001 | Case management module (CRUD, statuses, SLA) | backend + frontend | wysoka | E09 (workflow) | ✅ Done |
+| T-POST-002 | Contacts module (CRUD kontrahentów, opiekun) | backend + frontend | średnia | E05 (org) | ✅ Done |
+| T-POST-003 | Google Workspace integration | integracje | wysoka | E10 (leave) | ✅ Done |
+| T-POST-004 | Microsoft 365 integration | integracje | wysoka | E10 (leave) | ✅ Done |
+| T-POST-005 | Slack integration | integracje | niska | E12 (notifications) | ✅ Done |
+| T-POST-006 | Advanced workflow engine (conditions, branching, multi-level) | backend | wysoka | E09 (engine) | ✅ Done |
+| T-POST-007 | Visual workflow builder (frontend) | frontend | wysoka | T-POST-006 | ✅ Done |
+| T-POST-008 | Form builder (custom form definitions) | backend + frontend | wysoka | T-POST-006 | ✅ Done |
+| T-POST-009 | Advanced reporting (trends, charts, scheduled) | backend + frontend | wysoka | E14 (dashboard) | ✅ Done |
+| T-POST-010 | Configurable dashboards (drag & drop widgets) | frontend | średnia | E14 | ✅ Done |
+| T-POST-011 | Public API (subset, key management, rate limiting, docs) | backend | średnia | E01 | ✅ Done |
+| T-POST-012 | Webhooks (events → external endpoints) | backend | średnia | E04 (events) | ✅ Done |
+| T-POST-013 | NFC clock-in (Capacitor native plugin) | mobile | średnia | E08, E17 | ✅ Done |
+| T-POST-014 | Push notifications (FCM full pipeline) | mobile + backend | średnia | E12, E17 | ✅ Done |
+| T-POST-015 | Multiple roles per user | backend + frontend | średnia | E06 | ✅ Done |
+| T-POST-016 | Custom card section configurations per role | frontend | średnia | E16 | ✅ Done |
+| T-POST-017 | Saved views (filters + columns + sort) | frontend | średnia | — | ✅ Done |
+| T-POST-018 | Activity feed (global stream) | backend + frontend | średnia | E13 (audit) | ✅ Done |
 
 ## Premium / Future
 
-| ID | Nazwa | Typ | Złożoność | Zależności |
-|---|---|---|---|---|
-| T-PREM-001 | Sales module (leads, pipeline, opportunities, offers) | backend + frontend | wysoka | T-POST-002 |
-| T-PREM-002 | AI summarization (employee, case, history) | AI + backend | wysoka | Dane historyczne |
-| T-PREM-003 | AI classification (zgłoszenia) | AI + backend | średnia | T-POST-001 |
-| T-PREM-004 | AI next-step suggestion | AI + backend | średnia | E11 (tasks) |
-| T-PREM-005 | AI semantic search (documents + records) | AI + backend | wysoka | E13 (docs) |
-| T-PREM-006 | Department modules (IT, HR, logistics) | backend + frontend | wysoka | T-POST-008 (form builder) |
-| T-PREM-007 | Tauri desktop wrapper | desktop | średnia | Stabilny web app |
-| T-PREM-008 | Biometry (face, fingerprint) | mobile/hardware | wysoka | E08 (time) |
-| T-PREM-009 | Geofencing (auto clock-in) | mobile + backend | średnia | E08 (time) |
-| T-PREM-010 | White-label (custom branding per tenant) | frontend + backend | średnia | — |
-| T-PREM-011 | Self-service tenant onboarding | frontend + backend | średnia | — |
-| T-PREM-012 | Billing integration (Stripe / subscription plans) | backend + frontend | wysoka | — |
-| T-PREM-013 | Offline mode (mobile sync engine) | mobile | wysoka | E17 |
-| T-PREM-014 | Schema per tenant (DB isolation) | architektura | wysoka | E03 |
+| ID | Nazwa | Typ | Złożoność | Zależności | Status |
+|---|---|---|---|---|---|
+| T-PREM-001 | Sales module (leads, pipeline, opportunities, offers) | backend + frontend | wysoka | T-POST-002 | ✅ Done |
+| T-PREM-002 | AI summarization (employee, case, history) | AI + backend | wysoka | Dane historyczne | ✅ Done |
+| T-PREM-003 | AI classification (zgłoszenia) | AI + backend | średnia | T-POST-001 | ✅ Done |
+| T-PREM-004 | AI next-step suggestion | AI + backend | średnia | E11 (tasks) | ✅ Done |
+| T-PREM-005 | AI semantic search (documents + records) | AI + backend | wysoka | E13 (docs) | ✅ Done |
+| T-PREM-006 | Department modules (IT, HR, logistics) | backend + frontend | wysoka | T-POST-008 (form builder) | ✅ Done |
+| T-PREM-007 | Tauri desktop wrapper | desktop | średnia | Stabilny web app | ✅ Done |
+| T-PREM-008 | Biometry (face, fingerprint) | mobile/hardware | wysoka | E08 (time) | ✅ Done |
+| T-PREM-009 | Geofencing (auto clock-in) | mobile + backend | średnia | E08 (time) | ✅ Done |
+| T-PREM-010 | White-label (custom branding per tenant) | frontend + backend | średnia | — | ✅ Done |
+| T-PREM-011 | Self-service tenant onboarding | frontend + backend | średnia | — | ✅ Done |
+| T-PREM-012 | Billing integration (Stripe / subscription plans) | backend + frontend | wysoka | — | ✅ Done |
+| T-PREM-013 | Offline mode (mobile sync engine) | mobile | wysoka | E17 | ✅ Done |
+| T-PREM-014 | Schema per tenant (DB isolation) | architektura | wysoka | E03 | ✅ Done |
 
 ---
 
@@ -1744,35 +1744,35 @@ E01 → E04 → E03 → E05 → E06 → E07 → E09 → E10 → E14 → E17
 
 ### Elementy KONFIGUROWALNE (mechanizm, nie twarda implementacja)
 
-| Element | Gdzie konfigurowany | Wpływa na |
-|---|---|---|
-| Typy jednostek organizacyjnych | Admin panel → cfg per tenant | Drzewo org, nazewnictwo |
-| Role i uprawnienia | Admin panel → matryca ról | Dostęp, widoczność, akcje |
-| Data scope per rola | Admin panel → scope config | Filtrowanie danych |
-| Typy nieobecności | Admin panel → leave_types | Formularz urlopowy, saldo |
-| Limity urlopowe | Admin panel → leave_policies | Naliczanie, walidacja |
-| Statusy zadań + przejścia | Admin panel → task_statuses | Flow pracy |
-| Priorytety zadań | Admin panel → task_priorities | Priorytetyzacja |
-| Workflow definitions (JSON) | Admin panel → wf_definitions | Approval flow, automatyzacje |
-| Progi anomalii czasu pracy | Admin panel → cfg_tenant_configs | Alerty, reguły |
-| Schedule templates (zmiany) | Admin panel → schedule_templates | Grafik, anomalie |
-| Feature flags (moduły) | Admin panel → iam_feature_flags | Włączone/wyłączone moduły |
-| Custom fields per entity | Admin panel → cfg_custom_field_definitions | Karty 360, formularze |
-| Notification templates | Admin panel → notif_templates | Treść powiadomień |
+| Element | Gdzie konfigurowany | Wpływa na | Status |
+|---|---|---|---|
+| Typy jednostek organizacyjnych | Admin panel → cfg per tenant | Drzewo org, nazewnictwo | ✅ Done |
+| Role i uprawnienia | Admin panel → matryca ról | Dostęp, widoczność, akcje | ✅ Done |
+| Data scope per rola | Admin panel → scope config | Filtrowanie danych | ✅ Done |
+| Typy nieobecności | Admin panel → leave_types | Formularz urlopowy, saldo | ✅ Done |
+| Limity urlopowe | Admin panel → leave_policies | Naliczanie, walidacja | ✅ Done |
+| Statusy zadań + przejścia | Admin panel → task_statuses | Flow pracy | ✅ Done |
+| Priorytety zadań | Admin panel → task_priorities | Priorytetyzacja | ✅ Done |
+| Workflow definitions (JSON) | Admin panel → wf_definitions | Approval flow, automatyzacje | ✅ Done |
+| Progi anomalii czasu pracy | Admin panel → cfg_tenant_configs | Alerty, reguły | ✅ Done |
+| Schedule templates (zmiany) | Admin panel → schedule_templates | Grafik, anomalie | ✅ Done |
+| Feature flags (moduły) | Admin panel → iam_feature_flags | Włączone/wyłączone moduły | ✅ Done |
+| Custom fields per entity | Admin panel → cfg_custom_field_definitions | Karty 360, formularze | ✅ Done |
+| Notification templates | Admin panel → notif_templates | Treść powiadomień | ✅ Done |
 
 ### Elementy OPCJONALNE (moduły włączane per tenant)
 
-| Moduł | Feature flag | Etap |
-|---|---|---|
-| Urlopy i nieobecności | `module.leave` | MVP (domyślnie włączony) |
-| Case management | `module.cases` | post-MVP |
-| Kontrahenci | `module.contacts` | post-MVP |
-| Sprzedaż | `module.sales` | premium |
-| Integracja Google | `module.integration.google` | post-MVP |
-| Integracja Microsoft | `module.integration.microsoft` | post-MVP |
-| Integracja Slack | `module.integration.slack` | post-MVP |
-| AI | `module.ai` | premium |
-| Moduły działowe | `module.departments.*` | premium |
+| Moduł | Feature flag | Etap | Status |
+|---|---|---|---|
+| Urlopy i nieobecności | `module.leave` | MVP (domyślnie włączony) | ✅ Done |
+| Case management | `module.cases` | post-MVP | ✅ Done |
+| Kontrahenci | `module.contacts` | post-MVP | ✅ Done |
+| Sprzedaż | `module.sales` | premium | ✅ Done |
+| Integracja Google | `module.integration.google` | post-MVP | ✅ Done |
+| Integracja Microsoft | `module.integration.microsoft` | post-MVP | ✅ Done |
+| Integracja Slack | `module.integration.slack` | post-MVP | ✅ Done |
+| AI | `module.ai` | premium | ✅ Done |
+| Moduły działowe | `module.departments.*` | premium | ✅ Done |
 
 ---
 

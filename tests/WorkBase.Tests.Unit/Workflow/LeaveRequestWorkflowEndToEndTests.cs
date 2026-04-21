@@ -64,6 +64,8 @@ public class LeaveRequestWorkflowEndToEndTests
     private readonly IApprovalRequestRepository _approvalRequestRepo = Substitute.For<IApprovalRequestRepository>();
     private readonly IApproverResolver _approverResolver = Substitute.For<IApproverResolver>();
     private readonly IWorkflowActionExecutor _actionExecutor = Substitute.For<IWorkflowActionExecutor>();
+    private readonly IWorkflowBranchRepository _branchRepo = Substitute.For<IWorkflowBranchRepository>();
+    private readonly IConditionEvaluator _conditionEvaluator = Substitute.For<IConditionEvaluator>();
     private readonly WorkflowEngine _engine;
 
     // Track state
@@ -73,7 +75,7 @@ public class LeaveRequestWorkflowEndToEndTests
     {
         _engine = new WorkflowEngine(
             _definitionRepo, _instanceRepo, _stepRepo, _actionRepo,
-            _approvalRequestRepo, _approverResolver, _actionExecutor);
+            _approvalRequestRepo, _branchRepo, _approverResolver, _actionExecutor, _conditionEvaluator);
 
         // Track the instance as it's created so we can advance it later
         _instanceRepo.AddAsync(Arg.Any<WorkflowInstance>(), Arg.Any<CancellationToken>())

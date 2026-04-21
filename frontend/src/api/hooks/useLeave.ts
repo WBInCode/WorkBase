@@ -7,6 +7,8 @@ import type {
   SubmitLeaveRequest,
   LeaveCalendarEntryDto,
   LeaveCalendarRequest,
+  CreateLeaveTypeRequest,
+  UpdateLeaveTypeRequest,
 } from '@/api/types/leave';
 
 export function useLeaveTypes() {
@@ -60,5 +62,32 @@ export function useLeaveCalendar(request: LeaveCalendarRequest | null) {
     queryFn: () =>
       api.post<LeaveCalendarEntryDto[]>('/api/leave/calendar', request),
     enabled: !!request && request.employeeIds.length > 0,
+  });
+}
+
+export function useCreateLeaveType() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: CreateLeaveTypeRequest) =>
+      api.post<string>('/api/leave/types', data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['leave', 'types'] }),
+  });
+}
+
+export function useUpdateLeaveType() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...data }: UpdateLeaveTypeRequest & { id: string }) =>
+      api.put<void>(`/api/leave/types/${id}`, data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['leave', 'types'] }),
+  });
+}
+
+export function useDeleteLeaveType() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) =>
+      api.delete<void>(`/api/leave/types/${id}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['leave', 'types'] }),
   });
 }

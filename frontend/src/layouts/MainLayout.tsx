@@ -1,7 +1,7 @@
 import { useState, useEffect, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from 'react-oidc-context';
-import { FolderTree, Users, FileUp, LogOut, Menu, X, Shield, Grid3X3, CalendarDays, UsersRound, CalendarClock, Palmtree, CalendarRange, ClipboardCheck, ListTodo, ClipboardList, LayoutDashboard, Briefcase, Clock, MoreHorizontal, FileArchive, FolderOpen, type LucideIcon } from 'lucide-react';
+import { FolderTree, Users, FileUp, LogOut, Menu, X, Shield, Grid3X3, CalendarDays, UsersRound, CalendarClock, Palmtree, CalendarRange, ClipboardCheck, ListTodo, ClipboardList, LayoutDashboard, Briefcase, Clock, MoreHorizontal, FileArchive, FolderOpen, Flag, Settings, CircleDot, type LucideIcon } from 'lucide-react';
 import { mapUserClaims } from '@/auth';
 import { ClockButton } from '@/components/TimeTracking';
 import { NotificationBell } from '@/components/Notifications';
@@ -91,6 +91,9 @@ const navSections: NavSection[] = [
 const adminNavItems = [
   { path: '/admin/roles', label: 'Role', icon: Shield },
   { path: '/admin/permissions', label: 'Matryca uprawnień', icon: Grid3X3 },
+  { path: '/admin/feature-flags', label: 'Flagi funkcjonalności', icon: Flag },
+  { path: '/admin/leave-types', label: 'Typy urlopów', icon: Palmtree },
+  { path: '/admin/task-statuses', label: 'Statusy zadań', icon: CircleDot },
 ];
 
 export function MainLayout({ children }: MainLayoutProps) {
@@ -111,7 +114,7 @@ export function MainLayout({ children }: MainLayoutProps) {
   }, [location.pathname, isMobile]);
 
   return (
-    <div style={{ display: 'flex', height: '100vh', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+    <div style={{ display: 'flex', height: '100vh', fontFamily: 'system-ui, -apple-system, sans-serif', background: '#0f172a' }}>
       {/* Mobile backdrop */}
       {isMobile && sidebarOpen && (
         <div
@@ -136,7 +139,6 @@ export function MainLayout({ children }: MainLayoutProps) {
           flexDirection: 'column',
           transition: 'width 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
           flexShrink: 0,
-          borderRight: '1px solid rgba(99,102,241,0.1)',
           ...(isMobile ? { position: 'fixed', top: 0, left: 0, bottom: 0, zIndex: 50 } : {}),
         }}
       >

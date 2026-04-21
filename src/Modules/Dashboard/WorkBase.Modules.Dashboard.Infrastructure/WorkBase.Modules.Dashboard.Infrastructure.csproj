@@ -1,12 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <NoWarn>$(NoWarn);DAP005</NoWarn>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\WorkBase.Modules.Dashboard.Application\WorkBase.Modules.Dashboard.Application.csproj" />
     <ProjectReference Include="..\WorkBase.Modules.Dashboard.Domain\WorkBase.Modules.Dashboard.Domain.csproj" />
     <ProjectReference Include="..\..\..\WorkBase.Shared\WorkBase.Shared.csproj" />
     <ProjectReference Include="..\..\..\WorkBase.Contracts\WorkBase.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\WorkBase.Infrastructure\WorkBase.Infrastructure.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Dapper" Version="2.1.35" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.9" />
     <PackageReference Include="Npgsql" Version="9.0.3" />
   </ItemGroup>
 </Project>

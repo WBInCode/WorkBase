@@ -5,6 +5,7 @@ namespace WorkBase.Modules.Organization.Application.Contracts;
 public interface IEmployeeRepository
 {
     Task<Employee?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<Employee?> GetByEmployeeNumberAsync(Guid tenantId, string employeeNumber, CancellationToken cancellationToken = default);
     Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default);
     Task<bool> EmailExistsInTenantAsync(Guid tenantId, string email, Guid? excludeId = null, CancellationToken cancellationToken = default);
     Task AddAsync(Employee employee, CancellationToken cancellationToken = default);

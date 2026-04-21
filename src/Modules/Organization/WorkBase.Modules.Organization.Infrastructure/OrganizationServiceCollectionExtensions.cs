@@ -3,8 +3,15 @@ using WorkBase.Contracts;
 using WorkBase.Modules.Organization.Application.Contracts;
 using WorkBase.Modules.Organization.Infrastructure.Repositories;
 using WorkBase.Modules.Organization.Infrastructure.Services;
+using WorkBase.Shared.Domain;
 
 namespace WorkBase.Modules.Organization.Infrastructure;
+
+public sealed class OrganizationModule : IModule
+{
+    public IServiceCollection ConfigureServices(IServiceCollection services) =>
+        services.AddOrganizationModule();
+}
 
 public static class OrganizationServiceCollectionExtensions
 {

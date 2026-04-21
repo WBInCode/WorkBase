@@ -42,6 +42,12 @@
         "description": "WorkBase standard user",
         "composite": false,
         "clientRole": false
+      },
+      {
+        "name": "workbase-kiosk",
+        "description": "WorkBase kiosk terminal account — limited to clock-in/out and QR scan",
+        "composite": false,
+        "clientRole": false
       }
     ]
   },
@@ -101,6 +107,28 @@
       "webOrigins": [
         "http://localhost:5000",
         "http://localhost:5055"
+      ],
+      "defaultClientScopes": [
+        "workbase-scope"
+      ]
+    },
+    {
+      "clientId": "workbase-kiosk",
+      "name": "WorkBase Kiosk Terminal",
+      "description": "Confidential client for kiosk terminals — direct access grants with PIN auth",
+      "enabled": true,
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "workbase-kiosk-dev-secret",
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "protocol": "openid-connect",
+      "redirectUris": [],
+      "webOrigins": [
+        "http://localhost:5173",
+        "http://localhost:5174"
       ],
       "defaultClientScopes": [
         "workbase-scope"
@@ -272,6 +300,20 @@
           }
         },
         {
+          "name": "kiosk_location",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "userinfo.token.claim": "true",
+            "user.attribute": "kiosk_location",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "kiosk_location",
+            "jsonType.label": "String"
+          }
+        },
+        {
           "name": "realm-roles",
           "protocol": "openid-connect",
           "protocolMapper": "oidc-usermodel-realm-role-mapper",
@@ -345,6 +387,50 @@
       ],
       "realmRoles": [
         "workbase-user"
+      ]
+    },
+    {
+      "username": "kiosk-hq",
+      "email": "kiosk-hq@workbase.local",
+      "emailVerified": true,
+      "enabled": true,
+      "firstName": "Kiosk",
+      "lastName": "Biuro Główne",
+      "attributes": {
+        "tenant_id": ["00000000-0000-0000-0000-000000000001"],
+        "kiosk_location": ["hq"]
+      },
+      "credentials": [
+        {
+          "type": "password",
+          "value": "kiosk-hq-pin",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "workbase-kiosk"
+      ]
+    },
+    {
+      "username": "kiosk-warehouse",
+      "email": "kiosk-warehouse@workbase.local",
+      "emailVerified": true,
+      "enabled": true,
+      "firstName": "Kiosk",
+      "lastName": "Magazyn",
+      "attributes": {
+        "tenant_id": ["00000000-0000-0000-0000-000000000001"],
+        "kiosk_location": ["warehouse"]
+      },
+      "credentials": [
+        {
+          "type": "password",
+          "value": "kiosk-wh-pin",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "workbase-kiosk"
       ]
     }
   ],

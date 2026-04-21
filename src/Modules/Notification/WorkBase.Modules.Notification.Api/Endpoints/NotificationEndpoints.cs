@@ -2,8 +2,11 @@ using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using System.Security.Claims;
 using WorkBase.Modules.Notification.Application.Commands;
+using WorkBase.Modules.Notification.Application.Contracts;
 using WorkBase.Modules.Notification.Application.Queries;
+using WorkBase.Modules.Notification.Domain.Entities;
 using WorkBase.Shared.Api;
 using WorkBase.Shared.Auth;
 
@@ -64,6 +67,17 @@ public static class NotificationEndpoints
         group.MapPut("/preferences", UpdatePreference)
             .WithName("UpdateNotificationPreference")
             .WithSummary("Zaktualizuj preferencje powiadomień");
+
+        // --- Push Subscriptions ---
+        group.MapPost("/push/subscribe", SubscribePush)
+            .WithName("SubscribePush")
+            .WithSummary("Register push notification subscription")
+            .Produces(StatusCodes.Status201Created);
+
+        group.MapPost("/push/unsubscribe", UnsubscribePush)
+            .WithName("UnsubscribePush")
+            .WithSummary("Remove push notification subscription")
+            .Produces(StatusCodes.Status204NoContent);
 
         return endpoints;
     }
@@ -139,6 +153,45 @@ public static class NotificationEndpoints
             body.UserId, body.Category, body.InApp, body.Email));
         return result.ToHttpResult();
     }
+
+    // --- Push Subscriptions ---
+    private static async Task<IResult> SubscribePush(
+        PushSubscribeBody body, ClaimsPrincipal user, IPushSubscriptionRepository repo, CancellationToken ct)
+    {
+        var tenantId = GetTenantId(user);
+        if (tenantId is null) return Results.Forbid();
+
+        var userId = Guid.Parse(user.FindFirstValue("sub")!);
+        var existing = await repo.GetByEndpointAsync(tenantId.Value, userId, body.Endpoint, ct);
+        if (existing is not null) return Results.Ok();
+
+        var subscription = PushSubscription.Create(
+            tenantId.Value, userId, body.Endpoint, body.P256dh, body.Auth, body.DeviceInfo);
+        await repo.AddAsync(subscription, ct);
+        await repo.SaveChangesAsync(ct);
+        return Results.Created();
+    }
+
+    private static async Task<IResult> UnsubscribePush(
+        PushUnsubscribeBody body, ClaimsPrincipal user, IPushSubscriptionRepository repo, CancellationToken ct)
+    {
+        var tenantId = GetTenantId(user);
+        if (tenantId is null) return Results.Forbid();
+
+        var userId = Guid.Parse(user.FindFirstValue("sub")!);
+        var existing = await repo.GetByEndpointAsync(tenantId.Value, userId, body.Endpoint, ct);
+        if (existing is null) return Results.NoContent();
+
+        repo.Remove(existing);
+        await repo.SaveChangesAsync(ct);
+        return Results.NoContent();
+    }
+
+    private static Guid? GetTenantId(ClaimsPrincipal user)
+    {
+        var claim = user.FindFirstValue("tenant_id");
+        return Guid.TryParse(claim, out var id) ? id : null;
+    }
 }
 
 public sealed record CreateTemplateBody(
@@ -151,3 +204,8 @@ public sealed record UpdateTemplateBody(
 
 public sealed record UpdatePreferenceBody(
     Guid UserId, string Category, bool InApp, bool Email);
+
+public sealed record PushSubscribeBody(
+    string Endpoint, string P256dh, string Auth, string? DeviceInfo);
+
+public sealed record PushUnsubscribeBody(string Endpoint);

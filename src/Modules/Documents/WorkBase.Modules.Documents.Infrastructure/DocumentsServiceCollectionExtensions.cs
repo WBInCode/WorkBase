@@ -1,8 +1,15 @@
 using Microsoft.Extensions.DependencyInjection;
 using WorkBase.Modules.Documents.Application.Contracts;
 using WorkBase.Modules.Documents.Infrastructure.Persistence;
+using WorkBase.Shared.Domain;
 
 namespace WorkBase.Modules.Documents.Infrastructure;
+
+public sealed class DocumentsModule : IModule
+{
+    public IServiceCollection ConfigureServices(IServiceCollection services) =>
+        services.AddDocumentsModule();
+}
 
 public static class DocumentsServiceCollectionExtensions
 {

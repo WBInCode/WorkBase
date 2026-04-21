@@ -1,0 +1,79 @@
+name: DB Migrations
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      dry-run:
+        description: 'Dry run (generate SQL script only, no apply)'
+        required: false
+        default: true
+        type: boolean
+
+jobs:
+  migrate:
+    name: Run EF Core Migrations
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Install EF Core tools
+        run: dotnet tool install --global dotnet-ef
+
+      - name: Build solution
+        run: dotnet build WorkBase.sln --configuration Release
+
+      - name: Generate migration script
+        run: |
+          mkdir -p artifacts
+          dotnet ef migrations script \
+            --project src/WorkBase.Infrastructure/WorkBase.Infrastructure.csproj \
+            --startup-project src/WorkBase.Host/WorkBase.Host.csproj \
+            --configuration Release \
+            --idempotent \
+            --output artifacts/migration.sql
+        env:
+          ConnectionStrings__DefaultConnection: "Host=localhost;Database=dummy;Username=dummy;Password=dummy"
+
+      - name: Upload migration script
+        uses: actions/upload-artifact@v4
+        with:
+          name: migration-script-${{ inputs.environment }}
+          path: artifacts/migration.sql
+
+      - name: Apply migrations
+        if: ${{ inputs.dry-run == false }}
+        run: |
+          dotnet ef database update \
+            --project src/WorkBase.Infrastructure/WorkBase.Infrastructure.csproj \
+            --startup-project src/WorkBase.Host/WorkBase.Host.csproj \
+            --configuration Release
+        env:
+          ConnectionStrings__DefaultConnection: ${{ secrets.DATABASE_CONNECTION_STRING }}
+
+      - name: Summary
+        run: |
+          echo "## Migration Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment:** ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Dry run:** ${{ inputs.dry-run }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ inputs.dry-run }}" == "true" ]; then
+            echo "- **Result:** Script generated (not applied)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- **Result:** Migrations applied" >> $GITHUB_STEP_SUMMARY
+          fi

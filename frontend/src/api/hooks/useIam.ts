@@ -8,6 +8,7 @@ import type {
   UpdateRoleRequest,
   UpdateRolePermissionsRequest,
   AssignUserRoleRequest,
+  FeatureFlagDto,
 } from '@/api/types/iam';
 
 export function useRoles() {
@@ -95,5 +96,21 @@ export function useUnassignUserRole() {
       api.delete<void>(`/api/iam/users/${userId}/roles/${roleId}`),
     onSuccess: (_data, variables) =>
       qc.invalidateQueries({ queryKey: ['iam', 'users', variables.userId, 'roles'] }),
+  });
+}
+
+export function useFeatureFlags() {
+  return useQuery({
+    queryKey: ['iam', 'feature-flags'],
+    queryFn: () => api.get<FeatureFlagDto[]>('/api/iam/feature-flags'),
+  });
+}
+
+export function useToggleFeatureFlag() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (module: string) =>
+      api.put<void>(`/api/iam/feature-flags/${module}/toggle`, {}),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['iam', 'feature-flags'] }),
   });
 }

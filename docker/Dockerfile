@@ -53,6 +53,21 @@ COPY src/Modules/Documents/WorkBase.Modules.Documents.Application/WorkBase.Modul
 COPY src/Modules/Documents/WorkBase.Modules.Documents.Infrastructure/WorkBase.Modules.Documents.Infrastructure.csproj src/Modules/Documents/WorkBase.Modules.Documents.Infrastructure/
 COPY src/Modules/Documents/WorkBase.Modules.Documents.Api/WorkBase.Modules.Documents.Api.csproj src/Modules/Documents/WorkBase.Modules.Documents.Api/
 
+COPY src/Modules/Integration/WorkBase.Modules.Integration.Domain/WorkBase.Modules.Integration.Domain.csproj src/Modules/Integration/WorkBase.Modules.Integration.Domain/
+COPY src/Modules/Integration/WorkBase.Modules.Integration.Application/WorkBase.Modules.Integration.Application.csproj src/Modules/Integration/WorkBase.Modules.Integration.Application/
+COPY src/Modules/Integration/WorkBase.Modules.Integration.Infrastructure/WorkBase.Modules.Integration.Infrastructure.csproj src/Modules/Integration/WorkBase.Modules.Integration.Infrastructure/
+COPY src/Modules/Integration/WorkBase.Modules.Integration.Api/WorkBase.Modules.Integration.Api.csproj src/Modules/Integration/WorkBase.Modules.Integration.Api/
+
+COPY src/Modules/Cases/WorkBase.Modules.Cases.Domain/WorkBase.Modules.Cases.Domain.csproj src/Modules/Cases/WorkBase.Modules.Cases.Domain/
+COPY src/Modules/Cases/WorkBase.Modules.Cases.Application/WorkBase.Modules.Cases.Application.csproj src/Modules/Cases/WorkBase.Modules.Cases.Application/
+COPY src/Modules/Cases/WorkBase.Modules.Cases.Infrastructure/WorkBase.Modules.Cases.Infrastructure.csproj src/Modules/Cases/WorkBase.Modules.Cases.Infrastructure/
+COPY src/Modules/Cases/WorkBase.Modules.Cases.Api/WorkBase.Modules.Cases.Api.csproj src/Modules/Cases/WorkBase.Modules.Cases.Api/
+
+COPY src/Modules/Contacts/WorkBase.Modules.Contacts.Domain/WorkBase.Modules.Contacts.Domain.csproj src/Modules/Contacts/WorkBase.Modules.Contacts.Domain/
+COPY src/Modules/Contacts/WorkBase.Modules.Contacts.Application/WorkBase.Modules.Contacts.Application.csproj src/Modules/Contacts/WorkBase.Modules.Contacts.Application/
+COPY src/Modules/Contacts/WorkBase.Modules.Contacts.Infrastructure/WorkBase.Modules.Contacts.Infrastructure.csproj src/Modules/Contacts/WorkBase.Modules.Contacts.Infrastructure/
+COPY src/Modules/Contacts/WorkBase.Modules.Contacts.Api/WorkBase.Modules.Contacts.Api.csproj src/Modules/Contacts/WorkBase.Modules.Contacts.Api/
+
 RUN dotnet restore src/WorkBase.Host/WorkBase.Host.csproj
 
 # Copy everything and build

@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using WorkBase.Modules.Dashboard.Application.Commands;
 using WorkBase.Modules.Dashboard.Application.Contracts;
 using WorkBase.Modules.Dashboard.Application.Dtos;
 using WorkBase.Modules.Dashboard.Application.Queries;
@@ -65,6 +66,111 @@ public static class DashboardEndpoints
             .WithSummary("Eksportuj raport CSV")
             .RequirePermission("dashboard.view")
             .Produces(StatusCodes.Status200OK);
+
+        // --- Dashboard Configs ---
+        group.MapGet("/configs/{userId:guid}", async (Guid userId, ISender sender) =>
+        {
+            var result = await sender.Send(new GetDashboardConfigsQuery(userId));
+            return result.ToHttpResult();
+        })
+        .WithName("GetDashboardConfigs")
+        .WithSummary("Pobierz konfiguracje dashboardu użytkownika")
+        .RequirePermission("dashboard.view")
+        .Produces<List<DashboardConfigDto>>();
+
+        group.MapPost("/configs", async (CreateDashboardConfigBody body, ISender sender) =>
+        {
+            var cmd = new CreateDashboardConfigCommand(body.UserId, body.Name, body.IsDefault, body.Widgets);
+            var result = await sender.Send(cmd);
+            return result.IsSuccess
+                ? Results.Created($"/api/dashboard/configs/{result.Value}", result.Value)
+                : result.ToHttpResult();
+        })
+        .WithName("CreateDashboardConfig")
+        .WithSummary("Utwórz konfigurację dashboardu")
+        .RequirePermission("dashboard.manage")
+        .Produces<Guid>(StatusCodes.Status201Created);
+
+        group.MapPut("/configs/{id:guid}", async (Guid id, UpdateDashboardConfigBody body, ISender sender) =>
+        {
+            var cmd = new UpdateDashboardConfigCommand(id, body.Name, body.IsDefault, body.Widgets);
+            var result = await sender.Send(cmd);
+            return result.IsSuccess ? Results.NoContent() : result.ToHttpResult();
+        })
+        .WithName("UpdateDashboardConfig")
+        .WithSummary("Aktualizuj konfigurację dashboardu")
+        .RequirePermission("dashboard.manage")
+        .Produces(StatusCodes.Status204NoContent);
+
+        group.MapDelete("/configs/{id:guid}", async (Guid id, ISender sender) =>
+        {
+            var result = await sender.Send(new DeleteDashboardConfigCommand(id));
+            return result.IsSuccess ? Results.NoContent() : result.ToHttpResult();
+        })
+        .WithName("DeleteDashboardConfig")
+        .WithSummary("Usuń konfigurację dashboardu")
+        .RequirePermission("dashboard.manage")
+        .Produces(StatusCodes.Status204NoContent);
+
+        // --- Reports ---
+        group.MapGet("/reports", async (ISender sender) =>
+        {
+            var result = await sender.Send(new GetReportsQuery());
+            return result.ToHttpResult();
+        })
+        .WithName("GetReports")
+        .WithSummary("Pobierz listę raportów")
+        .RequirePermission("reports.view")
+        .Produces<List<ReportDefinitionDto>>();
+
+        group.MapGet("/reports/{id:guid}", async (Guid id, ISender sender) =>
+        {
+            var result = await sender.Send(new GetReportByIdQuery(id));
+            return result.ToHttpResult();
+        })
+        .WithName("GetReportById")
+        .WithSummary("Pobierz raport po ID")
+        .RequirePermission("reports.view")
+        .Produces<ReportDefinitionDto>();
+
+        group.MapPost("/reports", async (CreateReportBody body, ISender sender) =>
+        {
+            var cmd = new CreateReportCommand(body.Name, body.Description, body.ReportType,
+                body.DataSource, body.FiltersJson, body.ColumnsJson, body.GroupByJson,
+                body.AggregationsJson, body.ChartConfigJson, body.SortJson,
+                body.IsShared, body.CreatedByUserId);
+            var result = await sender.Send(cmd);
+            return result.IsSuccess
+                ? Results.Created($"/api/dashboard/reports/{result.Value}", result.Value)
+                : result.ToHttpResult();
+        })
+        .WithName("CreateReport")
+        .WithSummary("Utwórz nowy raport")
+        .RequirePermission("reports.manage")
+        .Produces<Guid>(StatusCodes.Status201Created);
+
+        group.MapPut("/reports/{id:guid}", async (Guid id, UpdateReportBody body, ISender sender) =>
+        {
+            var cmd = new UpdateReportCommand(id, body.Name, body.Description, body.ReportType,
+                body.DataSource, body.FiltersJson, body.ColumnsJson, body.GroupByJson,
+                body.AggregationsJson, body.ChartConfigJson, body.SortJson, body.IsShared);
+            var result = await sender.Send(cmd);
+            return result.IsSuccess ? Results.NoContent() : result.ToHttpResult();
+        })
+        .WithName("UpdateReport")
+        .WithSummary("Aktualizuj raport")
+        .RequirePermission("reports.manage")
+        .Produces(StatusCodes.Status204NoContent);
+
+        group.MapDelete("/reports/{id:guid}", async (Guid id, ISender sender) =>
+        {
+            var result = await sender.Send(new DeleteReportCommand(id));
+            return result.IsSuccess ? Results.NoContent() : result.ToHttpResult();
+        })
+        .WithName("DeleteReport")
+        .WithSummary("Usuń raport")
+        .RequirePermission("reports.manage")
+        .Produces(StatusCodes.Status204NoContent);
 
         return endpoints;
     }
@@ -148,3 +254,21 @@ public static class DashboardEndpoints
 }
 
 public sealed record DashboardAlertDto(string Category, string Severity, string Message);
+
+public sealed record CreateDashboardConfigBody(
+    Guid UserId, string Name, bool IsDefault, List<CreateWidgetRequest> Widgets);
+
+public sealed record UpdateDashboardConfigBody(
+    string Name, bool IsDefault, List<CreateWidgetRequest> Widgets);
+
+public sealed record CreateReportBody(
+    string Name, string? Description, string ReportType, string DataSource,
+    string? FiltersJson, string? ColumnsJson, string? GroupByJson,
+    string? AggregationsJson, string? ChartConfigJson, string? SortJson,
+    bool IsShared, Guid CreatedByUserId);
+
+public sealed record UpdateReportBody(
+    string Name, string? Description, string ReportType, string DataSource,
+    string? FiltersJson, string? ColumnsJson, string? GroupByJson,
+    string? AggregationsJson, string? ChartConfigJson, string? SortJson,
+    bool IsShared);

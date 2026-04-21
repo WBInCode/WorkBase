@@ -45,3 +45,10 @@ export interface UpdateRolePermissionsRequest {
 export interface AssignUserRoleRequest {
   roleId: string;
 }
+
+export interface FeatureFlagDto {
+  module: string;
+  isEnabled: boolean;
+  enabledAt: string | null;
+  enabledBy: string | null;
+}

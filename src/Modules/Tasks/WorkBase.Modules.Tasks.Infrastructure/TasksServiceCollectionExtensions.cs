@@ -2,8 +2,15 @@ using Microsoft.Extensions.DependencyInjection;
 using WorkBase.Modules.Tasks.Application.Contracts;
 using WorkBase.Modules.Tasks.Application.Services;
 using WorkBase.Modules.Tasks.Infrastructure.Repositories;
+using WorkBase.Shared.Domain;
 
 namespace WorkBase.Modules.Tasks.Infrastructure;
+
+public sealed class TasksModule : IModule
+{
+    public IServiceCollection ConfigureServices(IServiceCollection services) =>
+        services.AddTasksModule();
+}
 
 public static class TasksServiceCollectionExtensions
 {

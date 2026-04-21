@@ -11,6 +11,8 @@ import type {
   ChangeTaskStatusRequest,
   AssignTaskRequest,
   AddTaskCommentRequest,
+  CreateTaskStatusRequest,
+  UpdateTaskStatusRequest,
 } from '@/api/types/tasks';
 
 export function useTasks(assigneeId?: string | null) {
@@ -134,5 +136,32 @@ export function useDownloadTaskAttachment() {
       a.click();
       URL.revokeObjectURL(url);
     },
+  });
+}
+
+export function useCreateTaskStatus() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: CreateTaskStatusRequest) =>
+      api.post<string>('/api/tasks/statuses', data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks', 'statuses'] }),
+  });
+}
+
+export function useUpdateTaskStatus() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...data }: UpdateTaskStatusRequest & { id: string }) =>
+      api.put<void>(`/api/tasks/statuses/${id}`, data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks', 'statuses'] }),
+  });
+}
+
+export function useDeleteTaskStatus() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) =>
+      api.delete<void>(`/api/tasks/statuses/${id}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks', 'statuses'] }),
   });
 }

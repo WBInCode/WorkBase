@@ -1,3 +1,4 @@
+using WorkBase.Modules.Workflow.Application;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -112,6 +113,30 @@ public static class WorkflowEndpoints
             .WithSummary("Anuluj instancję workflow")
             .RequirePermission("workflow.manage")
             .Produces(StatusCodes.Status204NoContent);
+
+        group.MapPut("/instances/{id:guid}/context", SetInstanceContext)
+            .WithName("SetWorkflowInstanceContext")
+            .WithSummary("Ustaw kontekst danych dla instancji workflow (do ewaluacji warunków)")
+            .RequirePermission("workflow.create")
+            .Produces(StatusCodes.Status204NoContent);
+
+        group.MapPost("/instances/{id:guid}/evaluate-condition", EvaluateCondition)
+            .WithName("EvaluateWorkflowCondition")
+            .WithSummary("Ewaluuj wyrażenie warunkowe wobec kontekstu instancji")
+            .RequirePermission("workflow.view")
+            .Produces<bool>();
+
+        group.MapGet("/instances/{id:guid}/branches", GetActiveBranches)
+            .WithName("GetActiveWorkflowBranches")
+            .WithSummary("Pobierz aktywne gałęzie równoległe instancji workflow")
+            .RequirePermission("workflow.view")
+            .Produces<List<WorkflowBranchDto>>();
+
+        group.MapPost("/instances/{id:guid}/branches/{branchId:guid}/advance", AdvanceBranch)
+            .WithName("AdvanceWorkflowBranch")
+            .WithSummary("Przesuń gałąź równoległą do następnego kroku")
+            .RequirePermission("workflow.create")
+            .Produces<string>();
 
         // --- Approvals ---
         group.MapGet("/approvals/pending/{approverEmployeeId:guid}", GetPendingApprovals)
@@ -302,6 +327,30 @@ public static class WorkflowEndpoints
         var result = await sender.Send(command);
         return result.ToHttpResult();
     }
+
+    private static async Task<IResult> SetInstanceContext(Guid id, SetContextRequest request, IWorkflowEngine engine)
+    {
+        var result = await engine.SetInstanceContextAsync(id, request.ContextJson);
+        return result.IsSuccess ? Results.NoContent() : result.ToHttpResult();
+    }
+
+    private static async Task<IResult> EvaluateCondition(Guid id, EvaluateConditionRequest request, IWorkflowEngine engine)
+    {
+        var result = await engine.EvaluateConditionAsync(id, request.Expression);
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> GetActiveBranches(Guid id, IWorkflowEngine engine)
+    {
+        var result = await engine.GetActiveBranchesAsync(id);
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> AdvanceBranch(Guid id, Guid branchId, AdvanceWorkflowRequest request, IWorkflowEngine engine)
+    {
+        var result = await engine.AdvanceBranchAsync(id, branchId, request.Outcome, request.CompletedBy, request.Comment);
+        return result.ToHttpResult();
+    }
 }
 
 public sealed record CreateWorkflowDefinitionRequest(string Name, string DefinitionJson, string? Description = null);
@@ -309,6 +358,8 @@ public sealed record UpdateWorkflowDefinitionRequest(string Name, string Definit
 public sealed record CreateWorkflowInstanceRequest(Guid DefinitionId, string EntityType, Guid EntityId, Guid InitiatedBy);
 public sealed record AdvanceWorkflowRequest(string Outcome, string? CompletedBy = null, string? Comment = null);
 public sealed record SubmitApprovalDecisionRequest(string Decision, Guid DecidedByEmployeeId, string? Comment = null);
+public sealed record SetContextRequest(string ContextJson);
+public sealed record EvaluateConditionRequest(string Expression);
 
 public sealed record CreateEscalationRuleBody(
     Guid DefinitionId, string StepName, int TimeoutMinutes,

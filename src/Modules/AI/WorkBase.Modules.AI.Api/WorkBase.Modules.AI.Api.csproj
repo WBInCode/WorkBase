@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\WorkBase.Modules.AI.Application\WorkBase.Modules.AI.Application.csproj" />
+    <ProjectReference Include="..\..\..\WorkBase.Shared\WorkBase.Shared.csproj" />
+    <ProjectReference Include="..\..\..\WorkBase.Contracts\WorkBase.Contracts.csproj" />
+  </ItemGroup>
+</Project>

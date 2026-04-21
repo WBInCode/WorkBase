@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\WorkBase.Modules.Integration.Application\WorkBase.Modules.Integration.Application.csproj" />
+    <ProjectReference Include="..\WorkBase.Modules.Integration.Domain\WorkBase.Modules.Integration.Domain.csproj" />
+    <ProjectReference Include="..\..\..\WorkBase.Shared\WorkBase.Shared.csproj" />
+    <ProjectReference Include="..\..\..\WorkBase.Contracts\WorkBase.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\WorkBase.Infrastructure\WorkBase.Infrastructure.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+</Project>

@@ -12,6 +12,7 @@ public sealed class WorkflowInstance : AuditableEntity<Guid>, ITenantScoped, IAu
     public string Status { get; private set; } = null!;
     public Guid InitiatedBy { get; private set; }
     public DateTime? CompletedAt { get; private set; }
+    public string? ContextJson { get; private set; }
 
     private WorkflowInstance() { }
 
@@ -38,6 +39,11 @@ public sealed class WorkflowInstance : AuditableEntity<Guid>, ITenantScoped, IAu
     public void AdvanceTo(string stepName)
     {
         CurrentStepName = stepName;
+    }
+
+    public void SetContext(string contextJson)
+    {
+        ContextJson = contextJson;
     }
 
     public void Complete()

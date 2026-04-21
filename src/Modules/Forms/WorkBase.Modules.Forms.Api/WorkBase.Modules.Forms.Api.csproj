@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\WorkBase.Modules.Forms.Application\WorkBase.Modules.Forms.Application.csproj" />
+    <ProjectReference Include="..\..\..\WorkBase.Shared\WorkBase.Shared.csproj" />
+  </ItemGroup>
+</Project>

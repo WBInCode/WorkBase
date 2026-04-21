@@ -65,3 +65,25 @@ export interface LeaveCalendarRequest {
   from: string;
   to: string;
 }
+
+export interface CreateLeaveTypeRequest {
+  code: string;
+  name: string;
+  description?: string;
+  isPaid: boolean;
+  requiresApproval: boolean;
+  defaultDaysPerYear?: number;
+  color?: string;
+  sortOrder: number;
+}
+
+export interface UpdateLeaveTypeRequest {
+  code: string;
+  name: string;
+  description?: string;
+  isPaid: boolean;
+  requiresApproval: boolean;
+  defaultDaysPerYear?: number;
+  color?: string;
+  sortOrder: number;
+}

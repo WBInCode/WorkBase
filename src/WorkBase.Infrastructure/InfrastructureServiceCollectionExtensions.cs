@@ -9,11 +9,16 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Minio;
 using Serilog.Core;
+using WorkBase.Contracts;
 using WorkBase.Infrastructure.Auth;
 using WorkBase.Infrastructure.Behaviors;
+using WorkBase.Infrastructure.Email;
 using WorkBase.Infrastructure.Logging;
 using WorkBase.Infrastructure.Persistence;
 using WorkBase.Infrastructure.Storage;
+using WorkBase.Infrastructure.Middleware;
+using WorkBase.Infrastructure.Notifications;
+using WorkBase.Infrastructure.PublicApi;
 using WorkBase.Shared.Auth;
 using WorkBase.Shared.Domain;
 using WorkBase.Shared.Storage;
@@ -42,6 +47,8 @@ public static class InfrastructureServiceCollectionExtensions
 
         services.AddScoped<ICurrentTenantService, HttpContextTenantService>();
         services.AddScoped<IDataScopeService, DataScopeService>();
+        services.AddScoped<ITenantConfigService, Services.TenantConfigService>();
+        services.AddScoped<IEmailSender, SmtpEmailSender>();
 
         var moduleApplicationAssemblies = GetModuleApplicationAssemblies().ToArray();
 
@@ -109,6 +116,7 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddSingleton<IFileStorage, MinioFileStorage>();
 
         services.AddSingleton<ILogEventEnricher, UserContextEnricher>();
+        services.AddTenantRateLimiting(configuration);
 
         var connectionString = configuration.GetConnectionString("DefaultConnection")!;
         var keycloakAuthority = configuration["Keycloak:Authority"];
@@ -123,6 +131,15 @@ public static class InfrastructureServiceCollectionExtensions
             services.AddHealthChecks()
                 .AddUrlGroup(new Uri(keycloakAuthority), name: "keycloak", tags: ["auth", "ready"]);
         }
+
+        // Public API & Webhooks
+        services.AddSingleton<IApiKeyService, ApiKeyService>();
+        services.AddScoped<IWebhookDispatcher, WebhookDispatcher>();
+        services.AddHttpClient("Webhook");
+
+        // Push Notifications
+        services.AddScoped<IPushNotificationService, FcmPushNotificationService>();
+        services.AddHttpClient("FCM");
 
         return services;
     }
@@ -139,7 +156,8 @@ public static class InfrastructureServiceCollectionExtensions
             "WorkBase.Modules.Workflow.Application",
             "WorkBase.Modules.Dashboard.Application",
             "WorkBase.Modules.Notification.Application",
-            "WorkBase.Modules.Documents.Application"
+            "WorkBase.Modules.Documents.Application",
+            "WorkBase.Modules.Integration.Application"
         };
 
         foreach (var name in moduleNames)

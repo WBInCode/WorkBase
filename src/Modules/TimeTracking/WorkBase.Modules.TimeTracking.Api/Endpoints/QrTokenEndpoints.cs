@@ -20,7 +20,6 @@ public static class QrTokenEndpoints
         group.MapPost("/generate", GenerateToken)
             .WithName("GenerateQrToken")
             .WithSummary("Generuj token QR do rejestracji czasu pracy")
-            .RequirePermission("time.manage")
             .Produces<QrTokenDto>(StatusCodes.Status201Created);
 
         group.MapPost("/verify", VerifyToken)

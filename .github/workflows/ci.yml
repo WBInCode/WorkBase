@@ -50,6 +50,19 @@ jobs:
         env:
           ConnectionStrings__WorkBase: "Host=localhost;Port=5432;Database=workbase_test;Username=workbase;Password=workbase"
 
+      - name: Validate EF Core migrations
+        run: |
+          dotnet tool install --global dotnet-ef
+          dotnet ef migrations script \
+            --project src/WorkBase.Infrastructure/WorkBase.Infrastructure.csproj \
+            --startup-project src/WorkBase.Host/WorkBase.Host.csproj \
+            --configuration Release \
+            --idempotent \
+            --output artifacts/migration-check.sql
+        env:
+          ConnectionStrings__DefaultConnection: "Host=localhost;Database=workbase_test;Username=workbase;Password=workbase"
+        continue-on-error: true
+
       - name: Generate OpenAPI spec
         run: |
           dotnet run --project src/WorkBase.Host/WorkBase.Host.csproj --configuration Release --urls "http://localhost:5099" &

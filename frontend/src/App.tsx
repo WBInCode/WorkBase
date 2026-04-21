@@ -1,8 +1,10 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, HashRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from 'react-oidc-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { oidcConfig, ProtectedRoute } from '@/auth';
 import { setTokenProvider } from '@/api/client';
+import { getRouterMode } from '@/shared';
 import { MainLayout } from '@/layouts/MainLayout';
 import { AuthCallbackPage } from '@/pages/AuthCallbackPage';
 import { OrgTreePage } from '@/pages/organization/OrgTreePage';
@@ -11,6 +13,9 @@ import { CsvImportPage } from '@/pages/organization/CsvImportPage';
 import { EmployeeCardPage } from '@/pages/organization/EmployeeCardPage';
 import { RolesPage } from '@/pages/admin/RolesPage';
 import { PermissionsMatrixPage } from '@/pages/admin/PermissionsMatrixPage';
+import { FeatureFlagsPage } from '@/pages/admin/FeatureFlagsPage';
+import { LeaveTypesConfigPage } from '@/pages/admin/LeaveTypesConfigPage';
+import { TaskStatusConfigPage } from '@/pages/admin/TaskStatusConfigPage';
 import { TimesheetPage } from '@/pages/time/TimesheetPage';
 import { TeamAttendancePage } from '@/pages/time/TeamAttendancePage';
 import { SchedulePage } from '@/pages/time/SchedulePage';
@@ -25,6 +30,8 @@ import { WorkspacePage } from '@/pages/WorkspacePage';
 import { KioskPage } from '@/pages/KioskPage';
 import { DocumentListPage } from '@/pages/documents/DocumentListPage';
 import { DocumentCategoriesPage } from '@/pages/documents/DocumentCategoriesPage';
+import { WorkflowBuilderPage } from '@/pages/workflow/WorkflowBuilderPage';
+import { FormBuilderPage } from '@/pages/forms/FormBuilderPage';
 import { ToastProvider } from '@/components/Notifications';
 
 const queryClient = new QueryClient({
@@ -38,9 +45,20 @@ const queryClient = new QueryClient({
 
 function AppRoutes() {
   const auth = useAuth();
+  const navigate = useNavigate();
 
   // Wire API client token provider
   setTokenProvider(() => auth.user?.access_token);
+
+  // Auto-redirect kiosk accounts to /kiosk
+  useEffect(() => {
+    if (auth.user) {
+      const roles = (auth.user.profile['roles'] as string[]) ?? [];
+      if (roles.includes('workbase-kiosk')) {
+        navigate('/kiosk', { replace: true });
+      }
+    }
+  }, [auth.user, navigate]);
 
   return (
     <MainLayout>
@@ -62,12 +80,23 @@ function AppRoutes() {
         <Route path="/tasks/:id" element={<TaskCardPage />} />
         <Route path="/documents" element={<DocumentListPage />} />
         <Route path="/documents/categories" element={<DocumentCategoriesPage />} />
+        <Route path="/workflow/builder" element={<WorkflowBuilderPage />} />
+        <Route path="/forms/builder" element={<FormBuilderPage />} />
         <Route path="/admin/roles" element={<RolesPage />} />
         <Route path="/admin/permissions" element={<PermissionsMatrixPage />} />
+        <Route path="/admin/feature-flags" element={<FeatureFlagsPage />} />
+        <Route path="/admin/leave-types" element={<LeaveTypesConfigPage />} />
+        <Route path="/admin/task-statuses" element={<TaskStatusConfigPage />} />
         <Route path="*" element={<Navigate to="/workspace" replace />} />
       </Routes>
     </MainLayout>
   );
+}
+
+const Router = getRouterMode() === 'hash' ? HashRouter : BrowserRouter;
+
+function AppRouter({ children }: { children: React.ReactNode }) {
+  return <Router>{children}</Router>;
 }
 
 function App() {
@@ -75,7 +104,7 @@ function App() {
     <AuthProvider {...oidcConfig}>
       <QueryClientProvider client={queryClient}>
         <ToastProvider>
-        <BrowserRouter>
+        <AppRouter>
           <Routes>
             <Route path="/auth/callback" element={<AuthCallbackPage />} />
             <Route
@@ -95,7 +124,7 @@ function App() {
               }
             />
           </Routes>
-        </BrowserRouter>
+        </AppRouter>
         </ToastProvider>
       </QueryClientProvider>
     </AuthProvider>

@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.9" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\WorkBase.Modules.Forms.Application\WorkBase.Modules.Forms.Application.csproj" />
+    <ProjectReference Include="..\WorkBase.Modules.Forms.Domain\WorkBase.Modules.Forms.Domain.csproj" />
+    <ProjectReference Include="..\..\..\WorkBase.Shared\WorkBase.Shared.csproj" />
+    <ProjectReference Include="..\..\..\WorkBase.Infrastructure\WorkBase.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>

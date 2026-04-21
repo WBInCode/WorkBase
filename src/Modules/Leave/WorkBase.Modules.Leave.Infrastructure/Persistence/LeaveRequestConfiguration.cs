@@ -42,6 +42,9 @@ public sealed class LeaveRequestConfiguration : IEntityTypeConfiguration<LeaveRe
         builder.Property(e => e.CustomFields)
             .HasColumnType("jsonb");
 
+        builder.HasIndex(e => e.CustomFields)
+            .HasMethod("gin");
+
         builder.HasIndex(e => e.TenantId);
 
         builder.HasIndex(e => new { e.TenantId, e.EmployeeId, e.Status });

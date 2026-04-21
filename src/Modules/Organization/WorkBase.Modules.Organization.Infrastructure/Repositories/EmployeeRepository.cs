@@ -13,6 +13,12 @@ public sealed class EmployeeRepository(WorkBaseDbContext dbContext) : IEmployeeR
             .FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
     }
 
+    public async Task<Employee?> GetByEmployeeNumberAsync(Guid tenantId, string employeeNumber, CancellationToken cancellationToken = default)
+    {
+        return await dbContext.Set<Employee>()
+            .FirstOrDefaultAsync(e => e.TenantId == tenantId && e.EmployeeNumber == employeeNumber, cancellationToken);
+    }
+
     public async Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await dbContext.Set<Employee>()

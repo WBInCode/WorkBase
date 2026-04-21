@@ -4,8 +4,15 @@ using WorkBase.Modules.TimeTracking.Application.Rules;
 using WorkBase.Modules.TimeTracking.Application.Services;
 using WorkBase.Modules.TimeTracking.Infrastructure.Jobs;
 using WorkBase.Modules.TimeTracking.Infrastructure.Repositories;
+using WorkBase.Shared.Domain;
 
 namespace WorkBase.Modules.TimeTracking.Infrastructure;
+
+public sealed class TimeTrackingModule : IModule
+{
+    public IServiceCollection ConfigureServices(IServiceCollection services) =>
+        services.AddTimeTrackingModule();
+}
 
 public static class TimeTrackingServiceCollectionExtensions
 {
@@ -18,6 +25,10 @@ public static class TimeTrackingServiceCollectionExtensions
         services.AddScoped<IScheduleTemplateRepository, ScheduleTemplateRepository>();
         services.AddScoped<ITimeAnomalyRepository, TimeAnomalyRepository>();
         services.AddScoped<ITimeCorrectionRepository, TimeCorrectionRepository>();
+        services.AddScoped<INfcBadgeRepository, NfcBadgeRepository>();
+        services.AddScoped<IBiometricTemplateRepository, BiometricTemplateRepository>();
+        services.AddScoped<IGeofenceZoneRepository, GeofenceZoneRepository>();
+        services.AddScoped<IGeofenceEventRepository, GeofenceEventRepository>();
 
         // Anomaly rules (Strategy pattern — each rule is an IAnomalyRule)
         services.AddScoped<IAnomalyRule, MissingClockOutRule>();

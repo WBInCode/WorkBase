@@ -4,7 +4,7 @@ import { useTimeStatus } from '@/api/hooks/useTimeTracking';
 import { useTasks } from '@/api/hooks/useTasks';
 import { usePendingApprovals } from '@/api/hooks/useWorkflow';
 import { useLeaveRequests } from '@/api/hooks/useLeave';
-import { ClockButton } from '@/components/TimeTracking';
+import { ClockButton, MyQrBadge } from '@/components/TimeTracking';
 import {
   MyDayOverview,
   MyTasksList,
@@ -59,6 +59,16 @@ export function WorkspacePage() {
       <div style={{ marginTop: '20px' }}>
         <ActivityFeed employeeId={employeeId} tasks={tasks} leaveRequests={leaveRequests} />
       </div>
+
+      {/* Personal QR badge */}
+      {employeeId && (
+        <div style={{ marginTop: '20px' }}>
+          <MyQrBadge
+            employeeId={employeeId}
+            employeeName={user?.name ?? ''}
+          />
+        </div>
+      )}
     </div>
   );
 }

@@ -169,3 +169,29 @@ export function useScheduleTemplates() {
     queryFn: () => api.get<ScheduleTemplateDto[]>('/api/time/schedule-templates'),
   });
 }
+
+// --- QR Token ---
+
+export interface QrTokenDto {
+  token: string;
+  expiresAt: string;
+  locationId: string | null;
+}
+
+export function useGenerateQrToken() {
+  return useMutation({
+    mutationFn: (data: { locationId?: string; ttlSeconds?: number }) =>
+      api.post<QrTokenDto>('/api/time/qr/generate', data),
+  });
+}
+
+export function useVerifyQrToken() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { token: string; employeeId: string }) =>
+      api.post<string>('/api/time/qr/verify', data),
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({ queryKey: ['time', 'status', variables.employeeId] });
+    },
+  });
+}

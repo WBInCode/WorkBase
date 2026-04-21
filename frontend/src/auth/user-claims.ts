@@ -7,6 +7,7 @@ export interface WorkBaseUser {
   tenantId: string;
   employeeId: string;
   roles: string[];
+  kioskLocation: string;
 }
 
 export function mapUserClaims(user: User): WorkBaseUser {
@@ -18,5 +19,6 @@ export function mapUserClaims(user: User): WorkBaseUser {
     tenantId: (profile['tenant_id'] as string) ?? '',
     employeeId: (profile['employee_id'] as string) ?? '',
     roles: (profile['roles'] as string[]) ?? [],
+    kioskLocation: (profile['kiosk_location'] as string) ?? '',
   };
 }

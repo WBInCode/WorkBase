@@ -70,5 +70,6 @@ public enum ClockMethod
     Qr,
     Nfc,
     Kiosk,
-    Geolocation
+    Geolocation,
+    Biometric
 }

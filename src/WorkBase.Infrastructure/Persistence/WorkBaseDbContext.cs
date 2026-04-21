@@ -9,12 +9,9 @@ public class WorkBaseDbContext : DbContext
 {
     private readonly ICurrentTenantService? _tenantService;
 
-    public WorkBaseDbContext(DbContextOptions<WorkBaseDbContext> options)
-        : base(options)
-    {
-    }
-
-    public WorkBaseDbContext(DbContextOptions<WorkBaseDbContext> options, ICurrentTenantService tenantService)
+    public WorkBaseDbContext(
+        DbContextOptions<WorkBaseDbContext> options,
+        ICurrentTenantService? tenantService = null)
         : base(options)
     {
         _tenantService = tenantService;

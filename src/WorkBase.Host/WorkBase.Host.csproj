@@ -35,6 +35,18 @@
     <ProjectReference Include="..\Modules\Notification\WorkBase.Modules.Notification.Infrastructure\WorkBase.Modules.Notification.Infrastructure.csproj" />
     <ProjectReference Include="..\Modules\Documents\WorkBase.Modules.Documents.Api\WorkBase.Modules.Documents.Api.csproj" />
     <ProjectReference Include="..\Modules\Documents\WorkBase.Modules.Documents.Infrastructure\WorkBase.Modules.Documents.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Integration\WorkBase.Modules.Integration.Api\WorkBase.Modules.Integration.Api.csproj" />
+    <ProjectReference Include="..\Modules\Integration\WorkBase.Modules.Integration.Infrastructure\WorkBase.Modules.Integration.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Cases\WorkBase.Modules.Cases.Api\WorkBase.Modules.Cases.Api.csproj" />
+    <ProjectReference Include="..\Modules\Cases\WorkBase.Modules.Cases.Infrastructure\WorkBase.Modules.Cases.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Contacts\WorkBase.Modules.Contacts.Api\WorkBase.Modules.Contacts.Api.csproj" />
+    <ProjectReference Include="..\Modules\Contacts\WorkBase.Modules.Contacts.Infrastructure\WorkBase.Modules.Contacts.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Forms\WorkBase.Modules.Forms.Api\WorkBase.Modules.Forms.Api.csproj" />
+    <ProjectReference Include="..\Modules\Forms\WorkBase.Modules.Forms.Infrastructure\WorkBase.Modules.Forms.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Sales\WorkBase.Modules.Sales.Api\WorkBase.Modules.Sales.Api.csproj" />
+    <ProjectReference Include="..\Modules\Sales\WorkBase.Modules.Sales.Infrastructure\WorkBase.Modules.Sales.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\AI\WorkBase.Modules.AI.Api\WorkBase.Modules.AI.Api.csproj" />
+    <ProjectReference Include="..\Modules\AI\WorkBase.Modules.AI.Infrastructure\WorkBase.Modules.AI.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
