@@ -1,4 +1,4 @@
-import { Clock, CheckCircle, CalendarDays, ListTodo, ArrowRight } from 'lucide-react';
+import { CalendarDays, ListTodo } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 interface ActivityItem {
@@ -11,8 +11,8 @@ interface ActivityItem {
 
 interface ActivityFeedProps {
   employeeId: string | null;
-  tasks: Array<{ id: string; title: string; status: string; updatedAt?: string }>;
-  leaveRequests: Array<{ id: string; type: string; status: string; createdAt?: string }>;
+  tasks: Array<{ id: string; title: string; statusName?: string; updatedAt?: string }>;
+  leaveRequests: Array<{ id: string; leaveTypeName?: string; status: string; createdAt?: string }>;
 }
 
 export function ActivityFeed({ tasks, leaveRequests }: ActivityFeedProps) {
@@ -24,7 +24,7 @@ export function ActivityFeed({ tasks, leaveRequests }: ActivityFeedProps) {
       id: `task-${t.id}`,
       icon: <ListTodo size={14} />,
       iconBg: '#eff6ff',
-      text: `Zadanie "${t.title}" — ${t.status}`,
+      text: `Zadanie "${t.title}" — ${t.statusName ?? ''}`,
       time: t.updatedAt ? formatRelative(t.updatedAt) : '',
     });
   }
@@ -36,7 +36,7 @@ export function ActivityFeed({ tasks, leaveRequests }: ActivityFeedProps) {
       id: `leave-${lr.id}`,
       icon: <CalendarDays size={14} />,
       iconBg: '#f0fdf4',
-      text: `Wniosek urlopowy (${lr.type}) — ${statusLabel}`,
+      text: `Wniosek urlopowy (${lr.leaveTypeName ?? ''}) — ${statusLabel}`,
       time: lr.createdAt ? formatRelative(lr.createdAt) : '',
     });
   }

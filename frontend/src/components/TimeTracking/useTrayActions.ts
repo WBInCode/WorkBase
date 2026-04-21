@@ -20,10 +20,10 @@ export function useTrayActions(onAction: (action: TrayAction) => void) {
       }
     };
 
-    (window as Record<string, unknown>).__WORKBASE_TRAY_ACTION__ = handler;
+    (window as unknown as Record<string, unknown>).__WORKBASE_TRAY_ACTION__ = handler;
 
     return () => {
-      delete (window as Record<string, unknown>).__WORKBASE_TRAY_ACTION__;
+      delete (window as unknown as Record<string, unknown>).__WORKBASE_TRAY_ACTION__;
     };
   }, [onAction]);
 }

@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { LogIn, LogOut, Coffee, QrCode, CheckCircle, XCircle, User, ArrowLeft, Monitor, ScanLine } from 'lucide-react';
+import { LogIn, LogOut, Coffee, CheckCircle, XCircle, User, ArrowLeft, Monitor, ScanLine } from 'lucide-react';
 import { useAuth } from 'react-oidc-context';
 import { mapUserClaims } from '@/auth';
-import { useTimeStatus, useClockIn, useClockOut, useStartBreak, useEndBreak, useVerifyQrToken } from '@/api/hooks/useTimeTracking';
+import { useTimeStatus, useClockIn, useClockOut, useStartBreak, useEndBreak } from '@/api/hooks/useTimeTracking';
 import { QrScanner } from '@/components/QrScanner';
 import { KioskQrDisplay } from '@/components/TimeTracking/KioskQrDisplay';
 import { useKioskHeartbeat } from '@/components/TimeTracking/useKioskHeartbeat';
@@ -32,7 +32,6 @@ export function KioskPage() {
   const [lookupError, setLookupError] = useState<string | null>(null);
   const [lookupLoading, setLookupLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const verifyQr = useVerifyQrToken();
 
   const activeEmployeeId = directEmployeeId ?? identifiedEmployee?.id ?? undefined;
 
