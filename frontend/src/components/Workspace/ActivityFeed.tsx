@@ -1,4 +1,4 @@
-import { CalendarDays, ListTodo } from 'lucide-react';
+import { Clock, CalendarDays, ListTodo } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 interface ActivityItem {
