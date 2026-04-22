@@ -27,7 +27,7 @@ export function QrScanner({ onScan, onClose }: QrScannerProps) {
         setScanning(true);
         scanningRef.current = true;
       }
-    } catch (err) {
+    } catch {
       setError('Brak dostępu do kamery. Sprawdź uprawnienia przeglądarki.');
     }
   }, []);
@@ -55,7 +55,7 @@ export function QrScanner({ onScan, onClose }: QrScannerProps) {
 
     if (hasBarcodeDetector) {
       // Use native BarcodeDetector API (Chrome, Edge, Android)
-      const detector = new (window as any).BarcodeDetector({ formats: ['qr_code'] });
+      const detector = new (window as unknown as { BarcodeDetector: new (opts: { formats: string[] }) => { detect: (source: HTMLVideoElement) => Promise<Array<{ rawValue: string }>> } }).BarcodeDetector({ formats: ['qr_code'] });
 
       const tick = async () => {
         if (!scanningRef.current || !videoRef.current) return;

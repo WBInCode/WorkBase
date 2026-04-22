@@ -1,0 +1,3 @@
+[*.cs]
+# EF Core auto-generated migration files use block-scoped namespaces
+dotnet_diagnostic.IDE0161.severity = none
