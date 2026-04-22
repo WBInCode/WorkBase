@@ -62,7 +62,7 @@ export function QrScanner({ onScan, onClose }: QrScannerProps) {
         try {
           const barcodes = await detector.detect(videoRef.current);
           if (barcodes.length > 0) {
-            const value = barcodes[0].rawValue;
+            const value = barcodes[0]?.rawValue;
             if (value) {
               stopCamera();
               onScan(value);
