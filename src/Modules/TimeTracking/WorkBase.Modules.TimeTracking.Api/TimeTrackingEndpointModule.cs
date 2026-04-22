@@ -9,6 +9,7 @@ public sealed class TimeTrackingEndpointModule : IEndpointModule
     public IEndpointRouteBuilder MapEndpoints(IEndpointRouteBuilder endpoints)
     {
         endpoints.MapTimeEntryEndpoints();
+        endpoints.MapBreakPolicyEndpoints();
         endpoints.MapQrTokenEndpoints();
         endpoints.MapScheduleEndpoints();
         endpoints.MapAnomalyEndpoints();

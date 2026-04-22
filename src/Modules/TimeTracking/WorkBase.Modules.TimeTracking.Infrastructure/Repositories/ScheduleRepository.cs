@@ -38,9 +38,26 @@ public sealed class ScheduleRepository(WorkBaseDbContext dbContext) : IScheduleR
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<List<Schedule>> GetByEmployeesDateRangeAsync(
+        Guid tenantId, IReadOnlyList<Guid> employeeIds, DateOnly from, DateOnly to, CancellationToken cancellationToken = default)
+    {
+        return await dbContext.Set<Schedule>()
+            .Where(s =>
+                s.TenantId == tenantId
+                && employeeIds.Contains(s.EmployeeId)
+                && s.Date >= from
+                && s.Date <= to)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task AddAsync(Schedule schedule, CancellationToken cancellationToken = default)
     {
         await dbContext.Set<Schedule>().AddAsync(schedule, cancellationToken);
+    }
+
+    public async Task AddManyAsync(IEnumerable<Schedule> schedules, CancellationToken cancellationToken = default)
+    {
+        await dbContext.Set<Schedule>().AddRangeAsync(schedules, cancellationToken);
     }
 
     public void Update(Schedule schedule)
@@ -51,5 +68,10 @@ public sealed class ScheduleRepository(WorkBaseDbContext dbContext) : IScheduleR
     public void Remove(Schedule schedule)
     {
         dbContext.Set<Schedule>().Remove(schedule);
+    }
+
+    public void RemoveRange(IEnumerable<Schedule> schedules)
+    {
+        dbContext.Set<Schedule>().RemoveRange(schedules);
     }
 }

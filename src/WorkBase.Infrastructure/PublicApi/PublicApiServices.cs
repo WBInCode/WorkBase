@@ -142,3 +142,21 @@ public interface IWebhookDeliveryLogRepository
     Task<List<WebhookDeliveryLog>> GetBySubscriptionAsync(Guid subscriptionId, int limit = 50, CancellationToken ct = default);
     Task AddAsync(WebhookDeliveryLog log, CancellationToken ct = default);
 }
+
+/// <summary>In-memory stub until EF persistence is wired.</summary>
+public sealed class InMemoryWebhookSubscriptionRepository : IWebhookSubscriptionRepository
+{
+    public Task<WebhookSubscription?> GetByIdAsync(Guid id, CancellationToken ct = default) => Task.FromResult<WebhookSubscription?>(null);
+    public Task<List<WebhookSubscription>> GetByTenantAsync(Guid tenantId, CancellationToken ct = default) => Task.FromResult(new List<WebhookSubscription>());
+    public Task<List<WebhookSubscription>> GetActiveByTenantAsync(Guid tenantId, CancellationToken ct = default) => Task.FromResult(new List<WebhookSubscription>());
+    public Task AddAsync(WebhookSubscription sub, CancellationToken ct = default) => Task.CompletedTask;
+    public void Update(WebhookSubscription sub) { }
+    public void Remove(WebhookSubscription sub) { }
+}
+
+/// <summary>In-memory stub until EF persistence is wired.</summary>
+public sealed class InMemoryWebhookDeliveryLogRepository : IWebhookDeliveryLogRepository
+{
+    public Task<List<WebhookDeliveryLog>> GetBySubscriptionAsync(Guid subscriptionId, int limit = 50, CancellationToken ct = default) => Task.FromResult(new List<WebhookDeliveryLog>());
+    public Task AddAsync(WebhookDeliveryLog log, CancellationToken ct = default) => Task.CompletedTask;
+}

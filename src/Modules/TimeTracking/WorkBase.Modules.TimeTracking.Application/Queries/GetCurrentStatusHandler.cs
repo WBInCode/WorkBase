@@ -30,12 +30,20 @@ public sealed class GetCurrentStatusHandler(ITimeEntryRepository timeEntryReposi
 
         var (worked, breaks) = CalculateRunningTime(entries);
 
+        // Find the break type if currently on break
+        string? currentBreakType = null;
+        if (status == "on-break" && lastEntry?.BreakType != null)
+        {
+            currentBreakType = lastEntry.BreakType.ToString();
+        }
+
         return new TimeStatusDto(
             status,
             lastEntry?.EntryTime,
             lastEntry?.Type.ToString(),
             worked,
-            breaks);
+            breaks,
+            currentBreakType);
     }
 
     private static (TimeSpan Worked, TimeSpan Breaks) CalculateRunningTime(List<TimeEntry> entries)
@@ -58,11 +66,6 @@ public sealed class GetCurrentStatusHandler(ITimeEntryRepository timeEntryReposi
                     break;
 
                 case TimeEntryType.BreakStart:
-                    if (clockInTime.HasValue)
-                    {
-                        totalWorked += entry.EntryTime - clockInTime.Value;
-                        clockInTime = null;
-                    }
                     breakStartTime = entry.EntryTime;
                     break;
 
@@ -72,7 +75,6 @@ public sealed class GetCurrentStatusHandler(ITimeEntryRepository timeEntryReposi
                         totalBreaks += entry.EntryTime - breakStartTime.Value;
                         breakStartTime = null;
                     }
-                    clockInTime = entry.EntryTime;
                     break;
 
                 case TimeEntryType.ClockOut:

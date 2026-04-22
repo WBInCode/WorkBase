@@ -48,7 +48,7 @@ public sealed class DapperDashboardQueryService(IConfiguration configuration) : 
                 FROM time_entries te
                 INNER JOIN org_employees e ON e.id = te.employee_id AND e.tenant_id = te.tenant_id
                 WHERE te.tenant_id = @TenantId
-                  AND te.type = 0
+                  AND te.type = 'ClockIn'
                   AND te.entry_time >= @Today AND te.entry_time < @Tomorrow
                   {0}
                 GROUP BY te.employee_id
@@ -124,10 +124,10 @@ public sealed class DapperDashboardQueryService(IConfiguration configuration) : 
 
         const string sql = """
             SELECT
-                COUNT(*) FILTER (WHERE lr.status = 1) AS pending_requests,
-                COUNT(*) FILTER (WHERE lr.status = 2
+                COUNT(*) FILTER (WHERE lr.status = 'Pending') AS pending_requests,
+                COUNT(*) FILTER (WHERE lr.status = 'Approved'
                     AND lr.modified_at >= @MonthStart) AS approved_this_month,
-                COUNT(*) FILTER (WHERE lr.status = 2
+                COUNT(*) FILTER (WHERE lr.status = 'Approved'
                     AND lr.start_date <= @Today::date AND lr.end_date >= @Today::date) AS on_leave_today
             FROM leave_requests lr
             {0}
@@ -159,8 +159,8 @@ public sealed class DapperDashboardQueryService(IConfiguration configuration) : 
 
         const string sql = """
             SELECT
-                COUNT(*) FILTER (WHERE a.status = 0) AS new_anomalies,
-                COUNT(*) FILTER (WHERE a.status = 1
+                COUNT(*) FILTER (WHERE a.status = 'New') AS new_anomalies,
+                COUNT(*) FILTER (WHERE a.status = 'Reviewed'
                     AND a.reviewed_at >= @WeekStart) AS reviewed_this_week
             FROM time_anomalies a
             {0}

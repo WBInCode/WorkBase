@@ -7,7 +7,10 @@ public interface IScheduleRepository
     Task<Schedule?> GetByIdAsync(Guid tenantId, Guid id, CancellationToken cancellationToken = default);
     Task<Schedule?> GetByDateAsync(Guid tenantId, Guid employeeId, DateOnly date, CancellationToken cancellationToken = default);
     Task<List<Schedule>> GetByDateRangeAsync(Guid tenantId, Guid employeeId, DateOnly from, DateOnly to, CancellationToken cancellationToken = default);
+    Task<List<Schedule>> GetByEmployeesDateRangeAsync(Guid tenantId, IReadOnlyList<Guid> employeeIds, DateOnly from, DateOnly to, CancellationToken cancellationToken = default);
     Task AddAsync(Schedule schedule, CancellationToken cancellationToken = default);
+    Task AddManyAsync(IEnumerable<Schedule> schedules, CancellationToken cancellationToken = default);
     void Update(Schedule schedule);
     void Remove(Schedule schedule);
+    void RemoveRange(IEnumerable<Schedule> schedules);
 }

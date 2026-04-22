@@ -1,9 +1,9 @@
 import { useState, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Clock, Coffee, Briefcase, AlertCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Clock, Coffee, Briefcase, AlertCircle, Play, Square, ChevronDown, ChevronUp } from 'lucide-react';
 import { useAuth } from 'react-oidc-context';
 import { mapUserClaims } from '@/auth';
 import { useTimesheet, type TimesheetFilter } from '@/api/hooks/useTimeTracking';
-import type { TimeSheetDayDto } from '@/api/types/time';
+import type { TimeSheetDayDto, TimeSheetEntryDto } from '@/api/types/time';
 
 type PeriodType = 'day' | 'week' | 'month';
 
@@ -307,6 +307,16 @@ function DayView({ day }: { day?: TimeSheetDayDto }) {
         <DetailRow label="Czas netto" value={formatDuration(day.netWorked)} color="#059669" />
       </div>
 
+      {/* Timeline */}
+      {day.entries && day.entries.length > 0 && (
+        <div style={{ padding: '0 20px 20px' }}>
+          <div style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px' }}>
+            Rejestr zdarzeń
+          </div>
+          <EntryTimeline entries={day.entries} />
+        </div>
+      )}
+
       {day.note && (
         <div style={{ padding: '12px 20px', borderTop: '1px solid #e5e7eb', fontSize: '13px', color: '#6b7280' }}>
           <strong>Notatka:</strong> {day.note}
@@ -327,6 +337,8 @@ function DetailRow({ label, value, color }: { label: string; value: string; colo
 
 /* Week View: table with row per day */
 function WeekView({ days }: { days: TimeSheetDayDto[] }) {
+  const [expandedDate, setExpandedDate] = useState<string | null>(null);
+
   if (days.length === 0) {
     return (
       <div style={{ padding: '40px', textAlign: 'center', color: '#9ca3af', border: '1px solid #e5e7eb', borderRadius: '10px' }}>
@@ -350,26 +362,47 @@ function WeekView({ days }: { days: TimeSheetDayDto[] }) {
         <tbody>
           {days.map((day) => {
             const netMins = durationToMinutes(day.netWorked);
-            const isLow = netMins > 0 && netMins < 480; // < 8h
+            const isLow = netMins > 0 && netMins < 480;
+            const hasEntries = day.entries && day.entries.length > 0;
+            const isExpanded = expandedDate === day.date;
             return (
               <tr key={day.date} style={{ borderTop: '1px solid #e5e7eb' }}>
-                <td style={tdStyle}>
-                  <span style={{ fontWeight: 500 }}>{formatDate(day.date)}</span>
-                </td>
-                <td style={{ ...tdStyle, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
-                  {formatDuration(day.totalWorked)}
-                </td>
-                <td style={{ ...tdStyle, textAlign: 'right', fontVariantNumeric: 'tabular-nums', color: '#92400e' }}>
-                  {formatDuration(day.totalBreaks)}
-                </td>
-                <td style={{
-                  ...tdStyle, textAlign: 'right', fontWeight: 600, fontVariantNumeric: 'tabular-nums',
-                  color: isLow ? '#dc2626' : '#059669',
-                }}>
-                  {formatDuration(day.netWorked)}
-                </td>
-                <td style={{ ...tdStyle, textAlign: 'center' }}>
-                  <StatusBadge status={day.status} />
+                <td colSpan={5} style={{ padding: 0 }}>
+                  <div
+                    onClick={() => hasEntries && setExpandedDate(isExpanded ? null : day.date)}
+                    style={{
+                      display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr auto',
+                      alignItems: 'center', cursor: hasEntries ? 'pointer' : 'default',
+                    }}
+                  >
+                    <span style={{ ...tdStyle, fontWeight: 500, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      {hasEntries && (isExpanded
+                        ? <ChevronUp size={14} color="#9ca3af" />
+                        : <ChevronDown size={14} color="#9ca3af" />
+                      )}
+                      {formatDate(day.date)}
+                    </span>
+                    <span style={{ ...tdStyle, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
+                      {formatDuration(day.totalWorked)}
+                    </span>
+                    <span style={{ ...tdStyle, textAlign: 'right', fontVariantNumeric: 'tabular-nums', color: '#92400e' }}>
+                      {formatDuration(day.totalBreaks)}
+                    </span>
+                    <span style={{
+                      ...tdStyle, textAlign: 'right', fontWeight: 600, fontVariantNumeric: 'tabular-nums',
+                      color: isLow ? '#dc2626' : '#059669',
+                    }}>
+                      {formatDuration(day.netWorked)}
+                    </span>
+                    <span style={{ ...tdStyle, textAlign: 'center' }}>
+                      <StatusBadge status={day.status} />
+                    </span>
+                  </div>
+                  {isExpanded && hasEntries && (
+                    <div style={{ padding: '8px 20px 14px 32px', backgroundColor: '#f9fafb', borderTop: '1px solid #f3f4f6' }}>
+                      <EntryTimeline entries={day.entries} />
+                    </div>
+                  )}
                 </td>
               </tr>
             );
@@ -433,6 +466,63 @@ function MonthView({ days }: { days: TimeSheetDayDto[] }) {
           })}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+const ENTRY_CONFIG: Record<string, { label: string; color: string; icon: typeof Play }> = {
+  ClockIn: { label: 'Rozpoczęcie pracy', color: '#059669', icon: Play },
+  ClockOut: { label: 'Zakończenie pracy', color: '#dc2626', icon: Square },
+  BreakStart: { label: 'Rozpoczęcie przerwy', color: '#d97706', icon: Coffee },
+  BreakEnd: { label: 'Zakończenie przerwy', color: '#059669', icon: Coffee },
+};
+
+const BREAK_TYPE_LABELS: Record<string, string> = {
+  Paid: 'płatna',
+  Unpaid: 'bezpłatna',
+};
+
+function formatEntryTime(isoString: string): string {
+  return new Date(isoString).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+}
+
+function EntryTimeline({ entries }: { entries: TimeSheetEntryDto[] }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+      {entries.map((entry, idx) => {
+        const cfg = ENTRY_CONFIG[entry.type];
+        if (!cfg) return null;
+        const Icon = cfg.icon;
+        const isLast = idx === entries.length - 1;
+        const breakLabel = entry.breakType ? ` (${BREAK_TYPE_LABELS[entry.breakType] ?? entry.breakType})` : '';
+        return (
+          <div key={idx} style={{ display: 'flex', alignItems: 'stretch', gap: '12px' }}>
+            {/* Timeline line + dot */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '20px' }}>
+              <div style={{
+                width: '10px', height: '10px', borderRadius: '50%', flexShrink: 0,
+                backgroundColor: cfg.color, marginTop: '5px',
+                border: '2px solid #fff', boxShadow: `0 0 0 2px ${cfg.color}33`,
+              }} />
+              {!isLast && (
+                <div style={{ width: '2px', flex: 1, backgroundColor: '#e5e7eb', minHeight: '16px' }} />
+              )}
+            </div>
+            {/* Content */}
+            <div style={{ paddingBottom: isLast ? 0 : '12px', flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Icon size={13} color={cfg.color} />
+                <span style={{ fontSize: '13px', fontWeight: 600, color: cfg.color }}>
+                  {formatEntryTime(entry.entryTime)}
+                </span>
+              </div>
+              <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '1px' }}>
+                {cfg.label}{breakLabel}
+              </div>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

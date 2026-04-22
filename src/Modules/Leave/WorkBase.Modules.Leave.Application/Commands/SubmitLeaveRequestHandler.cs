@@ -43,17 +43,27 @@ public sealed class SubmitLeaveRequestHandler(
             var balance = await leaveBalanceRepository.GetAsync(
                 request.TenantId, request.EmployeeId, request.LeaveTypeId, year, cancellationToken);
 
-            if (balance is null)
-                return Result.Failure<Guid>(new Error("Leave.NoBalance",
-                    $"Brak naliczonego salda urlopowego dla typu '{leaveType.Name}' na rok {year}."));
+            var isNewBalance = balance is null;
+            if (isNewBalance)
+            {
+                // Auto-create balance for the year using leave type defaults
+                balance = LeaveBalance.Create(
+                    request.TenantId,
+                    request.EmployeeId,
+                    request.LeaveTypeId,
+                    year,
+                    leaveType.DefaultDaysPerYear.Value);
+                await leaveBalanceRepository.AddAsync(balance, cancellationToken);
+            }
 
-            var validationResult = balanceCalculator.ValidateBalance(balance, request.TotalDays);
+            var validationResult = balanceCalculator.ValidateBalance(balance!, request.TotalDays);
             if (validationResult.IsFailure)
                 return Result.Failure<Guid>(validationResult.Error);
 
             // Reserve days as pending
-            balance.AddPending(request.TotalDays);
-            leaveBalanceRepository.Update(balance);
+            balance!.AddPending(request.TotalDays);
+            if (!isNewBalance)
+                leaveBalanceRepository.Update(balance);
         }
 
         // Create and submit the leave request

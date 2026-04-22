@@ -9,36 +9,48 @@ public sealed class RoleManagementService(WorkBaseDbContext dbContext) : IRoleMa
 {
     public async Task<IReadOnlyList<RoleDto>> GetRolesAsync(Guid tenantId, CancellationToken ct = default)
     {
-        return await dbContext.Set<Role>()
+        var rows = await dbContext.Set<Role>()
             .Where(r => r.TenantId == tenantId)
-            .Select(r => new RoleDto(
+            .Select(r => new
+            {
                 r.Id,
                 r.Name,
                 r.Description,
-                r.Type.ToString(),
+                r.Type,
                 r.IsActive,
                 r.Level,
-                r.RolePermissions.Count,
-                r.UserRoles.Count))
+                PermissionCount = r.RolePermissions.Count,
+                UserCount = r.UserRoles.Count
+            })
             .OrderBy(r => r.Level)
             .ThenBy(r => r.Name)
             .ToListAsync(ct);
+
+        return rows.Select(r => new RoleDto(
+            r.Id, r.Name, r.Description, r.Type.ToString(),
+            r.IsActive, r.Level, r.PermissionCount, r.UserCount)).ToList();
     }
 
     public async Task<RoleDto?> GetRoleByIdAsync(Guid roleId, CancellationToken ct = default)
     {
-        return await dbContext.Set<Role>()
+        var row = await dbContext.Set<Role>()
             .Where(r => r.Id == roleId)
-            .Select(r => new RoleDto(
+            .Select(r => new
+            {
                 r.Id,
                 r.Name,
                 r.Description,
-                r.Type.ToString(),
+                r.Type,
                 r.IsActive,
                 r.Level,
-                r.RolePermissions.Count,
-                r.UserRoles.Count))
+                PermissionCount = r.RolePermissions.Count,
+                UserCount = r.UserRoles.Count
+            })
             .FirstOrDefaultAsync(ct);
+
+        return row is null ? null : new RoleDto(
+            row.Id, row.Name, row.Description, row.Type.ToString(),
+            row.IsActive, row.Level, row.PermissionCount, row.UserCount);
     }
 
     public async Task<Guid> CreateRoleAsync(Guid tenantId, string name, string? description, int level, CancellationToken ct = default)

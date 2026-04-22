@@ -25,13 +25,16 @@ public sealed class LeaveRequestRepository(WorkBaseDbContext dbContext) : ILeave
         Guid tenantId, Guid employeeId, DateTime startDate, DateTime endDate,
         Guid? excludeId = null, CancellationToken cancellationToken = default)
     {
+        var startUtc = DateTime.SpecifyKind(startDate, DateTimeKind.Utc);
+        var endUtc = DateTime.SpecifyKind(endDate, DateTimeKind.Utc);
+
         var query = dbContext.Set<LeaveRequest>()
             .Where(r => r.TenantId == tenantId
                 && r.EmployeeId == employeeId
                 && r.Status != LeaveRequestStatus.Cancelled
                 && r.Status != LeaveRequestStatus.Rejected
-                && r.StartDate <= endDate
-                && r.EndDate >= startDate);
+                && r.StartDate <= endUtc
+                && r.EndDate >= startUtc);
 
         if (excludeId.HasValue)
             query = query.Where(r => r.Id != excludeId.Value);

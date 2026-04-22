@@ -22,6 +22,216 @@ namespace WorkBase.Infrastructure.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("WorkBase.Infrastructure.Persistence.Entities.BillingInvoice", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("AmountDue")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("amount_due");
+
+                    b.Property<decimal>("AmountPaid")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("amount_paid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)")
+                        .HasColumnName("currency");
+
+                    b.Property<string>("Number")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("number");
+
+                    b.Property<DateTime?>("PaidAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("paid_at");
+
+                    b.Property<string>("PdfUrl")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("pdf_url");
+
+                    b.Property<DateTime>("PeriodEnd")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("period_end");
+
+                    b.Property<DateTime>("PeriodStart")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("period_start");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("status");
+
+                    b.Property<string>("StripeInvoiceId")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("stripe_invoice_id");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_billing_invoices");
+
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("ix_billing_invoices_tenant_id");
+
+                    b.ToTable("billing_invoices", (string)null);
+                });
+
+            modelBuilder.Entity("WorkBase.Infrastructure.Persistence.Entities.BillingSubscription", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime?>("CanceledAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("canceled_at");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)")
+                        .HasColumnName("currency");
+
+                    b.Property<DateTime>("CurrentPeriodEnd")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("current_period_end");
+
+                    b.Property<DateTime>("CurrentPeriodStart")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("current_period_start");
+
+                    b.Property<int>("MaxUsers")
+                        .HasColumnType("integer")
+                        .HasColumnName("max_users");
+
+                    b.Property<decimal>("MonthlyPrice")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("monthly_price");
+
+                    b.Property<string>("PlanId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("plan_id");
+
+                    b.Property<string>("PlanName")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("plan_name");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("status");
+
+                    b.Property<string>("StripeCustomerId")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("stripe_customer_id");
+
+                    b.Property<string>("StripeSubscriptionId")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("stripe_subscription_id");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_billing_subscriptions");
+
+                    b.HasIndex("StripeSubscriptionId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_billing_subscriptions_stripe_subscription_id");
+
+                    b.HasIndex("TenantId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_billing_subscriptions_tenant_id");
+
+                    b.ToTable("billing_subscriptions", (string)null);
+                });
+
+            modelBuilder.Entity("WorkBase.Infrastructure.Persistence.Entities.CardSection", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("EntityType")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("entity_type");
+
+                    b.Property<string>("Icon")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("icon");
+
+                    b.Property<bool>("IsCollapsedByDefault")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_collapsed_by_default");
+
+                    b.Property<string>("SectionName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("section_name");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("sort_order");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_cfg_card_sections");
+
+                    b.HasIndex("TenantId", "EntityType")
+                        .HasDatabaseName("ix_cfg_card_sections_tenant_id_entity_type");
+
+                    b.ToTable("cfg_card_sections", (string)null);
+                });
+
             modelBuilder.Entity("WorkBase.Infrastructure.Persistence.Entities.CustomFieldDefinition", b =>
                 {
                     b.Property<Guid>("Id")
@@ -61,6 +271,10 @@ namespace WorkBase.Infrastructure.Persistence.Migrations
                         .HasColumnType("jsonb")
                         .HasColumnName("options");
 
+                    b.Property<Guid?>("SectionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("section_id");
+
                     b.Property<int>("SortOrder")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
@@ -79,6 +293,430 @@ namespace WorkBase.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_cfg_custom_field_definitions_tenant_id_entity_type_field_na");
 
                     b.ToTable("cfg_custom_field_definitions", (string)null);
+                });
+
+            modelBuilder.Entity("WorkBase.Infrastructure.Persistence.Entities.DepartmentModule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("ConfigJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("config_json");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1024)
+                        .HasColumnType("character varying(1024)")
+                        .HasColumnName("description");
+
+                    b.Property<string>("Icon")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("icon");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("ModuleType")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("module_type");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("name");
+
+                    b.Property<Guid>("OrgUnitId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("org_unit_id");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_cfg_department_modules");
+
+                    b.HasIndex("TenantId", "OrgUnitId")
+                        .HasDatabaseName("ix_cfg_department_modules_tenant_id_org_unit_id");
+
+                    b.ToTable("cfg_department_modules", (string)null);
+                });
+
+            modelBuilder.Entity("WorkBase.Infrastructure.Persistence.Entities.DepartmentModuleForm", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("DepartmentModuleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("department_module_id");
+
+                    b.Property<Guid>("FormDefinitionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("form_definition_id");
+
+                    b.Property<string>("Label")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("label");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("sort_order");
+
+                    b.HasKey("Id")
+                        .HasName("pk_cfg_department_module_forms");
+
+                    b.HasIndex("DepartmentModuleId")
+                        .HasDatabaseName("ix_cfg_department_module_forms_department_module_id");
+
+                    b.ToTable("cfg_department_module_forms", (string)null);
+                });
+
+            modelBuilder.Entity("WorkBase.Infrastructure.Persistence.Entities.DepartmentModuleWorkflow", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("DepartmentModuleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("department_module_id");
+
+                    b.Property<string>("Label")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("label");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("sort_order");
+
+                    b.Property<Guid>("WorkflowDefinitionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("workflow_definition_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_cfg_department_module_workflows");
+
+                    b.HasIndex("DepartmentModuleId")
+                        .HasDatabaseName("ix_cfg_department_module_workflows_department_module_id");
+
+                    b.ToTable("cfg_department_module_workflows", (string)null);
+                });
+
+            modelBuilder.Entity("WorkBase.Infrastructure.Persistence.Entities.OnboardingRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AdminEmail")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("admin_email");
+
+                    b.Property<string>("AdminFullName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("admin_full_name");
+
+                    b.Property<string>("CompanyName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("company_name");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("completed_at");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasMaxLength(1024)
+                        .HasColumnType("character varying(1024)")
+                        .HasColumnName("error_message");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("phone");
+
+                    b.Property<string>("PlanId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("plan_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("status");
+
+                    b.Property<Guid?>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_cfg_onboarding_requests");
+
+                    b.HasIndex("AdminEmail")
+                        .HasDatabaseName("ix_cfg_onboarding_requests_admin_email");
+
+                    b.ToTable("cfg_onboarding_requests", (string)null);
+                });
+
+            modelBuilder.Entity("WorkBase.Infrastructure.Persistence.Entities.SavedView", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("ColumnsJson")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("columns_json");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("EntityType")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("entity_type");
+
+                    b.Property<string>("FiltersJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("filters_json");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_default");
+
+                    b.Property<bool>("IsShared")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_shared");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("SortJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("sort_json");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_cfg_saved_views");
+
+                    b.HasIndex("TenantId", "UserId", "EntityType")
+                        .HasDatabaseName("ix_cfg_saved_views_tenant_id_user_id_entity_type");
+
+                    b.ToTable("cfg_saved_views", (string)null);
+                });
+
+            modelBuilder.Entity("WorkBase.Infrastructure.Persistence.Entities.SyncQueueEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<long>("ClientTimestamp")
+                        .HasColumnType("bigint")
+                        .HasColumnName("client_timestamp");
+
+                    b.Property<string>("ConflictResolution")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("conflict_resolution");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("DeviceId")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("device_id");
+
+                    b.Property<string>("EntityId")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("entity_id");
+
+                    b.Property<string>("EntityType")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("entity_type");
+
+                    b.Property<string>("OperationType")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("operation_type");
+
+                    b.Property<string>("PayloadJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("payload_json");
+
+                    b.Property<long?>("ServerTimestamp")
+                        .HasColumnType("bigint")
+                        .HasColumnName("server_timestamp");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTime?>("SyncedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("synced_at");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_infra_sync_queue");
+
+                    b.HasIndex("DeviceId", "ClientTimestamp")
+                        .HasDatabaseName("ix_infra_sync_queue_device_id_client_timestamp");
+
+                    b.HasIndex("TenantId", "UserId", "Status")
+                        .HasDatabaseName("ix_infra_sync_queue_tenant_id_user_id_status");
+
+                    b.ToTable("infra_sync_queue", (string)null);
+                });
+
+            modelBuilder.Entity("WorkBase.Infrastructure.Persistence.Entities.TenantBranding", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AccentColor")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("accent_color");
+
+                    b.Property<string>("AppName")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("app_name");
+
+                    b.Property<string>("CustomCss")
+                        .HasMaxLength(8192)
+                        .HasColumnType("character varying(8192)")
+                        .HasColumnName("custom_css");
+
+                    b.Property<string>("CustomDomain")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("custom_domain");
+
+                    b.Property<string>("FaviconUrl")
+                        .HasColumnType("text")
+                        .HasColumnName("favicon_url");
+
+                    b.Property<string>("FooterHtml")
+                        .HasColumnType("text")
+                        .HasColumnName("footer_html");
+
+                    b.Property<string>("LoginBackgroundUrl")
+                        .HasColumnType("text")
+                        .HasColumnName("login_background_url");
+
+                    b.Property<string>("LogoUrl")
+                        .HasColumnType("text")
+                        .HasColumnName("logo_url");
+
+                    b.Property<string>("PrimaryColor")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("primary_color");
+
+                    b.Property<string>("SecondaryColor")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("secondary_color");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_cfg_tenant_branding");
+
+                    b.HasIndex("CustomDomain")
+                        .IsUnique()
+                        .HasDatabaseName("ix_cfg_tenant_branding_custom_domain")
+                        .HasFilter("custom_domain IS NOT NULL");
+
+                    b.HasIndex("TenantId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_cfg_tenant_branding_tenant_id");
+
+                    b.ToTable("cfg_tenant_branding", (string)null);
                 });
 
             modelBuilder.Entity("WorkBase.Infrastructure.Persistence.Entities.TenantConfig", b =>
@@ -115,6 +753,502 @@ namespace WorkBase.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_cfg_tenant_configs_tenant_id_key");
 
                     b.ToTable("cfg_tenant_configs", (string)null);
+                });
+
+            modelBuilder.Entity("WorkBase.Infrastructure.Persistence.Entities.TenantSchemaConfig", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("ConnectionString")
+                        .HasMaxLength(1024)
+                        .HasColumnType("character varying(1024)")
+                        .HasColumnName("connection_string");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<bool>("IsMigrated")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_migrated");
+
+                    b.Property<string>("IsolationLevel")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("isolation_level");
+
+                    b.Property<DateTime?>("LastMigratedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_migrated_at");
+
+                    b.Property<string>("SchemaName")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("schema_name");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_infra_tenant_schemas");
+
+                    b.HasIndex("SchemaName")
+                        .IsUnique()
+                        .HasDatabaseName("ix_infra_tenant_schemas_schema_name");
+
+                    b.HasIndex("TenantId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_infra_tenant_schemas_tenant_id");
+
+                    b.ToTable("infra_tenant_schemas", (string)null);
+                });
+
+            modelBuilder.Entity("WorkBase.Infrastructure.PublicApi.ApiKey", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AllowedIps")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("allowed_ips");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("description");
+
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("KeyHash")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("key_hash");
+
+                    b.Property<string>("KeyPrefix")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("key_prefix");
+
+                    b.Property<DateTime?>("LastUsedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_used_at");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("modified_at");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("modified_by");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("name");
+
+                    b.Property<int>("RateLimitPerMinute")
+                        .HasColumnType("integer")
+                        .HasColumnName("rate_limit_per_minute");
+
+                    b.Property<string>("ScopesJson")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("scopes_json");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_infra_api_keys");
+
+                    b.HasIndex("KeyHash")
+                        .IsUnique()
+                        .HasDatabaseName("ix_infra_api_keys_key_hash");
+
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("ix_infra_api_keys_tenant_id");
+
+                    b.ToTable("infra_api_keys", (string)null);
+                });
+
+            modelBuilder.Entity("WorkBase.Infrastructure.PublicApi.WebhookDeliveryLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("AttemptNumber")
+                        .HasColumnType("integer")
+                        .HasColumnName("attempt_number");
+
+                    b.Property<DateTime>("DeliveredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("delivered_at");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("error_message");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("event_type");
+
+                    b.Property<bool>("IsSuccess")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_success");
+
+                    b.Property<string>("PayloadJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("payload_json");
+
+                    b.Property<string>("ResponseBody")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("response_body");
+
+                    b.Property<int>("StatusCode")
+                        .HasColumnType("integer")
+                        .HasColumnName("status_code");
+
+                    b.Property<Guid>("SubscriptionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("subscription_id");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)")
+                        .HasColumnName("url");
+
+                    b.HasKey("Id")
+                        .HasName("pk_infra_webhook_delivery_logs");
+
+                    b.HasIndex("SubscriptionId")
+                        .HasDatabaseName("ix_infra_webhook_delivery_logs_subscription_id");
+
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("ix_infra_webhook_delivery_logs_tenant_id");
+
+                    b.ToTable("infra_webhook_delivery_logs", (string)null);
+                });
+
+            modelBuilder.Entity("WorkBase.Infrastructure.PublicApi.WebhookSubscription", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("EventsJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("events_json");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<DateTime?>("LastDeliveryAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_delivery_at");
+
+                    b.Property<string>("LastDeliveryStatus")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("last_delivery_status");
+
+                    b.Property<int>("MaxRetries")
+                        .HasColumnType("integer")
+                        .HasColumnName("max_retries");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("modified_at");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("modified_by");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Secret")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("secret");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)")
+                        .HasColumnName("url");
+
+                    b.HasKey("Id")
+                        .HasName("pk_infra_webhook_subscriptions");
+
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("ix_infra_webhook_subscriptions_tenant_id");
+
+                    b.ToTable("infra_webhook_subscriptions", (string)null);
+                });
+
+            modelBuilder.Entity("WorkBase.Modules.Dashboard.Domain.Entities.DashboardConfig", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_default");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("modified_at");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("name");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_dash_configs");
+
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("ix_dash_configs_tenant_id");
+
+                    b.HasIndex("TenantId", "UserId")
+                        .HasDatabaseName("ix_dash_configs_tenant_id_user_id");
+
+                    b.HasIndex("TenantId", "UserId", "IsDefault")
+                        .HasDatabaseName("ix_dash_configs_tenant_id_user_id_is_default");
+
+                    b.ToTable("dash_configs", (string)null);
+                });
+
+            modelBuilder.Entity("WorkBase.Modules.Dashboard.Domain.Entities.DashboardWidget", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("Column")
+                        .HasColumnType("integer")
+                        .HasColumnName("column");
+
+                    b.Property<Guid>("DashboardConfigId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("dashboard_config_id");
+
+                    b.Property<int>("Height")
+                        .HasColumnType("integer")
+                        .HasColumnName("height");
+
+                    b.Property<bool>("IsVisible")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_visible");
+
+                    b.Property<int>("Row")
+                        .HasColumnType("integer")
+                        .HasColumnName("row");
+
+                    b.Property<string>("Settings")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("settings");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("sort_order");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("title");
+
+                    b.Property<string>("WidgetType")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("widget_type");
+
+                    b.Property<int>("Width")
+                        .HasColumnType("integer")
+                        .HasColumnName("width");
+
+                    b.HasKey("Id")
+                        .HasName("pk_dash_widgets");
+
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("ix_dash_widgets_tenant_id");
+
+                    b.HasIndex("TenantId", "DashboardConfigId")
+                        .HasDatabaseName("ix_dash_widgets_tenant_id_dashboard_config_id");
+
+                    b.ToTable("dash_widgets", (string)null);
+                });
+
+            modelBuilder.Entity("WorkBase.Modules.Dashboard.Domain.Entities.ReportDefinition", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AggregationsJson")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("aggregations_json");
+
+                    b.Property<string>("ChartConfigJson")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("chart_config_json");
+
+                    b.Property<string>("ColumnsJson")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("columns_json");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by_user_id");
+
+                    b.Property<string>("DataSource")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("data_source");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("description");
+
+                    b.Property<string>("FiltersJson")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("filters_json");
+
+                    b.Property<string>("GroupByJson")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("group_by_json");
+
+                    b.Property<bool>("IsShared")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_shared");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("modified_at");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("modified_by");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("ReportType")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("report_type");
+
+                    b.Property<string>("SortJson")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("sort_json");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_dashboard_reports");
+
+                    b.HasIndex("CreatedByUserId")
+                        .HasDatabaseName("ix_dashboard_reports_created_by_user_id");
+
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("ix_dashboard_reports_tenant_id");
+
+                    b.ToTable("dashboard_reports", (string)null);
                 });
 
             modelBuilder.Entity("WorkBase.Modules.Documents.Domain.Entities.Document", b =>
@@ -919,6 +2053,11 @@ namespace WorkBase.Infrastructure.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("pk_leave_requests");
 
+                    b.HasIndex("CustomFields")
+                        .HasDatabaseName("ix_leave_requests_custom_fields");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("CustomFields"), "gin");
+
                     b.HasIndex("TenantId")
                         .HasDatabaseName("ix_leave_requests_tenant_id");
 
@@ -1209,6 +2348,61 @@ namespace WorkBase.Infrastructure.Persistence.Migrations
                     b.ToTable("notif_templates", (string)null);
                 });
 
+            modelBuilder.Entity("WorkBase.Modules.Notification.Domain.Entities.PushSubscription", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Auth")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("auth");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("DeviceInfo")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("device_info");
+
+                    b.Property<string>("Endpoint")
+                        .IsRequired()
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)")
+                        .HasColumnName("endpoint");
+
+                    b.Property<string>("P256dh")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("p256dh");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_notif_push_subscriptions");
+
+                    b.HasIndex("TenantId", "UserId")
+                        .HasDatabaseName("ix_notif_push_subscriptions_tenant_id_user_id");
+
+                    b.HasIndex("TenantId", "UserId", "Endpoint")
+                        .IsUnique()
+                        .HasDatabaseName("ix_notif_push_subscriptions_tenant_id_user_id_endpoint");
+
+                    b.ToTable("notif_push_subscriptions", (string)null);
+                });
+
             modelBuilder.Entity("WorkBase.Modules.Organization.Domain.Entities.Employee", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1283,6 +2477,11 @@ namespace WorkBase.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_org_employees");
+
+                    b.HasIndex("CustomFields")
+                        .HasDatabaseName("ix_org_employees_custom_fields");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("CustomFields"), "gin");
 
                     b.HasIndex("TenantId")
                         .HasDatabaseName("ix_org_employees_tenant_id");
@@ -2177,6 +3376,324 @@ namespace WorkBase.Infrastructure.Persistence.Migrations
                     b.ToTable("task_status_transitions", (string)null);
                 });
 
+            modelBuilder.Entity("WorkBase.Modules.TimeTracking.Domain.Entities.BiometricTemplate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("BiometricType")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("biometric_type");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("employee_id");
+
+                    b.Property<DateTime>("EnrolledAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("enrolled_at");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("modified_at");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("modified_by");
+
+                    b.Property<string>("TemplateHash")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("template_hash");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_time_biometric_templates");
+
+                    b.HasIndex("EmployeeId")
+                        .HasDatabaseName("ix_time_biometric_templates_employee_id");
+
+                    b.HasIndex("TenantId", "TemplateHash")
+                        .IsUnique()
+                        .HasDatabaseName("ix_time_biometric_templates_tenant_id_template_hash");
+
+                    b.ToTable("time_biometric_templates", (string)null);
+                });
+
+            modelBuilder.Entity("WorkBase.Modules.TimeTracking.Domain.Entities.BreakPolicy", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("BreakType")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("break_type");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<int?>("MaxMinutesPerBreak")
+                        .HasColumnType("integer")
+                        .HasColumnName("max_minutes_per_break");
+
+                    b.Property<int?>("MaxMinutesPerDay")
+                        .HasColumnType("integer")
+                        .HasColumnName("max_minutes_per_day");
+
+                    b.Property<int?>("MaxPerDay")
+                        .HasColumnType("integer")
+                        .HasColumnName("max_per_day");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("modified_at");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("modified_by");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("name");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_time_break_policies");
+
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("ix_time_break_policies_tenant_id");
+
+                    b.HasIndex("TenantId", "BreakType")
+                        .HasDatabaseName("ix_time_break_policies_tenant_id_break_type");
+
+                    b.ToTable("time_break_policies", (string)null);
+                });
+
+            modelBuilder.Entity("WorkBase.Modules.TimeTracking.Domain.Entities.GeofenceEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("employee_id");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("event_type");
+
+                    b.Property<Guid>("GeofenceZoneId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("geofence_zone_id");
+
+                    b.Property<double>("Latitude")
+                        .HasPrecision(10, 7)
+                        .HasColumnType("double precision")
+                        .HasColumnName("latitude");
+
+                    b.Property<double>("Longitude")
+                        .HasPrecision(10, 7)
+                        .HasColumnType("double precision")
+                        .HasColumnName("longitude");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("modified_at");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("modified_by");
+
+                    b.Property<DateTime>("OccurredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("occurred_at");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.Property<Guid?>("TimeEntryId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("time_entry_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_time_geofence_events");
+
+                    b.HasIndex("EmployeeId", "OccurredAt")
+                        .HasDatabaseName("ix_time_geofence_events_employee_id_occurred_at");
+
+                    b.ToTable("time_geofence_events", (string)null);
+                });
+
+            modelBuilder.Entity("WorkBase.Modules.TimeTracking.Domain.Entities.GeofenceZone", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("AutoClockIn")
+                        .HasColumnType("boolean")
+                        .HasColumnName("auto_clock_in");
+
+                    b.Property<bool>("AutoClockOut")
+                        .HasColumnType("boolean")
+                        .HasColumnName("auto_clock_out");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<double>("Latitude")
+                        .HasPrecision(10, 7)
+                        .HasColumnType("double precision")
+                        .HasColumnName("latitude");
+
+                    b.Property<double>("Longitude")
+                        .HasPrecision(10, 7)
+                        .HasColumnType("double precision")
+                        .HasColumnName("longitude");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("modified_at");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("modified_by");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("name");
+
+                    b.Property<int>("RadiusMeters")
+                        .HasColumnType("integer")
+                        .HasColumnName("radius_meters");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_time_geofence_zones");
+
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("ix_time_geofence_zones_tenant_id");
+
+                    b.ToTable("time_geofence_zones", (string)null);
+                });
+
+            modelBuilder.Entity("WorkBase.Modules.TimeTracking.Domain.Entities.NfcBadge", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("BadgeUid")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("badge_uid");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("employee_id");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("Label")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("label");
+
+                    b.Property<DateTime?>("LastUsedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_used_at");
+
+                    b.Property<DateTime>("RegisteredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("registered_at");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_time_nfc_badges");
+
+                    b.HasIndex("EmployeeId")
+                        .HasDatabaseName("ix_time_nfc_badges_employee_id");
+
+                    b.HasIndex("TenantId", "BadgeUid")
+                        .IsUnique()
+                        .HasDatabaseName("ix_time_nfc_badges_tenant_id_badge_uid");
+
+                    b.ToTable("time_nfc_badges", (string)null);
+                });
+
             modelBuilder.Entity("WorkBase.Modules.TimeTracking.Domain.Entities.QrToken", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2551,6 +4068,11 @@ namespace WorkBase.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
+
+                    b.Property<string>("BreakType")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("break_type");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -2933,6 +4455,64 @@ namespace WorkBase.Infrastructure.Persistence.Migrations
                     b.ToTable("wf_actions", (string)null);
                 });
 
+            modelBuilder.Entity("WorkBase.Modules.Workflow.Domain.Entities.WorkflowBranch", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("BranchName")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("branch_name");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("completed_at");
+
+                    b.Property<string>("CurrentStepName")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("current_step_name");
+
+                    b.Property<string>("GatewayStepName")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("gateway_step_name");
+
+                    b.Property<Guid>("InstanceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("instance_id");
+
+                    b.Property<DateTime>("StartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("started_at");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("status");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_wf_branches");
+
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("ix_wf_branches_tenant_id");
+
+                    b.HasIndex("InstanceId", "GatewayStepName")
+                        .HasDatabaseName("ix_wf_branches_instance_id_gateway_step_name");
+
+                    b.ToTable("wf_branches", (string)null);
+                });
+
             modelBuilder.Entity("WorkBase.Modules.Workflow.Domain.Entities.WorkflowDefinition", b =>
                 {
                     b.Property<Guid>("Id")
@@ -3009,6 +4589,10 @@ namespace WorkBase.Infrastructure.Persistence.Migrations
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("completed_at");
+
+                    b.Property<string>("ContextJson")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("context_json");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")

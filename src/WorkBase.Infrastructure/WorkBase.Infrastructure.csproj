@@ -23,5 +23,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\WorkBase.Contracts\WorkBase.Contracts.csproj" />
+    <ProjectReference Include="..\Modules\Organization\WorkBase.Modules.Organization.Domain\WorkBase.Modules.Organization.Domain.csproj" />
   </ItemGroup>
 </Project>

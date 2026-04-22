@@ -100,3 +100,14 @@ public sealed class FcmPushNotificationService(
         }
     }
 }
+
+/// <summary>In-memory stub until EF persistence is wired.</summary>
+public sealed class InMemoryPushSubscriptionRepository : IPushSubscriptionRepository
+{
+    public Task<List<PushSubscription>> GetByUserAsync(Guid userId, CancellationToken ct = default) => Task.FromResult(new List<PushSubscription>());
+    public Task<List<PushSubscription>> GetActiveByUserAsync(Guid userId, CancellationToken ct = default) => Task.FromResult(new List<PushSubscription>());
+    public Task<PushSubscription?> GetByTokenAsync(string deviceToken, CancellationToken ct = default) => Task.FromResult<PushSubscription?>(null);
+    public Task AddAsync(PushSubscription sub, CancellationToken ct = default) => Task.CompletedTask;
+    public void Update(PushSubscription sub) { }
+    public void Remove(PushSubscription sub) { }
+}

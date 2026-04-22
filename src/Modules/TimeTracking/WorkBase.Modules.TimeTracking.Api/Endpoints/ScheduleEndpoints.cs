@@ -45,6 +45,13 @@ public static class ScheduleEndpoints
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound);
 
+        group.MapPost("/generate", GenerateBatchSchedules)
+            .WithName("GenerateBatchSchedules")
+            .WithSummary("Wygeneruj grafik dla wielu pracowników z wzorcem tygodniowym")
+            .RequirePermission("time.manage")
+            .Produces<GenerateBatchResult>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status400BadRequest);
+
         // Schedule Templates
         var templates = endpoints.MapGroup("/api/time/schedule-templates")
             .WithTags("TimeTracking – Schedule Templates")
@@ -171,6 +178,32 @@ public static class ScheduleEndpoints
         var result = await sender.Send(new DeleteScheduleTemplateCommand(id));
         return result.IsSuccess ? Results.NoContent() : result.ToHttpResult();
     }
+
+    private static async Task<IResult> GenerateBatchSchedules(
+        GenerateBatchSchedulesRequest request,
+        ISender sender)
+    {
+        var patterns = request.WeekPattern.Select(p =>
+            new DayShiftPattern(
+                p.DayOfWeek,
+                TimeOnly.Parse(p.PlannedStart),
+                TimeOnly.Parse(p.PlannedEnd),
+                p.ShiftType,
+                p.TemplateId)).ToList();
+
+        var command = new GenerateBatchSchedulesCommand(
+            request.EmployeeIds,
+            request.From,
+            request.To,
+            patterns,
+            request.Overwrite);
+
+        var result = await sender.Send(command);
+
+        return result.IsSuccess
+            ? Results.Ok(new GenerateBatchResult(result.Value))
+            : result.ToHttpResult();
+    }
 }
 
 public sealed record ScheduleQueryParams(DateOnly? From, DateOnly? To);
@@ -197,3 +230,19 @@ public sealed record UpdateScheduleTemplateRequest(
     string Name,
     string Definition,
     string? Description = null);
+
+public sealed record DayShiftPatternRequest(
+    DayOfWeek DayOfWeek,
+    string PlannedStart,
+    string PlannedEnd,
+    string? ShiftType = null,
+    Guid? TemplateId = null);
+
+public sealed record GenerateBatchSchedulesRequest(
+    List<Guid> EmployeeIds,
+    DateOnly From,
+    DateOnly To,
+    List<DayShiftPatternRequest> WeekPattern,
+    bool Overwrite = false);
+
+public sealed record GenerateBatchResult(int CreatedCount);

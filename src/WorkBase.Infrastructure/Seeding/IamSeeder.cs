@@ -184,9 +184,8 @@ public static class IamSeeder
                 Guid.Parse($"30000000-0000-0000-0000-{rpId++:D12}")));
         }
 
-        // Admin — gets most permissions (excluding identity.manage-feature-flags)
-        var adminExcluded = new HashSet<string> { "identity.manage-feature-flags" };
-        foreach (var permission in permissions.Where(p => !adminExcluded.Contains(p.FullCode)))
+        // Admin — gets ALL permissions (full system management)
+        foreach (var permission in permissions)
         {
             rolePermissions.Add(SetId(
                 RolePermission.Create(AdminRoleId, permission.Id),
@@ -197,9 +196,9 @@ public static class IamSeeder
         var kierownikPermissions = new HashSet<string>
         {
             "org.view", "org.export",
-            "time.view", "time.view-team", "time.approve", "time.export",
-            "leave.view", "leave.view-team", "leave.approve", "leave.export",
-            "tasks.view", "tasks.create", "tasks.edit", "tasks.assign", "tasks.export",
+            "time.view", "time.create", "time.view-team", "time.approve", "time.export",
+            "leave.view", "leave.create", "leave.view-team", "leave.approve", "leave.export",
+            "tasks.view", "tasks.create", "tasks.edit", "tasks.delete", "tasks.assign", "tasks.export",
             "workflow.view", "workflow.approve",
             "dashboard.view",
             "notification.view",
@@ -234,11 +233,11 @@ public static class IamSeeder
         // HR — broad employee/leave/time management
         var hrPermissions = new HashSet<string>
         {
-            "org.view", "org.create", "org.edit", "org.import", "org.export", "org.manage",
-            "identity.view",
-            "time.view", "time.view-team", "time.manage", "time.approve", "time.export",
-            "leave.view", "leave.create", "leave.edit", "leave.view-team", "leave.approve", "leave.manage", "leave.export",
-            "tasks.view", "tasks.export",
+            "org.view", "org.create", "org.edit", "org.delete", "org.import", "org.export", "org.manage",
+            "identity.view", "identity.assign-roles",
+            "time.view", "time.create", "time.edit", "time.view-team", "time.manage", "time.approve", "time.export",
+            "leave.view", "leave.create", "leave.edit", "leave.delete", "leave.view-team", "leave.approve", "leave.manage", "leave.export",
+            "tasks.view", "tasks.create", "tasks.export",
             "workflow.view", "workflow.approve",
             "dashboard.view", "dashboard.export",
             "notification.view",

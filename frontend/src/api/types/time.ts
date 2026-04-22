@@ -4,11 +4,51 @@ export interface TimeStatusDto {
   lastEntryType: string | null;
   workedToday: string;
   breaksToday: string;
+  currentBreakType: 'Paid' | 'Unpaid' | null;
 }
 
 export interface ClockRequest {
   employeeId: string;
   note?: string;
+}
+
+export interface StartBreakRequest {
+  employeeId: string;
+  breakType: 'Paid' | 'Unpaid';
+  note?: string;
+}
+
+export interface BreakPolicyDto {
+  id: string;
+  name: string;
+  breakType: string;
+  maxPerDay: number | null;
+  maxMinutesPerBreak: number | null;
+  maxMinutesPerDay: number | null;
+  isActive: boolean;
+}
+
+export interface BreakOptionDto {
+  breakType: 'Paid' | 'Unpaid';
+  label: string;
+  available: boolean;
+  usedCount: number;
+  maxPerDay: number | null;
+  usedMinutesToday: number;
+  maxMinutesPerDay: number | null;
+  maxMinutesPerBreak: number | null;
+  denialReason: string | null;
+}
+
+export interface BreakAvailabilityDto {
+  options: BreakOptionDto[];
+}
+
+export interface TimeSheetEntryDto {
+  id: string;
+  entryTime: string;
+  type: string;
+  breakType: string | null;
 }
 
 export interface TimeSheetDayDto {
@@ -18,6 +58,7 @@ export interface TimeSheetDayDto {
   netWorked: string;
   status: string;
   note: string | null;
+  entries: TimeSheetEntryDto[];
 }
 
 export interface TimeSheetPeriodDto {
@@ -78,4 +119,39 @@ export interface ScheduleTemplateDto {
   description: string | null;
   definition: string;
   isActive: boolean;
+}
+
+export interface AdminCreateTimeEntryRequest {
+  employeeId: string;
+  entryTime: string;
+  type: string;
+  breakType?: string;
+  note?: string;
+}
+
+export interface AdminUpdateTimeEntryRequest {
+  entryTime: string;
+  type: string;
+  breakType?: string;
+  note?: string;
+}
+
+export interface DayShiftPattern {
+  dayOfWeek: number; // 0=Sunday, 1=Monday, ... 6=Saturday
+  plannedStart: string;
+  plannedEnd: string;
+  shiftType?: string;
+  templateId?: string;
+}
+
+export interface GenerateBatchSchedulesRequest {
+  employeeIds: string[];
+  from: string;
+  to: string;
+  weekPattern: DayShiftPattern[];
+  overwrite?: boolean;
+}
+
+export interface GenerateBatchResult {
+  createdCount: number;
 }

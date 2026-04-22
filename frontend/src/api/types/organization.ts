@@ -93,3 +93,49 @@ export interface AssignEmployeeRequest {
 export interface SetSupervisorRequest {
   supervisorEmployeeId: string;
 }
+
+// --- Org Unit CRUD ---
+export interface CreateOrgUnitRequest {
+  name: string;
+  code?: string;
+  typeId: string;
+  parentId?: string;
+}
+
+export interface UpdateOrgUnitRequest {
+  name: string;
+  code?: string;
+  typeId: string;
+}
+
+// --- Position CRUD ---
+export interface CreatePositionRequest {
+  name: string;
+  description?: string;
+}
+
+export interface UpdatePositionRequest {
+  name: string;
+  description?: string;
+}
+
+// --- Unit Type CRUD ---
+export interface CreateUnitTypeRequest {
+  name: string;
+  description?: string;
+  sortOrder: number;
+}
+
+export interface UpdateUnitTypeRequest {
+  name: string;
+  description?: string;
+  sortOrder: number;
+}
+
+// --- Employee Update ---
+export interface UpdateEmployeeRequest {
+  firstName: string;
+  lastName: string;
+  email: string;
+  employeeNumber?: string;
+}

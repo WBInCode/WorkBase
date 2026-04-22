@@ -19,6 +19,7 @@ public static class TimeTrackingServiceCollectionExtensions
     public static IServiceCollection AddTimeTrackingModule(this IServiceCollection services)
     {
         services.AddScoped<ITimeEntryRepository, TimeEntryRepository>();
+        services.AddScoped<IBreakPolicyRepository, BreakPolicyRepository>();
         services.AddScoped<ITimeSheetRepository, TimeSheetRepository>();
         services.AddScoped<IQrTokenRepository, QrTokenRepository>();
         services.AddScoped<IScheduleRepository, ScheduleRepository>();

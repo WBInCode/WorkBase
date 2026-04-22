@@ -103,6 +103,7 @@ export function EmployeeCardPage() {
           timeStatus={timeStatus}
           timesheet={timesheet}
           isLoading={timeStatusLoading || timesheetLoading}
+          employeeId={employee.id}
         />
 
         <EmployeeLeaveSection

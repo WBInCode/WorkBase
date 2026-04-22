@@ -1,9 +1,9 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, AlertTriangle } from 'lucide-react';
+import { Plus, Search, AlertTriangle, Trash2 } from 'lucide-react';
 import { useAuth } from 'react-oidc-context';
 import { mapUserClaims } from '@/auth';
-import { useTasks, useTaskStatuses, useTaskPriorities, useCreateTask } from '@/api/hooks/useTasks';
+import { useTasks, useTaskStatuses, useTaskPriorities, useCreateTask, useDeleteTask } from '@/api/hooks/useTasks';
 import { useEmployees } from '@/api/hooks/useOrganization';
 import type { CreateTaskRequest } from '@/api/types/tasks';
 
@@ -19,12 +19,14 @@ export function TaskListPage() {
   const employees = employeesPage?.items ?? [];
 
   const createMutation = useCreateTask();
+  const deleteMutation = useDeleteTask();
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('');
   const [overdueOnly, setOverdueOnly] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
 
   // Form state
   const [formTitle, setFormTitle] = useState('');
@@ -85,6 +87,37 @@ export function TaskListPage() {
     });
   };
 
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAll = () => {
+    if (selected.size === filtered.length) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(filtered.map((t) => t.id)));
+    }
+  };
+
+  const handleDeleteSingle = (id: string) => {
+    if (!confirm('Czy na pewno chcesz usunąć to zadanie?')) return;
+    deleteMutation.mutate(id, { onSuccess: () => setSelected((p) => { const n = new Set(p); n.delete(id); return n; }) });
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selected.size === 0) return;
+    if (!confirm(`Czy na pewno chcesz usunąć ${selected.size} zadań?`)) return;
+    const ids = [...selected];
+    for (const id of ids) {
+      await deleteMutation.mutateAsync(id);
+    }
+    setSelected(new Set());
+  };
+
   return (
     <div style={{ padding: '24px', maxWidth: '1100px' }}>
       {/* Header */}
@@ -107,6 +140,39 @@ export function TaskListPage() {
           <Plus size={16} /> Nowe zadanie
         </button>
       </div>
+
+      {/* Bulk action bar */}
+      {selected.size > 0 && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 16px',
+          marginBottom: '12px', backgroundColor: '#eff6ff', borderRadius: '8px',
+          border: '1px solid #bfdbfe', fontSize: '14px', color: '#1e40af',
+        }}>
+          <span style={{ fontWeight: 500 }}>Zaznaczono: {selected.size}</span>
+          <button
+            onClick={handleDeleteSelected}
+            disabled={deleteMutation.isPending}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '4px',
+              padding: '6px 12px', fontSize: '13px', fontWeight: 500,
+              color: '#fff', backgroundColor: '#dc2626', border: 'none',
+              borderRadius: '6px', cursor: 'pointer',
+            }}
+          >
+            <Trash2 size={14} /> {deleteMutation.isPending ? 'Usuwanie...' : 'Usuń zaznaczone'}
+          </button>
+          <button
+            onClick={() => setSelected(new Set())}
+            style={{
+              padding: '6px 12px', fontSize: '13px', color: '#1e40af',
+              backgroundColor: 'transparent', border: '1px solid #93c5fd',
+              borderRadius: '6px', cursor: 'pointer',
+            }}
+          >
+            Odznacz wszystko
+          </button>
+        </div>
+      )}
 
       {/* Filters */}
       <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '16px' }}>
@@ -168,12 +234,16 @@ export function TaskListPage() {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
             <thead>
               <tr style={{ backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+                <th style={{ ...thStyle, width: '36px', textAlign: 'center' }}>
+                  <input type="checkbox" checked={filtered.length > 0 && selected.size === filtered.length} onChange={toggleAll} />
+                </th>
                 <th style={thStyle}>Tytuł</th>
                 <th style={{ ...thStyle, textAlign: 'center' }}>Status</th>
                 <th style={{ ...thStyle, textAlign: 'center' }}>Priorytet</th>
                 <th style={thStyle}>Przypisane do</th>
                 <th style={thStyle}>Termin</th>
                 <th style={thStyle}>Utworzono</th>
+                <th style={{ ...thStyle, width: '48px', textAlign: 'center' }}>Akcje</th>
               </tr>
             </thead>
             <tbody>
@@ -182,20 +252,22 @@ export function TaskListPage() {
                 return (
                   <tr
                     key={t.id}
-                    onClick={() => navigate(`/tasks/${t.id}`)}
-                    style={{ borderBottom: '1px solid #f3f4f6', cursor: 'pointer' }}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = '#f9fafb'; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = ''; }}
+                    style={{ borderBottom: '1px solid #f3f4f6', cursor: 'pointer', backgroundColor: selected.has(t.id) ? '#eff6ff' : '' }}
+                    onMouseEnter={(e) => { if (!selected.has(t.id)) (e.currentTarget as HTMLElement).style.backgroundColor = '#f9fafb'; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = selected.has(t.id) ? '#eff6ff' : ''; }}
                   >
-                    <td style={{ ...tdStyle, fontWeight: 500 }}>{t.title}</td>
-                    <td style={{ ...tdStyle, textAlign: 'center' }}>
+                    <td style={{ ...tdStyle, textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
+                      <input type="checkbox" checked={selected.has(t.id)} onChange={() => toggleSelect(t.id)} />
+                    </td>
+                    <td style={{ ...tdStyle, fontWeight: 500 }} onClick={() => navigate(`/tasks/${t.id}`)}>{t.title}</td>
+                    <td style={{ ...tdStyle, textAlign: 'center' }} onClick={() => navigate(`/tasks/${t.id}`)}>
                       <Badge label={t.statusName} color={t.statusColor ?? '#6b7280'} />
                     </td>
-                    <td style={{ ...tdStyle, textAlign: 'center' }}>
+                    <td style={{ ...tdStyle, textAlign: 'center' }} onClick={() => navigate(`/tasks/${t.id}`)}>
                       <Badge label={t.priorityName} color={t.priorityColor ?? '#6b7280'} />
                     </td>
-                    <td style={tdStyle}>{employeeMap.get(t.assigneeId) ?? '—'}</td>
-                    <td style={tdStyle}>
+                    <td style={tdStyle} onClick={() => navigate(`/tasks/${t.id}`)}>{employeeMap.get(t.assigneeId) ?? '—'}</td>
+                    <td style={tdStyle} onClick={() => navigate(`/tasks/${t.id}`)}>
                       {t.dueDate ? (
                         <span style={{ color: isOverdue ? '#dc2626' : '#374151', fontWeight: isOverdue ? 600 : 400 }}>
                           {isOverdue && <AlertTriangle size={12} style={{ marginRight: '4px', verticalAlign: 'middle' }} />}
@@ -203,8 +275,22 @@ export function TaskListPage() {
                         </span>
                       ) : '—'}
                     </td>
-                    <td style={{ ...tdStyle, color: '#9ca3af' }}>
+                    <td style={{ ...tdStyle, color: '#9ca3af' }} onClick={() => navigate(`/tasks/${t.id}`)}>
                       {new Date(t.createdAt).toLocaleDateString('pl-PL')}
+                    </td>
+                    <td style={{ ...tdStyle, textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
+                      <button
+                        onClick={() => handleDeleteSingle(t.id)}
+                        title="Usuń zadanie"
+                        style={{
+                          padding: '4px', background: 'none', border: 'none',
+                          cursor: 'pointer', color: '#9ca3af', borderRadius: '4px',
+                        }}
+                        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = '#dc2626'; }}
+                        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = '#9ca3af'; }}
+                      >
+                        <Trash2 size={16} />
+                      </button>
                     </td>
                   </tr>
                 );

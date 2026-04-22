@@ -40,6 +40,10 @@ public sealed class TimeEntryConfiguration : IEntityTypeConfiguration<TimeEntry>
         builder.Property(e => e.Location)
             .HasMaxLength(256);
 
+        builder.Property(e => e.BreakType)
+            .HasConversion<string>()
+            .HasMaxLength(32);
+
         builder.HasIndex(e => e.TenantId);
 
         builder.HasIndex(e => new { e.TenantId, e.EmployeeId, e.EntryTime });
