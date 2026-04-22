@@ -213,9 +213,12 @@ public static class TaskEndpoints
 
     private static async Task<IResult> CreateTask(CreateTaskBody body, ISender sender)
     {
+        var dueDate = body.DueDate.HasValue
+            ? DateTime.SpecifyKind(body.DueDate.Value, DateTimeKind.Utc)
+            : (DateTime?)null;
         var result = await sender.Send(new CreateTaskCommand(
             body.Title, body.Description, body.PriorityId,
-            body.AssigneeId, body.ReporterId, body.DueDate));
+            body.AssigneeId, body.ReporterId, dueDate));
         return result.IsSuccess
             ? Results.Created($"/api/tasks/{result.Value}", result.Value)
             : result.ToHttpResult();
@@ -223,8 +226,11 @@ public static class TaskEndpoints
 
     private static async Task<IResult> UpdateTask(Guid id, UpdateTaskBody body, ISender sender)
     {
+        var dueDate = body.DueDate.HasValue
+            ? DateTime.SpecifyKind(body.DueDate.Value, DateTimeKind.Utc)
+            : (DateTime?)null;
         var result = await sender.Send(new UpdateTaskCommand(
-            id, body.Title, body.Description, body.PriorityId, body.DueDate));
+            id, body.Title, body.Description, body.PriorityId, dueDate));
         return result.ToHttpResult();
     }
 

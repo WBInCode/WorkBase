@@ -16,6 +16,9 @@ import { PermissionsMatrixPage } from '@/pages/admin/PermissionsMatrixPage';
 import { FeatureFlagsPage } from '@/pages/admin/FeatureFlagsPage';
 import { LeaveTypesConfigPage } from '@/pages/admin/LeaveTypesConfigPage';
 import { TaskStatusConfigPage } from '@/pages/admin/TaskStatusConfigPage';
+import { BreakPoliciesConfigPage } from '@/pages/admin/BreakPoliciesConfigPage';
+import { PositionsConfigPage } from '@/pages/admin/PositionsConfigPage';
+import { UnitTypesConfigPage } from '@/pages/admin/UnitTypesConfigPage';
 import { TimesheetPage } from '@/pages/time/TimesheetPage';
 import { TeamAttendancePage } from '@/pages/time/TeamAttendancePage';
 import { SchedulePage } from '@/pages/time/SchedulePage';
@@ -87,6 +90,9 @@ function AppRoutes() {
         <Route path="/admin/feature-flags" element={<FeatureFlagsPage />} />
         <Route path="/admin/leave-types" element={<LeaveTypesConfigPage />} />
         <Route path="/admin/task-statuses" element={<TaskStatusConfigPage />} />
+        <Route path="/admin/break-policies" element={<BreakPoliciesConfigPage />} />
+        <Route path="/admin/positions" element={<PositionsConfigPage />} />
+        <Route path="/admin/unit-types" element={<UnitTypesConfigPage />} />
         <Route path="*" element={<Navigate to="/workspace" replace />} />
       </Routes>
     </MainLayout>

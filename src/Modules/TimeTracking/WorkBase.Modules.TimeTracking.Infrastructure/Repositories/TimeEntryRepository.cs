@@ -35,4 +35,15 @@ public sealed class TimeEntryRepository(WorkBaseDbContext dbContext) : ITimeEntr
     {
         await dbContext.Set<TimeEntry>().AddAsync(entry, cancellationToken);
     }
+
+    public async Task<TimeEntry?> GetByIdAsync(Guid tenantId, Guid id, CancellationToken cancellationToken = default)
+    {
+        return await dbContext.Set<TimeEntry>()
+            .FirstOrDefaultAsync(e => e.TenantId == tenantId && e.Id == id, cancellationToken);
+    }
+
+    public void Delete(TimeEntry entry)
+    {
+        dbContext.Set<TimeEntry>().Remove(entry);
+    }
 }

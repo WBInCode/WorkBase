@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/api/client';
-import type { TimeStatusDto, ClockRequest, TimeSheetPeriodDto, TimeAnomalyDto, ScheduleDto, CreateScheduleRequest, UpdateScheduleRequest, ScheduleTemplateDto } from '@/api/types/time';
+import type { TimeStatusDto, ClockRequest, StartBreakRequest, BreakPolicyDto, BreakAvailabilityDto, TimeSheetPeriodDto, TimeAnomalyDto, ScheduleDto, CreateScheduleRequest, UpdateScheduleRequest, ScheduleTemplateDto, AdminCreateTimeEntryRequest, AdminUpdateTimeEntryRequest, GenerateBatchSchedulesRequest, GenerateBatchResult } from '@/api/types/time';
 
 export function useTimeStatus(employeeId: string | undefined) {
   return useQuery({
@@ -11,6 +11,14 @@ export function useTimeStatus(employeeId: string | undefined) {
   });
 }
 
+export function useBreakAvailability(employeeId: string | undefined, enabled: boolean) {
+  return useQuery({
+    queryKey: ['time', 'break-availability', employeeId],
+    queryFn: () => api.get<BreakAvailabilityDto>(`/api/time/break-availability/${employeeId}`),
+    enabled: !!employeeId && enabled,
+  });
+}
+
 export function useClockIn() {
   const qc = useQueryClient();
   return useMutation({
@@ -18,6 +26,7 @@ export function useClockIn() {
       api.post<string>('/api/time/clock-in', data),
     onSuccess: (_data, variables) => {
       qc.invalidateQueries({ queryKey: ['time', 'status', variables.employeeId] });
+      qc.invalidateQueries({ queryKey: ['time', 'timesheet'] });
     },
   });
 }
@@ -29,6 +38,7 @@ export function useClockOut() {
       api.post<string>('/api/time/clock-out', data),
     onSuccess: (_data, variables) => {
       qc.invalidateQueries({ queryKey: ['time', 'status', variables.employeeId] });
+      qc.invalidateQueries({ queryKey: ['time', 'timesheet'] });
     },
   });
 }
@@ -36,10 +46,11 @@ export function useClockOut() {
 export function useStartBreak() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: ClockRequest) =>
+    mutationFn: (data: StartBreakRequest) =>
       api.post<string>('/api/time/break/start', data),
     onSuccess: (_data, variables) => {
       qc.invalidateQueries({ queryKey: ['time', 'status', variables.employeeId] });
+      qc.invalidateQueries({ queryKey: ['time', 'timesheet'] });
     },
   });
 }
@@ -51,6 +62,49 @@ export function useEndBreak() {
       api.post<string>('/api/time/break/end', data),
     onSuccess: (_data, variables) => {
       qc.invalidateQueries({ queryKey: ['time', 'status', variables.employeeId] });
+      qc.invalidateQueries({ queryKey: ['time', 'timesheet'] });
+    },
+  });
+}
+
+// ─── Break Policies ──────────────────────────────────────────
+
+export function useBreakPolicies() {
+  return useQuery({
+    queryKey: ['time', 'break-policies'],
+    queryFn: () => api.get<BreakPolicyDto[]>('/api/time/break-policies'),
+  });
+}
+
+export function useCreateBreakPolicy() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: Omit<BreakPolicyDto, 'id'>) =>
+      api.post<string>('/api/time/break-policies', data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['time', 'break-policies'] });
+    },
+  });
+}
+
+export function useUpdateBreakPolicy() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...data }: { id: string; name: string; maxPerDay: number; maxMinutesPerBreak: number; maxMinutesPerDay: number; isActive: boolean }) =>
+      api.put<void>(`/api/time/break-policies/${id}`, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['time', 'break-policies'] });
+    },
+  });
+}
+
+export function useDeleteBreakPolicy() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) =>
+      api.delete<void>(`/api/time/break-policies/${id}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['time', 'break-policies'] });
     },
   });
 }
@@ -74,6 +128,7 @@ export function useTimesheet(filter: TimesheetFilter) {
     queryFn: () =>
       api.get<TimeSheetPeriodDto>(`/api/time/timesheet/${filter.employeeId}?${params}`),
     enabled: !!filter.employeeId,
+    refetchInterval: 30_000,
   });
 }
 
@@ -142,7 +197,10 @@ export function useCreateSchedule() {
   return useMutation({
     mutationFn: (data: CreateScheduleRequest) =>
       api.post<string>('/api/time/schedules', data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['time', 'schedules'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['time', 'schedules'] });
+      qc.invalidateQueries({ queryKey: ['time', 'team-schedules'] });
+    },
   });
 }
 
@@ -151,7 +209,10 @@ export function useUpdateSchedule() {
   return useMutation({
     mutationFn: ({ id, ...data }: UpdateScheduleRequest & { id: string }) =>
       api.put<void>(`/api/time/schedules/${id}`, data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['time', 'schedules'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['time', 'schedules'] });
+      qc.invalidateQueries({ queryKey: ['time', 'team-schedules'] });
+    },
   });
 }
 
@@ -159,7 +220,10 @@ export function useDeleteSchedule() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => api.delete<void>(`/api/time/schedules/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['time', 'schedules'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['time', 'schedules'] });
+      qc.invalidateQueries({ queryKey: ['time', 'team-schedules'] });
+    },
   });
 }
 
@@ -192,6 +256,58 @@ export function useVerifyQrToken() {
       api.post<string>('/api/time/qr/verify', data),
     onSuccess: (_data, variables) => {
       qc.invalidateQueries({ queryKey: ['time', 'status', variables.employeeId] });
+    },
+  });
+}
+
+// --- Admin Time Entry Management ---
+
+export function useAdminCreateTimeEntry() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: AdminCreateTimeEntryRequest) =>
+      api.post<string>('/api/time/entries', data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['time', 'timesheet'] });
+      qc.invalidateQueries({ queryKey: ['time', 'status'] });
+    },
+  });
+}
+
+export function useAdminUpdateTimeEntry() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...data }: AdminUpdateTimeEntryRequest & { id: string }) =>
+      api.put<void>(`/api/time/entries/${id}`, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['time', 'timesheet'] });
+      qc.invalidateQueries({ queryKey: ['time', 'status'] });
+    },
+  });
+}
+
+export function useAdminDeleteTimeEntry() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) =>
+      api.delete<void>(`/api/time/entries/${id}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['time', 'timesheet'] });
+      qc.invalidateQueries({ queryKey: ['time', 'status'] });
+    },
+  });
+}
+
+// --- Batch Schedule Generation ---
+
+export function useGenerateBatchSchedules() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: GenerateBatchSchedulesRequest) =>
+      api.post<GenerateBatchResult>('/api/time/schedules/generate', data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['time', 'schedules'] });
+      qc.invalidateQueries({ queryKey: ['time', 'team-schedules'] });
     },
   });
 }

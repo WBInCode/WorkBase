@@ -13,6 +13,7 @@ public sealed class TimeEntry : AuditableEntity<Guid>, ITenantScoped, IAuditable
     public string? Note { get; private set; }
     public string? IpAddress { get; private set; }
     public string? Location { get; private set; }
+    public BreakType? BreakType { get; private set; }
 
     private TimeEntry() { }
 
@@ -24,7 +25,8 @@ public sealed class TimeEntry : AuditableEntity<Guid>, ITenantScoped, IAuditable
         ClockMethod method = ClockMethod.Manual,
         string? note = null,
         string? ipAddress = null,
-        string? location = null)
+        string? location = null,
+        BreakType? breakType = null)
     {
         var entry = new TimeEntry
         {
@@ -35,7 +37,8 @@ public sealed class TimeEntry : AuditableEntity<Guid>, ITenantScoped, IAuditable
             Method = method,
             Note = note,
             IpAddress = ipAddress,
-            Location = location
+            Location = location,
+            BreakType = breakType,
         };
 
         if (type == TimeEntryType.ClockIn)
@@ -52,6 +55,14 @@ public sealed class TimeEntry : AuditableEntity<Guid>, ITenantScoped, IAuditable
 
     public void UpdateNote(string? note)
     {
+        Note = note;
+    }
+
+    public void UpdateEntry(DateTime entryTime, TimeEntryType type, BreakType? breakType = null, string? note = null)
+    {
+        EntryTime = entryTime;
+        Type = type;
+        BreakType = breakType;
         Note = note;
     }
 }

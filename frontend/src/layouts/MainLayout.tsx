@@ -1,7 +1,7 @@
 import { useState, useEffect, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from 'react-oidc-context';
-import { FolderTree, Users, FileUp, LogOut, Menu, X, Shield, Grid3X3, CalendarDays, UsersRound, CalendarClock, Palmtree, CalendarRange, ClipboardCheck, ListTodo, ClipboardList, LayoutDashboard, Briefcase, Clock, MoreHorizontal, FileArchive, FolderOpen, Flag, CircleDot, type LucideIcon } from 'lucide-react';
+import { FolderTree, Users, FileUp, LogOut, Menu, X, Shield, Grid3X3, CalendarDays, UsersRound, CalendarClock, Palmtree, CalendarRange, ClipboardCheck, ListTodo, ClipboardList, LayoutDashboard, Briefcase, Clock, MoreHorizontal, FileArchive, FolderOpen, Flag, CircleDot, Coffee, Layers, type LucideIcon } from 'lucide-react';
 import { mapUserClaims } from '@/auth';
 import { ClockButton } from '@/components/TimeTracking';
 import { NotificationBell } from '@/components/Notifications';
@@ -94,6 +94,9 @@ const adminNavItems = [
   { path: '/admin/feature-flags', label: 'Flagi funkcjonalności', icon: Flag },
   { path: '/admin/leave-types', label: 'Typy urlopów', icon: Palmtree },
   { path: '/admin/task-statuses', label: 'Statusy zadań', icon: CircleDot },
+  { path: '/admin/break-policies', label: 'Polityki przerw', icon: Coffee },
+  { path: '/admin/positions', label: 'Stanowiska', icon: Briefcase },
+  { path: '/admin/unit-types', label: 'Typy jednostek', icon: Layers },
 ];
 
 export function MainLayout({ children }: MainLayoutProps) {
@@ -172,7 +175,10 @@ export function MainLayout({ children }: MainLayoutProps) {
         </div>
 
         {/* Nav */}
-        <nav style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '4px 10px 12px' }}>
+        <nav
+          className="wb-nav-scroll"
+          style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '4px 10px 12px' }}
+        >
           {navSections.map((section, si) => (
             <div key={si} style={{ marginBottom: 4 }}>
               {section.title && (

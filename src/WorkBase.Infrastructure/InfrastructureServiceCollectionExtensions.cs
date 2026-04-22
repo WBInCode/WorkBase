@@ -58,6 +58,7 @@ public static class InfrastructureServiceCollectionExtensions
             cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
             cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
             cfg.AddOpenBehavior(typeof(TenantBehavior<,>));
+            cfg.AddOpenBehavior(typeof(UnitOfWorkBehavior<,>));
         });
 
         services.AddValidatorsFromAssemblies(moduleApplicationAssemblies, includeInternalTypes: true);
@@ -134,10 +135,13 @@ public static class InfrastructureServiceCollectionExtensions
 
         // Public API & Webhooks
         services.AddSingleton<IApiKeyService, ApiKeyService>();
+        services.AddScoped<IWebhookSubscriptionRepository, InMemoryWebhookSubscriptionRepository>();
+        services.AddScoped<IWebhookDeliveryLogRepository, InMemoryWebhookDeliveryLogRepository>();
         services.AddScoped<IWebhookDispatcher, WebhookDispatcher>();
         services.AddHttpClient("Webhook");
 
         // Push Notifications
+        services.AddScoped<Notifications.IPushSubscriptionRepository, Notifications.InMemoryPushSubscriptionRepository>();
         services.AddScoped<IPushNotificationService, FcmPushNotificationService>();
         services.AddHttpClient("FCM");
 

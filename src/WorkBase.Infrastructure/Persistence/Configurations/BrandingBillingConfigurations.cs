@@ -18,7 +18,7 @@ public sealed class TenantBrandingConfiguration : IEntityTypeConfiguration<Tenan
         builder.Property(e => e.CustomDomain).HasMaxLength(256);
         builder.Property(e => e.CustomCss).HasMaxLength(8192);
         builder.HasIndex(e => e.TenantId).IsUnique();
-        builder.HasIndex(e => e.CustomDomain).IsUnique().HasFilter("\"CustomDomain\" IS NOT NULL");
+        builder.HasIndex(e => e.CustomDomain).IsUnique().HasFilter("custom_domain IS NOT NULL");
     }
 }
 

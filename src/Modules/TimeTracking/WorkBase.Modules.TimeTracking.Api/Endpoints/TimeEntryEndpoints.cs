@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Routing;
 using WorkBase.Modules.TimeTracking.Application.Commands;
 using WorkBase.Modules.TimeTracking.Application.Dtos;
 using WorkBase.Modules.TimeTracking.Application.Queries;
+using WorkBase.Modules.TimeTracking.Domain.Entities;
 using WorkBase.Shared.Api;
 using WorkBase.Shared.Auth;
 
@@ -52,11 +53,39 @@ public static class TimeEntryEndpoints
             .RequirePermission("time.view")
             .Produces<TimeStatusDto>();
 
+        group.MapGet("/break-availability/{employeeId:guid}", GetBreakAvailability)
+            .WithName("GetBreakAvailability")
+            .WithSummary("Pobierz dostępność przerw dla pracownika")
+            .RequirePermission("time.view")
+            .Produces<BreakAvailabilityDto>();
+
         group.MapGet("/timesheet/{employeeId:guid}", GetTimeSheet)
             .WithName("GetTimeSheet")
             .WithSummary("Pobierz kartę czasu pracy za okres (dzień/tydzień/miesiąc)")
             .RequirePermission("time.view")
             .Produces<TimeSheetPeriodDto>();
+
+        // Admin endpoints for managing employee entries
+        group.MapPost("/entries", AdminCreateEntry)
+            .WithName("AdminCreateTimeEntry")
+            .WithSummary("Dodaj wpis czasu pracy pracownika (admin)")
+            .RequirePermission("time.manage")
+            .Produces<Guid>(StatusCodes.Status201Created)
+            .Produces(StatusCodes.Status400BadRequest);
+
+        group.MapPut("/entries/{entryId:guid}", AdminUpdateEntry)
+            .WithName("AdminUpdateTimeEntry")
+            .WithSummary("Edytuj wpis czasu pracy (admin)")
+            .RequirePermission("time.manage")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status404NotFound);
+
+        group.MapDelete("/entries/{entryId:guid}", AdminDeleteEntry)
+            .WithName("AdminDeleteTimeEntry")
+            .WithSummary("Usuń wpis czasu pracy (admin)")
+            .RequirePermission("time.manage")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status404NotFound);
 
         return endpoints;
     }
@@ -99,7 +128,10 @@ public static class TimeEntryEndpoints
         StartBreakRequest request,
         ISender sender)
     {
-        var command = new StartBreakCommand(request.EmployeeId, request.Note);
+        if (!Enum.TryParse<BreakType>(request.BreakType, true, out var breakType))
+            return Results.BadRequest("Nieprawidłowy typ przerwy. Dozwolone: Paid, Unpaid.");
+
+        var command = new StartBreakCommand(request.EmployeeId, breakType, request.Note);
         var result = await sender.Send(command);
 
         return result.IsSuccess
@@ -128,6 +160,15 @@ public static class TimeEntryEndpoints
         return result.ToHttpResult();
     }
 
+    private static async Task<IResult> GetBreakAvailability(
+        Guid employeeId,
+        ISender sender)
+    {
+        var query = new GetBreakAvailabilityQuery(employeeId);
+        var result = await sender.Send(query);
+        return result.ToHttpResult();
+    }
+
     private static async Task<IResult> GetTimeSheet(
         Guid employeeId,
         [Microsoft.AspNetCore.Http.AsParameters] TimeSheetRequest request,
@@ -141,10 +182,61 @@ public static class TimeEntryEndpoints
         var result = await sender.Send(query);
         return result.ToHttpResult();
     }
+
+    private static async Task<IResult> AdminCreateEntry(
+        AdminCreateTimeEntryRequest request,
+        ISender sender)
+    {
+        var command = new AdminCreateTimeEntryCommand(
+            request.EmployeeId,
+            request.EntryTime,
+            request.Type,
+            request.BreakType,
+            request.Note);
+
+        var result = await sender.Send(command);
+
+        return result.IsSuccess
+            ? Results.Created($"/api/time/entries/{result.Value}", result.Value)
+            : result.ToHttpResult();
+    }
+
+    private static async Task<IResult> AdminUpdateEntry(
+        Guid entryId,
+        AdminUpdateTimeEntryRequest request,
+        ISender sender)
+    {
+        var command = new AdminUpdateTimeEntryCommand(
+            entryId,
+            request.EntryTime,
+            request.Type,
+            request.BreakType,
+            request.Note);
+
+        var result = await sender.Send(command);
+
+        return result.IsSuccess
+            ? Results.NoContent()
+            : result.ToHttpResult();
+    }
+
+    private static async Task<IResult> AdminDeleteEntry(
+        Guid entryId,
+        ISender sender)
+    {
+        var command = new AdminDeleteTimeEntryCommand(entryId);
+        var result = await sender.Send(command);
+
+        return result.IsSuccess
+            ? Results.NoContent()
+            : result.ToHttpResult();
+    }
 }
 
 public sealed record ClockInRequest(Guid EmployeeId, string? Note = null);
 public sealed record ClockOutRequest(Guid EmployeeId, string? Note = null);
-public sealed record StartBreakRequest(Guid EmployeeId, string? Note = null);
+public sealed record StartBreakRequest(Guid EmployeeId, string BreakType, string? Note = null);
 public sealed record EndBreakRequest(Guid EmployeeId, string? Note = null);
 public sealed record TimeSheetRequest(DateOnly? From, DateOnly? To, string? Period);
+public sealed record AdminCreateTimeEntryRequest(Guid EmployeeId, DateTime EntryTime, string Type, string? BreakType = null, string? Note = null);
+public sealed record AdminUpdateTimeEntryRequest(DateTime EntryTime, string Type, string? BreakType = null, string? Note = null);

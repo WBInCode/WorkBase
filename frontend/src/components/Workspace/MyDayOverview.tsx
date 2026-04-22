@@ -1,5 +1,11 @@
+import { useState, useEffect } from 'react';
 import { Clock, Coffee, Play, Square } from 'lucide-react';
 import type { TimeStatusDto } from '@/api/types/time';
+
+const BREAK_TYPE_LABELS: Record<string, string> = {
+  Paid: 'Przerwa płatna',
+  Unpaid: 'Przerwa bezpłatna',
+};
 
 interface Props {
   data: TimeStatusDto | undefined;
@@ -13,7 +19,58 @@ const STATUS_MAP: Record<string, { label: string; color: string; bg: string; ico
   'ended': { label: 'Zakończono', color: '#6b7280', bg: '#f3f4f6', icon: Square },
 };
 
+function parseDuration(duration: string): number {
+  const parts = duration.split(':');
+  if (parts.length < 2) return 0;
+  let hours = 0, minutes = 0, seconds = 0;
+  if (parts.length === 3) {
+    const hourPart = parts[0] ?? '';
+    if (hourPart.includes('.')) {
+      const [days, h] = hourPart.split('.');
+      hours = parseInt(days ?? '0') * 24 + parseInt(h ?? '0');
+    } else {
+      hours = parseInt(hourPart);
+    }
+    minutes = parseInt(parts[1] ?? '0');
+    seconds = parseInt(parts[2] ?? '0');
+  } else {
+    minutes = parseInt(parts[0] ?? '0');
+    seconds = parseInt(parts[1] ?? '0');
+  }
+  return hours * 3600 + minutes * 60 + seconds;
+}
+
+function formatDuration(totalSeconds: number): string {
+  const s = Math.floor(totalSeconds);
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+}
+
 export function MyDayOverview({ data, isLoading }: Props) {
+  const [elapsed, setElapsed] = useState(0);
+
+  const status = data?.status ?? 'not-started';
+  const isWorking = status === 'working';
+
+  useEffect(() => {
+    if (!data?.workedToday) { setElapsed(0); return; }
+
+    const base = parseDuration(data.workedToday);
+
+    if (!isWorking) { setElapsed(base); return; }
+
+    let extra = 0;
+    if (data.lastEntryTime && (data.lastEntryType === 'ClockIn' || data.lastEntryType === 'BreakEnd')) {
+      extra = Math.max(0, Math.floor((Date.now() - new Date(data.lastEntryTime).getTime()) / 1000));
+    }
+    setElapsed(base + extra);
+
+    const interval = setInterval(() => setElapsed((p) => p + 1), 1000);
+    return () => clearInterval(interval);
+  }, [data, isWorking]);
+
   if (isLoading || !data) {
     return (
       <div style={cardStyle}>
@@ -39,7 +96,11 @@ export function MyDayOverview({ data, isLoading }: Props) {
           <Icon size={24} color={cfg.color} />
         </div>
         <div>
-          <div style={{ fontSize: '18px', fontWeight: 700, color: cfg.color }}>{cfg.label}</div>
+          <div style={{ fontSize: '18px', fontWeight: 700, color: cfg.color }}>
+            {data.status === 'on-break' && data.currentBreakType
+              ? BREAK_TYPE_LABELS[data.currentBreakType] ?? cfg.label
+              : cfg.label}
+          </div>
           {data.lastEntryTime && (
             <div style={{ fontSize: '12px', color: '#9ca3af' }}>
               od {new Date(data.lastEntryTime).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}
@@ -51,11 +112,11 @@ export function MyDayOverview({ data, isLoading }: Props) {
       <div style={{ display: 'flex', gap: '24px' }}>
         <div>
           <div style={{ fontSize: '11px', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Przepracowano</div>
-          <div style={{ fontSize: '20px', fontWeight: 600, color: '#111827' }}>{data.workedToday}</div>
+          <div style={{ fontSize: '20px', fontWeight: 600, color: '#111827', fontVariantNumeric: 'tabular-nums' }}>{formatDuration(elapsed)}</div>
         </div>
         <div>
           <div style={{ fontSize: '11px', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Przerwy</div>
-          <div style={{ fontSize: '20px', fontWeight: 600, color: '#6b7280' }}>{data.breaksToday}</div>
+          <div style={{ fontSize: '20px', fontWeight: 600, color: '#6b7280', fontVariantNumeric: 'tabular-nums' }}>{formatDuration(parseDuration(data.breaksToday))}</div>
         </div>
       </div>
     </div>

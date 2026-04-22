@@ -1,12 +1,50 @@
-import { useState } from 'react';
-import { FolderTree, Building2, RefreshCw } from 'lucide-react';
-import { useOrgUnitTree } from '@/api/hooks/useOrganization';
+import { useState, type FormEvent } from 'react';
+import { FolderTree, Building2, RefreshCw, Plus, Edit2, Trash2, X } from 'lucide-react';
+import { useOrgUnitTree, useUnitTypes, useCreateOrgUnit, useUpdateOrgUnit, useDeleteOrgUnit } from '@/api/hooks/useOrganization';
 import { OrgTree } from '@/components/OrgTree';
 import type { OrganizationUnitTreeNode } from '@/api/types/organization';
 
 export function OrgTreePage() {
   const { data: tree, isLoading, error, refetch } = useOrgUnitTree();
   const [selectedNode, setSelectedNode] = useState<OrganizationUnitTreeNode | null>(null);
+  const [showForm, setShowForm] = useState(false);
+  const [editingNode, setEditingNode] = useState<OrganizationUnitTreeNode | null>(null);
+  const [addParentId, setAddParentId] = useState<string | undefined>(undefined);
+
+  const deleteMutation = useDeleteOrgUnit();
+
+  const handleAddRoot = () => {
+    setEditingNode(null);
+    setAddParentId(undefined);
+    setShowForm(true);
+  };
+
+  const handleAddChild = (parentId: string) => {
+    setEditingNode(null);
+    setAddParentId(parentId);
+    setShowForm(true);
+  };
+
+  const handleEdit = (node: OrganizationUnitTreeNode) => {
+    setEditingNode(node);
+    setAddParentId(undefined);
+    setShowForm(true);
+  };
+
+  const handleDelete = (node: OrganizationUnitTreeNode) => {
+    if (!confirm(`Czy na pewno usunąć jednostkę "${node.name}"?`)) return;
+    deleteMutation.mutate(node.id, {
+      onSuccess: () => {
+        if (selectedNode?.id === node.id) setSelectedNode(null);
+      },
+    });
+  };
+
+  const handleFormClose = () => {
+    setShowForm(false);
+    setEditingNode(null);
+    setAddParentId(undefined);
+  };
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -27,27 +65,47 @@ export function OrgTreePage() {
           </h1>
         </div>
 
-        <button
-          onClick={() => refetch()}
-          disabled={isLoading}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '8px 16px',
-            fontSize: '14px',
-            fontWeight: 500,
-            color: '#374151',
-            backgroundColor: '#ffffff',
-            border: '1px solid #d1d5db',
-            borderRadius: '6px',
-            cursor: isLoading ? 'not-allowed' : 'pointer',
-            opacity: isLoading ? 0.6 : 1,
-          }}
-        >
-          <RefreshCw size={16} style={{ animation: isLoading ? 'spin 1s linear infinite' : 'none' }} />
-          Odśwież
-        </button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button
+            onClick={() => refetch()}
+            disabled={isLoading}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 16px',
+              fontSize: '14px',
+              fontWeight: 500,
+              color: '#374151',
+              backgroundColor: '#ffffff',
+              border: '1px solid #d1d5db',
+              borderRadius: '6px',
+              cursor: isLoading ? 'not-allowed' : 'pointer',
+              opacity: isLoading ? 0.6 : 1,
+            }}
+          >
+            <RefreshCw size={16} style={{ animation: isLoading ? 'spin 1s linear infinite' : 'none' }} />
+            Odśwież
+          </button>
+          <button
+            onClick={handleAddRoot}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 16px',
+              fontSize: '14px',
+              fontWeight: 500,
+              color: '#ffffff',
+              backgroundColor: '#3b82f6',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+            }}
+          >
+            <Plus size={16} /> Dodaj jednostkę
+          </button>
+        </div>
       </div>
 
       {/* Content */}
@@ -117,10 +175,25 @@ export function OrgTreePage() {
               backgroundColor: '#fafafa',
             }}
           >
-            <UnitDetailPanel node={selectedNode} onClose={() => setSelectedNode(null)} />
+            <UnitDetailPanel
+              node={selectedNode}
+              onClose={() => setSelectedNode(null)}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onAddChild={handleAddChild}
+            />
           </div>
         )}
       </div>
+
+      {/* Form modal */}
+      {showForm && (
+        <OrgUnitFormModal
+          unit={editingNode}
+          parentId={addParentId}
+          onClose={handleFormClose}
+        />
+      )}
 
       <style>{`
         @keyframes spin {
@@ -135,9 +208,15 @@ export function OrgTreePage() {
 function UnitDetailPanel({
   node,
   onClose,
+  onEdit,
+  onDelete,
+  onAddChild,
 }: {
   node: OrganizationUnitTreeNode;
   onClose: () => void;
+  onEdit: (n: OrganizationUnitTreeNode) => void;
+  onDelete: (n: OrganizationUnitTreeNode) => void;
+  onAddChild: (parentId: string) => void;
 }) {
   return (
     <div>
@@ -148,21 +227,50 @@ function UnitDetailPanel({
             {node.name}
           </h2>
         </div>
-        <button
-          onClick={onClose}
-          style={{
-            padding: '4px 10px',
-            fontSize: '18px',
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            color: '#6b7280',
-            borderRadius: '4px',
-          }}
-          aria-label="Zamknij panel"
-        >
-          ×
-        </button>
+        <div style={{ display: 'flex', gap: '6px' }}>
+          <button
+            onClick={() => onAddChild(node.id)}
+            title="Dodaj podjednostkę"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '4px',
+              padding: '6px 12px', fontSize: '13px', fontWeight: 500,
+              color: '#fff', backgroundColor: '#3b82f6', border: 'none',
+              borderRadius: '4px', cursor: 'pointer',
+            }}
+          >
+            <Plus size={14} /> Podjednostka
+          </button>
+          <button
+            onClick={() => onEdit(node)}
+            title="Edytuj"
+            style={{
+              padding: '6px 8px', background: 'none', border: '1px solid #d1d5db',
+              borderRadius: '4px', cursor: 'pointer', color: '#374151',
+            }}
+          >
+            <Edit2 size={14} />
+          </button>
+          <button
+            onClick={() => onDelete(node)}
+            title="Usuń"
+            style={{
+              padding: '6px 8px', background: 'none', border: '1px solid #fecaca',
+              borderRadius: '4px', cursor: 'pointer', color: '#dc2626',
+            }}
+          >
+            <Trash2 size={14} />
+          </button>
+          <button
+            onClick={onClose}
+            style={{
+              padding: '4px 10px', fontSize: '18px', background: 'none',
+              border: 'none', cursor: 'pointer', color: '#6b7280', borderRadius: '4px',
+            }}
+            aria-label="Zamknij panel"
+          >
+            ×
+          </button>
+        </div>
       </div>
 
       <div
@@ -246,3 +354,130 @@ function DetailRow({
     </div>
   );
 }
+
+/* ── Org Unit Form Modal ── */
+
+function OrgUnitFormModal({
+  unit,
+  parentId,
+  onClose,
+}: {
+  unit: OrganizationUnitTreeNode | null;
+  parentId?: string;
+  onClose: () => void;
+}) {
+  const { data: unitTypes = [] } = useUnitTypes();
+  const createMutation = useCreateOrgUnit();
+  const updateMutation = useUpdateOrgUnit();
+  const isEditing = !!unit;
+
+  const [name, setName] = useState(unit?.name ?? '');
+  const [code, setCode] = useState(unit?.code ?? '');
+  const [typeId, setTypeId] = useState(unit?.typeId ?? '');
+
+  const isPending = isEditing ? updateMutation.isPending : createMutation.isPending;
+  const error = isEditing ? updateMutation.error : createMutation.error;
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    if (isEditing) {
+      updateMutation.mutate(
+        { id: unit.id, name, code: code || undefined, typeId },
+        { onSuccess: onClose },
+      );
+    } else {
+      createMutation.mutate(
+        { name, code: code || undefined, typeId, parentId },
+        { onSuccess: onClose },
+      );
+    }
+  };
+
+  return (
+    <div
+      style={{
+        position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
+      }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div
+        style={{
+          backgroundColor: '#fff', borderRadius: '12px', padding: '24px',
+          width: '100%', maxWidth: '480px', boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+          <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 600 }}>
+            {isEditing ? 'Edytuj jednostkę' : parentId ? 'Dodaj podjednostkę' : 'Nowa jednostka'}
+          </h2>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280' }}>
+            <X size={20} />
+          </button>
+        </div>
+
+        {error && (
+          <div style={{ padding: '10px 14px', marginBottom: '12px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '6px', color: '#dc2626', fontSize: '13px' }}>
+            {error.message}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit}>
+          <div style={{ marginBottom: '14px' }}>
+            <label style={labelStyle}>Nazwa *</label>
+            <input
+              value={name} onChange={(e) => setName(e.target.value)}
+              required style={inputStyle}
+            />
+          </div>
+          <div style={{ marginBottom: '14px' }}>
+            <label style={labelStyle}>Kod</label>
+            <input
+              value={code} onChange={(e) => setCode(e.target.value)}
+              style={inputStyle} placeholder="np. IT-DEV"
+            />
+          </div>
+          <div style={{ marginBottom: '14px' }}>
+            <label style={labelStyle}>Typ jednostki *</label>
+            <select
+              value={typeId} onChange={(e) => setTypeId(e.target.value)}
+              required style={inputStyle}
+            >
+              <option value="">-- Wybierz --</option>
+              {unitTypes.map((t) => (
+                <option key={t.id} value={t.id}>{t.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '20px' }}>
+            <button type="button" onClick={onClose} style={{ padding: '8px 16px', fontSize: '14px', border: '1px solid #d1d5db', borderRadius: '6px', backgroundColor: '#fff', cursor: 'pointer' }}>
+              Anuluj
+            </button>
+            <button
+              type="submit"
+              disabled={isPending || !name || !typeId}
+              style={{
+                padding: '8px 20px', fontSize: '14px', fontWeight: 500,
+                color: '#fff', backgroundColor: '#3b82f6', border: 'none',
+                borderRadius: '6px', cursor: isPending ? 'not-allowed' : 'pointer',
+                opacity: isPending ? 0.7 : 1,
+              }}
+            >
+              {isPending ? 'Zapisywanie...' : isEditing ? 'Zapisz' : 'Utwórz'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+const labelStyle: React.CSSProperties = {
+  display: 'block', marginBottom: '4px', fontSize: '13px', fontWeight: 500, color: '#374151',
+};
+
+const inputStyle: React.CSSProperties = {
+  width: '100%', padding: '8px 12px', fontSize: '14px',
+  border: '1px solid #d1d5db', borderRadius: '6px', boxSizing: 'border-box',
+};

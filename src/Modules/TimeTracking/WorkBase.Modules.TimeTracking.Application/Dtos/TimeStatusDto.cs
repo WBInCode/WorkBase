@@ -5,4 +5,5 @@ public sealed record TimeStatusDto(
     DateTime? LastEntryTime,
     string? LastEntryType,
     TimeSpan WorkedToday,
-    TimeSpan BreaksToday);
+    TimeSpan BreaksToday,
+    string? CurrentBreakType);

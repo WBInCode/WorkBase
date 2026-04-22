@@ -1,12 +1,19 @@
 namespace WorkBase.Modules.TimeTracking.Application.Dtos;
 
+public sealed record TimeSheetEntryDto(
+    Guid Id,
+    DateTime EntryTime,
+    string Type,
+    string? BreakType);
+
 public sealed record TimeSheetDayDto(
     DateOnly Date,
     TimeSpan TotalWorked,
     TimeSpan TotalBreaks,
     TimeSpan NetWorked,
     string Status,
-    string? Note);
+    string? Note,
+    IReadOnlyList<TimeSheetEntryDto> Entries);
 
 public sealed record TimeSheetPeriodDto(
     DateOnly From,

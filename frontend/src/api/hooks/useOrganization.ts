@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/api/client';
 import type {
   OrganizationUnitTreeNode,
+  OrganizationUnitType,
   EmployeeDto,
   EmployeeDetailDto,
   EmployeeStatus,
@@ -10,6 +11,13 @@ import type {
   CreateEmployeeRequest,
   AssignEmployeeRequest,
   SetSupervisorRequest,
+  CreateOrgUnitRequest,
+  UpdateOrgUnitRequest,
+  CreatePositionRequest,
+  UpdatePositionRequest,
+  CreateUnitTypeRequest,
+  UpdateUnitTypeRequest,
+  UpdateEmployeeRequest,
 } from '@/api/types/organization';
 
 export function useOrgUnitTree() {
@@ -79,6 +87,118 @@ export function useSetSupervisor() {
   return useMutation({
     mutationFn: ({ employeeId, ...data }: SetSupervisorRequest & { employeeId: string }) =>
       api.put<void>(`/api/org/employees/${employeeId}/supervisor`, data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['org', 'employees'] }),
+  });
+}
+
+// ─── Org Unit CRUD ───
+
+export function useCreateOrgUnit() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: CreateOrgUnitRequest) =>
+      api.post<string>('/api/org/units', data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['org', 'units'] }),
+  });
+}
+
+export function useUpdateOrgUnit() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...data }: UpdateOrgUnitRequest & { id: string }) =>
+      api.put<void>(`/api/org/units/${id}`, data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['org', 'units'] }),
+  });
+}
+
+export function useDeleteOrgUnit() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.delete<void>(`/api/org/units/${id}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['org', 'units'] }),
+  });
+}
+
+// ─── Unit Types CRUD ───
+
+export function useUnitTypes() {
+  return useQuery({
+    queryKey: ['org', 'unit-types'],
+    queryFn: () => api.get<OrganizationUnitType[]>('/api/org/unit-types'),
+  });
+}
+
+export function useCreateUnitType() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: CreateUnitTypeRequest) =>
+      api.post<string>('/api/org/unit-types', data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['org', 'unit-types'] }),
+  });
+}
+
+export function useUpdateUnitType() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...data }: UpdateUnitTypeRequest & { id: string }) =>
+      api.put<void>(`/api/org/unit-types/${id}`, data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['org', 'unit-types'] }),
+  });
+}
+
+export function useDeleteUnitType() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.delete<void>(`/api/org/unit-types/${id}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['org', 'unit-types'] }),
+  });
+}
+
+// ─── Positions CRUD ───
+
+export function useCreatePosition() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: CreatePositionRequest) =>
+      api.post<string>('/api/org/positions', data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['org', 'positions'] }),
+  });
+}
+
+export function useUpdatePosition() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...data }: UpdatePositionRequest & { id: string }) =>
+      api.put<void>(`/api/org/positions/${id}`, data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['org', 'positions'] }),
+  });
+}
+
+export function useDeletePosition() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.delete<void>(`/api/org/positions/${id}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['org', 'positions'] }),
+  });
+}
+
+// ─── Employee Update/Deactivate ───
+
+export function useUpdateEmployee() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...data }: UpdateEmployeeRequest & { id: string }) =>
+      api.put<void>(`/api/org/employees/${id}`, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['org', 'employees'] });
+    },
+  });
+}
+
+export function useDeactivateEmployee() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.delete<void>(`/api/org/employees/${id}`),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['org', 'employees'] }),
   });
 }

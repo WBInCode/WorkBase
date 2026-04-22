@@ -11,11 +11,14 @@ public sealed class LeaveCalendarEntryRepository(WorkBaseDbContext dbContext) : 
         Guid tenantId, IReadOnlyList<Guid> employeeIds,
         DateTime from, DateTime to, CancellationToken cancellationToken = default)
     {
+        var fromUtc = DateTime.SpecifyKind(from, DateTimeKind.Utc);
+        var toUtc = DateTime.SpecifyKind(to, DateTimeKind.Utc);
+
         return await dbContext.Set<LeaveCalendarEntry>()
             .Where(e => e.TenantId == tenantId
                 && employeeIds.Contains(e.EmployeeId)
-                && e.Date >= from
-                && e.Date <= to)
+                && e.Date >= fromUtc
+                && e.Date <= toUtc)
             .OrderBy(e => e.Date)
             .ToListAsync(cancellationToken);
     }
