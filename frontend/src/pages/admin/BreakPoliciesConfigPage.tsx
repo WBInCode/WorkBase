@@ -22,7 +22,7 @@ export function BreakPoliciesConfigPage() {
   );
 
   const handleUpdate = useCallback(
-    (id: string, req: { name: string; maxPerDay: number; maxMinutesPerBreak: number; maxMinutesPerDay: number; isActive: boolean }) => {
+    (id: string, req: Omit<BreakPolicyDto, 'id'>) => {
       updateMutation.mutate({ id, ...req }, {
         onSuccess: () => { setEditing(null); setShowForm(false); updateMutation.reset(); },
       });
