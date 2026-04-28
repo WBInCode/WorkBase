@@ -90,7 +90,7 @@ export function useCreateBreakPolicy() {
 export function useUpdateBreakPolicy() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, ...data }: { id: string; name: string; maxPerDay: number; maxMinutesPerBreak: number; maxMinutesPerDay: number; isActive: boolean }) =>
+    mutationFn: ({ id, ...data }: { id: string } & Omit<BreakPolicyDto, 'id'>) =>
       api.put<void>(`/api/time/break-policies/${id}`, data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['time', 'break-policies'] });

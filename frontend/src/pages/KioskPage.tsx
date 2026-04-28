@@ -116,7 +116,7 @@ export function KioskPage() {
       const request = { employeeId: activeEmployeeId, note: kioskLocation ? `Kiosk: ${kioskLocation}` : 'Kiosk' };
       if (action === 'clock-in') await clockIn.mutateAsync(request);
       if (action === 'clock-out') await clockOut.mutateAsync(request);
-      if (action === 'break-start') await startBreak.mutateAsync(request);
+      if (action === 'break-start') await startBreak.mutateAsync({ ...request, breakType: 'Paid' });
       if (action === 'break-end') await endBreak.mutateAsync(request);
       setFeedback({ type: 'success', message: actionLabels[action] + ' — OK' });
       // After action, return to badge screen after delay (kiosk mode)
