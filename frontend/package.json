@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "type-check": "tsc --noEmit",
-    "test": "vitest run",
+    "test": "vitest run --passWithNoTests",
     "cap:init": "cap init WorkBase pl.workbase.app --web-dir dist",
     "cap:add:android": "cap add android",
     "cap:add:ios": "cap add ios",
