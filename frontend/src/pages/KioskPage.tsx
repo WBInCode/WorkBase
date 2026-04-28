@@ -92,8 +92,17 @@ export function KioskPage() {
       setIdentifiedEmployee(emp);
       setBadgeInput('');
     } catch {
-      setLookupError('Nie znaleziono pracownika o tym numerze.');
-      setBadgeInput('');
+      // Fallback: try lookup by employee ID (QR may contain GUID)
+      try {
+        const emp = await api.get<KioskEmployee>(
+          `/api/org/employees/${encodeURIComponent(badgeNumber.trim())}`
+        );
+        setIdentifiedEmployee(emp);
+        setBadgeInput('');
+      } catch {
+        setLookupError('Nie znaleziono pracownika o tym numerze.');
+        setBadgeInput('');
+      }
     } finally {
       setLookupLoading(false);
     }

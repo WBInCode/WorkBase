@@ -4,6 +4,7 @@ import { useTimeStatus } from '@/api/hooks/useTimeTracking';
 import { useTasks } from '@/api/hooks/useTasks';
 import { usePendingApprovals } from '@/api/hooks/useWorkflow';
 import { useLeaveRequests } from '@/api/hooks/useLeave';
+import { useEmployeeDetail } from '@/api/hooks/useOrganization';
 import { ClockButton, MyQrBadge } from '@/components/TimeTracking';
 import {
   MyDayOverview,
@@ -19,6 +20,7 @@ export function WorkspacePage() {
   const employeeId = user?.employeeId ?? null;
 
   const { data: timeStatus, isLoading: timeLoading } = useTimeStatus(employeeId ?? undefined);
+  const { data: employeeDetail } = useEmployeeDetail(employeeId);
   const { data: tasks = [], isLoading: tasksLoading } = useTasks(employeeId);
   const { data: approvals = [], isLoading: approvalsLoading } = usePendingApprovals(employeeId);
   const { data: leaveRequests = [], isLoading: leaveLoading } = useLeaveRequests(employeeId);
@@ -66,6 +68,7 @@ export function WorkspacePage() {
           <MyQrBadge
             employeeId={employeeId}
             employeeName={user?.name ?? ''}
+            employeeNumber={employeeDetail?.employeeNumber ?? undefined}
           />
         </div>
       )}
