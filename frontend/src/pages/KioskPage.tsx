@@ -296,7 +296,10 @@ export function KioskPage() {
             <KioskButton icon={Coffee} label="Wznów" color="#3b82f6" onClick={() => handleAction('break-end')} disabled={isPending} />
           )}
           {status === 'ended' && (
-            <div style={{ fontSize: '18px', color: '#94a3b8' }}>Dzień zakończony ✓</div>
+            <>
+              <div style={{ fontSize: '18px', color: '#94a3b8', width: '100%', textAlign: 'center', marginBottom: '12px' }}>Dzień zakończony ✓</div>
+              <KioskButton icon={LogIn} label="Rozpocznij ponownie" color="#22c55e" onClick={() => handleAction('clock-in')} disabled={isPending} />
+            </>
           )}
         </div>
       )}
