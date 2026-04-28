@@ -1,0 +1,75 @@
+databases:
+  - name: workbase-db
+    plan: free
+    databaseName: workbase
+    user: workbase
+    postgresMajorVersion: "16"
+
+services:
+  # --- Backend API (.NET 9) ---
+  - type: web
+    name: workbase-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./docker/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ConnectionStrings__DefaultConnection
+        fromDatabase:
+          name: workbase-db
+          property: connectionString
+      - key: Keycloak__Authority
+        value: https://workbase-auth.onrender.com/realms/workbase
+      - key: Cors__AllowedOrigins__0
+        value: https://work-base-roan.vercel.app
+      - key: Cors__AllowedOrigins__1
+        value: http://localhost:5173
+
+  # --- Keycloak 24 ---
+  - type: web
+    name: workbase-auth
+    runtime: docker
+    plan: free
+    dockerfilePath: ./docker/Dockerfile.keycloak
+    dockerContext: .
+    healthCheckPath: /
+    envVars:
+      - key: KC_DB
+        value: postgres
+      - key: KC_DB_URL_HOST
+        fromDatabase:
+          name: workbase-db
+          property: host
+      - key: KC_DB_URL_PORT
+        fromDatabase:
+          name: workbase-db
+          property: port
+      - key: KC_DB_URL_DATABASE
+        fromDatabase:
+          name: workbase-db
+          property: database
+      - key: KC_DB_USERNAME
+        fromDatabase:
+          name: workbase-db
+          property: user
+      - key: KC_DB_PASSWORD
+        fromDatabase:
+          name: workbase-db
+          property: password
+      - key: KC_DB_SCHEMA
+        value: keycloak
+      - key: KEYCLOAK_ADMIN
+        value: admin
+      - key: KEYCLOAK_ADMIN_PASSWORD
+        generateValue: true
+      - key: KC_HOSTNAME
+        value: workbase-auth.onrender.com
+      - key: KC_HOSTNAME_STRICT
+        value: "false"
+      - key: KC_PROXY
+        value: edge
+      - key: KC_HTTP_ENABLED
+        value: "true"
