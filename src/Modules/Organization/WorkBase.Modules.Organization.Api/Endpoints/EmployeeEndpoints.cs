@@ -83,6 +83,13 @@ public static class EmployeeEndpoints
             .Produces<EmployeeDto>()
             .Produces(StatusCodes.Status404NotFound);
 
+        group.MapPut("/{id:guid}/link-user", LinkUser)
+            .WithName("LinkUserToEmployee")
+            .WithSummary("Powiąż konto Keycloak z pracownikiem")
+            .RequirePermission("org.edit")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status404NotFound);
+
         return endpoints;
     }
 
@@ -183,6 +190,16 @@ public static class EmployeeEndpoints
         var result = await sender.Send(new GetEmployeeByNumberQuery(tid, employeeNumber));
         return result.ToHttpResult();
     }
+
+    private static async Task<IResult> LinkUser(
+        Guid id,
+        LinkUserRequest request,
+        ISender sender)
+    {
+        var command = new LinkUserCommand(id, request.UserId);
+        var result = await sender.Send(command);
+        return result.IsSuccess ? Results.NoContent() : result.ToHttpResult();
+    }
 }
 
 public sealed record AssignEmployeeRequest(
@@ -199,3 +216,6 @@ public sealed record UpdateEmployeeRequest(
     string LastName,
     string Email,
     string? EmployeeNumber);
+
+public sealed record LinkUserRequest(
+    Guid UserId);

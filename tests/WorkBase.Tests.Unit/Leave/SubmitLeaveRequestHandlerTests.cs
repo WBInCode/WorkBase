@@ -132,7 +132,7 @@ public class SubmitLeaveRequestHandlerTests
     }
 
     [Fact]
-    public async Task NoBalance_ReturnsFailure()
+    public async Task NoBalance_AutoCreatesBalanceAndProceeds()
     {
         var leaveType = CreateLeaveType();
         _typeRepo.GetByIdAsync(leaveType.Id, Arg.Any<CancellationToken>()).Returns(leaveType);
@@ -141,12 +141,17 @@ public class SubmitLeaveRequestHandlerTests
             Arg.Any<Guid?>(), Arg.Any<CancellationToken>()).Returns(false);
         _balanceRepo.GetAsync(TenantId, EmployeeId, leaveType.Id, 2025, Arg.Any<CancellationToken>())
             .Returns((LeaveBalance?)null);
+        _calculator.ValidateBalance(Arg.Any<LeaveBalance>(), 5).Returns(Result.Success());
+        _workflowService.CreateInstanceAsync(
+            Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<string>(),
+            Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(Guid.NewGuid());
 
         var command = CreateCommand(leaveType.Id);
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        Assert.True(result.IsFailure);
-        Assert.Equal("Leave.NoBalance", result.Error.Code);
+        Assert.True(result.IsSuccess);
+        await _balanceRepo.Received(1).AddAsync(Arg.Any<LeaveBalance>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
