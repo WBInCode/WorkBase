@@ -204,6 +204,7 @@ export function KioskPage() {
               Pokaż swój kod QR do kamery
             </div>
             <QrScanner
+              facingMode="user"
               onScan={(value) => {
                 handleQrScan(value);
                 setMode('badge');
