@@ -1,9 +1,9 @@
-databases:
-  - name: workbase-db
-    plan: free
-    databaseName: workbase
-    user: workbase
-    postgresMajorVersion: "16"
+# WorkBase - Render Blueprint (Neon as DB)
+#
+# Po pierwszym deploy:
+#  1. W Neon SQL Editor wykonaj: CREATE SCHEMA IF NOT EXISTS keycloak;
+#  2. W Render dashboard dla obu serwisow wpisz NEON_PASSWORD (haslo z Neon)
+#  3. Manual Deploy obu serwisow
 
 services:
   # --- Backend API (.NET 9) ---
@@ -11,16 +11,17 @@ services:
     name: workbase-api
     runtime: docker
     plan: free
+    region: frankfurt
     dockerfilePath: ./docker/Dockerfile
     dockerContext: .
     healthCheckPath: /health
     envVars:
       - key: ASPNETCORE_ENVIRONMENT
         value: Production
+      - key: NEON_PASSWORD
+        sync: false
       - key: ConnectionStrings__DefaultConnection
-        fromDatabase:
-          name: workbase-db
-          property: connectionString
+        value: "Host=ep-restless-fog-alz3p9w0-pooler.c-3.eu-central-1.aws.neon.tech;Database=neondb;Username=neondb_owner;Password=${NEON_PASSWORD};SslMode=Require;Trust Server Certificate=true"
       - key: Keycloak__Authority
         value: https://workbase-auth.onrender.com/realms/workbase
       - key: Cors__AllowedOrigins__0
@@ -33,32 +34,22 @@ services:
     name: workbase-auth
     runtime: docker
     plan: free
+    region: frankfurt
     dockerfilePath: ./docker/Dockerfile.keycloak
     dockerContext: .
     healthCheckPath: /
     envVars:
       - key: KC_DB
         value: postgres
-      - key: KC_DB_URL_HOST
-        fromDatabase:
-          name: workbase-db
-          property: host
-      - key: KC_DB_URL_PORT
-        fromDatabase:
-          name: workbase-db
-          property: port
-      - key: KC_DB_URL_DATABASE
-        fromDatabase:
-          name: workbase-db
-          property: database
+      - key: NEON_PASSWORD
+        sync: false
+      # Direct endpoint (bez -pooler) - Keycloak nie lubi pgBouncera
+      - key: KC_DB_URL
+        value: jdbc:postgresql://ep-restless-fog-alz3p9w0.c-3.eu-central-1.aws.neon.tech/neondb?sslmode=require
       - key: KC_DB_USERNAME
-        fromDatabase:
-          name: workbase-db
-          property: user
+        value: neondb_owner
       - key: KC_DB_PASSWORD
-        fromDatabase:
-          name: workbase-db
-          property: password
+        value: ${NEON_PASSWORD}
       - key: KC_DB_SCHEMA
         value: keycloak
       - key: KEYCLOAK_ADMIN
