@@ -70,9 +70,9 @@ COPY src/Modules/Contacts/WorkBase.Modules.Contacts.Api/WorkBase.Modules.Contact
 
 RUN dotnet restore src/WorkBase.Host/WorkBase.Host.csproj
 
-# Copy everything and build
+# Copy everything and build (re-restore here picks up any modules not pre-copied above, e.g. Sales/AI/Forms)
 COPY . .
-RUN dotnet publish src/WorkBase.Host/WorkBase.Host.csproj -c Release -o /app/publish --no-restore
+RUN dotnet publish src/WorkBase.Host/WorkBase.Host.csproj -c Release -o /app/publish
 
 # --- Runtime ---
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
