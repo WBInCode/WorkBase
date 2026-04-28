@@ -102,6 +102,7 @@ frontend/.vite/
 .env
 .env.local
 .env.*.local
+*.env
 !.env.example
 
 ## Capacitor (generated)
