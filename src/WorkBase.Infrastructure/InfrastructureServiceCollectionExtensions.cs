@@ -44,6 +44,8 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
 
         services.AddScoped<UserProvisioningService>();
+        services.AddHttpClient();
+        services.AddScoped<IKeycloakAdminService, KeycloakAdminService>();
 
         services.AddScoped<ICurrentTenantService, HttpContextTenantService>();
         services.AddScoped<IDataScopeService, DataScopeService>();
