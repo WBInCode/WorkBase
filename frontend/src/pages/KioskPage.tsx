@@ -81,7 +81,7 @@ export function KioskPage() {
     }
   }, [isKioskAccount, identifiedEmployee]);
 
-  const lookupEmployee = useCallback(async (badgeNumber: string) => {
+  const lookupEmployee = useCallback(async (badgeNumber: string, retryCount = 0) => {
     if (!badgeNumber.trim()) return;
     setLookupLoading(true);
     setLookupError(null);
@@ -91,7 +91,25 @@ export function KioskPage() {
       );
       setIdentifiedEmployee(emp);
       setBadgeInput('');
-    } catch {
+    } catch (err) {
+      // Fallback: try lookup by employee ID (QR may contain GUID)
+      const isGuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(badgeNumber.trim());
+      if (isGuid) {
+        try {
+          const emp = await api.get<KioskEmployee>(
+            `/api/org/employees/${encodeURIComponent(badgeNumber.trim())}`
+          );
+          setIdentifiedEmployee(emp);
+          setBadgeInput('');
+          return;
+        } catch { /* fall through to error */ }
+      }
+      // Retry once on network/server errors (API cold start on free tier)
+      if (retryCount < 1 && err instanceof Error && !('status' in err && (err as { status: number }).status === 404)) {
+        await new Promise(r => setTimeout(r, 2000));
+        setLookupLoading(false);
+        return lookupEmployee(badgeNumber, retryCount + 1);
+      }
       setLookupError('Nie znaleziono pracownika o tym numerze.');
       setBadgeInput('');
     } finally {
@@ -195,6 +213,7 @@ export function KioskPage() {
               Pokaż swój kod QR do kamery
             </div>
             <QrScanner
+              facingMode="user"
               onScan={(value) => {
                 handleQrScan(value);
                 setMode('badge');
@@ -287,7 +306,10 @@ export function KioskPage() {
             <KioskButton icon={Coffee} label="Wznów" color="#3b82f6" onClick={() => handleAction('break-end')} disabled={isPending} />
           )}
           {status === 'ended' && (
-            <div style={{ fontSize: '18px', color: '#94a3b8' }}>Dzień zakończony ✓</div>
+            <>
+              <div style={{ fontSize: '18px', color: '#94a3b8', width: '100%', textAlign: 'center', marginBottom: '12px' }}>Dzień zakończony ✓</div>
+              <KioskButton icon={LogIn} label="Rozpocznij ponownie" color="#22c55e" onClick={() => handleAction('clock-in')} disabled={isPending} />
+            </>
           )}
         </div>
       )}
