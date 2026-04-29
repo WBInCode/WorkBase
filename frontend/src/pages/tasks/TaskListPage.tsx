@@ -6,6 +6,7 @@ import { mapUserClaims } from '@/auth';
 import { useTasks, useTaskStatuses, useTaskPriorities, useCreateTask, useDeleteTask } from '@/api/hooks/useTasks';
 import { useEmployees } from '@/api/hooks/useOrganization';
 import type { CreateTaskRequest } from '@/api/types/tasks';
+import { useIsMobile } from '@/shared';
 
 export function TaskListPage() {
   const auth = useAuth();
@@ -20,6 +21,7 @@ export function TaskListPage() {
 
   const createMutation = useCreateTask();
   const deleteMutation = useDeleteTask();
+  const mobile = useIsMobile();
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -33,7 +35,9 @@ export function TaskListPage() {
   const [formDesc, setFormDesc] = useState('');
   const [formPriority, setFormPriority] = useState('');
   const [formAssignee, setFormAssignee] = useState('');
+  const [formAdditionalAssignees, setFormAdditionalAssignees] = useState<string[]>([]);
   const [formDueDate, setFormDueDate] = useState('');
+  const [formError, setFormError] = useState<string | null>(null);
 
   const now = new Date();
 
@@ -66,11 +70,21 @@ export function TaskListPage() {
   }, [employees]);
 
   const handleCreate = () => {
-    if (!formTitle || !formPriority || !formAssignee) return;
+    const missing: string[] = [];
+    if (!formTitle.trim()) missing.push('Tytuł');
+    if (!formPriority) missing.push('Priorytet');
+    if (!formAssignee) missing.push('Przypisz do');
+    if (missing.length > 0) {
+      setFormError(`Uzupełnij wymagane pola: ${missing.join(', ')}.`);
+      return;
+    }
+    setFormError(null);
+    const additionalIds = formAdditionalAssignees.filter((id) => id && id !== formAssignee);
     const data: CreateTaskRequest = {
       title: formTitle,
       priorityId: formPriority,
       assigneeId: formAssignee,
+      additionalAssigneeIds: additionalIds.length > 0 ? additionalIds : undefined,
       description: formDesc || undefined,
       dueDate: formDueDate || undefined,
       reporterId: user?.employeeId ?? undefined,
@@ -82,7 +96,9 @@ export function TaskListPage() {
         setFormDesc('');
         setFormPriority('');
         setFormAssignee('');
+        setFormAdditionalAssignees([]);
         setFormDueDate('');
+        setFormError(null);
       },
     });
   };
@@ -119,7 +135,7 @@ export function TaskListPage() {
   };
 
   return (
-    <div style={{ padding: '24px', maxWidth: '1100px' }}>
+    <div style={{ padding: mobile ? '16px' : '24px', maxWidth: '1100px' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
         <div>
@@ -230,7 +246,7 @@ export function TaskListPage() {
           Brak zadań spełniających kryteria.
         </div>
       ) : (
-        <div style={{ backgroundColor: '#fff', borderRadius: '10px', border: '1px solid #e5e7eb', overflow: 'hidden' }}>
+        <div style={{ backgroundColor: '#fff', borderRadius: '10px', border: '1px solid #e5e7eb', overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
             <thead>
               <tr style={{ backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
@@ -266,7 +282,14 @@ export function TaskListPage() {
                     <td style={{ ...tdStyle, textAlign: 'center' }} onClick={() => navigate(`/tasks/${t.id}`)}>
                       <Badge label={t.priorityName} color={t.priorityColor ?? '#6b7280'} />
                     </td>
-                    <td style={tdStyle} onClick={() => navigate(`/tasks/${t.id}`)}>{employeeMap.get(t.assigneeId) ?? '—'}</td>
+                    <td style={tdStyle} onClick={() => navigate(`/tasks/${t.id}`)}>
+                      {employeeMap.get(t.assigneeId) ?? '—'}
+                      {t.additionalAssigneeIds && t.additionalAssigneeIds.length > 0 && (
+                        <span style={{ marginLeft: '6px', padding: '2px 6px', fontSize: '11px', backgroundColor: '#eef2ff', color: '#4338ca', borderRadius: '999px' }}>
+                          + {t.additionalAssigneeIds.length}
+                        </span>
+                      )}
+                    </td>
                     <td style={tdStyle} onClick={() => navigate(`/tasks/${t.id}`)}>
                       {t.dueDate ? (
                         <span style={{ color: isOverdue ? '#dc2626' : '#374151', fontWeight: isOverdue ? 600 : 400 }}>
@@ -328,14 +351,59 @@ export function TaskListPage() {
                   {employees.map((e) => <option key={e.id} value={e.id}>{e.firstName} {e.lastName}</option>)}
                 </select>
               </label>
+              <div style={labelStyle}>
+                <span>Dodatkowe osoby (opcjonalnie)</span>
+                {formAdditionalAssignees.map((aid, idx) => {
+                  const used = new Set([formAssignee, ...formAdditionalAssignees.filter((_, i) => i !== idx)]);
+                  return (
+                    <div key={idx} style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
+                      <select
+                        value={aid}
+                        onChange={(e) => {
+                          const next = [...formAdditionalAssignees];
+                          next[idx] = e.target.value;
+                          setFormAdditionalAssignees(next);
+                        }}
+                        style={{ ...inputStyle, flex: 1 }}
+                      >
+                        <option value="">— wybierz —</option>
+                        {employees
+                          .filter((emp) => !used.has(emp.id) || emp.id === aid)
+                          .map((emp) => <option key={emp.id} value={emp.id}>{emp.firstName} {emp.lastName}</option>)}
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => setFormAdditionalAssignees(formAdditionalAssignees.filter((_, i) => i !== idx))}
+                        style={{ padding: '8px 10px', fontSize: '13px', color: '#dc2626', backgroundColor: '#fff', border: '1px solid #fecaca', borderRadius: '6px', cursor: 'pointer' }}
+                      >
+                        Usuń
+                      </button>
+                    </div>
+                  );
+                })}
+                <button
+                  type="button"
+                  onClick={() => setFormAdditionalAssignees([...formAdditionalAssignees, ''])}
+                  disabled={!formAssignee}
+                  style={{
+                    marginTop: '8px', alignSelf: 'flex-start',
+                    padding: '6px 12px', fontSize: '13px', fontWeight: 500,
+                    color: formAssignee ? '#2563eb' : '#9ca3af',
+                    backgroundColor: '#eff6ff', border: '1px solid #bfdbfe',
+                    borderRadius: '6px', cursor: formAssignee ? 'pointer' : 'not-allowed',
+                  }}
+                >
+                  + Dodaj kolejną osobę
+                </button>
+              </div>
               <label style={labelStyle}>
                 Termin
                 <input type="date" value={formDueDate} onChange={(e) => setFormDueDate(e.target.value)} style={inputStyle} />
               </label>
             </div>
-            {createMutation.error && (
+            {(formError || createMutation.error) && (
               <div style={{ marginTop: '12px', padding: '8px 12px', backgroundColor: '#fef2f2', color: '#dc2626', fontSize: '13px', borderRadius: '6px' }}>
-                {createMutation.error.message}
+                {formError ?? createMutation.error?.message}
               </div>
             )}
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '20px' }}>
@@ -377,7 +445,7 @@ const overlayStyle: React.CSSProperties = {
 };
 const modalStyle: React.CSSProperties = {
   backgroundColor: '#fff', borderRadius: '12px', padding: '24px',
-  width: '480px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
+  width: '100%', maxWidth: '480px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
 };
 const labelStyle: React.CSSProperties = { display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px', fontWeight: 500, color: '#374151' };
 const inputStyle: React.CSSProperties = { padding: '8px 12px', fontSize: '14px', border: '1px solid #d1d5db', borderRadius: '6px' };

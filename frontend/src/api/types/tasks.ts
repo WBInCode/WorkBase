@@ -9,6 +9,7 @@ export interface TaskItemDto {
   priorityName: string;
   priorityColor: string | null;
   assigneeId: string;
+  additionalAssigneeIds: string[];
   reporterId: string | null;
   dueDate: string | null;
   completedAt: string | null;
@@ -56,6 +57,7 @@ export interface CreateTaskRequest {
   description?: string;
   priorityId: string;
   assigneeId: string;
+  additionalAssigneeIds?: string[];
   reporterId?: string;
   dueDate?: string;
 }
@@ -74,6 +76,7 @@ export interface ChangeTaskStatusRequest {
 
 export interface AssignTaskRequest {
   newAssigneeId: string;
+  additionalAssigneeIds?: string[];
 }
 
 export interface AddTaskCommentRequest {

@@ -5,6 +5,7 @@ import { mapUserClaims } from '@/auth';
 import { useLeaveCalendar, useLeaveTypes } from '@/api/hooks/useLeave';
 import { useEmployees } from '@/api/hooks/useOrganization';
 import type { LeaveCalendarEntryDto } from '@/api/types/leave';
+import { useIsMobile } from '@/shared';
 
 function getMonthDays(year: number, month: number): Date[] {
   const days: Date[] = [];
@@ -48,6 +49,7 @@ export function LeaveCalendarPage() {
     pageSize: 200,
   });
   const employees = employeesPage?.items ?? [];
+  const mobile = useIsMobile();
 
   const { data: leaveTypes = [] } = useLeaveTypes();
 
@@ -105,7 +107,7 @@ export function LeaveCalendarPage() {
   });
 
   return (
-    <div style={{ padding: '24px' }}>
+    <div style={{ padding: mobile ? '16px' : '24px' }}>
       {/* Header */}
       <div
         style={{

@@ -5,6 +5,7 @@ import { mapUserClaims } from '@/auth';
 import { useLeaveTypes, useLeaveBalances, useLeaveRequests, useSubmitLeaveRequest } from '@/api/hooks/useLeave';
 import { LeaveBalanceCard, LeaveRequestForm } from '@/components/Leave';
 import type { LeaveRequestStatus } from '@/api/types/leave';
+import { useIsMobile } from '@/shared';
 
 const STATUS_CONFIG: Record<LeaveRequestStatus, { label: string; bg: string; color: string }> = {
   Draft: { label: 'Szkic', bg: '#f3f4f6', color: '#6b7280' },
@@ -27,6 +28,7 @@ export function LeaveRequestPage() {
   const { data: balances = [], isLoading: balancesLoading } = useLeaveBalances(employeeId, year);
   const { data: requests = [], isLoading: requestsLoading } = useLeaveRequests(employeeId, year);
   const submitMutation = useSubmitLeaveRequest();
+  const mobile = useIsMobile();
 
   const handleSubmit = (data: {
     leaveTypeId: string;
@@ -50,7 +52,7 @@ export function LeaveRequestPage() {
   };
 
   return (
-    <div style={{ padding: '24px', maxWidth: '960px' }}>
+    <div style={{ padding: mobile ? '16px' : '24px', maxWidth: '960px' }}>
       {/* Header */}
       <div
         style={{
@@ -164,7 +166,7 @@ export function LeaveRequestPage() {
               backgroundColor: '#fff',
               borderRadius: '10px',
               border: '1px solid #e5e7eb',
-              overflow: 'hidden',
+              overflowX: 'auto',
             }}
           >
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>

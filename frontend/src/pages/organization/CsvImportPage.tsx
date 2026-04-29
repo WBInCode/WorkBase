@@ -4,6 +4,7 @@ import { parseCsv, type ParsedCsv } from '@/utils/csvParser';
 import { api } from '@/api/client';
 import { ApiError } from '@/api/client';
 import type { CreateEmployeeRequest } from '@/api/types/organization';
+import { useIsMobile } from '@/shared';
 
 /* ─── Employee fields available for mapping ─── */
 const EMPLOYEE_FIELDS = [
@@ -44,6 +45,7 @@ interface ImportRowResult {
 type Step = 'upload' | 'mapping' | 'preview' | 'importing' | 'results';
 
 export function CsvImportPage() {
+  const mobile = useIsMobile();
   const [step, setStep] = useState<Step>('upload');
   const [csv, setCsv] = useState<ParsedCsv | null>(null);
   const [fileName, setFileName] = useState('');
@@ -160,7 +162,7 @@ export function CsvImportPage() {
 
   /* ── Render ── */
   return (
-    <div style={{ padding: '24px 32px', maxWidth: '960px' }}>
+    <div style={{ padding: mobile ? '16px' : '24px 32px', maxWidth: '960px' }}>
       <h1 style={{ margin: '0 0 8px', fontSize: '22px', fontWeight: 600, color: '#111827' }}>
         Import pracowników z CSV
       </h1>
@@ -187,7 +189,7 @@ export function CsvImportPage() {
             Plik: <strong>{fileName}</strong> — {csv.rows.length} wierszy, {csv.headers.length} kolumn
           </div>
 
-          <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden' }}>
+          <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
               <thead>
                 <tr style={{ backgroundColor: '#f9fafb' }}>

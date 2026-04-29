@@ -4,6 +4,7 @@ import { AlertTriangle } from 'lucide-react';
 import { useAuth } from 'react-oidc-context';
 import { mapUserClaims } from '@/auth';
 import { useTasks } from '@/api/hooks/useTasks';
+import { useIsMobile } from '@/shared';
 
 export function MyTasksPage() {
   const auth = useAuth();
@@ -11,6 +12,7 @@ export function MyTasksPage() {
   const navigate = useNavigate();
 
   const { data: tasks = [], isLoading } = useTasks(user?.employeeId ?? null);
+  const mobile = useIsMobile();
 
   const now = new Date();
 
@@ -25,7 +27,7 @@ export function MyTasksPage() {
   }, [tasks]);
 
   return (
-    <div style={{ padding: '24px', maxWidth: '960px' }}>
+    <div style={{ padding: mobile ? '16px' : '24px', maxWidth: '960px' }}>
       <div style={{ marginBottom: '20px' }}>
         <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 700, color: '#111827' }}>Moje zadania</h1>
         <p style={{ margin: '4px 0 0', fontSize: '14px', color: '#6b7280' }}>

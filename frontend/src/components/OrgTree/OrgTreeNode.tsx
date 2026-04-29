@@ -52,7 +52,7 @@ export function OrgTreeNode({ node, level, onSelect, selectedId }: OrgTreeNodePr
           alignItems: 'center',
           gap: '6px',
           padding: '6px 8px',
-          paddingLeft: `${level * 24 + 8}px`,
+          paddingLeft: `${Math.min(level * 24, 120) + 8}px`,
           cursor: 'pointer',
           borderRadius: '6px',
           backgroundColor: isSelected ? '#e0edff' : 'transparent',

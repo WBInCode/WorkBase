@@ -4,6 +4,7 @@ import { useTeamTimesheets, useAnomalies } from '@/api/hooks/useTimeTracking';
 import { useEmployees, useOrgUnitTree } from '@/api/hooks/useOrganization';
 import type { TimeSheetPeriodDto, TimeAnomalyDto } from '@/api/types/time';
 import type { EmployeeDto, OrganizationUnitTreeNode } from '@/api/types/organization';
+import { useIsMobile } from '@/shared';
 
 /* ── helpers ── */
 
@@ -115,6 +116,7 @@ export function TeamAttendancePage() {
   const [currentDate, setCurrentDate] = useState(() => new Date());
   const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
   const [unitId, setUnitId] = useState<string>('');
+  const mobile = useIsMobile();
 
   const dateRange = useMemo(() => {
     return viewMode === 'week' ? getWeekRange(currentDate) : getMonthRange(currentDate);
@@ -217,7 +219,7 @@ export function TeamAttendancePage() {
   }, [employees, dates, tsMap, dateRange]);
 
   return (
-    <div style={{ padding: '24px 32px' }}>
+    <div style={{ padding: mobile ? '16px' : '24px 32px' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
         <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#111827', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>

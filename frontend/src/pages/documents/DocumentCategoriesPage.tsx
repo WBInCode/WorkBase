@@ -6,12 +6,14 @@ import {
   useUpdateDocumentCategory,
   useDeleteDocumentCategory,
 } from '@/api/hooks/useDocuments';
+import { useIsMobile } from '@/shared';
 
 export function DocumentCategoriesPage() {
   const { data: categories = [], isLoading } = useDocumentCategories();
   const createMutation = useCreateDocumentCategory();
   const updateMutation = useUpdateDocumentCategory();
   const deleteMutation = useDeleteDocumentCategory();
+  const mobile = useIsMobile();
 
   const [showCreate, setShowCreate] = useState(false);
   const [newName, setNewName] = useState('');
@@ -56,7 +58,7 @@ export function DocumentCategoriesPage() {
   }
 
   return (
-    <div style={{ padding: 24 }}>
+    <div style={{ padding: mobile ? 16 : 24 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>Kategorie dokumentów</h1>
         <button

@@ -104,7 +104,7 @@ export function EmployeeForm({ onSubmit, onClose, isSubmitting, error }: Employe
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             {/* First + Last name row */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px' }}>
               <FieldGroup label="Imię" required>
                 <input
                   type="text"
@@ -138,7 +138,7 @@ export function EmployeeForm({ onSubmit, onClose, isSubmitting, error }: Employe
               />
             </FieldGroup>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px' }}>
               <FieldGroup label="Numer pracownika">
                 <input
                   type="text"

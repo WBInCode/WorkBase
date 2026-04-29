@@ -218,7 +218,7 @@ public static class TaskEndpoints
             : (DateTime?)null;
         var result = await sender.Send(new CreateTaskCommand(
             body.Title, body.Description, body.PriorityId,
-            body.AssigneeId, body.ReporterId, dueDate));
+            body.AssigneeId, body.ReporterId, dueDate, body.AdditionalAssigneeIds));
         return result.IsSuccess
             ? Results.Created($"/api/tasks/{result.Value}", result.Value)
             : result.ToHttpResult();
@@ -243,7 +243,7 @@ public static class TaskEndpoints
 
     private static async Task<IResult> AssignTask(Guid id, AssignTaskBody body, ISender sender)
     {
-        var result = await sender.Send(new AssignTaskCommand(id, body.NewAssigneeId));
+        var result = await sender.Send(new AssignTaskCommand(id, body.NewAssigneeId, body.AdditionalAssigneeIds));
         return result.ToHttpResult();
     }
 
@@ -316,14 +316,15 @@ public static class TaskEndpoints
 
 public sealed record CreateTaskBody(
     string Title, string? Description, Guid PriorityId,
-    Guid AssigneeId, Guid? ReporterId = null, DateTime? DueDate = null);
+    Guid AssigneeId, Guid? ReporterId = null, DateTime? DueDate = null,
+    IReadOnlyList<Guid>? AdditionalAssigneeIds = null);
 
 public sealed record UpdateTaskBody(
     string Title, string? Description, Guid PriorityId, DateTime? DueDate);
 
 public sealed record ChangeStatusBody(Guid NewStatusId, Guid ChangedById);
 
-public sealed record AssignTaskBody(Guid NewAssigneeId);
+public sealed record AssignTaskBody(Guid NewAssigneeId, IReadOnlyList<Guid>? AdditionalAssigneeIds = null);
 
 public sealed record AddCommentBody(Guid AuthorId, string Content);
 

@@ -24,7 +24,7 @@ export function EmployeeInfoSection({ employee }: Props) {
   return (
     <div style={cardStyle}>
       {/* Header with avatar */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px', flexWrap: 'wrap' }}>
         <div style={avatarStyle}>
           {employee.firstName.charAt(0)}{employee.lastName.charAt(0)}
         </div>
@@ -40,7 +40,7 @@ export function EmployeeInfoSection({ employee }: Props) {
       </div>
 
       {/* Info grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 24px', fontSize: '14px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px 24px', fontSize: '14px' }}>
         {employee.employeeNumber && (
           <Field label="Nr pracownika" value={employee.employeeNumber} />
         )}

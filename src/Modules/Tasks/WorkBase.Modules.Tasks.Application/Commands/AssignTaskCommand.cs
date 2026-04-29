@@ -6,7 +6,7 @@ using WorkBase.Shared.Domain;
 namespace WorkBase.Modules.Tasks.Application.Commands;
 
 public sealed record AssignTaskCommand(
-    Guid TaskId, Guid NewAssigneeId) : ICommand, ITenantRequest
+    Guid TaskId, Guid NewAssigneeId, IReadOnlyList<Guid>? AdditionalAssigneeIds = null) : ICommand, ITenantRequest
 {
     public Guid TenantId { get; set; }
 }
@@ -24,12 +24,28 @@ public sealed class AssignTaskHandler(
                 $"Zadanie o id '{request.TaskId}' nie zostało znalezione."));
 
         var oldAssigneeId = task.AssigneeId;
+        var oldAdditional = task.AdditionalAssignees.Select(a => a.EmployeeId).OrderBy(x => x).ToList();
         task.Assign(request.NewAssigneeId);
+        task.SetAdditionalAssignees(request.AdditionalAssigneeIds ?? Array.Empty<Guid>());
 
-        var history = TaskHistoryEntry.Create(
-            request.TenantId, request.TaskId, request.NewAssigneeId,
-            "AssigneeId", oldAssigneeId.ToString(), request.NewAssigneeId.ToString());
-        await historyRepository.AddAsync(history, cancellationToken);
+        if (oldAssigneeId != request.NewAssigneeId)
+        {
+            var history = TaskHistoryEntry.Create(
+                request.TenantId, request.TaskId, request.NewAssigneeId,
+                "AssigneeId", oldAssigneeId.ToString(), request.NewAssigneeId.ToString());
+            await historyRepository.AddAsync(history, cancellationToken);
+        }
+
+        var newAdditional = task.AdditionalAssignees.Select(a => a.EmployeeId).OrderBy(x => x).ToList();
+        if (!oldAdditional.SequenceEqual(newAdditional))
+        {
+            var history = TaskHistoryEntry.Create(
+                request.TenantId, request.TaskId, request.NewAssigneeId,
+                "AdditionalAssignees",
+                string.Join(",", oldAdditional),
+                string.Join(",", newAdditional));
+            await historyRepository.AddAsync(history, cancellationToken);
+        }
 
         taskRepository.Update(task);
         return Result.Success();

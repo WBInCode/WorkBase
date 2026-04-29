@@ -6,16 +6,18 @@ import {
   PendingApprovalsWidget,
   AlertsWidget,
 } from '@/components/Dashboard';
+import { useIsMobile } from '@/shared';
 
 export function DashboardPage() {
   const { data, isLoading, dataUpdatedAt, refetch, isFetching } = useDashboardSummary();
+  const mobile = useIsMobile();
 
   const lastUpdate = dataUpdatedAt
     ? new Date(dataUpdatedAt).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })
     : null;
 
   return (
-    <div style={{ padding: '24px', maxWidth: '1100px' }}>
+    <div style={{ padding: mobile ? '16px' : '24px', maxWidth: '1100px' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
         <div>

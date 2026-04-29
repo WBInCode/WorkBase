@@ -16,12 +16,15 @@ public sealed class TaskItem : AuditableEntity<Guid>, ITenantScoped, IAuditable
     public DateTime? CompletedAt { get; private set; }
     public Guid? WorkflowInstanceId { get; private set; }
 
+    private readonly List<TaskAssignee> _additionalAssignees = new();
+    public IReadOnlyCollection<TaskAssignee> AdditionalAssignees => _additionalAssignees.AsReadOnly();
+
     private TaskItem() { }
 
     public static TaskItem Create(
         Guid tenantId, string title, Guid statusId, Guid priorityId,
         Guid assigneeId, Guid? reporterId = null, string? description = null,
-        DateTime? dueDate = null)
+        DateTime? dueDate = null, IEnumerable<Guid>? additionalAssigneeIds = null)
     {
         var task = new TaskItem
         {
@@ -34,6 +37,15 @@ public sealed class TaskItem : AuditableEntity<Guid>, ITenantScoped, IAuditable
             Description = description,
             DueDate = dueDate,
         };
+
+        if (additionalAssigneeIds is not null)
+        {
+            foreach (var employeeId in additionalAssigneeIds.Distinct())
+            {
+                if (employeeId == Guid.Empty || employeeId == assigneeId) continue;
+                task._additionalAssignees.Add(TaskAssignee.Create(task.Id, employeeId));
+            }
+        }
 
         task.RaiseDomainEvent(new TaskCreatedEvent(
             task.Id, tenantId, assigneeId, title, statusId, priorityId));
@@ -62,8 +74,25 @@ public sealed class TaskItem : AuditableEntity<Guid>, ITenantScoped, IAuditable
     {
         var oldAssigneeId = AssigneeId;
         AssigneeId = newAssigneeId;
+        _additionalAssignees.RemoveAll(a => a.EmployeeId == newAssigneeId);
         RaiseDomainEvent(new TaskAssignedEvent(
             Id, TenantId, oldAssigneeId, newAssigneeId));
+    }
+
+    public void SetAdditionalAssignees(IEnumerable<Guid> employeeIds)
+    {
+        var distinct = employeeIds
+            .Where(id => id != Guid.Empty && id != AssigneeId)
+            .Distinct()
+            .ToHashSet();
+
+        _additionalAssignees.RemoveAll(a => !distinct.Contains(a.EmployeeId));
+        var existing = _additionalAssignees.Select(a => a.EmployeeId).ToHashSet();
+        foreach (var id in distinct)
+        {
+            if (!existing.Contains(id))
+                _additionalAssignees.Add(TaskAssignee.Create(Id, id));
+        }
     }
 
     public void Complete(DateTime completedAt)

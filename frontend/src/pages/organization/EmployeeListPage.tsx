@@ -17,6 +17,7 @@ import type {
 } from '@/api/types/organization';
 import { EmployeeForm } from '@/components/Employees/EmployeeForm';
 import { ApiError } from '@/api/client';
+import { useIsMobile } from '@/shared';
 
 const PAGE_SIZE = 20;
 
@@ -47,6 +48,7 @@ export function EmployeeListPage() {
   const createMutation = useCreateEmployee();
 
   const flatUnits = flattenTree(tree ?? []);
+  const mobile = useIsMobile();
 
   const handleSearch = useCallback(() => {
     setFilter((f) => ({ ...f, search: searchInput.trim() || undefined, page: 1 }));
@@ -67,7 +69,7 @@ export function EmployeeListPage() {
   const totalPages = data ? Math.ceil(data.totalCount / filter.pageSize) : 0;
 
   return (
-    <div style={{ padding: '24px 32px', maxWidth: '1200px' }}>
+    <div style={{ padding: mobile ? '16px' : '24px 32px', maxWidth: '1200px' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
         <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 600, color: '#111827' }}>Pracownicy</h1>
@@ -184,7 +186,7 @@ export function EmployeeListPage() {
       </div>
 
       {/* Content area with optional detail panel */}
-      <div style={{ display: 'flex', gap: '20px' }}>
+      <div style={{ display: 'flex', flexDirection: mobile ? 'column' : 'row', gap: '20px' }}>
         {/* Table */}
         <div style={{ flex: 1, minWidth: 0 }}>
           {error && (
@@ -213,7 +215,7 @@ export function EmployeeListPage() {
           ) : (
             <>
               {/* Table */}
-              <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden' }}>
+              <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
                   <thead>
                     <tr style={{ backgroundColor: '#f9fafb' }}>
@@ -356,10 +358,11 @@ function EmployeeDetailPanel({
   onClose: () => void;
 }) {
   const navigate = useNavigate();
+  const mobile = useIsMobile();
   return (
     <aside
       style={{
-        width: '340px',
+        width: mobile ? '100%' : '340px',
         flexShrink: 0,
         border: '1px solid #e5e7eb',
         borderRadius: '8px',

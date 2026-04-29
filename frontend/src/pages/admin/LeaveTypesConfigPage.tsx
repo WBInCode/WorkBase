@@ -2,12 +2,14 @@ import { useState, useCallback } from 'react';
 import { Palmtree, Plus, RefreshCw, Edit2, Trash2, X } from 'lucide-react';
 import { useLeaveTypes, useCreateLeaveType, useUpdateLeaveType, useDeleteLeaveType } from '@/api/hooks/useLeave';
 import type { LeaveTypeDto, CreateLeaveTypeRequest, UpdateLeaveTypeRequest } from '@/api/types/leave';
+import { useIsMobile } from '@/shared';
 
 export function LeaveTypesConfigPage() {
   const { data: types, isLoading, error, refetch, isFetching } = useLeaveTypes();
   const createMutation = useCreateLeaveType();
   const updateMutation = useUpdateLeaveType();
   const deleteMutation = useDeleteLeaveType();
+  const mobile = useIsMobile();
 
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<LeaveTypeDto | null>(null);
@@ -39,7 +41,7 @@ export function LeaveTypesConfigPage() {
   );
 
   return (
-    <div style={{ padding: '24px 32px', maxWidth: '1000px' }}>
+    <div style={{ padding: mobile ? '16px' : '24px 32px', maxWidth: '1000px' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
         <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 600, color: '#111827' }}>Typy urlopów</h1>
@@ -78,7 +80,7 @@ export function LeaveTypesConfigPage() {
           <div style={{ fontSize: '13px', marginTop: '4px' }}>Dodaj pierwszy typ klikając „Nowy typ".</div>
         </div>
       ) : (
-        <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden' }}>
+        <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
             <thead>
               <tr style={{ backgroundColor: '#f9fafb' }}>
@@ -156,6 +158,7 @@ function LeaveTypeFormModal({ leaveType, isPending, error, onSubmit, onClose }: 
   const [defaultDays, setDefaultDays] = useState(leaveType?.defaultDaysPerYear?.toString() ?? '');
   const [color, setColor] = useState(leaveType?.color ?? '#6366f1');
   const [sortOrder, setSortOrder] = useState(leaveType?.sortOrder?.toString() ?? '0');
+  const mobile = useIsMobile();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -186,7 +189,7 @@ function LeaveTypeFormModal({ leaveType, isPending, error, onSubmit, onClose }: 
         )}
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: '12px' }}>
             <label style={labelStyle}>
               Kod
               <input value={code} onChange={(e) => setCode(e.target.value)} required style={inputStyle} placeholder="np. VACATION" />
@@ -200,7 +203,7 @@ function LeaveTypeFormModal({ leaveType, isPending, error, onSubmit, onClose }: 
             Opis
             <input value={description} onChange={(e) => setDescription(e.target.value)} style={inputStyle} />
           </label>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr 1fr', gap: '12px' }}>
             <label style={labelStyle}>
               Dni/rok
               <input type="number" value={defaultDays} onChange={(e) => setDefaultDays(e.target.value)} style={inputStyle} min={0} />
@@ -272,7 +275,7 @@ const overlayStyle: React.CSSProperties = {
   position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100,
 };
 const modalStyle: React.CSSProperties = {
-  backgroundColor: '#fff', borderRadius: '12px', padding: '24px', width: '520px', maxHeight: '90vh', overflow: 'auto',
+  backgroundColor: '#fff', borderRadius: '12px', padding: '24px', width: '100%', maxWidth: '520px', maxHeight: '90vh', overflow: 'auto',
   boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
 };
 const labelStyle: React.CSSProperties = { display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px', fontWeight: 500, color: '#374151' };
