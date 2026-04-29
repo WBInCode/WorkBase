@@ -25,7 +25,7 @@ internal sealed class MinioHealthCheck : IHealthCheck
         }
         catch (Exception ex)
         {
-            return HealthCheckResult.Unhealthy("MinIO is unreachable.", ex);
+            return HealthCheckResult.Degraded("MinIO is unreachable.", ex);
         }
     }
 }
