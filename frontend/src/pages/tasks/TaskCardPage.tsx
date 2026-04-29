@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Send, UserCircle, Clock, AlertTriangle, Paperclip, Download, Upload } from 'lucide-react';
 import { useAuth } from 'react-oidc-context';
@@ -10,7 +10,6 @@ import {
   useTaskComments,
   useTaskAttachments,
   useChangeTaskStatus,
-  useAssignTask,
   useAddTaskComment,
   useUploadTaskAttachment,
   useDownloadTaskAttachment,
@@ -33,7 +32,6 @@ export function TaskCardPage() {
   const task = tasks.find((t) => t.id === id);
 
   const changeStatusMutation = useChangeTaskStatus(id ?? '');
-  const assignMutation = useAssignTask(id ?? '');
   const addCommentMutation = useAddTaskComment(id ?? '');
   const { data: attachments = [] } = useTaskAttachments(id ?? null);
   const uploadMutation = useUploadTaskAttachment(id ?? '');
@@ -42,16 +40,6 @@ export function TaskCardPage() {
 
   const [commentText, setCommentText] = useState('');
   const [newStatusId, setNewStatusId] = useState('');
-  const [newAssigneeId, setNewAssigneeId] = useState('');
-  const [newAdditionalAssignees, setNewAdditionalAssignees] = useState<string[]>([]);
-
-  // Prefill assign panel with current task assignees once task is loaded
-  useEffect(() => {
-    if (task) {
-      setNewAssigneeId(task.assigneeId);
-      setNewAdditionalAssignees(task.additionalAssigneeIds ?? []);
-    }
-  }, [task?.id, task?.assigneeId, task?.additionalAssigneeIds]);
 
   const employeeMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -81,17 +69,6 @@ export function TaskCardPage() {
     changeStatusMutation.mutate(
       { newStatusId, changedById: user.employeeId },
       { onSuccess: () => setNewStatusId('') },
-    );
-  };
-
-  const handleAssign = () => {
-    if (!newAssigneeId) return;
-    const filtered = newAdditionalAssignees.filter((id) => id && id !== newAssigneeId);
-    assignMutation.mutate(
-      {
-        newAssigneeId,
-        additionalAssigneeIds: filtered,
-      },
     );
   };
 
@@ -179,69 +156,6 @@ export function TaskCardPage() {
           {changeStatusMutation.error && (
             <div style={errorStyle}>{changeStatusMutation.error.message}</div>
           )}
-        </div>
-
-        {/* Assign */}
-        <div style={actionCardStyle}>
-          <div style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>Zmień przypisanie</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <label style={{ fontSize: '11px', color: '#6b7280', fontWeight: 500 }}>Główny wykonawca</label>
-            <select value={newAssigneeId} onChange={(e) => setNewAssigneeId(e.target.value)} style={selectStyle}>
-              {employees.map((e) => (
-                <option key={e.id} value={e.id}>{e.firstName} {e.lastName}</option>
-              ))}
-            </select>
-            {newAdditionalAssignees.length > 0 && (
-              <label style={{ fontSize: '11px', color: '#6b7280', fontWeight: 500, marginTop: '4px' }}>Dodatkowe osoby</label>
-            )}
-            {newAdditionalAssignees.map((aid, idx) => {
-              const used = new Set([newAssigneeId, ...newAdditionalAssignees.filter((_, i) => i !== idx)]);
-              return (
-                <div key={idx} style={{ display: 'flex', gap: '6px' }}>
-                  <select
-                    value={aid}
-                    onChange={(e) => {
-                      const next = [...newAdditionalAssignees];
-                      next[idx] = e.target.value;
-                      setNewAdditionalAssignees(next);
-                    }}
-                    style={{ ...selectStyle, flex: 1 }}
-                  >
-                    <option value="">— dodatkowa osoba —</option>
-                    {employees
-                      .filter((emp) => !used.has(emp.id) || emp.id === aid)
-                      .map((emp) => (
-                        <option key={emp.id} value={emp.id}>{emp.firstName} {emp.lastName}</option>
-                      ))}
-                  </select>
-                  <button
-                    type="button"
-                    onClick={() => setNewAdditionalAssignees(newAdditionalAssignees.filter((_, i) => i !== idx))}
-                    style={{ padding: '6px 10px', fontSize: '12px', color: '#dc2626', backgroundColor: '#fff', border: '1px solid #fecaca', borderRadius: '6px', cursor: 'pointer' }}
-                  >
-                    Usuń
-                  </button>
-                </div>
-              );
-            })}
-            <button
-              type="button"
-              onClick={() => setNewAdditionalAssignees([...newAdditionalAssignees, ''])}
-              disabled={!newAssigneeId}
-              style={{
-                alignSelf: 'flex-start',
-                padding: '4px 10px', fontSize: '12px', fontWeight: 500,
-                color: newAssigneeId ? '#2563eb' : '#9ca3af',
-                backgroundColor: '#eff6ff', border: '1px solid #bfdbfe',
-                borderRadius: '6px', cursor: newAssigneeId ? 'pointer' : 'not-allowed',
-              }}
-            >
-              + Dodaj kolejną osobę
-            </button>
-            <button onClick={handleAssign} disabled={!newAssigneeId || assignMutation.isPending} style={actionBtnStyle}>
-              {assignMutation.isPending ? 'Zapisywanie...' : 'Zapisz przypisanie'}
-            </button>
-          </div>
         </div>
       </div>
 
