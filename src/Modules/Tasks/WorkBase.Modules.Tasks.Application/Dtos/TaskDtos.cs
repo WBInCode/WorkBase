@@ -7,7 +7,7 @@ public sealed record TaskItemDto(
     Guid AssigneeId, Guid? ReporterId,
     DateTime? DueDate, DateTime? CompletedAt,
     DateTime CreatedAt,
-    Guid? CoAssigneeId = null);
+    IReadOnlyList<Guid> AdditionalAssigneeIds);
 
 public sealed record TaskStatusDto(
     Guid Id, string Code, string Name, string? Color,

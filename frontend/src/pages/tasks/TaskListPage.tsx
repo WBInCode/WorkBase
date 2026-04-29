@@ -33,7 +33,7 @@ export function TaskListPage() {
   const [formDesc, setFormDesc] = useState('');
   const [formPriority, setFormPriority] = useState('');
   const [formAssignee, setFormAssignee] = useState('');
-  const [formCoAssignee, setFormCoAssignee] = useState('');
+  const [formAdditionalAssignees, setFormAdditionalAssignees] = useState<string[]>([]);
   const [formDueDate, setFormDueDate] = useState('');
 
   const now = new Date();
@@ -68,11 +68,12 @@ export function TaskListPage() {
 
   const handleCreate = () => {
     if (!formTitle || !formPriority || !formAssignee) return;
+    const additionalIds = formAdditionalAssignees.filter((id) => id && id !== formAssignee);
     const data: CreateTaskRequest = {
       title: formTitle,
       priorityId: formPriority,
       assigneeId: formAssignee,
-      coAssigneeId: formCoAssignee && formCoAssignee !== formAssignee ? formCoAssignee : undefined,
+      additionalAssigneeIds: additionalIds.length > 0 ? additionalIds : undefined,
       description: formDesc || undefined,
       dueDate: formDueDate || undefined,
       reporterId: user?.employeeId ?? undefined,
@@ -84,7 +85,7 @@ export function TaskListPage() {
         setFormDesc('');
         setFormPriority('');
         setFormAssignee('');
-        setFormCoAssignee('');
+        setFormAdditionalAssignees([]);
         setFormDueDate('');
       },
     });
@@ -271,9 +272,9 @@ export function TaskListPage() {
                     </td>
                     <td style={tdStyle} onClick={() => navigate(`/tasks/${t.id}`)}>
                       {employeeMap.get(t.assigneeId) ?? '—'}
-                      {t.coAssigneeId && (
+                      {t.additionalAssigneeIds && t.additionalAssigneeIds.length > 0 && (
                         <span style={{ marginLeft: '6px', padding: '2px 6px', fontSize: '11px', backgroundColor: '#eef2ff', color: '#4338ca', borderRadius: '999px' }}>
-                          + {employeeMap.get(t.coAssigneeId) ?? '—'}
+                          + {t.additionalAssigneeIds.length}
                         </span>
                       )}
                     </td>
@@ -338,15 +339,51 @@ export function TaskListPage() {
                   {employees.map((e) => <option key={e.id} value={e.id}>{e.firstName} {e.lastName}</option>)}
                 </select>
               </label>
-              <label style={labelStyle}>
-                Druga osoba (opcjonalnie)
-                <select value={formCoAssignee} onChange={(e) => setFormCoAssignee(e.target.value)} style={inputStyle}>
-                  <option value="">— brak —</option>
-                  {employees
-                    .filter((e) => e.id !== formAssignee)
-                    .map((e) => <option key={e.id} value={e.id}>{e.firstName} {e.lastName}</option>)}
-                </select>
-              </label>
+              <div style={labelStyle}>
+                <span>Dodatkowe osoby (opcjonalnie)</span>
+                {formAdditionalAssignees.map((aid, idx) => {
+                  const used = new Set([formAssignee, ...formAdditionalAssignees.filter((_, i) => i !== idx)]);
+                  return (
+                    <div key={idx} style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
+                      <select
+                        value={aid}
+                        onChange={(e) => {
+                          const next = [...formAdditionalAssignees];
+                          next[idx] = e.target.value;
+                          setFormAdditionalAssignees(next);
+                        }}
+                        style={{ ...inputStyle, flex: 1 }}
+                      >
+                        <option value="">— wybierz —</option>
+                        {employees
+                          .filter((emp) => !used.has(emp.id) || emp.id === aid)
+                          .map((emp) => <option key={emp.id} value={emp.id}>{emp.firstName} {emp.lastName}</option>)}
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => setFormAdditionalAssignees(formAdditionalAssignees.filter((_, i) => i !== idx))}
+                        style={{ padding: '8px 10px', fontSize: '13px', color: '#dc2626', backgroundColor: '#fff', border: '1px solid #fecaca', borderRadius: '6px', cursor: 'pointer' }}
+                      >
+                        Usuń
+                      </button>
+                    </div>
+                  );
+                })}
+                <button
+                  type="button"
+                  onClick={() => setFormAdditionalAssignees([...formAdditionalAssignees, ''])}
+                  disabled={!formAssignee}
+                  style={{
+                    marginTop: '8px', alignSelf: 'flex-start',
+                    padding: '6px 12px', fontSize: '13px', fontWeight: 500,
+                    color: formAssignee ? '#2563eb' : '#9ca3af',
+                    backgroundColor: '#eff6ff', border: '1px solid #bfdbfe',
+                    borderRadius: '6px', cursor: formAssignee ? 'pointer' : 'not-allowed',
+                  }}
+                >
+                  + Dodaj kolejną osobę
+                </button>
+              </div>
               <label style={labelStyle}>
                 Termin
                 <input type="date" value={formDueDate} onChange={(e) => setFormDueDate(e.target.value)} style={inputStyle} />

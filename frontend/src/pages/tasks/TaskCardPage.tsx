@@ -43,7 +43,7 @@ export function TaskCardPage() {
   const [commentText, setCommentText] = useState('');
   const [newStatusId, setNewStatusId] = useState('');
   const [newAssigneeId, setNewAssigneeId] = useState('');
-  const [newCoAssigneeId, setNewCoAssigneeId] = useState('');
+  const [newAdditionalAssignees, setNewAdditionalAssignees] = useState<string[]>([]);
 
   const employeeMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -78,12 +78,13 @@ export function TaskCardPage() {
 
   const handleAssign = () => {
     if (!newAssigneeId) return;
+    const filtered = newAdditionalAssignees.filter((id) => id && id !== newAssigneeId);
     assignMutation.mutate(
       {
         newAssigneeId,
-        newCoAssigneeId: newCoAssigneeId && newCoAssigneeId !== newAssigneeId ? newCoAssigneeId : null,
+        additionalAssigneeIds: filtered,
       },
-      { onSuccess: () => { setNewAssigneeId(''); setNewCoAssigneeId(''); } },
+      { onSuccess: () => { setNewAssigneeId(''); setNewAdditionalAssignees([]); } },
     );
   };
 
@@ -125,12 +126,12 @@ export function TaskCardPage() {
         <InfoCard label="Przypisane do">
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
             <UserCircle size={16} color="#9ca3af" />
-            {employeeMap.get(task.assigneeId) ?? '—'}
-            {task.coAssigneeId && (
-              <span style={{ padding: '2px 8px', fontSize: '12px', backgroundColor: '#eef2ff', color: '#4338ca', borderRadius: '999px' }}>
-                + {employeeMap.get(task.coAssigneeId) ?? '—'}
+            <span>{employeeMap.get(task.assigneeId) ?? '—'}</span>
+            {task.additionalAssigneeIds?.map((id) => (
+              <span key={id} style={{ padding: '2px 8px', fontSize: '12px', backgroundColor: '#eef2ff', color: '#4338ca', borderRadius: '999px' }}>
+                + {employeeMap.get(id) ?? '—'}
               </span>
-            )}
+            ))}
           </div>
         </InfoCard>
         <InfoCard label="Termin">
@@ -183,14 +184,50 @@ export function TaskCardPage() {
                 <option key={e.id} value={e.id}>{e.firstName} {e.lastName}</option>
               ))}
             </select>
-            <select value={newCoAssigneeId} onChange={(e) => setNewCoAssigneeId(e.target.value)} style={selectStyle}>
-              <option value="">— druga osoba (opcjonalnie) —</option>
-              {employees
-                .filter((e) => e.id !== newAssigneeId)
-                .map((e) => (
-                  <option key={e.id} value={e.id}>{e.firstName} {e.lastName}</option>
-                ))}
-            </select>
+            {newAdditionalAssignees.map((aid, idx) => {
+              const used = new Set([newAssigneeId, ...newAdditionalAssignees.filter((_, i) => i !== idx)]);
+              return (
+                <div key={idx} style={{ display: 'flex', gap: '6px' }}>
+                  <select
+                    value={aid}
+                    onChange={(e) => {
+                      const next = [...newAdditionalAssignees];
+                      next[idx] = e.target.value;
+                      setNewAdditionalAssignees(next);
+                    }}
+                    style={{ ...selectStyle, flex: 1 }}
+                  >
+                    <option value="">— dodatkowa osoba —</option>
+                    {employees
+                      .filter((emp) => !used.has(emp.id) || emp.id === aid)
+                      .map((emp) => (
+                        <option key={emp.id} value={emp.id}>{emp.firstName} {emp.lastName}</option>
+                      ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => setNewAdditionalAssignees(newAdditionalAssignees.filter((_, i) => i !== idx))}
+                    style={{ padding: '6px 10px', fontSize: '12px', color: '#dc2626', backgroundColor: '#fff', border: '1px solid #fecaca', borderRadius: '6px', cursor: 'pointer' }}
+                  >
+                    Usuń
+                  </button>
+                </div>
+              );
+            })}
+            <button
+              type="button"
+              onClick={() => setNewAdditionalAssignees([...newAdditionalAssignees, ''])}
+              disabled={!newAssigneeId}
+              style={{
+                alignSelf: 'flex-start',
+                padding: '4px 10px', fontSize: '12px', fontWeight: 500,
+                color: newAssigneeId ? '#2563eb' : '#9ca3af',
+                backgroundColor: '#eff6ff', border: '1px solid #bfdbfe',
+                borderRadius: '6px', cursor: newAssigneeId ? 'pointer' : 'not-allowed',
+              }}
+            >
+              + Dodaj kolejną osobę
+            </button>
             <button onClick={handleAssign} disabled={!newAssigneeId || assignMutation.isPending} style={actionBtnStyle}>
               {assignMutation.isPending ? '...' : 'Przypisz'}
             </button>

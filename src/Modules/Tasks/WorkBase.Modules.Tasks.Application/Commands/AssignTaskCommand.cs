@@ -6,7 +6,7 @@ using WorkBase.Shared.Domain;
 namespace WorkBase.Modules.Tasks.Application.Commands;
 
 public sealed record AssignTaskCommand(
-    Guid TaskId, Guid NewAssigneeId, Guid? NewCoAssigneeId = null) : ICommand, ITenantRequest
+    Guid TaskId, Guid NewAssigneeId, IReadOnlyList<Guid>? AdditionalAssigneeIds = null) : ICommand, ITenantRequest
 {
     public Guid TenantId { get; set; }
 }
@@ -24,9 +24,9 @@ public sealed class AssignTaskHandler(
                 $"Zadanie o id '{request.TaskId}' nie zostało znalezione."));
 
         var oldAssigneeId = task.AssigneeId;
-        var oldCoAssigneeId = task.CoAssigneeId;
+        var oldAdditional = task.AdditionalAssignees.Select(a => a.EmployeeId).OrderBy(x => x).ToList();
         task.Assign(request.NewAssigneeId);
-        task.SetCoAssignee(request.NewCoAssigneeId);
+        task.SetAdditionalAssignees(request.AdditionalAssigneeIds ?? Array.Empty<Guid>());
 
         if (oldAssigneeId != request.NewAssigneeId)
         {
@@ -36,11 +36,14 @@ public sealed class AssignTaskHandler(
             await historyRepository.AddAsync(history, cancellationToken);
         }
 
-        if (oldCoAssigneeId != task.CoAssigneeId)
+        var newAdditional = task.AdditionalAssignees.Select(a => a.EmployeeId).OrderBy(x => x).ToList();
+        if (!oldAdditional.SequenceEqual(newAdditional))
         {
             var history = TaskHistoryEntry.Create(
                 request.TenantId, request.TaskId, request.NewAssigneeId,
-                "CoAssigneeId", oldCoAssigneeId?.ToString() ?? string.Empty, task.CoAssigneeId?.ToString() ?? string.Empty);
+                "AdditionalAssignees",
+                string.Join(",", oldAdditional),
+                string.Join(",", newAdditional));
             await historyRepository.AddAsync(history, cancellationToken);
         }
 

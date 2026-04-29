@@ -40,7 +40,7 @@ public sealed class GetTasksHandler(
                     t.PriorityId, priority?.Name ?? "?", priority?.Color,
                     t.AssigneeId, t.ReporterId,
                     t.DueDate, t.CompletedAt, t.CreatedAt,
-                    t.CoAssigneeId);
+                    t.AdditionalAssignees.Select(a => a.EmployeeId).ToList());
             }).ToList();
 
         return dtos;
