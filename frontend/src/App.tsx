@@ -53,10 +53,12 @@ function AppRoutes() {
   // Wire API client token provider
   setTokenProvider(() => auth.user?.access_token);
 
+  const roles = (auth.user?.profile?.['roles'] as string[] | undefined) ?? [];
+  const isAdmin = roles.some((r) => r === 'workbase-admin' || r === 'Admin' || r === 'Super Admin');
+
   // Auto-redirect kiosk accounts to /kiosk
   useEffect(() => {
     if (auth.user) {
-      const roles = (auth.user.profile['roles'] as string[]) ?? [];
       if (roles.includes('workbase-kiosk')) {
         navigate('/kiosk', { replace: true });
       }
@@ -85,14 +87,14 @@ function AppRoutes() {
         <Route path="/documents/categories" element={<DocumentCategoriesPage />} />
         <Route path="/workflow/builder" element={<WorkflowBuilderPage />} />
         <Route path="/forms/builder" element={<FormBuilderPage />} />
-        <Route path="/admin/roles" element={<RolesPage />} />
-        <Route path="/admin/permissions" element={<PermissionsMatrixPage />} />
-        <Route path="/admin/feature-flags" element={<FeatureFlagsPage />} />
-        <Route path="/admin/leave-types" element={<LeaveTypesConfigPage />} />
-        <Route path="/admin/task-statuses" element={<TaskStatusConfigPage />} />
-        <Route path="/admin/break-policies" element={<BreakPoliciesConfigPage />} />
-        <Route path="/admin/positions" element={<PositionsConfigPage />} />
-        <Route path="/admin/unit-types" element={<UnitTypesConfigPage />} />
+        <Route path="/admin/roles" element={isAdmin ? <RolesPage /> : <Navigate to="/workspace" replace />} />
+        <Route path="/admin/permissions" element={isAdmin ? <PermissionsMatrixPage /> : <Navigate to="/workspace" replace />} />
+        <Route path="/admin/feature-flags" element={isAdmin ? <FeatureFlagsPage /> : <Navigate to="/workspace" replace />} />
+        <Route path="/admin/leave-types" element={isAdmin ? <LeaveTypesConfigPage /> : <Navigate to="/workspace" replace />} />
+        <Route path="/admin/task-statuses" element={isAdmin ? <TaskStatusConfigPage /> : <Navigate to="/workspace" replace />} />
+        <Route path="/admin/break-policies" element={isAdmin ? <BreakPoliciesConfigPage /> : <Navigate to="/workspace" replace />} />
+        <Route path="/admin/positions" element={isAdmin ? <PositionsConfigPage /> : <Navigate to="/workspace" replace />} />
+        <Route path="/admin/unit-types" element={isAdmin ? <UnitTypesConfigPage /> : <Navigate to="/workspace" replace />} />
         <Route path="*" element={<Navigate to="/workspace" replace />} />
       </Routes>
     </MainLayout>
