@@ -33,6 +33,7 @@ export function TaskListPage() {
   const [formDesc, setFormDesc] = useState('');
   const [formPriority, setFormPriority] = useState('');
   const [formAssignee, setFormAssignee] = useState('');
+  const [formCoAssignee, setFormCoAssignee] = useState('');
   const [formDueDate, setFormDueDate] = useState('');
 
   const now = new Date();
@@ -71,6 +72,7 @@ export function TaskListPage() {
       title: formTitle,
       priorityId: formPriority,
       assigneeId: formAssignee,
+      coAssigneeId: formCoAssignee && formCoAssignee !== formAssignee ? formCoAssignee : undefined,
       description: formDesc || undefined,
       dueDate: formDueDate || undefined,
       reporterId: user?.employeeId ?? undefined,
@@ -82,6 +84,7 @@ export function TaskListPage() {
         setFormDesc('');
         setFormPriority('');
         setFormAssignee('');
+        setFormCoAssignee('');
         setFormDueDate('');
       },
     });
@@ -266,7 +269,14 @@ export function TaskListPage() {
                     <td style={{ ...tdStyle, textAlign: 'center' }} onClick={() => navigate(`/tasks/${t.id}`)}>
                       <Badge label={t.priorityName} color={t.priorityColor ?? '#6b7280'} />
                     </td>
-                    <td style={tdStyle} onClick={() => navigate(`/tasks/${t.id}`)}>{employeeMap.get(t.assigneeId) ?? '—'}</td>
+                    <td style={tdStyle} onClick={() => navigate(`/tasks/${t.id}`)}>
+                      {employeeMap.get(t.assigneeId) ?? '—'}
+                      {t.coAssigneeId && (
+                        <span style={{ marginLeft: '6px', padding: '2px 6px', fontSize: '11px', backgroundColor: '#eef2ff', color: '#4338ca', borderRadius: '999px' }}>
+                          + {employeeMap.get(t.coAssigneeId) ?? '—'}
+                        </span>
+                      )}
+                    </td>
                     <td style={tdStyle} onClick={() => navigate(`/tasks/${t.id}`)}>
                       {t.dueDate ? (
                         <span style={{ color: isOverdue ? '#dc2626' : '#374151', fontWeight: isOverdue ? 600 : 400 }}>
@@ -326,6 +336,15 @@ export function TaskListPage() {
                 <select value={formAssignee} onChange={(e) => setFormAssignee(e.target.value)} style={inputStyle}>
                   <option value="">— wybierz —</option>
                   {employees.map((e) => <option key={e.id} value={e.id}>{e.firstName} {e.lastName}</option>)}
+                </select>
+              </label>
+              <label style={labelStyle}>
+                Druga osoba (opcjonalnie)
+                <select value={formCoAssignee} onChange={(e) => setFormCoAssignee(e.target.value)} style={inputStyle}>
+                  <option value="">— brak —</option>
+                  {employees
+                    .filter((e) => e.id !== formAssignee)
+                    .map((e) => <option key={e.id} value={e.id}>{e.firstName} {e.lastName}</option>)}
                 </select>
               </label>
               <label style={labelStyle}>

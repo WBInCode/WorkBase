@@ -6,7 +6,8 @@ public sealed record TaskItemDto(
     Guid PriorityId, string PriorityName, string? PriorityColor,
     Guid AssigneeId, Guid? ReporterId,
     DateTime? DueDate, DateTime? CompletedAt,
-    DateTime CreatedAt);
+    DateTime CreatedAt,
+    Guid? CoAssigneeId = null);
 
 public sealed record TaskStatusDto(
     Guid Id, string Code, string Name, string? Color,

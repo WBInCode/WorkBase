@@ -43,6 +43,7 @@ export function TaskCardPage() {
   const [commentText, setCommentText] = useState('');
   const [newStatusId, setNewStatusId] = useState('');
   const [newAssigneeId, setNewAssigneeId] = useState('');
+  const [newCoAssigneeId, setNewCoAssigneeId] = useState('');
 
   const employeeMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -78,8 +79,11 @@ export function TaskCardPage() {
   const handleAssign = () => {
     if (!newAssigneeId) return;
     assignMutation.mutate(
-      { newAssigneeId },
-      { onSuccess: () => setNewAssigneeId('') },
+      {
+        newAssigneeId,
+        newCoAssigneeId: newCoAssigneeId && newCoAssigneeId !== newAssigneeId ? newCoAssigneeId : null,
+      },
+      { onSuccess: () => { setNewAssigneeId(''); setNewCoAssigneeId(''); } },
     );
   };
 
@@ -119,9 +123,14 @@ export function TaskCardPage() {
           <Badge label={task.priorityName} color={task.priorityColor ?? '#6b7280'} />
         </InfoCard>
         <InfoCard label="Przypisane do">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
             <UserCircle size={16} color="#9ca3af" />
             {employeeMap.get(task.assigneeId) ?? '—'}
+            {task.coAssigneeId && (
+              <span style={{ padding: '2px 8px', fontSize: '12px', backgroundColor: '#eef2ff', color: '#4338ca', borderRadius: '999px' }}>
+                + {employeeMap.get(task.coAssigneeId) ?? '—'}
+              </span>
+            )}
           </div>
         </InfoCard>
         <InfoCard label="Termin">
@@ -167,12 +176,20 @@ export function TaskCardPage() {
         {/* Assign */}
         <div style={actionCardStyle}>
           <div style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>Przypisz</div>
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <select value={newAssigneeId} onChange={(e) => setNewAssigneeId(e.target.value)} style={selectStyle}>
-              <option value="">— wybierz —</option>
+              <option value="">— główny wykonawca —</option>
               {employees.map((e) => (
                 <option key={e.id} value={e.id}>{e.firstName} {e.lastName}</option>
               ))}
+            </select>
+            <select value={newCoAssigneeId} onChange={(e) => setNewCoAssigneeId(e.target.value)} style={selectStyle}>
+              <option value="">— druga osoba (opcjonalnie) —</option>
+              {employees
+                .filter((e) => e.id !== newAssigneeId)
+                .map((e) => (
+                  <option key={e.id} value={e.id}>{e.firstName} {e.lastName}</option>
+                ))}
             </select>
             <button onClick={handleAssign} disabled={!newAssigneeId || assignMutation.isPending} style={actionBtnStyle}>
               {assignMutation.isPending ? '...' : 'Przypisz'}

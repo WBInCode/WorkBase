@@ -24,9 +24,11 @@ public sealed class TaskItemConfiguration : IEntityTypeConfiguration<TaskItem>
         builder.Property(e => e.StatusId).IsRequired();
         builder.Property(e => e.PriorityId).IsRequired();
         builder.Property(e => e.AssigneeId).IsRequired();
+        builder.Property(e => e.CoAssigneeId);
 
         builder.HasIndex(e => e.TenantId);
         builder.HasIndex(e => new { e.TenantId, e.AssigneeId });
+        builder.HasIndex(e => new { e.TenantId, e.CoAssigneeId });
         builder.HasIndex(e => new { e.TenantId, e.StatusId });
     }
 }

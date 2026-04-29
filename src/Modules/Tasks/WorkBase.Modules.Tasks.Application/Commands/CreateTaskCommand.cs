@@ -8,7 +8,8 @@ namespace WorkBase.Modules.Tasks.Application.Commands;
 public sealed record CreateTaskCommand(
     string Title, string? Description,
     Guid PriorityId, Guid AssigneeId,
-    Guid? ReporterId = null, DateTime? DueDate = null) : ICommand<Guid>, ITenantRequest
+    Guid? ReporterId = null, DateTime? DueDate = null,
+    Guid? CoAssigneeId = null) : ICommand<Guid>, ITenantRequest
 {
     public Guid TenantId { get; set; }
 }
@@ -33,7 +34,8 @@ public sealed class CreateTaskHandler(
 
         var task = TaskItem.Create(
             request.TenantId, request.Title, defaultStatus.Id, request.PriorityId,
-            request.AssigneeId, request.ReporterId, request.Description, request.DueDate);
+            request.AssigneeId, request.ReporterId, request.Description, request.DueDate,
+            request.CoAssigneeId);
 
         await taskRepository.AddAsync(task, cancellationToken);
         return task.Id;

@@ -11,6 +11,7 @@ public sealed class TaskItem : AuditableEntity<Guid>, ITenantScoped, IAuditable
     public Guid StatusId { get; private set; }
     public Guid PriorityId { get; private set; }
     public Guid AssigneeId { get; private set; }
+    public Guid? CoAssigneeId { get; private set; }
     public Guid? ReporterId { get; private set; }
     public DateTime? DueDate { get; private set; }
     public DateTime? CompletedAt { get; private set; }
@@ -21,8 +22,11 @@ public sealed class TaskItem : AuditableEntity<Guid>, ITenantScoped, IAuditable
     public static TaskItem Create(
         Guid tenantId, string title, Guid statusId, Guid priorityId,
         Guid assigneeId, Guid? reporterId = null, string? description = null,
-        DateTime? dueDate = null)
+        DateTime? dueDate = null, Guid? coAssigneeId = null)
     {
+        if (coAssigneeId == assigneeId)
+            coAssigneeId = null;
+
         var task = new TaskItem
         {
             TenantId = tenantId,
@@ -30,6 +34,7 @@ public sealed class TaskItem : AuditableEntity<Guid>, ITenantScoped, IAuditable
             StatusId = statusId,
             PriorityId = priorityId,
             AssigneeId = assigneeId,
+            CoAssigneeId = coAssigneeId,
             ReporterId = reporterId,
             Description = description,
             DueDate = dueDate,
@@ -62,8 +67,17 @@ public sealed class TaskItem : AuditableEntity<Guid>, ITenantScoped, IAuditable
     {
         var oldAssigneeId = AssigneeId;
         AssigneeId = newAssigneeId;
+        if (CoAssigneeId == newAssigneeId)
+            CoAssigneeId = null;
         RaiseDomainEvent(new TaskAssignedEvent(
             Id, TenantId, oldAssigneeId, newAssigneeId));
+    }
+
+    public void SetCoAssignee(Guid? newCoAssigneeId)
+    {
+        if (newCoAssigneeId == AssigneeId)
+            newCoAssigneeId = null;
+        CoAssigneeId = newCoAssigneeId;
     }
 
     public void Complete(DateTime completedAt)
