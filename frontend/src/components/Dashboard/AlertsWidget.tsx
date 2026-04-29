@@ -101,7 +101,7 @@ const titleStyle: React.CSSProperties = {
 
 const metricsGrid: React.CSSProperties = {
   display: 'grid',
-  gridTemplateColumns: '1fr 1fr',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
   gap: '12px',
   marginTop: '12px',
   paddingTop: '12px',

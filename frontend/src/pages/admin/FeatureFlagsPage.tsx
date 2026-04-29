@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { ToggleLeft, ToggleRight, RefreshCw, Flag } from 'lucide-react';
 import { useFeatureFlags, useToggleFeatureFlag } from '@/api/hooks/useIam';
+import { useIsMobile } from '@/shared';
 
 const moduleLabels: Record<string, string> = {
   Organization: 'Organizacja',
@@ -16,6 +17,7 @@ const moduleLabels: Record<string, string> = {
 export function FeatureFlagsPage() {
   const { data: flags, isLoading, error, refetch, isFetching } = useFeatureFlags();
   const toggleMutation = useToggleFeatureFlag();
+  const mobile = useIsMobile();
 
   const handleToggle = useCallback(
     (module: string) => {
@@ -25,7 +27,7 @@ export function FeatureFlagsPage() {
   );
 
   return (
-    <div style={{ padding: '24px 32px', maxWidth: '800px' }}>
+    <div style={{ padding: mobile ? '16px' : '24px 32px', maxWidth: '800px' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
         <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 600, color: '#111827' }}>Flagi funkcjonalności</h1>

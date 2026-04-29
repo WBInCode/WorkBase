@@ -32,12 +32,13 @@ export function ApprovalActionBar({ onDecide, isPending }: ApprovalActionBarProp
     <div
       style={{
         display: 'flex',
+        flexWrap: 'wrap',
         alignItems: 'flex-end',
         gap: '12px',
         padding: '16px 0',
       }}
     >
-      <div style={{ flex: 1 }}>
+      <div style={{ flex: 1, minWidth: '200px' }}>
         <label
           style={{
             display: 'block',

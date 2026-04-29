@@ -3,6 +3,7 @@ import { FolderTree, Building2, RefreshCw, Plus, Edit2, Trash2, X } from 'lucide
 import { useOrgUnitTree, useUnitTypes, useCreateOrgUnit, useUpdateOrgUnit, useDeleteOrgUnit } from '@/api/hooks/useOrganization';
 import { OrgTree } from '@/components/OrgTree';
 import type { OrganizationUnitTreeNode } from '@/api/types/organization';
+import { useIsMobile } from '@/shared';
 
 export function OrgTreePage() {
   const { data: tree, isLoading, error, refetch } = useOrgUnitTree();
@@ -12,6 +13,7 @@ export function OrgTreePage() {
   const [addParentId, setAddParentId] = useState<string | undefined>(undefined);
 
   const deleteMutation = useDeleteOrgUnit();
+  const mobile = useIsMobile();
 
   const handleAddRoot = () => {
     setEditingNode(null);
@@ -54,7 +56,7 @@ export function OrgTreePage() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '16px 24px',
+          padding: mobile ? '12px 16px' : '16px 24px',
           borderBottom: '1px solid #e5e7eb',
         }}
       >
@@ -109,11 +111,11 @@ export function OrgTreePage() {
       </div>
 
       {/* Content */}
-      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: mobile ? 'column' : 'row', overflow: 'hidden' }}>
         {/* Tree panel */}
         <div
           style={{
-            flex: selectedNode ? '0 0 50%' : '1',
+            flex: mobile ? 'none' : (selectedNode ? '0 0 50%' : '1'),
             overflowY: 'auto',
             padding: '12px',
             transition: 'flex 0.2s',
@@ -168,10 +170,11 @@ export function OrgTreePage() {
         {selectedNode && (
           <div
             style={{
-              flex: '0 0 50%',
-              borderLeft: '1px solid #e5e7eb',
+              flex: mobile ? 'none' : '0 0 50%',
+              borderLeft: mobile ? 'none' : '1px solid #e5e7eb',
+              borderTop: mobile ? '1px solid #e5e7eb' : 'none',
               overflowY: 'auto',
-              padding: '24px',
+              padding: mobile ? '16px' : '24px',
               backgroundColor: '#fafafa',
             }}
           >

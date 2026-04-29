@@ -12,6 +12,7 @@ import {
   EmployeeTasksSection,
   EmployeeActivityTimeline,
 } from '@/components/EmployeeCard';
+import { useIsMobile } from '@/shared';
 
 export function EmployeeCardPage() {
   const { id } = useParams<{ id: string }>();
@@ -38,10 +39,12 @@ export function EmployeeCardPage() {
 
   // Tasks
   const { data: tasks = [], isLoading: tasksLoading } = useTasks(id);
+  const mobile = useIsMobile();
+  const pad = mobile ? '16px' : '24px 32px';
 
   if (empLoading) {
     return (
-      <div style={{ padding: '24px 32px', maxWidth: '1000px' }}>
+      <div style={{ padding: pad, maxWidth: '1000px' }}>
         <div style={{ color: '#9ca3af', fontSize: '14px', textAlign: 'center', padding: '48px 0' }}>
           Ładowanie danych pracownika...
         </div>
@@ -51,7 +54,7 @@ export function EmployeeCardPage() {
 
   if (error || !employee) {
     return (
-      <div style={{ padding: '24px 32px', maxWidth: '1000px' }}>
+      <div style={{ padding: pad, maxWidth: '1000px' }}>
         <div style={{ padding: '16px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', color: '#dc2626', fontSize: '14px' }}>
           Nie udało się załadować danych pracownika.
           <button
@@ -66,7 +69,7 @@ export function EmployeeCardPage() {
   }
 
   return (
-    <div style={{ padding: '24px 32px', maxWidth: '1000px' }}>
+    <div style={{ padding: pad, maxWidth: '1000px' }}>
       {/* Back button */}
       <button
         onClick={() => navigate('/org/employees')}

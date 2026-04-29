@@ -5,16 +5,7 @@ import { FolderTree, Users, FileUp, LogOut, Menu, X, Shield, Grid3X3, CalendarDa
 import { mapUserClaims } from '@/auth';
 import { ClockButton } from '@/components/TimeTracking';
 import { NotificationBell } from '@/components/Notifications';
-
-function useIsMobile(breakpoint = 768) {
-  const [isMobile, setIsMobile] = useState(window.innerWidth < breakpoint);
-  useEffect(() => {
-    const handler = () => setIsMobile(window.innerWidth < breakpoint);
-    window.addEventListener('resize', handler);
-    return () => window.removeEventListener('resize', handler);
-  }, [breakpoint]);
-  return isMobile;
-}
+import { useIsMobile } from '@/shared';
 
 function useLiveClock() {
   const [now, setNow] = useState(new Date());

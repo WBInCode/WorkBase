@@ -6,6 +6,7 @@ import { usePendingApprovals, useSubmitApprovalDecision } from '@/api/hooks/useW
 import { useEmployees } from '@/api/hooks/useOrganization';
 import { ApprovalActionBar } from '@/components/Leave';
 import type { ApprovalDecision, ApprovalRequestDto } from '@/api/types/workflow';
+import { useIsMobile } from '@/shared';
 
 const STATUS_CONFIG: Record<string, { label: string; bg: string; color: string }> = {
   Pending: { label: 'Oczekuje', bg: '#fef3c7', color: '#92400e' },
@@ -40,6 +41,7 @@ export function PendingApprovalsPage() {
 
   const { data: approvals = [], isLoading, error } = usePendingApprovals(employeeId);
   const decideMutation = useSubmitApprovalDecision();
+  const mobile = useIsMobile();
 
   // Fetch employees to resolve requester names
   const { data: employeesResult } = useEmployees({ page: 1, pageSize: 500 });
@@ -77,7 +79,7 @@ export function PendingApprovalsPage() {
   const pendingApprovals = approvals.filter((a) => !decidedIds.has(a.id));
 
   return (
-    <div style={{ padding: '24px', maxWidth: '960px' }}>
+    <div style={{ padding: mobile ? '16px' : '24px', maxWidth: '960px' }}>
       {/* Header */}
       <div
         style={{
@@ -156,7 +158,7 @@ export function PendingApprovalsPage() {
             backgroundColor: '#fff',
             borderRadius: '10px',
             border: '1px solid #e5e7eb',
-            overflow: 'hidden',
+            overflowX: 'auto',
           }}
         >
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
@@ -211,7 +213,7 @@ export function PendingApprovalsPage() {
                     </td>
                     <td style={{ ...tdStyle, textAlign: 'center' }}>
                       {isExpanded ? (
-                        <div style={{ minWidth: '420px', textAlign: 'left' }}>
+                        <div style={{ minWidth: mobile ? 'auto' : '420px', textAlign: 'left' }}>
                           <ApprovalActionBar
                             onDecide={(decision, comment) =>
                               handleDecide(approval, decision, comment)

@@ -157,7 +157,7 @@ export function LeaveRequestForm({
             </FieldGroup>
 
             {/* Date range */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px' }}>
               <FieldGroup label="Data od" required>
                 <input
                   type="date"

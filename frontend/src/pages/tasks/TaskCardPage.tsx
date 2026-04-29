@@ -15,6 +15,7 @@ import {
   useDownloadTaskAttachment,
 } from '@/api/hooks/useTasks';
 import { useEmployees } from '@/api/hooks/useOrganization';
+import { useIsMobile } from '@/shared';
 
 export function TaskCardPage() {
   const { id } = useParams<{ id: string }>();
@@ -40,6 +41,7 @@ export function TaskCardPage() {
 
   const [commentText, setCommentText] = useState('');
   const [newStatusId, setNewStatusId] = useState('');
+  const mobile = useIsMobile();
 
   const employeeMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -81,7 +83,7 @@ export function TaskCardPage() {
   };
 
   return (
-    <div style={{ padding: '24px', maxWidth: '900px' }}>
+    <div style={{ padding: mobile ? '16px' : '24px', maxWidth: '900px' }}>
       {/* Back */}
       <button onClick={() => navigate(-1)} style={backBtnStyle}>
         <ArrowLeft size={16} /> Powrót
@@ -100,7 +102,7 @@ export function TaskCardPage() {
       </div>
 
       {/* Info grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
         <InfoCard label="Status">
           <Badge label={task.statusName} color={task.statusColor ?? '#6b7280'} />
         </InfoCard>

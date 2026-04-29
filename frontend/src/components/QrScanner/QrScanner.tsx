@@ -127,7 +127,7 @@ export function QrScanner({ onScan, onClose, facingMode = 'environment' }: QrSca
             pointerEvents: 'none',
           }}>
             <div style={{
-              width: '200px', height: '200px',
+              width: 'min(200px, 60vw)', height: 'min(200px, 60vw)',
               border: '3px solid rgba(99,102,241,0.7)',
               borderRadius: '16px',
               boxShadow: '0 0 0 9999px rgba(0,0,0,0.4)',

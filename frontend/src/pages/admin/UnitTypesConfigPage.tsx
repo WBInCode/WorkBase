@@ -2,12 +2,14 @@ import { useState, type FormEvent } from 'react';
 import { Layers, Plus, RefreshCw, Edit2, Trash2, X } from 'lucide-react';
 import { useUnitTypes, useCreateUnitType, useUpdateUnitType, useDeleteUnitType } from '@/api/hooks/useOrganization';
 import type { OrganizationUnitType } from '@/api/types/organization';
+import { useIsMobile } from '@/shared';
 
 export function UnitTypesConfigPage() {
   const { data: types, isLoading, error, refetch, isFetching } = useUnitTypes();
   const createMut = useCreateUnitType();
   const updateMut = useUpdateUnitType();
   const deleteMut = useDeleteUnitType();
+  const mobile = useIsMobile();
 
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<OrganizationUnitType | null>(null);
@@ -18,7 +20,7 @@ export function UnitTypesConfigPage() {
   };
 
   return (
-    <div style={{ padding: '24px 32px', maxWidth: '900px' }}>
+    <div style={{ padding: mobile ? '16px' : '24px 32px', maxWidth: '900px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
         <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 600, color: '#111827' }}>Typy jednostek organizacyjnych</h1>
         <div style={{ display: 'flex', gap: '8px' }}>
@@ -47,7 +49,7 @@ export function UnitTypesConfigPage() {
           <div style={{ fontSize: '13px', marginTop: 4 }}>Dodaj pierwszy klikając „Nowy typ".</div>
         </div>
       ) : (
-        <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden' }}>
+        <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
             <thead>
               <tr style={{ backgroundColor: '#f9fafb' }}>
