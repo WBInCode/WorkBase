@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Send, UserCircle, Clock, AlertTriangle, Paperclip, Download, Upload } from 'lucide-react';
 import { useAuth } from 'react-oidc-context';
@@ -45,6 +45,14 @@ export function TaskCardPage() {
   const [newAssigneeId, setNewAssigneeId] = useState('');
   const [newAdditionalAssignees, setNewAdditionalAssignees] = useState<string[]>([]);
 
+  // Prefill assign panel with current task assignees once task is loaded
+  useEffect(() => {
+    if (task) {
+      setNewAssigneeId(task.assigneeId);
+      setNewAdditionalAssignees(task.additionalAssigneeIds ?? []);
+    }
+  }, [task?.id, task?.assigneeId, task?.additionalAssigneeIds]);
+
   const employeeMap = useMemo(() => {
     const map = new Map<string, string>();
     for (const e of employees) {
@@ -84,7 +92,6 @@ export function TaskCardPage() {
         newAssigneeId,
         additionalAssigneeIds: filtered,
       },
-      { onSuccess: () => { setNewAssigneeId(''); setNewAdditionalAssignees([]); } },
     );
   };
 
@@ -176,14 +183,17 @@ export function TaskCardPage() {
 
         {/* Assign */}
         <div style={actionCardStyle}>
-          <div style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>Przypisz</div>
+          <div style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>Zmień przypisanie</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <label style={{ fontSize: '11px', color: '#6b7280', fontWeight: 500 }}>Główny wykonawca</label>
             <select value={newAssigneeId} onChange={(e) => setNewAssigneeId(e.target.value)} style={selectStyle}>
-              <option value="">— główny wykonawca —</option>
               {employees.map((e) => (
                 <option key={e.id} value={e.id}>{e.firstName} {e.lastName}</option>
               ))}
             </select>
+            {newAdditionalAssignees.length > 0 && (
+              <label style={{ fontSize: '11px', color: '#6b7280', fontWeight: 500, marginTop: '4px' }}>Dodatkowe osoby</label>
+            )}
             {newAdditionalAssignees.map((aid, idx) => {
               const used = new Set([newAssigneeId, ...newAdditionalAssignees.filter((_, i) => i !== idx)]);
               return (
@@ -229,7 +239,7 @@ export function TaskCardPage() {
               + Dodaj kolejną osobę
             </button>
             <button onClick={handleAssign} disabled={!newAssigneeId || assignMutation.isPending} style={actionBtnStyle}>
-              {assignMutation.isPending ? '...' : 'Przypisz'}
+              {assignMutation.isPending ? 'Zapisywanie...' : 'Zapisz przypisanie'}
             </button>
           </div>
         </div>
