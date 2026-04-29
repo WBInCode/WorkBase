@@ -24,6 +24,10 @@ services:
         value: "Host=ep-restless-fog-alz3p9w0-pooler.c-3.eu-central-1.aws.neon.tech;Database=neondb;Username=neondb_owner;Password=${NEON_PASSWORD};SslMode=Require;Trust Server Certificate=true"
       - key: Keycloak__Authority
         value: https://workbase-auth.onrender.com/realms/workbase
+      - key: Keycloak__Admin__Username
+        value: admin
+      - key: Keycloak__Admin__Password
+        sync: false
       - key: Cors__AllowedOrigins__0
         value: https://work-base-roan.vercel.app
       - key: Cors__AllowedOrigins__1
