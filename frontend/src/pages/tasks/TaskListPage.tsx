@@ -35,6 +35,7 @@ export function TaskListPage() {
   const [formAssignee, setFormAssignee] = useState('');
   const [formAdditionalAssignees, setFormAdditionalAssignees] = useState<string[]>([]);
   const [formDueDate, setFormDueDate] = useState('');
+  const [formError, setFormError] = useState<string | null>(null);
 
   const now = new Date();
 
@@ -67,7 +68,15 @@ export function TaskListPage() {
   }, [employees]);
 
   const handleCreate = () => {
-    if (!formTitle || !formPriority || !formAssignee) return;
+    const missing: string[] = [];
+    if (!formTitle.trim()) missing.push('Tytuł');
+    if (!formPriority) missing.push('Priorytet');
+    if (!formAssignee) missing.push('Przypisz do');
+    if (missing.length > 0) {
+      setFormError(`Uzupełnij wymagane pola: ${missing.join(', ')}.`);
+      return;
+    }
+    setFormError(null);
     const additionalIds = formAdditionalAssignees.filter((id) => id && id !== formAssignee);
     const data: CreateTaskRequest = {
       title: formTitle,
@@ -87,6 +96,7 @@ export function TaskListPage() {
         setFormAssignee('');
         setFormAdditionalAssignees([]);
         setFormDueDate('');
+        setFormError(null);
       },
     });
   };
@@ -389,9 +399,9 @@ export function TaskListPage() {
                 <input type="date" value={formDueDate} onChange={(e) => setFormDueDate(e.target.value)} style={inputStyle} />
               </label>
             </div>
-            {createMutation.error && (
+            {(formError || createMutation.error) && (
               <div style={{ marginTop: '12px', padding: '8px 12px', backgroundColor: '#fef2f2', color: '#dc2626', fontSize: '13px', borderRadius: '6px' }}>
-                {createMutation.error.message}
+                {formError ?? createMutation.error?.message}
               </div>
             )}
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '20px' }}>
