@@ -58,14 +58,9 @@ export function MyDayOverview({ data, isLoading }: Props) {
     if (!data?.workedToday) { setElapsed(0); return; }
 
     const base = parseDuration(data.workedToday);
+    setElapsed(base);
 
-    if (!isWorking) { setElapsed(base); return; }
-
-    let extra = 0;
-    if (data.lastEntryTime && (data.lastEntryType === 'ClockIn' || data.lastEntryType === 'BreakEnd')) {
-      extra = Math.max(0, Math.floor((Date.now() - new Date(data.lastEntryTime).getTime()) / 1000));
-    }
-    setElapsed(base + extra);
+    if (!isWorking) { return; }
 
     const interval = setInterval(() => setElapsed((p) => p + 1), 1000);
     return () => clearInterval(interval);
