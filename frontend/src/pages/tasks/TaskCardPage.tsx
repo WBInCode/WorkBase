@@ -110,7 +110,12 @@ export function TaskCardPage() {
         <InfoCard label="Przypisane do">
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
             <UserCircle size={16} color="#9ca3af" />
-            <span>{employeeMap.get(task.assigneeId) ?? '—'}</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontWeight: 500 }}>{employeeMap.get(task.assigneeId) ?? '—'}</span>
+              <span style={{ padding: '2px 6px', fontSize: '10px', fontWeight: 600, letterSpacing: '0.3px', textTransform: 'uppercase', backgroundColor: '#fef3c7', color: '#92400e', borderRadius: '999px' }}>
+                Główny wykonawca
+              </span>
+            </span>
             {task.additionalAssigneeIds?.map((id) => (
               <span key={id} style={{ padding: '2px 8px', fontSize: '12px', backgroundColor: '#eef2ff', color: '#4338ca', borderRadius: '999px' }}>
                 + {employeeMap.get(id) ?? '—'}
