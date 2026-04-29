@@ -1,11 +1,12 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Logging;
 using WorkBase.Shared.Domain;
 
 namespace WorkBase.Infrastructure.Persistence;
 
-public sealed class DomainEventInterceptor(IPublisher publisher) : SaveChangesInterceptor
+public sealed class DomainEventInterceptor(IPublisher publisher, ILogger<DomainEventInterceptor> logger) : SaveChangesInterceptor
 {
     public override async ValueTask<int> SavedChangesAsync(
         SaveChangesCompletedEventData eventData,
@@ -39,7 +40,15 @@ public sealed class DomainEventInterceptor(IPublisher publisher) : SaveChangesIn
 
         foreach (var domainEvent in domainEvents)
         {
-            await publisher.Publish(domainEvent, cancellationToken);
+            try
+            {
+                await publisher.Publish(domainEvent, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Domain event handler failed for {EventType}. The originating entity was already saved.",
+                    domainEvent.GetType().Name);
+            }
         }
     }
 }
