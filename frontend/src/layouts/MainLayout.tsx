@@ -103,6 +103,7 @@ export function MainLayout({ children }: MainLayoutProps) {
   const auth = useAuth();
   const location = useLocation();
   const user = auth.user ? mapUserClaims(auth.user) : null;
+  const isAdmin = !!user?.roles?.some((r) => r === 'workbase-admin' || r === 'Admin' || r === 'Super Admin');
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
   const now = useLiveClock();
@@ -250,6 +251,7 @@ export function MainLayout({ children }: MainLayoutProps) {
           ))}
 
           {/* Admin section */}
+          {isAdmin && (
           <div style={{
             marginTop: 8,
             paddingTop: 8,
@@ -317,6 +319,7 @@ export function MainLayout({ children }: MainLayoutProps) {
               );
             })}
           </div>
+          )}
         </nav>
 
         {/* User */}
