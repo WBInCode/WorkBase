@@ -158,6 +158,7 @@ function LeaveTypeFormModal({ leaveType, isPending, error, onSubmit, onClose }: 
   const [defaultDays, setDefaultDays] = useState(leaveType?.defaultDaysPerYear?.toString() ?? '');
   const [color, setColor] = useState(leaveType?.color ?? '#6366f1');
   const [sortOrder, setSortOrder] = useState(leaveType?.sortOrder?.toString() ?? '0');
+  const mobile = useIsMobile();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

@@ -155,6 +155,7 @@ function StatusFormModal({ status, isPending, error, onSubmit, onClose }: {
   const [isFinal, setIsFinal] = useState(status?.isFinal ?? false);
   const [isDefault, setIsDefault] = useState(status?.isDefault ?? false);
   const [sortOrder, setSortOrder] = useState(status?.sortOrder?.toString() ?? '0');
+  const mobile = useIsMobile();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
