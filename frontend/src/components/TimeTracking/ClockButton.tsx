@@ -85,23 +85,10 @@ export function ClockButton({ employeeId }: ClockButtonProps) {
     }
 
     const baseSeconds = parseDuration(statusData.workedToday);
+    setElapsedSeconds(baseSeconds);
 
     if (status !== 'working') {
-      setElapsedSeconds(baseSeconds);
       return;
-    }
-
-    let extraSeconds = 0;
-    if (statusData.lastEntryTime) {
-      const lastEntry = new Date(statusData.lastEntryTime);
-      extraSeconds = Math.max(0, Math.floor((Date.now() - lastEntry.getTime()) / 1000));
-      if (statusData.lastEntryType === 'ClockIn' || statusData.lastEntryType === 'BreakEnd') {
-        setElapsedSeconds(baseSeconds + extraSeconds);
-      } else {
-        setElapsedSeconds(baseSeconds);
-      }
-    } else {
-      setElapsedSeconds(baseSeconds);
     }
 
     const interval = setInterval(() => {

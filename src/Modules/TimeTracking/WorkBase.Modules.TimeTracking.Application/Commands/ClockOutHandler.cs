@@ -83,11 +83,6 @@ public sealed class ClockOutHandler(
                     break;
 
                 case TimeEntryType.BreakStart:
-                    if (clockInTime.HasValue)
-                    {
-                        totalWorked += entry.EntryTime - clockInTime.Value;
-                        clockInTime = null;
-                    }
                     breakStartTime = entry.EntryTime;
                     break;
 
@@ -97,7 +92,6 @@ public sealed class ClockOutHandler(
                         totalBreaks += entry.EntryTime - breakStartTime.Value;
                         breakStartTime = null;
                     }
-                    clockInTime = entry.EntryTime;
                     break;
 
                 case TimeEntryType.ClockOut:

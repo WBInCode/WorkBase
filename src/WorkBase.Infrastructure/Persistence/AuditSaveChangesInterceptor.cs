@@ -41,7 +41,15 @@ public sealed class AuditSaveChangesInterceptor(IHttpContextAccessor httpContext
     {
         if (_pendingAudits is { Count: > 0 } && eventData.Context is not null)
         {
-            await PersistAuditEntriesAsync(eventData.Context, cancellationToken);
+            try
+            {
+                await PersistAuditEntriesAsync(eventData.Context, cancellationToken);
+            }
+            catch
+            {
+                // Audit persistence should never block the main operation
+                _pendingAudits = null;
+            }
         }
 
         return await base.SavedChangesAsync(eventData, result, cancellationToken);
