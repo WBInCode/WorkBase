@@ -27,6 +27,8 @@ export interface EmployeeDto {
   status: EmployeeStatus;
   userId: string | null;
   hourlyRate: number | null;
+  primaryOrganizationUnitId: string | null;
+  primaryOrganizationUnitName: string | null;
 }
 
 export type EmployeeStatus = 'Active' | 'Inactive' | 'OnLeave';

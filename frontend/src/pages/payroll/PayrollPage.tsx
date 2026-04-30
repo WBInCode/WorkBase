@@ -111,6 +111,12 @@ export function PayrollPage() {
   const isAdmin = roles.some(
     (r) => r === 'workbase-admin' || r === 'Admin' || r === 'Super Admin',
   );
+  const isHr = roles.some((r) => r === 'workbase-hr' || r === 'HR' || r === 'Hr');
+  const isManager = roles.some(
+    (r) => r === 'workbase-manager' || r === 'Kierownik' || r === 'Manager',
+  );
+  const isDepartmentScope = !isAdmin && (isHr || isManager);
+  const userSub = auth.user?.profile?.sub ?? null;
 
   const { data: payrollSettings } = usePayrollSettings();
   const overtimeMultiplier = payrollSettings?.overtimeMultiplier ?? DEFAULT_OVERTIME_MULTIPLIER;
@@ -121,7 +127,23 @@ export function PayrollPage() {
     status: 'Active',
   });
 
-  const employees = employeesPage?.items ?? [];
+  const allEmployees = employeesPage?.items ?? [];
+  const currentEmployee = useMemo(
+    () => (userSub ? allEmployees.find((e) => e.userId === userSub) ?? null : null),
+    [allEmployees, userSub],
+  );
+
+  const employees = useMemo(() => {
+    if (isAdmin) return allEmployees;
+    if (isDepartmentScope) {
+      const unitId = currentEmployee?.primaryOrganizationUnitId;
+      if (!unitId) return currentEmployee ? [currentEmployee] : [];
+      return allEmployees.filter((e) => e.primaryOrganizationUnitId === unitId);
+    }
+    // Pracownik — tylko własny wiersz
+    return currentEmployee ? [currentEmployee] : [];
+  }, [allEmployees, isAdmin, isDepartmentScope, currentEmployee]);
+
   const employeeIds = useMemo(() => employees.map((e) => e.id), [employees]);
 
   const { data: timesheets, isLoading: loadingSheets } = useTeamTimesheets(

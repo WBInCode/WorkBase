@@ -63,7 +63,7 @@ const navSections: NavSection[] = [
       { path: '/time/timesheet', label: 'Karta czasu', icon: CalendarDays },
       { path: '/time/team-report', label: 'Raport zespołu', icon: UsersRound },
       { path: '/time/schedule', label: 'Grafik pracy', icon: CalendarClock },
-      { path: '/payroll', label: 'Wynagrodzenia', icon: Wallet, adminOnly: true },
+      { path: '/payroll', label: 'Wynagrodzenia', icon: Wallet },
     ],
   },
   {

@@ -20,6 +20,10 @@ public sealed class GetEmployeeByNumberHandler(IEmployeeRepository employeeRepos
         if (employee is null)
             return Result.Failure<EmployeeDto>(Error.NotFound("Employee.NotFound", "Nie znaleziono pracownika o podanym numerze."));
 
+        var primaryUnits = await employeeRepository.GetPrimaryAssignmentsAsync(
+            new[] { employee.Id }, cancellationToken);
+        var hasUnit = primaryUnits.TryGetValue(employee.Id, out var unit);
+
         return new EmployeeDto(
             employee.Id,
             employee.FirstName,
@@ -30,6 +34,8 @@ public sealed class GetEmployeeByNumberHandler(IEmployeeRepository employeeRepos
             employee.TerminationDate,
             employee.Status.ToString(),
             employee.UserId,
-            employee.HourlyRate);
+            employee.HourlyRate,
+            hasUnit ? unit.UnitId : null,
+            hasUnit ? unit.UnitName : null);
     }
 }

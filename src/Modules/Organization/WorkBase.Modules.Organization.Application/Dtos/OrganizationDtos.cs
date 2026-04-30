@@ -41,7 +41,9 @@ public sealed record EmployeeDto(
     DateTime? TerminationDate,
     string Status,
     Guid? UserId,
-    decimal? HourlyRate);
+    decimal? HourlyRate,
+    Guid? PrimaryOrganizationUnitId,
+    string? PrimaryOrganizationUnitName);
 
 public sealed record EmployeeDetailDto(
     Guid Id,
