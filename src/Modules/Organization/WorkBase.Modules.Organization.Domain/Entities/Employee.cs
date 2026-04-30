@@ -15,6 +15,7 @@ public sealed class Employee : AuditableEntity<Guid>, ITenantScoped, IAuditable
     public DateTime? TerminationDate { get; private set; }
     public EmployeeStatus Status { get; private set; }
     public string? CustomFields { get; private set; }
+    public decimal? HourlyRate { get; private set; }
 
     private Employee() { }
 
@@ -72,6 +73,13 @@ public sealed class Employee : AuditableEntity<Guid>, ITenantScoped, IAuditable
     public void UpdateCustomFields(string? customFields)
     {
         CustomFields = customFields;
+    }
+
+    public void SetHourlyRate(decimal? rate)
+    {
+        if (rate.HasValue && rate.Value < 0)
+            throw new ArgumentException("Hourly rate must be non-negative.", nameof(rate));
+        HourlyRate = rate;
     }
 }
 

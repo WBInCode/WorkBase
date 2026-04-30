@@ -1,5 +1,8 @@
 import type { EmployeeDetailDto, EmployeeStatus } from '@/api/types/organization';
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { useAuth } from 'react-oidc-context';
+import { useSetEmployeeHourlyRate } from '@/api/hooks/useOrganization';
 
 const statusLabels: Record<EmployeeStatus, string> = {
   Active: 'Aktywny',
@@ -19,7 +22,23 @@ interface Props {
 
 export function EmployeeInfoSection({ employee }: Props) {
   const navigate = useNavigate();
+  const auth = useAuth();
+  const roles = (auth.user?.profile?.['roles'] as string[] | undefined) ?? [];
+  const isAdmin = roles.some((r) => r === 'workbase-admin' || r === 'Admin' || r === 'Super Admin');
+  const setRate = useSetEmployeeHourlyRate();
+  const [editingRate, setEditingRate] = useState(false);
+  const [rateInput, setRateInput] = useState<string>(
+    employee.hourlyRate !== null && employee.hourlyRate !== undefined ? String(employee.hourlyRate) : '',
+  );
   const color = statusColors[employee.status];
+
+  const saveRate = async () => {
+    const trimmed = rateInput.trim();
+    const value = trimmed === '' ? null : Number(trimmed.replace(',', '.'));
+    if (value !== null && (Number.isNaN(value) || value < 0)) return;
+    await setRate.mutateAsync({ id: employee.id, hourlyRate: value });
+    setEditingRate(false);
+  };
 
   return (
     <div style={cardStyle}>
@@ -56,6 +75,43 @@ export function EmployeeInfoSection({ employee }: Props) {
             >
               {employee.supervisor.firstName} {employee.supervisor.lastName}
             </span>
+          </Field>
+        )}
+        {isAdmin && (
+          <Field label="Stawka godzinowa (PLN)">
+            {editingRate ? (
+              <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
+                <input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={rateInput}
+                  onChange={(e) => setRateInput(e.target.value)}
+                  style={{ width: 100, padding: '4px 8px', border: '1px solid #cbd5e1', borderRadius: 4 }}
+                />
+                <button
+                  onClick={saveRate}
+                  disabled={setRate.isPending}
+                  style={{ padding: '4px 10px', border: 'none', background: '#2563eb', color: '#fff', borderRadius: 4, cursor: 'pointer', fontSize: 12 }}
+                >
+                  Zapisz
+                </button>
+                <button
+                  onClick={() => { setEditingRate(false); setRateInput(employee.hourlyRate != null ? String(employee.hourlyRate) : ''); }}
+                  style={{ padding: '4px 10px', border: '1px solid #cbd5e1', background: '#fff', borderRadius: 4, cursor: 'pointer', fontSize: 12 }}
+                >
+                  Anuluj
+                </button>
+              </span>
+            ) : (
+              <span
+                onClick={() => setEditingRate(true)}
+                style={{ cursor: 'pointer', color: employee.hourlyRate != null ? '#111827' : '#9ca3af', textDecoration: 'underline' }}
+                title="Kliknij aby edytować"
+              >
+                {employee.hourlyRate != null ? `${employee.hourlyRate.toFixed(2)} PLN/h` : 'Ustaw stawkę'}
+              </span>
+            )}
           </Field>
         )}
       </div>

@@ -30,7 +30,8 @@ public sealed class GetEmployeesHandler(IEmployeeRepository employeeRepository)
             e.HireDate,
             e.TerminationDate,
             e.Status.ToString(),
-            e.UserId)).ToList();
+            e.UserId,
+            e.HourlyRate)).ToList();
 
         return new PagedResultDto<EmployeeDto>(dtos, totalCount, request.Page, request.PageSize);
     }

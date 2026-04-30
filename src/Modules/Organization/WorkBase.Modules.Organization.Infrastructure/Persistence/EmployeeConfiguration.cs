@@ -41,6 +41,9 @@ public sealed class EmployeeConfiguration : IEntityTypeConfiguration<Employee>
         builder.Property(e => e.CustomFields)
             .HasColumnType("jsonb");
 
+        builder.Property(e => e.HourlyRate)
+            .HasColumnType("numeric(10,2)");
+
         builder.HasIndex(e => e.CustomFields)
             .HasMethod("gin");
 
