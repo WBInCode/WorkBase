@@ -1,12 +1,14 @@
-import { useMemo, useState, Fragment } from 'react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { useMemo, useState, Fragment, useEffect } from 'react';
+import { ChevronDown, ChevronRight, Settings } from 'lucide-react';
+import { useAuth } from 'react-oidc-context';
 import { useEmployees } from '@/api/hooks/useOrganization';
 import { useTeamTimesheets, useTeamSchedulesByEmployee } from '@/api/hooks/useTimeTracking';
 import { useTeamLeaveRequests } from '@/api/hooks/useLeave';
+import { usePayrollSettings, useUpdatePayrollSettings } from '@/api/hooks/usePayrollSettings';
 import type { ScheduleDto } from '@/api/types/time';
 import type { LeaveRequestDto } from '@/api/types/leave';
 
-const OVERTIME_MULTIPLIER = 1.5;
+const DEFAULT_OVERTIME_MULTIPLIER = 1.5;
 
 function startOfMonth(d: Date): string {
   return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0, 10);
@@ -104,6 +106,15 @@ export function PayrollPage() {
   const [to, setTo] = useState(endOfMonth(today));
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
+  const auth = useAuth();
+  const roles = (auth.user?.profile?.['roles'] as string[] | undefined) ?? [];
+  const isAdmin = roles.some(
+    (r) => r === 'workbase-admin' || r === 'Admin' || r === 'Super Admin',
+  );
+
+  const { data: payrollSettings } = usePayrollSettings();
+  const overtimeMultiplier = payrollSettings?.overtimeMultiplier ?? DEFAULT_OVERTIME_MULTIPLIER;
+
   const { data: employeesPage, isLoading: loadingEmployees } = useEmployees({
     page: 1,
     pageSize: 200,
@@ -150,7 +161,7 @@ export function PayrollPage() {
 
       const rate = emp.hourlyRate ?? 0;
       const basicPay = rate * regularH;
-      const overtimePay = rate * OVERTIME_MULTIPLIER * overtimeH;
+      const overtimePay = rate * overtimeMultiplier * overtimeH;
       const totalPay = basicPay + overtimePay;
 
       return {
@@ -170,7 +181,7 @@ export function PayrollPage() {
         totalPay,
       };
     });
-  }, [employees, timesheets, schedulesByEmp, leavesByEmp, fromDate, toDate]);
+  }, [employees, timesheets, schedulesByEmp, leavesByEmp, fromDate, toDate, overtimeMultiplier]);
 
   const totals = useMemo(() => {
     return rows.reduce(
@@ -200,9 +211,12 @@ export function PayrollPage() {
 
   return (
     <div style={{ padding: 24 }}>
-      <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 4 }}>Wynagrodzenia</h1>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4, gap: 12 }}>
+        <h1 style={{ fontSize: 28, fontWeight: 700, margin: 0 }}>Wynagrodzenia</h1>
+        {isAdmin && <PayrollSettingsButton />}
+      </div>
       <p style={{ color: '#64748b', marginBottom: 20, fontSize: 13 }}>
-        Ewidencja czasu pracy + rozliczenie wynagrodzeń (norma z grafiku, czas pracy z kart, nadgodziny ×{OVERTIME_MULTIPLIER}).
+        Ewidencja czasu pracy + rozliczenie wynagrodzeń (norma z grafiku, czas pracy z kart, nadgodziny ×{overtimeMultiplier}).
       </p>
 
       <div
@@ -325,7 +339,7 @@ export function PayrollPage() {
                     {isOpen && (
                       <tr style={{ background: '#f8fafc' }}>
                         <td colSpan={11} style={{ padding: '12px 20px 18px' }}>
-                          <DetailGrid row={r} from={fromDate} to={toDate} />
+                          <DetailGrid row={r} from={fromDate} to={toDate} overtimeMultiplier={overtimeMultiplier} />
                         </td>
                       </tr>
                     )}
@@ -344,7 +358,7 @@ export function PayrollPage() {
   );
 }
 
-function DetailGrid({ row, from, to }: { row: Row; from: Date; to: Date }) {
+function DetailGrid({ row, from, to, overtimeMultiplier }: { row: Row; from: Date; to: Date; overtimeMultiplier: number }) {
   const days = Math.floor((to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24)) + 1;
   return (
     <div
@@ -386,7 +400,7 @@ function DetailGrid({ row, from, to }: { row: Row; from: Date; to: Date }) {
           value={row.hasRate ? fmtPLN(row.basicPay) : '—'}
         />
         <DetailLine
-          label={`Za nadgodziny (${row.overtimeH.toFixed(2)}h × ${row.rate.toFixed(2)} × ${OVERTIME_MULTIPLIER})`}
+          label={`Za nadgodziny (${row.overtimeH.toFixed(2)}h × ${row.rate.toFixed(2)} × ${overtimeMultiplier})`}
           value={row.hasRate ? fmtPLN(row.overtimePay) : '—'}
         />
         <DetailLine
@@ -517,3 +531,214 @@ const inputStyle: React.CSSProperties = {
   borderRadius: 6,
   fontSize: 13,
 };
+
+function PayrollSettingsButton() {
+  const [open, setOpen] = useState(false);
+  const { data, isLoading } = usePayrollSettings();
+  const update = useUpdatePayrollSettings();
+  const [overtime, setOvertime] = useState('1.5');
+  const [night, setNight] = useState('1.2');
+  const [holiday, setHoliday] = useState('2.0');
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (data) {
+      setOvertime(String(data.overtimeMultiplier));
+      setNight(String(data.nightMultiplier));
+      setHoliday(String(data.holidayMultiplier));
+    }
+  }, [data]);
+
+  const save = async () => {
+    setError(null);
+    const ot = Number(overtime.replace(',', '.'));
+    const nt = Number(night.replace(',', '.'));
+    const hd = Number(holiday.replace(',', '.'));
+    if (![ot, nt, hd].every((v) => Number.isFinite(v) && v >= 1 && v <= 10)) {
+      setError('Każdy mnożnik musi być liczbą z zakresu 1.0 – 10.0');
+      return;
+    }
+    try {
+      await update.mutateAsync({
+        overtimeMultiplier: ot,
+        nightMultiplier: nt,
+        holidayMultiplier: hd,
+      });
+      setOpen(false);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Nie udało się zapisać ustawień');
+    }
+  };
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 6,
+          padding: '8px 14px',
+          background: '#fff',
+          border: '1px solid #cbd5e1',
+          borderRadius: 6,
+          fontSize: 13,
+          fontWeight: 600,
+          color: '#334155',
+          cursor: 'pointer',
+        }}
+      >
+        <Settings size={14} />
+        Ustawienia naliczania
+      </button>
+
+      {open && (
+        <div
+          onClick={() => setOpen(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(15, 23, 42, 0.45)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: '#fff',
+              borderRadius: 10,
+              padding: 24,
+              width: 460,
+              maxWidth: '90vw',
+              boxShadow: '0 20px 50px rgba(0,0,0,0.25)',
+            }}
+          >
+            <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, marginBottom: 4 }}>
+              Ustawienia naliczania wynagrodzeń
+            </h2>
+            <p style={{ margin: 0, color: '#64748b', fontSize: 12, marginBottom: 18 }}>
+              Mnożniki stosowane do stawki godzinowej pracownika.
+            </p>
+
+            {isLoading ? (
+              <div>Ładowanie…</div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <SettingField
+                  label="Nadgodziny (× stawka)"
+                  hint="Standardowo 1.5 (50% dodatku)"
+                  value={overtime}
+                  onChange={setOvertime}
+                />
+                <SettingField
+                  label="Praca w nocy (× stawka)"
+                  hint="Standardowo 1.2 (20% dodatku)"
+                  value={night}
+                  onChange={setNight}
+                />
+                <SettingField
+                  label="Praca w święta / niedziele (× stawka)"
+                  hint="Standardowo 2.0 (100% dodatku)"
+                  value={holiday}
+                  onChange={setHoliday}
+                />
+              </div>
+            )}
+
+            {error && (
+              <div
+                style={{
+                  marginTop: 12,
+                  padding: '8px 12px',
+                  background: '#fef2f2',
+                  color: '#b91c1c',
+                  border: '1px solid #fecaca',
+                  borderRadius: 6,
+                  fontSize: 12,
+                }}
+              >
+                {error}
+              </div>
+            )}
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 20 }}>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                style={{
+                  padding: '8px 14px',
+                  background: '#fff',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: 6,
+                  fontSize: 13,
+                  cursor: 'pointer',
+                }}
+              >
+                Anuluj
+              </button>
+              <button
+                type="button"
+                onClick={save}
+                disabled={update.isPending}
+                style={{
+                  padding: '8px 14px',
+                  background: '#1d4ed8',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 6,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  opacity: update.isPending ? 0.6 : 1,
+                }}
+              >
+                {update.isPending ? 'Zapisywanie…' : 'Zapisz'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+function SettingField({
+  label,
+  hint,
+  value,
+  onChange,
+}: {
+  label: string;
+  hint: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <div>
+      <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#334155', marginBottom: 4 }}>
+        {label}
+      </label>
+      <input
+        type="number"
+        step="0.01"
+        min="1"
+        max="10"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        style={{
+          width: '100%',
+          padding: '8px 10px',
+          border: '1px solid #cbd5e1',
+          borderRadius: 6,
+          fontSize: 14,
+          boxSizing: 'border-box',
+        }}
+      />
+      <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>{hint}</div>
+    </div>
+  );
+}
