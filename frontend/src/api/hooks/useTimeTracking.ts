@@ -192,6 +192,20 @@ export function useTeamSchedules(employeeIds: string[], from: string, to: string
   });
 }
 
+export function useTeamSchedulesByEmployee(employeeIds: string[], from: string, to: string) {
+  return useQuery({
+    queryKey: ['time', 'team-schedules-grouped', employeeIds, from, to],
+    queryFn: () =>
+      Promise.all(
+        employeeIds.map((id) => {
+          const params = new URLSearchParams({ from, to });
+          return api.get<ScheduleDto[]>(`/api/time/schedules/${id}?${params}`);
+        }),
+      ),
+    enabled: employeeIds.length > 0,
+  });
+}
+
 export function useCreateSchedule() {
   const qc = useQueryClient();
   return useMutation({

@@ -44,6 +44,19 @@ export function useLeaveRequests(employeeId: string | null, year?: number) {
   });
 }
 
+export function useTeamLeaveRequests(employeeIds: string[], year: number) {
+  return useQuery({
+    queryKey: ['leave', 'team-requests', employeeIds, year],
+    queryFn: () =>
+      Promise.all(
+        employeeIds.map((id) =>
+          api.get<LeaveRequestDto[]>(`/api/leave/requests/${id}?year=${year}`),
+        ),
+      ),
+    enabled: employeeIds.length > 0,
+  });
+}
+
 export function useSubmitLeaveRequest() {
   const qc = useQueryClient();
   return useMutation({
