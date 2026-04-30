@@ -78,7 +78,7 @@ function AppRoutes() {
         <Route path="/time/timesheet" element={<TimesheetPage />} />
         <Route path="/time/team-report" element={<TeamAttendancePage />} />
         <Route path="/time/schedule" element={<SchedulePage />} />
-        <Route path="/payroll" element={isAdmin ? <PayrollPage /> : <Navigate to="/workspace" replace />} />
+        <Route path="/payroll" element={<PayrollPage />} />
         <Route path="/leave/request" element={<LeaveRequestPage />} />
         <Route path="/leave/approvals" element={<PendingApprovalsPage />} />
         <Route path="/leave/calendar" element={<LeaveCalendarPage />} />
