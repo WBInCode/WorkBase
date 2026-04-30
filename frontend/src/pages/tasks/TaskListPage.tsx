@@ -292,7 +292,7 @@ export function TaskListPage() {
                       {t.dueDate ? (
                         <span style={{ color: isOverdue ? '#dc2626' : '#374151', fontWeight: isOverdue ? 600 : 400 }}>
                           {isOverdue && <AlertTriangle size={12} style={{ marginRight: '4px', verticalAlign: 'middle' }} />}
-                          {new Date(t.dueDate).toLocaleDateString('pl-PL')}
+                          {new Date(t.dueDate).toLocaleString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                         </span>
                       ) : '—'}
                     </td>
@@ -396,7 +396,7 @@ export function TaskListPage() {
               </div>
               <label style={labelStyle}>
                 Termin
-                <input type="date" value={formDueDate} onChange={(e) => setFormDueDate(e.target.value)} style={inputStyle} />
+                <input type="datetime-local" value={formDueDate} onChange={(e) => setFormDueDate(e.target.value)} style={inputStyle} />
               </label>
             </div>
             {(formError || createMutation.error) && (
