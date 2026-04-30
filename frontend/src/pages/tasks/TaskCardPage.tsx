@@ -127,7 +127,7 @@ export function TaskCardPage() {
           {task.dueDate ? (
             <span style={{ color: isOverdue ? '#dc2626' : '#374151', fontWeight: isOverdue ? 600 : 400 }}>
               {isOverdue && <AlertTriangle size={14} style={{ marginRight: '4px', verticalAlign: 'middle' }} />}
-              {new Date(task.dueDate).toLocaleDateString('pl-PL')}
+              {new Date(task.dueDate).toLocaleString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
             </span>
           ) : '—'}
         </InfoCard>

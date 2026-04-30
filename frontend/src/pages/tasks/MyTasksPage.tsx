@@ -83,7 +83,7 @@ export function MyTasksPage() {
                             fontWeight: isOverdue ? 600 : 400,
                           }}>
                             {isOverdue && <AlertTriangle size={12} style={{ marginRight: '4px', verticalAlign: 'middle' }} />}
-                            {new Date(t.dueDate).toLocaleDateString('pl-PL')}
+                            {new Date(t.dueDate).toLocaleString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                           </span>
                         ) : (
                           <span style={{ fontSize: '13px', color: '#d1d5db' }}>brak terminu</span>
