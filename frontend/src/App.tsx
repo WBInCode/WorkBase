@@ -22,6 +22,7 @@ import { UnitTypesConfigPage } from '@/pages/admin/UnitTypesConfigPage';
 import { TimesheetPage } from '@/pages/time/TimesheetPage';
 import { TeamAttendancePage } from '@/pages/time/TeamAttendancePage';
 import { SchedulePage } from '@/pages/time/SchedulePage';
+import { PayrollPage } from '@/pages/payroll/PayrollPage';
 import { LeaveRequestPage } from '@/pages/leave/LeaveRequestPage';
 import { LeaveCalendarPage } from '@/pages/leave/LeaveCalendarPage';
 import { PendingApprovalsPage } from '@/pages/leave/PendingApprovalsPage';
@@ -77,6 +78,7 @@ function AppRoutes() {
         <Route path="/time/timesheet" element={<TimesheetPage />} />
         <Route path="/time/team-report" element={<TeamAttendancePage />} />
         <Route path="/time/schedule" element={<SchedulePage />} />
+        <Route path="/payroll" element={isAdmin ? <PayrollPage /> : <Navigate to="/workspace" replace />} />
         <Route path="/leave/request" element={<LeaveRequestPage />} />
         <Route path="/leave/approvals" element={<PendingApprovalsPage />} />
         <Route path="/leave/calendar" element={<LeaveCalendarPage />} />

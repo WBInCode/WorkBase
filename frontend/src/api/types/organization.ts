@@ -26,6 +26,7 @@ export interface EmployeeDto {
   terminationDate: string | null;
   status: EmployeeStatus;
   userId: string | null;
+  hourlyRate: number | null;
 }
 
 export type EmployeeStatus = 'Active' | 'Inactive' | 'OnLeave';
@@ -40,6 +41,7 @@ export interface EmployeeDetailDto {
   terminationDate: string | null;
   status: EmployeeStatus;
   userId: string | null;
+  hourlyRate: number | null;
   assignments: EmployeeAssignmentDto[];
   supervisor: SupervisorInfoDto | null;
 }

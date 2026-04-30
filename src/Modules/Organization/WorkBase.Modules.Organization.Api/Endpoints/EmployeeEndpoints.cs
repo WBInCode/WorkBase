@@ -90,6 +90,14 @@ public static class EmployeeEndpoints
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound);
 
+        group.MapPut("/{id:guid}/hourly-rate", SetHourlyRate)
+            .WithName("SetEmployeeHourlyRate")
+            .WithSummary("Ustaw stawkę godzinową pracownika")
+            .RequirePermission("org.edit")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status404NotFound);
+
         return endpoints;
     }
 
@@ -200,6 +208,16 @@ public static class EmployeeEndpoints
         var result = await sender.Send(command);
         return result.IsSuccess ? Results.NoContent() : result.ToHttpResult();
     }
+
+    private static async Task<IResult> SetHourlyRate(
+        Guid id,
+        SetHourlyRateRequest request,
+        ISender sender)
+    {
+        var command = new SetEmployeeHourlyRateCommand(id, request.HourlyRate);
+        var result = await sender.Send(command);
+        return result.IsSuccess ? Results.NoContent() : result.ToHttpResult();
+    }
 }
 
 public sealed record AssignEmployeeRequest(
@@ -219,3 +237,6 @@ public sealed record UpdateEmployeeRequest(
 
 public sealed record LinkUserRequest(
     Guid UserId);
+
+public sealed record SetHourlyRateRequest(
+    decimal? HourlyRate);

@@ -29,6 +29,7 @@ public sealed class GetEmployeeByNumberHandler(IEmployeeRepository employeeRepos
             employee.HireDate,
             employee.TerminationDate,
             employee.Status.ToString(),
-            employee.UserId);
+            employee.UserId,
+            employee.HourlyRate);
     }
 }

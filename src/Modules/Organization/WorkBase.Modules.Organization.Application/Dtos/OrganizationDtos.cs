@@ -40,7 +40,8 @@ public sealed record EmployeeDto(
     DateTime HireDate,
     DateTime? TerminationDate,
     string Status,
-    Guid? UserId);
+    Guid? UserId,
+    decimal? HourlyRate);
 
 public sealed record EmployeeDetailDto(
     Guid Id,
@@ -52,6 +53,7 @@ public sealed record EmployeeDetailDto(
     DateTime? TerminationDate,
     string Status,
     Guid? UserId,
+    decimal? HourlyRate,
     List<EmployeeAssignmentDto> Assignments,
     SupervisorInfoDto? Supervisor);
 
