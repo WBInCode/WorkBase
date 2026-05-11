@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/api/client';
-import type { TimeStatusDto, ClockRequest, StartBreakRequest, BreakPolicyDto, BreakAvailabilityDto, TimeSheetPeriodDto, TimeAnomalyDto, ScheduleDto, CreateScheduleRequest, UpdateScheduleRequest, ScheduleTemplateDto, AdminCreateTimeEntryRequest, AdminUpdateTimeEntryRequest, GenerateBatchSchedulesRequest, GenerateBatchResult } from '@/api/types/time';
+import type { TimeStatusDto, ClockRequest, StartBreakRequest, BreakPolicyDto, BreakAvailabilityDto, TimeSheetPeriodDto, TimeAnomalyDto, ScheduleDto, CreateScheduleRequest, UpdateScheduleRequest, ScheduleTemplateDto, AdminCreateTimeEntryRequest, AdminUpdateTimeEntryRequest, GenerateBatchSchedulesRequest, GenerateBatchResult, OrgUnitScheduleDto, CreateOrgUnitScheduleRequest, UpdateOrgUnitScheduleRequest } from '@/api/types/time';
 
 export function useTimeStatus(employeeId: string | undefined) {
   return useQuery({
@@ -113,7 +113,7 @@ export interface TimesheetFilter {
   employeeId: string;
   from: string;
   to: string;
-  period: 'day' | 'week' | 'month';
+  period: 'day' | 'week' | 'month' | 'custom';
 }
 
 export function useTimesheet(filter: TimesheetFilter) {
@@ -320,6 +320,65 @@ export function useGenerateBatchSchedules() {
     mutationFn: (data: GenerateBatchSchedulesRequest) =>
       api.post<GenerateBatchResult>('/api/time/schedules/generate', data),
     onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['time', 'schedules'] });
+      qc.invalidateQueries({ queryKey: ['time', 'team-schedules'] });
+    },
+  });
+}
+
+// --- Org Unit Schedules ---
+
+export function useOrgUnitSchedules() {
+  return useQuery({
+    queryKey: ['time', 'org-unit-schedules'],
+    queryFn: () => api.get<OrgUnitScheduleDto[]>('/api/time/org-unit-schedules'),
+  });
+}
+
+export function useOrgUnitSchedule(orgUnitId: string | undefined) {
+  return useQuery({
+    queryKey: ['time', 'org-unit-schedule', orgUnitId],
+    queryFn: () => api.get<OrgUnitScheduleDto>(`/api/time/org-unit-schedules/${orgUnitId}`),
+    enabled: !!orgUnitId,
+  });
+}
+
+export function useCreateOrgUnitSchedule() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: CreateOrgUnitScheduleRequest) =>
+      api.post<string>('/api/time/org-unit-schedules', data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['time', 'org-unit-schedules'] });
+      qc.invalidateQueries({ queryKey: ['time', 'org-unit-schedule'] });
+      qc.invalidateQueries({ queryKey: ['time', 'schedules'] });
+      qc.invalidateQueries({ queryKey: ['time', 'team-schedules'] });
+    },
+  });
+}
+
+export function useUpdateOrgUnitSchedule() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...data }: UpdateOrgUnitScheduleRequest & { id: string }) =>
+      api.put<void>(`/api/time/org-unit-schedules/${id}`, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['time', 'org-unit-schedules'] });
+      qc.invalidateQueries({ queryKey: ['time', 'org-unit-schedule'] });
+      qc.invalidateQueries({ queryKey: ['time', 'schedules'] });
+      qc.invalidateQueries({ queryKey: ['time', 'team-schedules'] });
+    },
+  });
+}
+
+export function useDeleteOrgUnitSchedule() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) =>
+      api.delete<void>(`/api/time/org-unit-schedules/${id}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['time', 'org-unit-schedules'] });
+      qc.invalidateQueries({ queryKey: ['time', 'org-unit-schedule'] });
       qc.invalidateQueries({ queryKey: ['time', 'schedules'] });
       qc.invalidateQueries({ queryKey: ['time', 'team-schedules'] });
     },
