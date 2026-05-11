@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using WorkBase.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using WorkBase.Infrastructure.Persistence;
 namespace WorkBase.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(WorkBaseDbContext))]
-    partial class WorkBaseDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260429084955_AddTaskCoAssignee")]
+    partial class AddTaskCoAssignee
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2443,10 +2446,6 @@ namespace WorkBase.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("hire_date");
 
-                    b.Property<decimal?>("HourlyRate")
-                        .HasColumnType("numeric(10,2)")
-                        .HasColumnName("hourly_rate");
-
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -2910,34 +2909,6 @@ namespace WorkBase.Infrastructure.Persistence.Migrations
                     b.ToTable("org_tenants", (string)null);
                 });
 
-            modelBuilder.Entity("WorkBase.Modules.Tasks.Domain.Entities.TaskAssignee", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<Guid>("EmployeeId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("employee_id");
-
-                    b.Property<Guid>("TaskId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("task_id");
-
-                    b.HasKey("Id")
-                        .HasName("pk_task_task_assignees");
-
-                    b.HasIndex("EmployeeId")
-                        .HasDatabaseName("ix_task_task_assignees_employee_id");
-
-                    b.HasIndex("TaskId", "EmployeeId")
-                        .IsUnique()
-                        .HasDatabaseName("ix_task_task_assignees_task_id_employee_id");
-
-                    b.ToTable("task_task_assignees", (string)null);
-                });
-
             modelBuilder.Entity("WorkBase.Modules.Tasks.Domain.Entities.TaskAttachment", b =>
                 {
                     b.Property<Guid>("Id")
@@ -3110,6 +3081,10 @@ namespace WorkBase.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("assignee_id");
 
+                    b.Property<Guid?>("CoAssigneeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("co_assignee_id");
+
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("completed_at");
@@ -3173,6 +3148,9 @@ namespace WorkBase.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("TenantId", "AssigneeId")
                         .HasDatabaseName("ix_task_tasks_tenant_id_assignee_id");
+
+                    b.HasIndex("TenantId", "CoAssigneeId")
+                        .HasDatabaseName("ix_task_tasks_tenant_id_co_assignee_id");
 
                     b.HasIndex("TenantId", "StatusId")
                         .HasDatabaseName("ix_task_tasks_tenant_id_status_id");
@@ -4965,16 +4943,6 @@ namespace WorkBase.Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_org_supervisor_relations_org_employees_supervisor_employee_");
                 });
 
-            modelBuilder.Entity("WorkBase.Modules.Tasks.Domain.Entities.TaskAssignee", b =>
-                {
-                    b.HasOne("WorkBase.Modules.Tasks.Domain.Entities.TaskItem", null)
-                        .WithMany("AdditionalAssignees")
-                        .HasForeignKey("TaskId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_task_task_assignees_task_tasks_task_id");
-                });
-
             modelBuilder.Entity("WorkBase.Modules.TimeTracking.Domain.Entities.Schedule", b =>
                 {
                     b.HasOne("WorkBase.Modules.TimeTracking.Domain.Entities.ScheduleTemplate", null)
@@ -5012,11 +4980,6 @@ namespace WorkBase.Infrastructure.Persistence.Migrations
                     b.Navigation("RolePermissions");
 
                     b.Navigation("UserRoles");
-                });
-
-            modelBuilder.Entity("WorkBase.Modules.Tasks.Domain.Entities.TaskItem", b =>
-                {
-                    b.Navigation("AdditionalAssignees");
                 });
 #pragma warning restore 612, 618
         }

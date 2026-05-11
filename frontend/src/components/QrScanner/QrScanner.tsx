@@ -4,9 +4,10 @@ import { Camera, XCircle, RefreshCw } from 'lucide-react';
 interface QrScannerProps {
   onScan: (value: string) => void;
   onClose: () => void;
+  facingMode?: 'user' | 'environment';
 }
 
-export function QrScanner({ onScan, onClose }: QrScannerProps) {
+export function QrScanner({ onScan, onClose, facingMode = 'environment' }: QrScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -18,7 +19,7 @@ export function QrScanner({ onScan, onClose }: QrScannerProps) {
     try {
       setError(null);
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 480 } },
+        video: { facingMode, width: { ideal: 640 }, height: { ideal: 480 } },
       });
       streamRef.current = stream;
       if (videoRef.current) {

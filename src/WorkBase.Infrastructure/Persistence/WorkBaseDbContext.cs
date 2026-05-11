@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WorkBase.Shared.Domain;
 
 namespace WorkBase.Infrastructure.Persistence;
@@ -15,6 +16,29 @@ public class WorkBaseDbContext : DbContext
         : base(options)
     {
         _tenantService = tenantService;
+    }
+
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        configurationBuilder.Properties<DateTime>()
+            .HaveConversion<UtcDateTimeConverter>();
+    }
+
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        foreach (var entry in ChangeTracker.Entries<AuditableEntity<Guid>>())
+        {
+            if (entry.State == EntityState.Added)
+            {
+                entry.Entity.SetCreated(DateTime.UtcNow);
+            }
+            else if (entry.State == EntityState.Modified)
+            {
+                entry.Entity.SetModified(DateTime.UtcNow);
+            }
+        }
+
+        return await base.SaveChangesAsync(cancellationToken);
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { TimeStatusDto, TimeSheetPeriodDto, TimeSheetEntryDto } from '@/api/types/time';
 import { useAdminCreateTimeEntry, useAdminUpdateTimeEntry, useAdminDeleteTimeEntry } from '@/api/hooks/useTimeTracking';
 
@@ -8,6 +8,9 @@ interface Props {
   timesheet: TimeSheetPeriodDto | undefined;
   isLoading: boolean;
   employeeId?: string;
+  from: string;
+  to: string;
+  onDateRangeChange: (from: string, to: string) => void;
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -70,7 +73,7 @@ const initialModal: EntryModalState = {
   note: '',
 };
 
-export function EmployeeTimesheetSection({ timeStatus, timesheet, isLoading, employeeId }: Props) {
+export function EmployeeTimesheetSection({ timeStatus, timesheet, isLoading, employeeId, from, to, onDateRangeChange }: Props) {
   const [modal, setModal] = useState<EntryModalState>(initialModal);
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
@@ -80,6 +83,23 @@ export function EmployeeTimesheetSection({ timeStatus, timesheet, isLoading, emp
   const deleteEntry = useAdminDeleteTimeEntry();
 
   const isAdmin = !!employeeId;
+
+  const shiftWeek = (direction: number) => {
+    const fromDate = new Date(from);
+    fromDate.setDate(fromDate.getDate() + direction * 7);
+    const toDate = new Date(fromDate);
+    toDate.setDate(fromDate.getDate() + 6);
+    onDateRangeChange(fromDate.toISOString().slice(0, 10), toDate.toISOString().slice(0, 10));
+  };
+
+  const goToCurrentWeek = () => {
+    const now = new Date();
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    onDateRangeChange(monday.toISOString().slice(0, 10), sunday.toISOString().slice(0, 10));
+  };
 
   const openCreate = (date: string) => {
     setModal({
@@ -153,6 +173,36 @@ export function EmployeeTimesheetSection({ timeStatus, timesheet, isLoading, emp
     <div style={cardStyle}>
       <h3 style={headingStyle}>Czas pracy</h3>
 
+      {/* Date range picker */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', flexWrap: 'wrap',
+      }}>
+        <button onClick={() => shiftWeek(-1)} title="Poprzedni tydzień" style={navBtnStyle}>
+          <ChevronLeft size={16} />
+        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <input
+            type="date"
+            value={from}
+            onChange={(e) => onDateRangeChange(e.target.value, to)}
+            style={dateInputStyle}
+          />
+          <span style={{ color: '#6b7280', fontSize: '13px' }}>–</span>
+          <input
+            type="date"
+            value={to}
+            onChange={(e) => onDateRangeChange(from, e.target.value)}
+            style={dateInputStyle}
+          />
+        </div>
+        <button onClick={() => shiftWeek(1)} title="Następny tydzień" style={navBtnStyle}>
+          <ChevronRight size={16} />
+        </button>
+        <button onClick={goToCurrentWeek} style={presetBtnStyle}>
+          Bieżący tydzień
+        </button>
+      </div>
+
       {/* Today status */}
       {timeStatus && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
@@ -173,9 +223,6 @@ export function EmployeeTimesheetSection({ timeStatus, timesheet, isLoading, emp
       {/* Current period summary */}
       {timesheet && (
         <div>
-          <div style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>
-            Okres: {formatDate(timesheet.from)} – {formatDate(timesheet.to)}
-          </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
             <StatBox label="Przepracowane" value={timesheet.totalWorked} />
             <StatBox label="Przerwy" value={timesheet.totalBreaks} />
@@ -198,7 +245,7 @@ export function EmployeeTimesheetSection({ timeStatus, timesheet, isLoading, emp
                   </tr>
                 </thead>
                 <tbody>
-                  {timesheet.days.slice(-7).reverse().map((day) => {
+                  {[...timesheet.days].reverse().map((day) => {
                     const isExpanded = expandedDay === day.date;
                     const hasEntries = day.entries && day.entries.length > 0;
                     return (
@@ -514,4 +561,24 @@ const inputStyle: React.CSSProperties = {
   border: '1px solid #d1d5db', borderRadius: '8px',
   color: '#111827', backgroundColor: '#fff',
   boxSizing: 'border-box',
+};
+
+const navBtnStyle: React.CSSProperties = {
+  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+  width: '32px', height: '32px', border: '1px solid #d1d5db',
+  borderRadius: '6px', backgroundColor: '#fff', cursor: 'pointer', color: '#374151',
+  padding: 0, flexShrink: 0,
+};
+
+const dateInputStyle: React.CSSProperties = {
+  padding: '6px 10px', fontSize: '13px',
+  border: '1px solid #d1d5db', borderRadius: '6px',
+  color: '#111827', backgroundColor: '#fff',
+};
+
+const presetBtnStyle: React.CSSProperties = {
+  padding: '6px 12px', fontSize: '12px', fontWeight: 500,
+  color: '#3b82f6', backgroundColor: '#eff6ff',
+  border: '1px solid #bfdbfe', borderRadius: '6px', cursor: 'pointer',
+  whiteSpace: 'nowrap',
 };

@@ -64,6 +64,7 @@ public sealed class GetEmployeeByIdHandler(
             employee.TerminationDate,
             employee.Status.ToString(),
             employee.UserId,
+            employee.HourlyRate,
             assignmentDtos,
             supervisorInfo);
 

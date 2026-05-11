@@ -96,6 +96,8 @@ export interface ScheduleDto {
   shiftType: string | null;
   templateId: string | null;
   plannedDuration: string;
+  source: 'OrgUnit' | 'Individual' | 'Unplanned';
+  orgUnitScheduleId: string | null;
 }
 
 export interface CreateScheduleRequest {
@@ -154,4 +156,26 @@ export interface GenerateBatchSchedulesRequest {
 
 export interface GenerateBatchResult {
   createdCount: number;
+}
+
+export interface OrgUnitScheduleDto {
+  id: string;
+  orgUnitId: string;
+  name: string;
+  weekPattern: string; // JSON string of DayShiftPattern[]
+  effectiveFrom: string;
+  isActive: boolean;
+}
+
+export interface CreateOrgUnitScheduleRequest {
+  orgUnitId: string;
+  name: string;
+  weekPattern: string;
+  effectiveFrom: string;
+}
+
+export interface UpdateOrgUnitScheduleRequest {
+  name: string;
+  weekPattern: string;
+  effectiveFrom: string;
 }

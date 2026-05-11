@@ -25,6 +25,13 @@ public sealed class TaskItemConfiguration : IEntityTypeConfiguration<TaskItem>
         builder.Property(e => e.PriorityId).IsRequired();
         builder.Property(e => e.AssigneeId).IsRequired();
 
+        builder.HasMany(e => e.AdditionalAssignees)
+            .WithOne()
+            .HasForeignKey(a => a.TaskId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Navigation(e => e.AdditionalAssignees).AutoInclude();
+
         builder.HasIndex(e => e.TenantId);
         builder.HasIndex(e => new { e.TenantId, e.AssigneeId });
         builder.HasIndex(e => new { e.TenantId, e.StatusId });

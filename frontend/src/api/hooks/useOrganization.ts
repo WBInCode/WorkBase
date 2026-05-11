@@ -202,3 +202,15 @@ export function useDeactivateEmployee() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['org', 'employees'] }),
   });
 }
+
+export function useSetEmployeeHourlyRate() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, hourlyRate }: { id: string; hourlyRate: number | null }) =>
+      api.put<void>(`/api/org/employees/${id}/hourly-rate`, { hourlyRate }),
+    onSuccess: (_data, vars) => {
+      qc.invalidateQueries({ queryKey: ['org', 'employees'] });
+      qc.invalidateQueries({ queryKey: ['org', 'employee', vars.id] });
+    },
+  });
+}

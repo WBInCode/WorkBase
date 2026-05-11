@@ -10,7 +10,6 @@ import {
   useTaskComments,
   useTaskAttachments,
   useChangeTaskStatus,
-  useAssignTask,
   useAddTaskComment,
   useUploadTaskAttachment,
   useDownloadTaskAttachment,
@@ -33,7 +32,6 @@ export function TaskCardPage() {
   const task = tasks.find((t) => t.id === id);
 
   const changeStatusMutation = useChangeTaskStatus(id ?? '');
-  const assignMutation = useAssignTask(id ?? '');
   const addCommentMutation = useAddTaskComment(id ?? '');
   const { data: attachments = [] } = useTaskAttachments(id ?? null);
   const uploadMutation = useUploadTaskAttachment(id ?? '');
@@ -42,7 +40,6 @@ export function TaskCardPage() {
 
   const [commentText, setCommentText] = useState('');
   const [newStatusId, setNewStatusId] = useState('');
-  const [newAssigneeId, setNewAssigneeId] = useState('');
 
   const employeeMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -72,14 +69,6 @@ export function TaskCardPage() {
     changeStatusMutation.mutate(
       { newStatusId, changedById: user.employeeId },
       { onSuccess: () => setNewStatusId('') },
-    );
-  };
-
-  const handleAssign = () => {
-    if (!newAssigneeId) return;
-    assignMutation.mutate(
-      { newAssigneeId },
-      { onSuccess: () => setNewAssigneeId('') },
     );
   };
 
@@ -119,16 +108,26 @@ export function TaskCardPage() {
           <Badge label={task.priorityName} color={task.priorityColor ?? '#6b7280'} />
         </InfoCard>
         <InfoCard label="Przypisane do">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
             <UserCircle size={16} color="#9ca3af" />
-            {employeeMap.get(task.assigneeId) ?? '—'}
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontWeight: 500 }}>{employeeMap.get(task.assigneeId) ?? '—'}</span>
+              <span style={{ padding: '2px 6px', fontSize: '10px', fontWeight: 600, letterSpacing: '0.3px', textTransform: 'uppercase', backgroundColor: '#fef3c7', color: '#92400e', borderRadius: '999px' }}>
+                Główny wykonawca
+              </span>
+            </span>
+            {task.additionalAssigneeIds?.map((id) => (
+              <span key={id} style={{ padding: '2px 8px', fontSize: '12px', backgroundColor: '#eef2ff', color: '#4338ca', borderRadius: '999px' }}>
+                + {employeeMap.get(id) ?? '—'}
+              </span>
+            ))}
           </div>
         </InfoCard>
         <InfoCard label="Termin">
           {task.dueDate ? (
             <span style={{ color: isOverdue ? '#dc2626' : '#374151', fontWeight: isOverdue ? 600 : 400 }}>
               {isOverdue && <AlertTriangle size={14} style={{ marginRight: '4px', verticalAlign: 'middle' }} />}
-              {new Date(task.dueDate).toLocaleDateString('pl-PL')}
+              {new Date(task.dueDate).toLocaleString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
             </span>
           ) : '—'}
         </InfoCard>
@@ -162,22 +161,6 @@ export function TaskCardPage() {
           {changeStatusMutation.error && (
             <div style={errorStyle}>{changeStatusMutation.error.message}</div>
           )}
-        </div>
-
-        {/* Assign */}
-        <div style={actionCardStyle}>
-          <div style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>Przypisz</div>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <select value={newAssigneeId} onChange={(e) => setNewAssigneeId(e.target.value)} style={selectStyle}>
-              <option value="">— wybierz —</option>
-              {employees.map((e) => (
-                <option key={e.id} value={e.id}>{e.firstName} {e.lastName}</option>
-              ))}
-            </select>
-            <button onClick={handleAssign} disabled={!newAssigneeId || assignMutation.isPending} style={actionBtnStyle}>
-              {assignMutation.isPending ? '...' : 'Przypisz'}
-            </button>
-          </div>
         </div>
       </div>
 

@@ -12,7 +12,9 @@ public sealed class TaskItemRepository(WorkBaseDbContext dbContext) : ITaskItemR
 
     public async Task<List<TaskItem>> GetByAssigneeAsync(Guid tenantId, Guid assigneeId, CancellationToken cancellationToken = default)
         => await dbContext.Set<TaskItem>()
-            .Where(t => t.TenantId == tenantId && t.AssigneeId == assigneeId)
+            .Where(t => t.TenantId == tenantId
+                && (t.AssigneeId == assigneeId
+                    || t.AdditionalAssignees.Any(a => a.EmployeeId == assigneeId)))
             .OrderByDescending(t => t.CreatedAt)
             .ToListAsync(cancellationToken);
 

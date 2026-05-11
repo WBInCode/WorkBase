@@ -18,4 +18,8 @@ public interface IEmployeeRepository
         int page,
         int pageSize,
         CancellationToken cancellationToken = default);
+
+    Task<Dictionary<Guid, (Guid UnitId, string UnitName)>> GetPrimaryAssignmentsAsync(
+        IEnumerable<Guid> employeeIds,
+        CancellationToken cancellationToken = default);
 }

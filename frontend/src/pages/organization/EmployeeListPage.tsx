@@ -222,6 +222,7 @@ export function EmployeeListPage() {
                       <Th>Nr pracownika</Th>
                       <Th>Data zatrudnienia</Th>
                       <Th>Status</Th>
+                      <Th>Akcje</Th>
                     </tr>
                   </thead>
                   <tbody>
@@ -341,6 +342,26 @@ function EmployeeRow({ employee, isSelected, onClick }: { employee: EmployeeDto;
         >
           {statusLabels[employee.status]}
         </span>
+      </Td>
+      <Td>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate(`/org/employees/${employee.id}`);
+          }}
+          style={{
+            padding: '4px 10px',
+            fontSize: '12px',
+            fontWeight: 600,
+            color: '#fff',
+            background: '#2563eb',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: 'pointer',
+          }}
+        >
+          Otwórz kartę
+        </button>
       </Td>
     </tr>
   );

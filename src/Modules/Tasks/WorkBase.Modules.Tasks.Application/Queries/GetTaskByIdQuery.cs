@@ -37,6 +37,7 @@ public sealed class GetTaskByIdHandler(
             task.StatusId, status?.Name ?? "?", status?.Color,
             task.PriorityId, priority?.Name ?? "?", priority?.Color,
             task.AssigneeId, task.ReporterId,
-            task.DueDate, task.CompletedAt, task.CreatedAt);
+            task.DueDate, task.CompletedAt, task.CreatedAt,
+            task.AdditionalAssignees.Select(a => a.EmployeeId).ToList());
     }
 }

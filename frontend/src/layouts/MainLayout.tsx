@@ -1,7 +1,7 @@
 import { useState, useEffect, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from 'react-oidc-context';
-import { FolderTree, Users, FileUp, LogOut, Menu, X, Shield, Grid3X3, CalendarDays, UsersRound, CalendarClock, Palmtree, CalendarRange, ClipboardCheck, ListTodo, ClipboardList, LayoutDashboard, Briefcase, Clock, MoreHorizontal, FileArchive, FolderOpen, Flag, CircleDot, Coffee, Layers, type LucideIcon } from 'lucide-react';
+import { FolderTree, Users, FileUp, LogOut, Menu, X, Shield, Grid3X3, CalendarDays, UsersRound, CalendarClock, Palmtree, CalendarRange, ClipboardCheck, ListTodo, ClipboardList, LayoutDashboard, Briefcase, Clock, MoreHorizontal, FileArchive, FolderOpen, Flag, CircleDot, Coffee, Layers, Wallet, type LucideIcon } from 'lucide-react';
 import { mapUserClaims } from '@/auth';
 import { ClockButton } from '@/components/TimeTracking';
 import { NotificationBell } from '@/components/Notifications';
@@ -34,6 +34,7 @@ interface NavItem {
   label: string;
   icon: LucideIcon;
   exact?: boolean;
+  adminOnly?: boolean;
 }
 
 interface NavSection {
@@ -62,6 +63,7 @@ const navSections: NavSection[] = [
       { path: '/time/timesheet', label: 'Karta czasu', icon: CalendarDays },
       { path: '/time/team-report', label: 'Raport zespołu', icon: UsersRound },
       { path: '/time/schedule', label: 'Grafik pracy', icon: CalendarClock },
+      { path: '/payroll', label: 'Wynagrodzenia', icon: Wallet },
     ],
   },
   {
@@ -103,6 +105,7 @@ export function MainLayout({ children }: MainLayoutProps) {
   const auth = useAuth();
   const location = useLocation();
   const user = auth.user ? mapUserClaims(auth.user) : null;
+  const isAdmin = !!user?.roles?.some((r) => r === 'workbase-admin' || r === 'Admin' || r === 'Super Admin');
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
   const now = useLiveClock();
@@ -195,6 +198,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                 </div>
               )}
               {section.items.map((item) => {
+                if (item.adminOnly && !isAdmin) return null;
                 const isActive = item.exact
                   ? location.pathname === item.path
                   : location.pathname.startsWith(item.path);
@@ -250,6 +254,7 @@ export function MainLayout({ children }: MainLayoutProps) {
           ))}
 
           {/* Admin section */}
+          {isAdmin && (
           <div style={{
             marginTop: 8,
             paddingTop: 8,
@@ -317,6 +322,7 @@ export function MainLayout({ children }: MainLayoutProps) {
               );
             })}
           </div>
+          )}
         </nav>
 
         {/* User */}

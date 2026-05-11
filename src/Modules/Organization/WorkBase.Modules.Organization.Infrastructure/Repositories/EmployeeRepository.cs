@@ -91,4 +91,23 @@ public sealed class EmployeeRepository(WorkBaseDbContext dbContext) : IEmployeeR
 
         return (items, totalCount);
     }
+
+    public async Task<Dictionary<Guid, (Guid UnitId, string UnitName)>> GetPrimaryAssignmentsAsync(
+        IEnumerable<Guid> employeeIds,
+        CancellationToken cancellationToken = default)
+    {
+        var ids = employeeIds.ToList();
+        if (ids.Count == 0) return new();
+
+        var rows = await (from a in dbContext.Set<EmployeeAssignment>()
+                          where ids.Contains(a.EmployeeId) && a.EndDate == null
+                          join u in dbContext.Set<OrganizationUnit>() on a.OrganizationUnitId equals u.Id
+                          orderby a.IsPrimary descending, a.StartDate descending
+                          select new { a.EmployeeId, UnitId = u.Id, UnitName = u.Name })
+                         .ToListAsync(cancellationToken);
+
+        return rows
+            .GroupBy(r => r.EmployeeId)
+            .ToDictionary(g => g.Key, g => (g.First().UnitId, g.First().UnitName));
+    }
 }
