@@ -8,11 +8,21 @@ public sealed record ScheduleDto(
     TimeOnly PlannedEnd,
     string? ShiftType,
     Guid? TemplateId,
-    TimeSpan PlannedDuration);
+    TimeSpan PlannedDuration,
+    string Source = "Individual",
+    Guid? OrgUnitScheduleId = null);
 
 public sealed record ScheduleTemplateDto(
     Guid Id,
     string Name,
     string? Description,
     string Definition,
+    bool IsActive);
+
+public sealed record OrgUnitScheduleDto(
+    Guid Id,
+    Guid OrgUnitId,
+    string Name,
+    string WeekPattern,
+    DateOnly EffectiveFrom,
     bool IsActive);
