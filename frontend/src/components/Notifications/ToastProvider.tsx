@@ -54,12 +54,12 @@ function ToastContainer({ toasts, onRemove }: { toasts: Toast[]; onRemove: (id: 
         position: 'fixed',
         top: '16px',
         right: '16px',
+        left: '16px',
         zIndex: 9999,
         display: 'flex',
         flexDirection: 'column',
+        alignItems: 'flex-end',
         gap: '8px',
-        maxWidth: '380px',
-        width: '100%',
         pointerEvents: 'none',
       }}
     >
@@ -94,6 +94,8 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) =
         boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
         pointerEvents: 'auto',
         animation: 'slideIn 0.25s ease-out',
+        maxWidth: '380px',
+        width: '100%',
       }}
     >
       <config.icon size={18} color={config.iconColor} style={{ flexShrink: 0, marginTop: '2px' }} />

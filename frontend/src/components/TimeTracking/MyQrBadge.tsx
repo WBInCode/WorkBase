@@ -24,7 +24,7 @@ export function MyQrBadge({ employeeId, employeeName, employeeNumber }: MyQrBadg
         </h3>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
         <div style={{
           padding: '12px',
           backgroundColor: '#f8fafc',

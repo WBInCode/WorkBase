@@ -7,6 +7,7 @@ import {
   useDeleteDocument,
   useDownloadDocument,
 } from '@/api/hooks/useDocuments';
+import { useIsMobile } from '@/shared';
 
 function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -36,6 +37,7 @@ export function DocumentListPage() {
   const uploadMutation = useUploadDocument();
   const deleteMutation = useDeleteDocument();
   const downloadMutation = useDownloadDocument();
+  const mobile = useIsMobile();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
@@ -89,7 +91,7 @@ export function DocumentListPage() {
   }
 
   return (
-    <div style={{ padding: 24 }}>
+    <div style={{ padding: mobile ? 16 : 24 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>Dokumenty</h1>
         <label

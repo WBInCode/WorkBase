@@ -76,6 +76,7 @@ export function EmployeeLeaveSection({ balances, requests, isLoading }: Props) {
       {/* Recent requests */}
       <h4 style={{ margin: '0 0 8px', fontSize: '14px', fontWeight: 600, color: '#374151' }}>Ostatnie wnioski</h4>
       {requests.length > 0 ? (
+        <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
           <thead>
             <tr style={{ borderBottom: '1px solid #e5e7eb' }}>
@@ -110,6 +111,7 @@ export function EmployeeLeaveSection({ balances, requests, isLoading }: Props) {
             })}
           </tbody>
         </table>
+        </div>
       ) : (
         <div style={{ color: '#9ca3af', fontSize: '14px' }}>Brak wniosków urlopowych.</div>
       )}

@@ -13,6 +13,7 @@ import {
   MyLeaveWidget,
   ActivityFeed,
 } from '@/components/Workspace';
+import { useIsMobile } from '@/shared';
 
 export function WorkspacePage() {
   const auth = useAuth();
@@ -26,9 +27,10 @@ export function WorkspacePage() {
   const { data: leaveRequests = [], isLoading: leaveLoading } = useLeaveRequests(employeeId);
 
   const greeting = getGreeting();
+  const mobile = useIsMobile();
 
   return (
-    <div style={{ padding: '24px', maxWidth: '1000px' }}>
+    <div style={{ padding: mobile ? '16px' : '24px', maxWidth: '1000px' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
         <div>
@@ -43,7 +45,7 @@ export function WorkspacePage() {
       </div>
 
       {/* Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: '20px' }}>
         {/* Left column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <MyDayOverview data={timeStatus} isLoading={timeLoading} />

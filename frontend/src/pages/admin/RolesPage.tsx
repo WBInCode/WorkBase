@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { Shield, Plus, RefreshCw, Edit2, Users, Lock } from 'lucide-react';
 import { useRoles, useCreateRole, useUpdateRole } from '@/api/hooks/useIam';
 import type { RoleDto, CreateRoleRequest, UpdateRoleRequest } from '@/api/types/iam';
+import { useIsMobile } from '@/shared';
 
 const typeLabels: Record<string, string> = {
   System: 'Systemowa',
@@ -19,6 +20,7 @@ export function RolesPage() {
   const { data: roles, isLoading, error, refetch, isFetching } = useRoles();
   const createMutation = useCreateRole();
   const updateMutation = useUpdateRole();
+  const mobile = useIsMobile();
 
   const [showForm, setShowForm] = useState(false);
   const [editingRole, setEditingRole] = useState<RoleDto | null>(null);
@@ -48,7 +50,7 @@ export function RolesPage() {
   );
 
   return (
-    <div style={{ padding: '24px 32px', maxWidth: '1000px' }}>
+    <div style={{ padding: mobile ? '16px' : '24px 32px', maxWidth: '1000px' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
         <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 600, color: '#111827' }}>Role</h1>
@@ -93,7 +95,7 @@ export function RolesPage() {
           </div>
         </div>
       ) : (
-        <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden' }}>
+        <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
             <thead>
               <tr style={{ backgroundColor: '#f9fafb' }}>

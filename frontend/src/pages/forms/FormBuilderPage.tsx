@@ -9,6 +9,7 @@ import {
 } from '@/api/hooks/useForms';
 import type { CreateFormFieldRequest } from '@/api/types/forms';
 import { FIELD_TYPES } from '@/api/types/forms';
+import { useIsMobile } from '@/shared';
 
 function emptyField(order: number): CreateFormFieldRequest {
   return { label: '', fieldType: 'text', order, isRequired: false };
@@ -22,6 +23,7 @@ export function FormBuilderPage() {
   const createMut = useCreateFormDefinition();
   const updateMut = useUpdateFormDefinition();
   const deleteMut = useDeleteFormDefinition();
+  const mobile = useIsMobile();
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -97,7 +99,7 @@ export function FormBuilderPage() {
   };
 
   return (
-    <div style={{ padding: 24, maxWidth: 1000, margin: '0 auto' }}>
+    <div style={{ padding: mobile ? 16 : 24, maxWidth: 1000, margin: '0 auto' }}>
       <h1 style={{ fontSize: 22, marginBottom: 16 }}>Kreator formularzy</h1>
 
       {/* Selector */}
@@ -145,7 +147,7 @@ export function FormBuilderPage() {
       {tab === 'builder' && (
         <>
           {/* Form meta */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: 12, marginBottom: 16 }}>
             <div>
               <label style={labelStyle}>Nazwa</label>
               <input value={name} onChange={(e) => setName(e.target.value)} style={inputStyle} />
@@ -240,6 +242,7 @@ export function FormBuilderPage() {
         <div>
           <h3>Zgłoszenia</h3>
           {!submissions?.length && <p style={{ color: '#888' }}>Brak zgłoszeń.</p>}
+          <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
             <thead>
               <tr style={{ background: '#f0f0f0' }}>
@@ -260,6 +263,7 @@ export function FormBuilderPage() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>
