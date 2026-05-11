@@ -24,6 +24,7 @@ public static class OrganizationServiceCollectionExtensions
         services.AddScoped<IPositionRepository, PositionRepository>();
         services.AddScoped<ISupervisorRelationRepository, SupervisorRelationRepository>();
         services.AddScoped<ISupervisorLookupService, SupervisorLookupService>();
+        services.AddScoped<IOrganizationLookupService, OrganizationLookupService>();
 
         return services;
     }

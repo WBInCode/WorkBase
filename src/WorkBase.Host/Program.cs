@@ -136,6 +136,12 @@ try
             job => job.ExecuteAsync(),
             "0 6 * * *",
             new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
+
+        RecurringJob.AddOrUpdate<OrgUnitScheduleRollingGenerationJob>(
+            "org-unit-schedule-rolling-generation",
+            job => job.ExecuteAsync(),
+            "0 2 * * 1", // Every Monday at 02:00 UTC
+            new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
     }
 
     app.MapHealthChecks("/health", new HealthCheckOptions
