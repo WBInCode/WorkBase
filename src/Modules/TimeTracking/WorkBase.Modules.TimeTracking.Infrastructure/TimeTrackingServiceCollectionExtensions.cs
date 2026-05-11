@@ -37,11 +37,17 @@ public static class TimeTrackingServiceCollectionExtensions
         services.AddScoped<IAnomalyRule, LateArrivalRule>();
         services.AddScoped<IAnomalyRule, DoubleClockInRule>();
         services.AddScoped<IAnomalyRule, OverlongShiftRule>();
+        services.AddScoped<IAnomalyRule, WorkOnDayOffRule>();
 
         // Anomaly services
         services.AddScoped<IAnomalySettingsProvider, DbAnomalySettingsProvider>();
         services.AddScoped<AnomalyDetectionService>();
         services.AddScoped<EndOfDayAnomalyCheckJob>();
+
+        // OrgUnit Schedule
+        services.AddScoped<IOrgUnitScheduleRepository, OrgUnitScheduleRepository>();
+        services.AddScoped<OrgUnitScheduleGeneratorService>();
+        services.AddScoped<OrgUnitScheduleRollingGenerationJob>();
 
         return services;
     }

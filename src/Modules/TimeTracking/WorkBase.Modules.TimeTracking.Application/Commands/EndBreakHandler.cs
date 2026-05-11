@@ -10,7 +10,8 @@ public sealed class EndBreakHandler(ITimeEntryRepository timeEntryRepository)
 {
     public async Task<Result<Guid>> Handle(EndBreakCommand request, CancellationToken cancellationToken)
     {
-        var lastEntry = await timeEntryRepository.GetLastEntryAsync(
+        // Check only today's entries
+        var lastEntry = await timeEntryRepository.GetLastEntryTodayAsync(
             request.TenantId, request.EmployeeId, cancellationToken);
 
         if (lastEntry is null || lastEntry.Type is TimeEntryType.ClockOut)

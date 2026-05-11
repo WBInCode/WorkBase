@@ -35,11 +35,24 @@ public sealed class ScheduleConfiguration : IEntityTypeConfiguration<Schedule>
             .HasForeignKey(e => e.TemplateId)
             .OnDelete(DeleteBehavior.SetNull);
 
+        builder.Property(e => e.Source)
+            .IsRequired()
+            .HasDefaultValue(ScheduleSource.Individual)
+            .HasSentinel(ScheduleSource.Individual)
+            .HasConversion<int>();
+
+        builder.HasOne<OrgUnitSchedule>()
+            .WithMany()
+            .HasForeignKey(e => e.OrgUnitScheduleId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         builder.HasIndex(e => e.TenantId);
 
         builder.HasIndex(e => new { e.TenantId, e.EmployeeId, e.Date })
             .IsUnique();
 
         builder.HasIndex(e => new { e.EmployeeId, e.Date });
+
+        builder.HasIndex(e => new { e.TenantId, e.OrgUnitScheduleId, e.Source });
     }
 }

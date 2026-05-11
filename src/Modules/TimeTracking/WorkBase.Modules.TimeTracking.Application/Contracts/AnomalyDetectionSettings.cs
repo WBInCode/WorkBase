@@ -9,4 +9,5 @@ public sealed class AnomalyDetectionSettings
     public bool DetectDoubleClockIn { get; set; } = true;
     public bool DetectExcessiveShift { get; set; } = true;
     public bool DetectMissingClockIn { get; set; } = true;
+    public bool DetectWorkOnDayOff { get; set; } = true;
 }
