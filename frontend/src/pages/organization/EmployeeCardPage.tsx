@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { useEmployeeDetail } from '@/api/hooks/useOrganization';
@@ -13,26 +14,32 @@ import {
   EmployeeActivityTimeline,
 } from '@/components/EmployeeCard';
 
+function getCurrentWeekRange() {
+  const now = new Date();
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  return {
+    from: monday.toISOString().slice(0, 10),
+    to: sunday.toISOString().slice(0, 10),
+  };
+}
+
 export function EmployeeCardPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
   const { data: employee, isLoading: empLoading, error } = useEmployeeDetail(id ?? null);
 
-  // Time tracking — current week
-  const now = new Date();
-  const monday = new Date(now);
-  monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
-  const from = monday.toISOString().slice(0, 10);
-  const to = sunday.toISOString().slice(0, 10);
+  // Time tracking — date range (defaults to current week)
+  const [dateRange, setDateRange] = useState(getCurrentWeekRange);
 
   const { data: timeStatus, isLoading: timeStatusLoading } = useTimeStatus(id);
-  const { data: timesheet, isLoading: timesheetLoading } = useTimesheet({ employeeId: id!, from, to, period: 'week' });
+  const { data: timesheet, isLoading: timesheetLoading } = useTimesheet({ employeeId: id!, from: dateRange.from, to: dateRange.to, period: 'custom' });
 
   // Leave — current year
-  const year = now.getFullYear();
+  const year = new Date().getFullYear();
   const { data: balances = [], isLoading: balancesLoading } = useLeaveBalances(id ?? null, year);
   const { data: leaveRequests = [], isLoading: leaveLoading } = useLeaveRequests(id ?? null, year);
 
@@ -104,6 +111,9 @@ export function EmployeeCardPage() {
           timesheet={timesheet}
           isLoading={timeStatusLoading || timesheetLoading}
           employeeId={employee.id}
+          from={dateRange.from}
+          to={dateRange.to}
+          onDateRangeChange={(from, to) => setDateRange({ from, to })}
         />
 
         <EmployeeLeaveSection
