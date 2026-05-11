@@ -6,6 +6,7 @@ import { mapUserClaims } from '@/auth';
 import { useTasks, useTaskStatuses, useTaskPriorities, useCreateTask, useDeleteTask } from '@/api/hooks/useTasks';
 import { useEmployees } from '@/api/hooks/useOrganization';
 import type { CreateTaskRequest } from '@/api/types/tasks';
+import { useIsMobile } from '@/shared';
 
 export function TaskListPage() {
   const auth = useAuth();
@@ -20,6 +21,7 @@ export function TaskListPage() {
 
   const createMutation = useCreateTask();
   const deleteMutation = useDeleteTask();
+  const mobile = useIsMobile();
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -133,7 +135,7 @@ export function TaskListPage() {
   };
 
   return (
-    <div style={{ padding: '24px', maxWidth: '1100px' }}>
+    <div style={{ padding: mobile ? '16px' : '24px', maxWidth: '1100px' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
         <div>
@@ -244,7 +246,7 @@ export function TaskListPage() {
           Brak zadań spełniających kryteria.
         </div>
       ) : (
-        <div style={{ backgroundColor: '#fff', borderRadius: '10px', border: '1px solid #e5e7eb', overflow: 'hidden' }}>
+        <div style={{ backgroundColor: '#fff', borderRadius: '10px', border: '1px solid #e5e7eb', overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
             <thead>
               <tr style={{ backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
@@ -443,7 +445,7 @@ const overlayStyle: React.CSSProperties = {
 };
 const modalStyle: React.CSSProperties = {
   backgroundColor: '#fff', borderRadius: '12px', padding: '24px',
-  width: '480px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
+  width: '100%', maxWidth: '480px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
 };
 const labelStyle: React.CSSProperties = { display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px', fontWeight: 500, color: '#374151' };
 const inputStyle: React.CSSProperties = { padding: '8px 12px', fontSize: '14px', border: '1px solid #d1d5db', borderRadius: '6px' };

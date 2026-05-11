@@ -7,6 +7,7 @@ import {
   useUpdateRolePermissions,
 } from '@/api/hooks/useIam';
 import type { PermissionDto } from '@/api/types/iam';
+import { useIsMobile } from '@/shared';
 
 interface ModuleGroup {
   module: string;
@@ -48,6 +49,8 @@ export function PermissionsMatrixPage() {
       setExpandedModules(modules);
     }
   }, [permissions, expandedModules.size]);
+
+  const mobile = useIsMobile();
 
   const moduleGroups = useMemo<ModuleGroup[]>(() => {
     if (!permissions) return [];
@@ -117,7 +120,7 @@ export function PermissionsMatrixPage() {
   const isLoading = rolesLoading || permsLoading;
 
   return (
-    <div style={{ padding: '24px 32px', maxWidth: '1200px' }}>
+    <div style={{ padding: mobile ? '16px' : '24px 32px', maxWidth: '1200px' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
         <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 600, color: '#111827' }}>
@@ -198,7 +201,7 @@ export function PermissionsMatrixPage() {
           Wybierz rolę, aby zobaczyć matrycę uprawnień.
         </div>
       ) : (
-        <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden' }}>
+        <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', overflowX: 'auto' }}>
           {moduleGroups.map((group) => (
             <ModuleSection
               key={group.module}

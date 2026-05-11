@@ -2,12 +2,14 @@ import { useState, useCallback } from 'react';
 import { ListTodo, Plus, RefreshCw, Edit2, Trash2, X } from 'lucide-react';
 import { useTaskStatuses, useCreateTaskStatus, useUpdateTaskStatus, useDeleteTaskStatus } from '@/api/hooks/useTasks';
 import type { TaskStatusDto, CreateTaskStatusRequest, UpdateTaskStatusRequest } from '@/api/types/tasks';
+import { useIsMobile } from '@/shared';
 
 export function TaskStatusConfigPage() {
   const { data: statuses, isLoading, error, refetch, isFetching } = useTaskStatuses();
   const createMutation = useCreateTaskStatus();
   const updateMutation = useUpdateTaskStatus();
   const deleteMutation = useDeleteTaskStatus();
+  const mobile = useIsMobile();
 
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<TaskStatusDto | null>(null);
@@ -39,7 +41,7 @@ export function TaskStatusConfigPage() {
   );
 
   return (
-    <div style={{ padding: '24px 32px', maxWidth: '900px' }}>
+    <div style={{ padding: mobile ? '16px' : '24px 32px', maxWidth: '900px' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
         <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 600, color: '#111827' }}>Statusy zadań</h1>
@@ -71,7 +73,7 @@ export function TaskStatusConfigPage() {
           <div style={{ fontSize: '13px', marginTop: '4px' }}>Dodaj pierwszy status klikając „Nowy status".</div>
         </div>
       ) : (
-        <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden' }}>
+        <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
             <thead>
               <tr style={{ backgroundColor: '#f9fafb' }}>
@@ -153,6 +155,7 @@ function StatusFormModal({ status, isPending, error, onSubmit, onClose }: {
   const [isFinal, setIsFinal] = useState(status?.isFinal ?? false);
   const [isDefault, setIsDefault] = useState(status?.isDefault ?? false);
   const [sortOrder, setSortOrder] = useState(status?.sortOrder?.toString() ?? '0');
+  const mobile = useIsMobile();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -181,7 +184,7 @@ function StatusFormModal({ status, isPending, error, onSubmit, onClose }: {
         )}
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: '12px' }}>
             <label style={labelStyle}>
               Kod
               <input value={code} onChange={(e) => setCode(e.target.value)} required style={inputStyle} placeholder="np. TODO" />
@@ -191,7 +194,7 @@ function StatusFormModal({ status, isPending, error, onSubmit, onClose }: {
               <input value={name} onChange={(e) => setName(e.target.value)} required style={inputStyle} placeholder="np. Do zrobienia" />
             </label>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: '12px' }}>
             <label style={labelStyle}>
               Kolor
               <input type="color" value={color} onChange={(e) => setColor(e.target.value)} style={{ ...inputStyle, height: '36px', padding: '2px' }} />
@@ -259,7 +262,7 @@ const overlayStyle: React.CSSProperties = {
   position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100,
 };
 const modalStyle: React.CSSProperties = {
-  backgroundColor: '#fff', borderRadius: '12px', padding: '24px', width: '460px', maxHeight: '90vh', overflow: 'auto',
+  backgroundColor: '#fff', borderRadius: '12px', padding: '24px', width: '100%', maxWidth: '460px', maxHeight: '90vh', overflow: 'auto',
   boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
 };
 const labelStyle: React.CSSProperties = { display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px', fontWeight: 500, color: '#374151' };

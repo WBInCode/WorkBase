@@ -4,6 +4,7 @@ import { useAuth } from 'react-oidc-context';
 import { mapUserClaims } from '@/auth';
 import { useTimesheet, type TimesheetFilter } from '@/api/hooks/useTimeTracking';
 import type { TimeSheetDayDto, TimeSheetEntryDto } from '@/api/types/time';
+import { useIsMobile } from '@/shared';
 
 type PeriodType = 'day' | 'week' | 'month';
 
@@ -104,6 +105,7 @@ export function TimesheetPage() {
   };
 
   const { data, isLoading, error } = useTimesheet(filter);
+  const mobile = useIsMobile();
 
   const navigate = (direction: number) => {
     const d = new Date(currentDate);
@@ -145,7 +147,7 @@ export function TimesheetPage() {
   }
 
   return (
-    <div style={{ padding: '24px 32px', maxWidth: '1100px' }}>
+    <div style={{ padding: mobile ? '16px' : '24px 32px', maxWidth: '1100px' }}>
       {/* Header */}
       <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#111827', margin: '0 0 20px' }}>
         Karta czasu pracy
@@ -301,7 +303,7 @@ function DayView({ day }: { day?: TimeSheetDayDto }) {
         <StatusBadge status={day.status} />
       </div>
 
-      <div style={{ padding: '20px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px' }}>
+      <div style={{ padding: '20px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '20px' }}>
         <DetailRow label="Czas pracy brutto" value={formatDuration(day.totalWorked)} color="#3b82f6" />
         <DetailRow label="Przerwy" value={formatDuration(day.totalBreaks)} color="#f59e0b" />
         <DetailRow label="Czas netto" value={formatDuration(day.netWorked)} color="#059669" />
@@ -348,7 +350,7 @@ function WeekView({ days }: { days: TimeSheetDayDto[] }) {
   }
 
   return (
-    <div style={{ border: '1px solid #e5e7eb', borderRadius: '10px', overflow: 'hidden' }}>
+    <div style={{ border: '1px solid #e5e7eb', borderRadius: '10px', overflowX: 'auto' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
         <thead>
           <tr style={{ backgroundColor: '#f9fafb' }}>
@@ -424,7 +426,7 @@ function MonthView({ days }: { days: TimeSheetDayDto[] }) {
   }
 
   return (
-    <div style={{ border: '1px solid #e5e7eb', borderRadius: '10px', overflow: 'hidden' }}>
+    <div style={{ border: '1px solid #e5e7eb', borderRadius: '10px', overflowX: 'auto' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
         <thead>
           <tr style={{ backgroundColor: '#f9fafb' }}>

@@ -25,6 +25,7 @@ export function LeaveBalanceCard({ balances, isLoading }: LeaveBalanceCardProps)
             key={i}
             style={{
               width: '180px',
+              maxWidth: '100%',
               height: '100px',
               borderRadius: '10px',
               backgroundColor: '#f3f4f6',

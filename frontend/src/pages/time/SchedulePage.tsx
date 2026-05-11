@@ -9,6 +9,7 @@ import {
 import { useEmployees, useOrgUnitTree } from '@/api/hooks/useOrganization';
 import type { ScheduleDto, ScheduleTemplateDto, DayShiftPattern } from '@/api/types/time';
 import type { EmployeeDto, OrganizationUnitTreeNode } from '@/api/types/organization';
+import { useIsMobile } from '@/shared';
 
 /* ── helpers ── */
 
@@ -91,6 +92,7 @@ export function SchedulePage() {
   const [unitId, setUnitId] = useState('');
   const [modal, setModal] = useState<ModalState | null>(null);
   const [showGenerator, setShowGenerator] = useState(false);
+  const mobile = useIsMobile();
 
   const dateRange = useMemo(() => {
     return viewMode === 'week' ? getWeekRange(currentDate) : getMonthRange(currentDate);
@@ -158,7 +160,7 @@ export function SchedulePage() {
   };
 
   return (
-    <div style={{ padding: '24px 32px' }}>
+    <div style={{ padding: mobile ? '16px' : '24px 32px' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
         <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#111827', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>

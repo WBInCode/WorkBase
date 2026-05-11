@@ -223,7 +223,7 @@ export function EmployeeTimesheetSection({ timeStatus, timesheet, isLoading, emp
       {/* Current period summary */}
       {timesheet && (
         <div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '12px' }}>
             <StatBox label="Przepracowane" value={timesheet.totalWorked} />
             <StatBox label="Przerwy" value={timesheet.totalBreaks} />
             <StatBox label="Netto" value={timesheet.netWorked} />
@@ -232,7 +232,7 @@ export function EmployeeTimesheetSection({ timeStatus, timesheet, isLoading, emp
 
           {/* Days with entries */}
           {timesheet.days.length > 0 && (
-            <div style={{ marginTop: '12px' }}>
+            <div style={{ marginTop: '12px', overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid #e5e7eb' }}>

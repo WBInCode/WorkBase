@@ -73,6 +73,7 @@ export function NotificationBell({ userId }: NotificationBellProps) {
             right: 0,
             marginTop: '8px',
             width: '360px',
+            maxWidth: 'calc(100vw - 32px)',
             maxHeight: '400px',
             overflow: 'auto',
             backgroundColor: '#fff',
