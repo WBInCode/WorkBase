@@ -140,6 +140,9 @@ public static class IamSeeder
         permissions.Add(CreatePermission(permissionId++, Modules.Documents, Actions.Import, description: "Upload dokumentów"));
         permissions.Add(CreatePermission(permissionId++, Modules.Documents, Actions.Manage, description: "Zarządzanie kategoriami dokumentów"));
 
+        // Config
+        permissions.Add(CreatePermission(permissionId++, "config", Actions.Manage, description: "Zarządzanie konfiguracją systemu (wynagrodzenia, branding)"));
+
         return permissions;
     }
 
