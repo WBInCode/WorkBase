@@ -82,11 +82,18 @@ const SHIFT_COLORS: Record<string, { bg: string; border: string; text: string }>
   nieplanowana: { bg: '#ffedd5', border: '#fdba74', text: '#9a3412' },
 };
 
-const SOURCE_INDICATOR: Record<string, { label: string; opacity: number; borderStyle: string }> = {
+const SOURCE_INDICATOR = {
   OrgUnit: { label: '● Jednostka', opacity: 0.75, borderStyle: 'dashed' },
   Individual: { label: '', opacity: 1, borderStyle: 'solid' },
   Unplanned: { label: '⚡ Nieplanowana', opacity: 1, borderStyle: 'dotted' },
-};
+} as const;
+
+type SourceKey = keyof typeof SOURCE_INDICATOR;
+
+function getSourceIndicator(source: string | null | undefined) {
+  const key = (source ?? 'Individual') as SourceKey;
+  return SOURCE_INDICATOR[key] ?? SOURCE_INDICATOR.Individual;
+}
 
 function getShiftStyle(shiftType: string | null) {
   if (!shiftType) return { bg: '#f0fdf4', border: '#86efac', text: '#166534' };
@@ -337,7 +344,7 @@ export function SchedulePage() {
 
                     if (sched) {
                       const style = getShiftStyle(sched.shiftType);
-                      const src = SOURCE_INDICATOR[sched.source ?? 'Individual'] ?? SOURCE_INDICATOR.Individual;
+                      const src = getSourceIndicator(sched.source);
                       return (
                         <td key={d} style={{ ...tdStyle, textAlign: 'center', padding: '4px', backgroundColor: isWeekend ? '#f8fafc' : undefined }}>
                           <div
