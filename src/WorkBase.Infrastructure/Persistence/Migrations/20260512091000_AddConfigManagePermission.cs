@@ -13,8 +13,8 @@ namespace WorkBase.Infrastructure.Persistence.Migrations
             // Add config.manage permission (deterministic GUID following seed pattern)
             var permissionId = "20000000-0000-0000-0000-000000000100";
             migrationBuilder.Sql($"""
-                INSERT INTO iam_permissions (id, module, action, full_code, scope, description)
-                VALUES ('{permissionId}', 'config', 'manage', 'config.manage', NULL, 'Zarządzanie konfiguracją systemu (wynagrodzenia, branding)')
+                INSERT INTO iam_permissions (id, module, action, scope, description)
+                VALUES ('{permissionId}', 'config', 'manage', NULL, 'Zarządzanie konfiguracją systemu (wynagrodzenia, branding)')
                 ON CONFLICT (id) DO NOTHING;
                 """);
 
