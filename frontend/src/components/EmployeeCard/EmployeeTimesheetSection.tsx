@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Plus, Pencil, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import TimeInput from '@/components/shared/TimeInput';
 import type { TimeStatusDto, TimeSheetPeriodDto, TimeSheetEntryDto } from '@/api/types/time';
 import { useAdminCreateTimeEntry, useAdminUpdateTimeEntry, useAdminDeleteTimeEntry } from '@/api/hooks/useTimeTracking';
 
@@ -415,10 +416,9 @@ export function EmployeeTimesheetSection({ timeStatus, timesheet, isLoading, emp
 
               <div>
                 <label style={labelStyle}>Godzina</label>
-                <input
-                  type="time"
+                <TimeInput
                   value={modal.time}
-                  onChange={(e) => setModal({ ...modal, time: e.target.value })}
+                  onChange={(v) => setModal({ ...modal, time: v })}
                   style={inputStyle}
                 />
               </div>

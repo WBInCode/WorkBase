@@ -3817,6 +3817,10 @@ namespace WorkBase.Infrastructure.Persistence.Migrations
                         .HasColumnType("text")
                         .HasColumnName("modified_by");
 
+                    b.Property<Guid?>("OrgUnitScheduleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("org_unit_schedule_id");
+
                     b.Property<TimeOnly>("PlannedEnd")
                         .HasColumnType("time without time zone")
                         .HasColumnName("planned_end");
@@ -3830,6 +3834,12 @@ namespace WorkBase.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(64)")
                         .HasColumnName("shift_type");
 
+                    b.Property<int>("Source")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("source");
+
                     b.Property<Guid?>("TemplateId")
                         .HasColumnType("uuid")
                         .HasColumnName("template_id");
@@ -3840,6 +3850,9 @@ namespace WorkBase.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_time_schedules");
+
+                    b.HasIndex("OrgUnitScheduleId")
+                        .HasDatabaseName("ix_time_schedules_org_unit_schedule_id");
 
                     b.HasIndex("TemplateId")
                         .HasDatabaseName("ix_time_schedules_template_id");
@@ -3853,6 +3866,9 @@ namespace WorkBase.Infrastructure.Persistence.Migrations
                     b.HasIndex("TenantId", "EmployeeId", "Date")
                         .IsUnique()
                         .HasDatabaseName("ix_time_schedules_tenant_id_employee_id_date");
+
+                    b.HasIndex("TenantId", "OrgUnitScheduleId", "Source")
+                        .HasDatabaseName("ix_time_schedules_tenant_id_org_unit_schedule_id_source");
 
                     b.ToTable("time_schedules", (string)null);
                 });
@@ -3917,6 +3933,71 @@ namespace WorkBase.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_time_schedule_templates_tenant_id_name");
 
                     b.ToTable("time_schedule_templates", (string)null);
+                });
+
+            modelBuilder.Entity("WorkBase.Modules.TimeTracking.Domain.Entities.OrgUnitSchedule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
+
+                    b.Property<DateOnly>("EffectiveFrom")
+                        .HasColumnType("date")
+                        .HasColumnName("effective_from");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("modified_at");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("modified_by");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
+
+                    b.Property<Guid>("OrgUnitId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("org_unit_id");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.Property<string>("WeekPattern")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("week_pattern");
+
+                    b.HasKey("Id")
+                        .HasName("pk_time_org_unit_schedules");
+
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("ix_time_org_unit_schedules_tenant_id");
+
+                    b.HasIndex("TenantId", "OrgUnitId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_time_org_unit_schedules_tenant_id_org_unit_id");
+
+                    b.ToTable("time_org_unit_schedules", (string)null);
                 });
 
             modelBuilder.Entity("WorkBase.Modules.TimeTracking.Domain.Entities.TimeAnomaly", b =>
@@ -4977,6 +5058,12 @@ namespace WorkBase.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("WorkBase.Modules.TimeTracking.Domain.Entities.Schedule", b =>
                 {
+                    b.HasOne("WorkBase.Modules.TimeTracking.Domain.Entities.OrgUnitSchedule", null)
+                        .WithMany()
+                        .HasForeignKey("OrgUnitScheduleId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_time_schedules_time_org_unit_schedules_org_unit_schedule_id");
+
                     b.HasOne("WorkBase.Modules.TimeTracking.Domain.Entities.ScheduleTemplate", null)
                         .WithMany()
                         .HasForeignKey("TemplateId")

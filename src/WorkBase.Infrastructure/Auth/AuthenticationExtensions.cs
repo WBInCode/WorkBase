@@ -15,6 +15,7 @@ public static class AuthenticationExtensions
         var authority = configuration["Keycloak:Authority"]!;
         var audience = configuration["Keycloak:Audience"]!;
         var requireHttps = configuration.GetValue<bool>("Keycloak:RequireHttpsMetadata");
+        var metadataAddress = configuration["Keycloak:MetadataAddress"];
 
         services
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -24,6 +25,11 @@ public static class AuthenticationExtensions
                 options.Audience = audience;
                 options.RequireHttpsMetadata = requireHttps;
                 options.MapInboundClaims = false;
+
+                if (!string.IsNullOrEmpty(metadataAddress))
+                {
+                    options.MetadataAddress = metadataAddress;
+                }
 
                 options.TokenValidationParameters = new TokenValidationParameters
                 {

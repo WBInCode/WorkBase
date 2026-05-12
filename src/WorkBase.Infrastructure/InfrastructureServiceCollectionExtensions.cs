@@ -80,6 +80,9 @@ public static class InfrastructureServiceCollectionExtensions
 
             options.UseSnakeCaseNamingConvention();
 
+            options.ConfigureWarnings(w =>
+                w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+
             options.AddInterceptors(
                 sp.GetRequiredService<AuditSaveChangesInterceptor>(),
                 sp.GetRequiredService<DomainEventInterceptor>());

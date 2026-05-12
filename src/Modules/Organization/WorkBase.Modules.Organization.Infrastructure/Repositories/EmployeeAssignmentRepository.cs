@@ -37,4 +37,16 @@ public sealed class EmployeeAssignmentRepository(WorkBaseDbContext dbContext) : 
     {
         dbContext.Set<EmployeeAssignment>().Update(assignment);
     }
+
+    public async Task<List<EmployeeAssignment>> GetByOrgUnitAsync(Guid orgUnitId, CancellationToken cancellationToken = default)
+    {
+        return await dbContext.Set<EmployeeAssignment>()
+            .Where(a => a.OrganizationUnitId == orgUnitId)
+            .ToListAsync(cancellationToken);
+    }
+
+    public void RemoveRange(IEnumerable<EmployeeAssignment> assignments)
+    {
+        dbContext.Set<EmployeeAssignment>().RemoveRange(assignments);
+    }
 }
