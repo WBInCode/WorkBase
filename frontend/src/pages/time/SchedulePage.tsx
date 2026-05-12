@@ -9,7 +9,7 @@ import {
   useOrgUnitSchedule, useCreateOrgUnitSchedule, useUpdateOrgUnitSchedule, useDeleteOrgUnitSchedule,
 } from '@/api/hooks/useTimeTracking';
 import { useEmployees, useOrgUnitTree } from '@/api/hooks/useOrganization';
-import type { ScheduleDto, ScheduleTemplateDto, DayShiftPattern, OrgUnitScheduleDto } from '@/api/types/time';
+import type { ScheduleDto, ScheduleTemplateDto, DayShiftPattern } from '@/api/types/time';
 import type { EmployeeDto, OrganizationUnitTreeNode } from '@/api/types/organization';
 import { useIsMobile } from '@/shared';
 
@@ -337,17 +337,17 @@ export function SchedulePage() {
 
                     if (sched) {
                       const style = getShiftStyle(sched.shiftType);
-                      const source = SOURCE_INDICATOR[sched.source ?? 'Individual'] ?? SOURCE_INDICATOR.Individual;
+                      const src = SOURCE_INDICATOR[sched.source ?? 'Individual'] ?? SOURCE_INDICATOR.Individual;
                       return (
                         <td key={d} style={{ ...tdStyle, textAlign: 'center', padding: '4px', backgroundColor: isWeekend ? '#f8fafc' : undefined }}>
                           <div
                             onClick={() => openEdit(sched)}
                             style={{
-                              backgroundColor: style.bg, border: `1px ${source.borderStyle} ${style.border}`,
+                              backgroundColor: style.bg, border: `1px ${src.borderStyle} ${style.border}`,
                               borderRadius: '6px', padding: '4px 6px', cursor: 'pointer',
-                              fontSize: '12px', lineHeight: '1.3', opacity: source.opacity,
+                              fontSize: '12px', lineHeight: '1.3', opacity: src.opacity,
                             }}
-                            title={`${formatTime(sched.plannedStart)}–${formatTime(sched.plannedEnd)}${sched.shiftType ? ` (${sched.shiftType})` : ''}${source.label ? `\nŹródło: ${source.label}` : ''}\nKliknij aby edytować`}
+                            title={`${formatTime(sched.plannedStart)}–${formatTime(sched.plannedEnd)}${sched.shiftType ? ` (${sched.shiftType})` : ''}${src.label ? `\nŹródło: ${src.label}` : ''}\nKliknij aby edytować`}
                           >
                             <div style={{ fontWeight: 600, color: style.text }}>
                               {formatTime(sched.plannedStart)}–{formatTime(sched.plannedEnd)}
@@ -357,9 +357,9 @@ export function SchedulePage() {
                                 {sched.shiftType}
                               </div>
                             )}
-                            {source.label && (
+                            {src.label && (
                               <div style={{ fontSize: '9px', color: style.text, opacity: 0.6, marginTop: '1px' }}>
-                                {source.label}
+                                {src.label}
                               </div>
                             )}
                           </div>
