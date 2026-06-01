@@ -135,8 +135,12 @@ export function TeamAttendancePage() {
   /* navigation */
   const navigate = (dir: number) => {
     const d = new Date(currentDate);
-    if (viewMode === 'week') d.setDate(d.getDate() + dir * 7);
-    else d.setMonth(d.getMonth() + dir);
+    if (viewMode === 'week') {
+      d.setDate(d.getDate() + dir * 7);
+    } else {
+      d.setDate(1);
+      d.setMonth(d.getMonth() + dir);
+    }
     setCurrentDate(d);
   };
 
