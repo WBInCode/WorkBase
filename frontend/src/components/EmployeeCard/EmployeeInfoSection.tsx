@@ -2,7 +2,8 @@ import type { EmployeeDetailDto, EmployeeStatus } from '@/api/types/organization
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useAuth } from 'react-oidc-context';
-import { useSetEmployeeHourlyRate } from '@/api/hooks/useOrganization';
+import { useSetEmployeeHourlyRate, useDeactivateEmployee } from '@/api/hooks/useOrganization';
+import { UserMinus } from 'lucide-react';
 
 const statusLabels: Record<EmployeeStatus, string> = {
   Active: 'Aktywny',
@@ -26,11 +27,18 @@ export function EmployeeInfoSection({ employee }: Props) {
   const roles = (auth.user?.profile?.['roles'] as string[] | undefined) ?? [];
   const isAdmin = roles.some((r) => r === 'workbase-admin' || r === 'Admin' || r === 'Super Admin');
   const setRate = useSetEmployeeHourlyRate();
+  const deactivate = useDeactivateEmployee();
   const [editingRate, setEditingRate] = useState(false);
   const [rateInput, setRateInput] = useState<string>(
     employee.hourlyRate !== null && employee.hourlyRate !== undefined ? String(employee.hourlyRate) : '',
   );
+  const [showDeactivateConfirm, setShowDeactivateConfirm] = useState(false);
   const color = statusColors[employee.status];
+
+  const handleDeactivate = async () => {
+    await deactivate.mutateAsync(employee.id);
+    navigate('/org/employees');
+  };
 
   const saveRate = async () => {
     const trimmed = rateInput.trim();
@@ -140,6 +148,65 @@ export function EmployeeInfoSection({ employee }: Props) {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Deactivate button — admin only, active employees only */}
+      {isAdmin && employee.status === 'Active' && (
+        <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid #fee2e2' }}>
+          {!showDeactivateConfirm ? (
+            <button
+              onClick={() => setShowDeactivateConfirm(true)}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '8px',
+                padding: '10px 20px', fontSize: '13px', fontWeight: 600,
+                color: '#dc2626', backgroundColor: '#fef2f2',
+                border: '1px solid #fecaca', borderRadius: '8px',
+                cursor: 'pointer',
+              }}
+            >
+              <UserMinus size={16} />
+              Dezaktywuj pracownika
+            </button>
+          ) : (
+            <div style={{ padding: '16px', backgroundColor: '#fef2f2', borderRadius: '8px', border: '1px solid #fecaca' }}>
+              <p style={{ margin: '0 0 12px', fontSize: '14px', color: '#991b1b', fontWeight: 500 }}>
+                Czy na pewno chcesz dezaktywować pracownika <strong>{employee.firstName} {employee.lastName}</strong>?
+              </p>
+              <p style={{ margin: '0 0 16px', fontSize: '13px', color: '#b91c1c' }}>
+                Pracownik zostanie oznaczony jako nieaktywny. Nie będzie widoczny w raportach i listach aktywnych pracowników.
+              </p>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  onClick={handleDeactivate}
+                  disabled={deactivate.isPending}
+                  style={{
+                    padding: '8px 20px', fontSize: '13px', fontWeight: 600,
+                    color: '#ffffff', backgroundColor: '#dc2626',
+                    border: 'none', borderRadius: '6px', cursor: 'pointer',
+                    opacity: deactivate.isPending ? 0.6 : 1,
+                  }}
+                >
+                  {deactivate.isPending ? 'Dezaktywowanie...' : 'Tak, dezaktywuj'}
+                </button>
+                <button
+                  onClick={() => setShowDeactivateConfirm(false)}
+                  style={{
+                    padding: '8px 20px', fontSize: '13px', fontWeight: 500,
+                    color: '#374151', backgroundColor: '#ffffff',
+                    border: '1px solid #d1d5db', borderRadius: '6px', cursor: 'pointer',
+                  }}
+                >
+                  Anuluj
+                </button>
+              </div>
+              {deactivate.error && (
+                <p style={{ margin: '8px 0 0', fontSize: '13px', color: '#dc2626' }}>
+                  Błąd: {(deactivate.error as Error)?.message || 'Nie udało się dezaktywować pracownika.'}
+                </p>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>
