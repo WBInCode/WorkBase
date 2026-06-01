@@ -1,11 +1,13 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Plus, RefreshCw, ChevronLeft, ChevronRight, User, X, ExternalLink } from 'lucide-react';
+import { useAuth } from 'react-oidc-context';
+import { Search, Plus, RefreshCw, ChevronLeft, ChevronRight, User, X, ExternalLink, UserMinus } from 'lucide-react';
 import {
   useEmployees,
   useEmployeeDetail,
   useCreateEmployee,
   useAssignEmployee,
+  useDeactivateEmployee,
   useOrgUnitTree,
   usePositions,
   type EmployeesFilter,
@@ -382,7 +384,12 @@ function EmployeeDetailPanel({
 }) {
   const navigate = useNavigate();
   const [showAssignForm, setShowAssignForm] = useState(false);
+  const [showDeactivateConfirm, setShowDeactivateConfirm] = useState(false);
+  const deactivate = useDeactivateEmployee();
   const mobile = useIsMobile();
+  const auth = useAuth();
+  const roles = (auth.user?.profile?.['roles'] as string[] | undefined) ?? [];
+  const isAdmin = roles.some((r) => r === 'workbase-admin' || r === 'Admin' || r === 'Super Admin');
   return (
     <aside
       style={{
@@ -558,6 +565,66 @@ function EmployeeDetailPanel({
               employeeId={detail.id}
               onClose={() => setShowAssignForm(false)}
             />
+          )}
+
+          {/* Deactivate button — admin only, active employees only */}
+          {isAdmin && detail.status === 'Active' && (
+            <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid #fee2e2' }}>
+              {!showDeactivateConfirm ? (
+                <button
+                  onClick={() => setShowDeactivateConfirm(true)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '6px',
+                    padding: '8px 14px', fontSize: '13px', fontWeight: 600,
+                    color: '#dc2626', backgroundColor: '#fef2f2',
+                    border: '1px solid #fecaca', borderRadius: '6px',
+                    cursor: 'pointer', width: '100%', justifyContent: 'center',
+                  }}
+                >
+                  <UserMinus size={14} />
+                  Dezaktywuj pracownika
+                </button>
+              ) : (
+                <div style={{ padding: '12px', backgroundColor: '#fef2f2', borderRadius: '8px', border: '1px solid #fecaca' }}>
+                  <p style={{ margin: '0 0 10px', fontSize: '13px', color: '#991b1b', fontWeight: 500 }}>
+                    Dezaktywować <strong>{detail.firstName} {detail.lastName}</strong>?
+                  </p>
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    <button
+                      onClick={async () => {
+                        await deactivate.mutateAsync(detail.id);
+                        setShowDeactivateConfirm(false);
+                        onClose();
+                      }}
+                      disabled={deactivate.isPending}
+                      style={{
+                        flex: 1, padding: '7px', fontSize: '12px', fontWeight: 600,
+                        color: '#fff', backgroundColor: '#dc2626',
+                        border: 'none', borderRadius: '6px', cursor: 'pointer',
+                        opacity: deactivate.isPending ? 0.6 : 1,
+                      }}
+                    >
+                      {deactivate.isPending ? 'Dezaktywowanie...' : 'Tak, dezaktywuj'}
+                    </button>
+                    <button
+                      onClick={() => setShowDeactivateConfirm(false)}
+                      style={{
+                        padding: '7px 14px', fontSize: '12px', fontWeight: 500,
+                        color: '#374151', backgroundColor: '#fff',
+                        border: '1px solid #d1d5db', borderRadius: '6px', cursor: 'pointer',
+                      }}
+                    >
+                      Anuluj
+                    </button>
+                  </div>
+                  {deactivate.error && (
+                    <p style={{ margin: '6px 0 0', fontSize: '12px', color: '#dc2626' }}>
+                      {(deactivate.error as Error)?.message || 'Wystąpił błąd.'}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
           )}
         </div>
       )}
