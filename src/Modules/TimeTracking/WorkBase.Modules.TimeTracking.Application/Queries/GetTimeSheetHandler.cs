@@ -85,19 +85,37 @@ public sealed class GetTimeSheetHandler(
                     request.TenantId, request.EmployeeId, date, cancellationToken);
                 var entryDtos = MapEntries(entries);
 
+                // Recalculate from live entries if available (persisted sheet may be stale)
+                TimeSpan worked, breaks;
+                string status;
+
+                if (entries.Count > 0)
+                {
+                    (worked, breaks) = CalculateWorkedTime(entries);
+                    var lastEntry = entries.OrderByDescending(e => e.EntryTime).First();
+                    var hasClockOut = lastEntry.Type == TimeEntryType.ClockOut;
+                    status = hasClockOut ? "complete" : "incomplete";
+                }
+                else
+                {
+                    worked = sheet.TotalWorked;
+                    breaks = sheet.TotalBreaks;
+                    status = sheet.Status.ToString().ToLowerInvariant();
+                }
+
                 days.Add(new TimeSheetDayDto(
                     sheet.Date,
-                    sheet.TotalWorked,
-                    sheet.TotalBreaks,
-                    sheet.NetWorked,
-                    sheet.Status.ToString().ToLowerInvariant(),
+                    worked,
+                    breaks,
+                    worked - breaks,
+                    status,
                     sheet.Note,
                     entryDtos));
 
-                totalWorked += sheet.TotalWorked;
-                totalBreaks += sheet.TotalBreaks;
+                totalWorked += worked;
+                totalBreaks += breaks;
 
-                if (sheet.Status == TimeSheetStatus.Complete || sheet.Status == TimeSheetStatus.Approved)
+                if (status is "complete" or "approved")
                     daysWorked++;
                 else
                     daysIncomplete++;

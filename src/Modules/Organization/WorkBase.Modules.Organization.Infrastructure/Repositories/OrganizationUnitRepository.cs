@@ -56,6 +56,13 @@ public sealed class OrganizationUnitRepository(WorkBaseDbContext dbContext) : IO
         dbContext.Set<OrganizationUnit>().Remove(unit);
     }
 
+    public async Task<List<OrganizationUnit>> GetChildrenAsync(Guid parentId, CancellationToken cancellationToken = default)
+    {
+        return await dbContext.Set<OrganizationUnit>()
+            .Where(u => u.ParentId == parentId)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task InsertClosureForNewUnitAsync(Guid unitId, Guid? parentId, CancellationToken cancellationToken = default)
     {
         // Self-reference: every node is its own ancestor at depth 0

@@ -2,6 +2,13 @@ using WorkBase.Shared.Domain;
 
 namespace WorkBase.Modules.TimeTracking.Domain.Entities;
 
+public enum ScheduleSource
+{
+    OrgUnit = 0,
+    Individual = 1,
+    Unplanned = 2
+}
+
 public sealed class Schedule : AuditableEntity<Guid>, ITenantScoped, IAuditable
 {
     public Guid TenantId { get; private set; }
@@ -11,6 +18,8 @@ public sealed class Schedule : AuditableEntity<Guid>, ITenantScoped, IAuditable
     public TimeOnly PlannedEnd { get; private set; }
     public string? ShiftType { get; private set; }
     public Guid? TemplateId { get; private set; }
+    public ScheduleSource Source { get; private set; } = ScheduleSource.Individual;
+    public Guid? OrgUnitScheduleId { get; private set; }
 
     private Schedule() { }
 
@@ -21,7 +30,9 @@ public sealed class Schedule : AuditableEntity<Guid>, ITenantScoped, IAuditable
         TimeOnly plannedStart,
         TimeOnly plannedEnd,
         string? shiftType = null,
-        Guid? templateId = null)
+        Guid? templateId = null,
+        ScheduleSource source = ScheduleSource.Individual,
+        Guid? orgUnitScheduleId = null)
     {
         return new Schedule
         {
@@ -31,7 +42,9 @@ public sealed class Schedule : AuditableEntity<Guid>, ITenantScoped, IAuditable
             PlannedStart = plannedStart,
             PlannedEnd = plannedEnd,
             ShiftType = shiftType,
-            TemplateId = templateId
+            TemplateId = templateId,
+            Source = source,
+            OrgUnitScheduleId = orgUnitScheduleId
         };
     }
 
@@ -40,6 +53,13 @@ public sealed class Schedule : AuditableEntity<Guid>, ITenantScoped, IAuditable
         PlannedStart = plannedStart;
         PlannedEnd = plannedEnd;
         ShiftType = shiftType;
+        Source = ScheduleSource.Individual;
+        OrgUnitScheduleId = null;
+    }
+
+    public void UpdatePlannedEnd(TimeOnly plannedEnd)
+    {
+        PlannedEnd = plannedEnd;
     }
 
     public TimeSpan PlannedDuration =>

@@ -144,8 +144,9 @@ export function KioskPage() {
           setBadgeInput('');
         }, 3000);
       }
-    } catch {
-      setFeedback({ type: 'error', message: 'Błąd operacji. Spróbuj ponownie.' });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Błąd operacji.';
+      setFeedback({ type: 'error', message: msg });
     }
   }, [activeEmployeeId, clockIn, clockOut, startBreak, endBreak, kioskLocation, isKioskAccount]);
 

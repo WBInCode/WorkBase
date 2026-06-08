@@ -5,6 +5,7 @@ import { useEmployees, useOrgUnitTree } from '@/api/hooks/useOrganization';
 import type { TimeSheetPeriodDto, TimeAnomalyDto } from '@/api/types/time';
 import type { EmployeeDto, OrganizationUnitTreeNode } from '@/api/types/organization';
 import { useIsMobile } from '@/shared';
+import ExcelJS from 'exceljs';
 
 /* ── helpers ── */
 
@@ -135,8 +136,12 @@ export function TeamAttendancePage() {
   /* navigation */
   const navigate = (dir: number) => {
     const d = new Date(currentDate);
-    if (viewMode === 'week') d.setDate(d.getDate() + dir * 7);
-    else d.setMonth(d.getMonth() + dir);
+    if (viewMode === 'week') {
+      d.setDate(d.getDate() + dir * 7);
+    } else {
+      d.setDate(1);
+      d.setMonth(d.getMonth() + dir);
+    }
     setCurrentDate(d);
   };
 
@@ -185,35 +190,113 @@ export function TeamAttendancePage() {
     return m;
   }, [timesheets]);
 
-  /* CSV export */
-  const exportCsv = useCallback(() => {
-    const header = ['Pracownik', ...dates.map((d) => formatWeekdayShort(d)), 'Suma netto'];
-    const rows: string[][] = [];
+  /* Excel export */
+  const exportExcel = useCallback(async () => {
+    const wb = new ExcelJS.Workbook();
+    wb.creator = 'WorkBase';
+    const ws = wb.addWorksheet('Raport czasu pracy');
 
+    /* ── colours ── */
+    const headerFill: ExcelJS.FillPattern = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF059669' } };
+    const headerFont: Partial<ExcelJS.Font> = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
+    const weekendFill: ExcelJS.FillPattern = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
+    const greenFill: ExcelJS.FillPattern = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDCFCE7' } };
+    const yellowFill: ExcelJS.FillPattern = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEF3C7' } };
+    const sumFill: ExcelJS.FillPattern = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF0FDF4' } };
+    const thinBorder: Partial<ExcelJS.Borders> = {
+      top: { style: 'thin', color: { argb: 'FFE5E7EB' } },
+      bottom: { style: 'thin', color: { argb: 'FFE5E7EB' } },
+      left: { style: 'thin', color: { argb: 'FFE5E7EB' } },
+      right: { style: 'thin', color: { argb: 'FFE5E7EB' } },
+    };
+
+    /* ── header row ── */
+    const headerValues = ['Pracownik', ...dates.map((d) => formatWeekdayShort(d)), 'Suma netto'];
+    const headerRow = ws.addRow(headerValues);
+    headerRow.eachCell((cell) => {
+      cell.fill = headerFill;
+      cell.font = headerFont;
+      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      cell.border = thinBorder;
+    });
+    // first cell (Pracownik) left-aligned
+    headerRow.getCell(1).alignment = { horizontal: 'left', vertical: 'middle' };
+    headerRow.height = 24;
+
+    /* ── detect weekend columns (1-indexed, col 1 = Pracownik) ── */
+    const weekendCols = new Set<number>();
+    dates.forEach((d, i) => {
+      const day = new Date(d + 'T00:00:00');
+      if (day.getDay() === 0 || day.getDay() === 6) weekendCols.add(i + 2); // +2: 1-based + skip col A
+    });
+
+    /* ── data rows ── */
     for (const emp of employees) {
       const ts = tsMap.get(emp.id);
       const dayMap = new Map<string, string>();
       if (ts) {
         for (const day of ts.days) dayMap.set(day.date, day.netWorked);
       }
-      const row = [`${emp.lastName} ${emp.firstName}`];
+
+      const rowValues: (string | number)[] = [`${emp.lastName} ${emp.firstName}`];
       for (const d of dates) {
-        row.push(formatDuration(dayMap.get(d) ?? ''));
+        rowValues.push(formatDuration(dayMap.get(d) ?? ''));
       }
-      row.push(ts ? formatDuration(ts.netWorked) : '00:00');
-      rows.push(row);
+      const sumMinutes = ts ? durationToMinutes(ts.netWorked) : 0;
+      const sumHours = sumMinutes / 60;
+      rowValues.push(sumHours);
+
+      const row = ws.addRow(rowValues);
+
+      /* employee name styling */
+      const nameCell = row.getCell(1);
+      nameCell.font = { bold: true, size: 11 };
+      nameCell.border = thinBorder;
+
+      /* day cells styling */
+      dates.forEach((d, i) => {
+        const colIdx = i + 2;
+        const cell = row.getCell(colIdx);
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        cell.border = thinBorder;
+
+        const mins = durationToMinutes(dayMap.get(d) ?? '');
+        const isWeekend = weekendCols.has(colIdx);
+
+        if (mins >= 480) {
+          cell.fill = greenFill;
+        } else if (mins > 0) {
+          cell.fill = yellowFill;
+        } else if (isWeekend) {
+          cell.fill = weekendFill;
+          cell.value = '—';
+        }
+      });
+
+      /* sum cell styling */
+      const sumCell = row.getCell(headerValues.length);
+      sumCell.fill = sumFill;
+      sumCell.font = { bold: true, size: 11, color: { argb: 'FF059669' } };
+      sumCell.alignment = { horizontal: 'right', vertical: 'middle' };
+      sumCell.border = thinBorder;
+      sumCell.numFmt = '0.00';
     }
 
-    const csvContent = [header, ...rows]
-      .map((r) => r.map((c) => `"${c}"`).join(';'))
-      .join('\n');
+    /* ── column widths ── */
+    ws.getColumn(1).width = 28; // Pracownik
+    for (let i = 2; i <= dates.length + 1; i++) ws.getColumn(i).width = 10;
+    ws.getColumn(headerValues.length).width = 14; // Suma
 
-    const BOM = '\uFEFF';
-    const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+    /* ── freeze first row + first column ── */
+    ws.views = [{ state: 'frozen', xSplit: 1, ySplit: 1 }];
+
+    /* ── download ── */
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `raport-czasu-${dateRange.from}_${dateRange.to}.csv`;
+    a.download = `raport-czasu-${dateRange.from}_${dateRange.to}.xlsx`;
     a.click();
     URL.revokeObjectURL(url);
   }, [employees, dates, tsMap, dateRange]);
@@ -227,7 +310,7 @@ export function TeamAttendancePage() {
           Raport czasu pracy zespołu
         </h1>
         <button
-          onClick={exportCsv}
+          onClick={exportExcel}
           disabled={!timesheets || employees.length === 0}
           style={{
             display: 'flex', alignItems: 'center', gap: '6px',
@@ -237,7 +320,7 @@ export function TeamAttendancePage() {
             opacity: (!timesheets || employees.length === 0) ? 0.5 : 1,
           }}
         >
-          <Download size={16} /> Eksport CSV
+          <Download size={16} /> Eksport Excel
         </button>
       </div>
 

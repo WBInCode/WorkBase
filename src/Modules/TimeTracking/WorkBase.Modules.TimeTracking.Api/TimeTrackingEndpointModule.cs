@@ -12,6 +12,7 @@ public sealed class TimeTrackingEndpointModule : IEndpointModule
         endpoints.MapBreakPolicyEndpoints();
         endpoints.MapQrTokenEndpoints();
         endpoints.MapScheduleEndpoints();
+        endpoints.MapOrgUnitScheduleEndpoints();
         endpoints.MapAnomalyEndpoints();
         endpoints.MapTimeCorrectionEndpoints();
         endpoints.MapNfcEndpoints();

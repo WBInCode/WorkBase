@@ -38,8 +38,8 @@ public sealed class VerifyQrTokenHandler(
                 "Token QR wygasł."));
         }
 
-        // Check if employee is already clocked in
-        var lastEntry = await timeEntryRepository.GetLastEntryAsync(
+        // Check if employee is already clocked in today
+        var lastEntry = await timeEntryRepository.GetLastEntryTodayAsync(
             request.TenantId, request.EmployeeId, cancellationToken);
 
         if (lastEntry is not null && lastEntry.Type is TimeEntryType.ClockIn or TimeEntryType.BreakEnd)

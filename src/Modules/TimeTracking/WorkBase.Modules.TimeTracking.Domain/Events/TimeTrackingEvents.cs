@@ -39,3 +39,8 @@ public sealed record TimeCorrectedEvent(
     Guid EmployeeId,
     DateOnly Date,
     string CorrectedBy) : DomainEvent;
+
+public sealed record OrgUnitScheduleChangedEvent(
+    Guid OrgUnitScheduleId,
+    Guid TenantId,
+    Guid OrgUnitId) : DomainEvent;

@@ -7,12 +7,14 @@ namespace WorkBase.Modules.TimeTracking.Application.Commands;
 
 public sealed class ClockOutHandler(
     ITimeEntryRepository timeEntryRepository,
-    ITimeSheetRepository timeSheetRepository)
+    ITimeSheetRepository timeSheetRepository,
+    IScheduleRepository scheduleRepository)
     : ICommandHandler<ClockOutCommand, Guid>
 {
     public async Task<Result<Guid>> Handle(ClockOutCommand request, CancellationToken cancellationToken)
     {
-        var lastEntry = await timeEntryRepository.GetLastEntryAsync(
+        // Check only today's entries — previous day state should not affect today
+        var lastEntry = await timeEntryRepository.GetLastEntryTodayAsync(
             request.TenantId, request.EmployeeId, cancellationToken);
 
         if (lastEntry is null || lastEntry.Type is TimeEntryType.ClockOut)
@@ -59,6 +61,16 @@ public sealed class ClockOutHandler(
         {
             timeSheet.Recalculate(totalWorked, totalBreaks);
             timeSheetRepository.Update(timeSheet);
+        }
+
+        // Update PlannedEnd on Unplanned schedules
+        var schedule = await scheduleRepository.GetByDateAsync(
+            request.TenantId, request.EmployeeId, today, cancellationToken);
+
+        if (schedule is not null && schedule.Source == ScheduleSource.Unplanned)
+        {
+            schedule.UpdatePlannedEnd(TimeOnly.FromDateTime(now));
+            scheduleRepository.Update(schedule);
         }
 
         return entry.Id;
