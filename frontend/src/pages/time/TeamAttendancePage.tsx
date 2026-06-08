@@ -238,11 +238,13 @@ export function TeamAttendancePage() {
         for (const day of ts.days) dayMap.set(day.date, day.netWorked);
       }
 
-      const rowValues: string[] = [`${emp.lastName} ${emp.firstName}`];
+      const rowValues: (string | number)[] = [`${emp.lastName} ${emp.firstName}`];
       for (const d of dates) {
         rowValues.push(formatDuration(dayMap.get(d) ?? ''));
       }
-      rowValues.push(ts ? formatDuration(ts.netWorked) : '00:00');
+      const sumMinutes = ts ? durationToMinutes(ts.netWorked) : 0;
+      const sumHours = sumMinutes / 60;
+      rowValues.push(sumHours);
 
       const row = ws.addRow(rowValues);
 
@@ -277,6 +279,7 @@ export function TeamAttendancePage() {
       sumCell.font = { bold: true, size: 11, color: { argb: 'FF059669' } };
       sumCell.alignment = { horizontal: 'right', vertical: 'middle' };
       sumCell.border = thinBorder;
+      sumCell.numFmt = '0.00';
     }
 
     /* ── column widths ── */
