@@ -92,13 +92,15 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=${DATABASE_NAME:-workbase};Username=${DATABASE_USER:-workbase};Password=${DATABASE_PASSWORD:-workbase}"
-      Keycloak__Authority: "http://keycloak:8080/realms/${KEYCLOAK_REALM:-workbase}"
+      Keycloak__Authority: "http://localhost:8080/realms/${KEYCLOAK_REALM:-workbase}"
+      Keycloak__MetadataAddress: "http://keycloak:8080/realms/${KEYCLOAK_REALM:-workbase}/.well-known/openid-configuration"
       Storage__Endpoint: "minio:9000"
       Storage__AccessKey: "${MINIO_ACCESS_KEY:-minioadmin}"
       Storage__SecretKey: "${MINIO_SECRET_KEY:-minioadmin}"
       Storage__Bucket: "${MINIO_BUCKET:-workbase}"
       Storage__UseSSL: "false"
-      Serilog__WriteTo__Seq__ServerUrl: "http://seq:5341"
+      Serilog__WriteTo__0__Name: "Seq"
+      Serilog__WriteTo__0__Args__serverUrl: "http://seq:5341"
       Hangfire__DashboardEnabled: "true"
     depends_on:
       postgres:

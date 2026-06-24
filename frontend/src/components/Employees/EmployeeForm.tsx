@@ -14,7 +14,13 @@ export function EmployeeForm({ onSubmit, onClose, isSubmitting, error }: Employe
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [employeeNumber, setEmployeeNumber] = useState('');
-  const [hireDate, setHireDate] = useState(new Date().toISOString().split('T')[0]);
+  const [hireDate, setHireDate] = useState(() => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  });
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
