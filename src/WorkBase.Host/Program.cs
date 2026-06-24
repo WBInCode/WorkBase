@@ -16,6 +16,7 @@ Log.Logger = new LoggerConfiguration()
 
 try
 {
+    Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
     var builder = WebApplication.CreateBuilder(args);
 
     builder.Host.UseSerilog((context, services, configuration) => configuration
