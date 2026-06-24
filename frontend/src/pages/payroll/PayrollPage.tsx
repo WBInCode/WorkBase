@@ -11,10 +11,18 @@ import type { LeaveRequestDto } from '@/api/types/leave';
 const DEFAULT_OVERTIME_MULTIPLIER = 1.5;
 
 function startOfMonth(d: Date): string {
-  return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0, 10);
+  const from = new Date(d.getFullYear(), d.getMonth(), 1);
+  const year = from.getFullYear();
+  const month = String(from.getMonth() + 1).padStart(2, '0');
+  const day = String(from.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 function endOfMonth(d: Date): string {
-  return new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString().slice(0, 10);
+  const to = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+  const year = to.getFullYear();
+  const month = String(to.getMonth() + 1).padStart(2, '0');
+  const day = String(to.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 function hoursFromTimespan(ts: string | undefined | null): number {

@@ -85,12 +85,19 @@ export function EmployeeTimesheetSection({ timeStatus, timesheet, isLoading, emp
 
   const isAdmin = !!employeeId;
 
+  const format = (d: Date) => {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const shiftWeek = (direction: number) => {
     const fromDate = new Date(from);
     fromDate.setDate(fromDate.getDate() + direction * 7);
     const toDate = new Date(fromDate);
     toDate.setDate(fromDate.getDate() + 6);
-    onDateRangeChange(fromDate.toISOString().slice(0, 10), toDate.toISOString().slice(0, 10));
+    onDateRangeChange(format(fromDate), format(toDate));
   };
 
   const goToCurrentWeek = () => {
@@ -99,7 +106,7 @@ export function EmployeeTimesheetSection({ timeStatus, timesheet, isLoading, emp
     monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
-    onDateRangeChange(monday.toISOString().slice(0, 10), sunday.toISOString().slice(0, 10));
+    onDateRangeChange(format(monday), format(sunday));
   };
 
   const openCreate = (date: string) => {
