@@ -23,7 +23,9 @@ public sealed class GetSchedulesHandler(IScheduleRepository scheduleRepository)
             s.PlannedEnd,
             s.ShiftType,
             s.TemplateId,
-            s.PlannedDuration)).ToList();
+            s.PlannedDuration,
+            s.Source.ToString(),
+            s.OrgUnitScheduleId)).ToList();
 
         return dtos;
     }

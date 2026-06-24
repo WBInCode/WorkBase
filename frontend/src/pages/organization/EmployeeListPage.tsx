@@ -1,11 +1,15 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Plus, RefreshCw, ChevronLeft, ChevronRight, User, X, ExternalLink } from 'lucide-react';
+import { useAuth } from 'react-oidc-context';
+import { Search, Plus, RefreshCw, ChevronLeft, ChevronRight, User, X, ExternalLink, UserMinus } from 'lucide-react';
 import {
   useEmployees,
   useEmployeeDetail,
   useCreateEmployee,
+  useAssignEmployee,
+  useDeactivateEmployee,
   useOrgUnitTree,
+  usePositions,
   type EmployeesFilter,
 } from '@/api/hooks/useOrganization';
 import type {
@@ -379,7 +383,13 @@ function EmployeeDetailPanel({
   onClose: () => void;
 }) {
   const navigate = useNavigate();
+  const [showAssignForm, setShowAssignForm] = useState(false);
+  const [showDeactivateConfirm, setShowDeactivateConfirm] = useState(false);
+  const deactivate = useDeactivateEmployee();
   const mobile = useIsMobile();
+  const auth = useAuth();
+  const roles = (auth.user?.profile?.['roles'] as string[] | undefined) ?? [];
+  const isAdmin = roles.some((r) => r === 'workbase-admin' || r === 'Admin' || r === 'Super Admin');
   return (
     <aside
       style={{
@@ -534,9 +544,191 @@ function EmployeeDetailPanel({
               ))}
             </div>
           )}
+
+          {/* Assign to unit button / form */}
+          {!showAssignForm ? (
+            <button
+              onClick={() => setShowAssignForm(true)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '6px',
+                padding: '8px 14px', fontSize: '13px', fontWeight: 500,
+                color: '#3b82f6', backgroundColor: '#eff6ff',
+                border: '1px solid #bfdbfe', borderRadius: '6px',
+                cursor: 'pointer', marginTop: '16px', width: '100%', justifyContent: 'center',
+              }}
+            >
+              <Plus size={14} />
+              Przypisz do jednostki
+            </button>
+          ) : (
+            <AssignEmployeeForm
+              employeeId={detail.id}
+              onClose={() => setShowAssignForm(false)}
+            />
+          )}
+
+          {/* Deactivate button — admin only, active employees only */}
+          {isAdmin && detail.status === 'Active' && (
+            <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid #fee2e2' }}>
+              {!showDeactivateConfirm ? (
+                <button
+                  onClick={() => setShowDeactivateConfirm(true)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '6px',
+                    padding: '8px 14px', fontSize: '13px', fontWeight: 600,
+                    color: '#dc2626', backgroundColor: '#fef2f2',
+                    border: '1px solid #fecaca', borderRadius: '6px',
+                    cursor: 'pointer', width: '100%', justifyContent: 'center',
+                  }}
+                >
+                  <UserMinus size={14} />
+                  Dezaktywuj pracownika
+                </button>
+              ) : (
+                <div style={{ padding: '12px', backgroundColor: '#fef2f2', borderRadius: '8px', border: '1px solid #fecaca' }}>
+                  <p style={{ margin: '0 0 10px', fontSize: '13px', color: '#991b1b', fontWeight: 500 }}>
+                    Dezaktywować <strong>{detail.firstName} {detail.lastName}</strong>?
+                  </p>
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    <button
+                      onClick={async () => {
+                        await deactivate.mutateAsync(detail.id);
+                        setShowDeactivateConfirm(false);
+                        onClose();
+                      }}
+                      disabled={deactivate.isPending}
+                      style={{
+                        flex: 1, padding: '7px', fontSize: '12px', fontWeight: 600,
+                        color: '#fff', backgroundColor: '#dc2626',
+                        border: 'none', borderRadius: '6px', cursor: 'pointer',
+                        opacity: deactivate.isPending ? 0.6 : 1,
+                      }}
+                    >
+                      {deactivate.isPending ? 'Dezaktywowanie...' : 'Tak, dezaktywuj'}
+                    </button>
+                    <button
+                      onClick={() => setShowDeactivateConfirm(false)}
+                      style={{
+                        padding: '7px 14px', fontSize: '12px', fontWeight: 500,
+                        color: '#374151', backgroundColor: '#fff',
+                        border: '1px solid #d1d5db', borderRadius: '6px', cursor: 'pointer',
+                      }}
+                    >
+                      Anuluj
+                    </button>
+                  </div>
+                  {deactivate.error && (
+                    <p style={{ margin: '6px 0 0', fontSize: '12px', color: '#dc2626' }}>
+                      {(deactivate.error as Error)?.message || 'Wystąpił błąd.'}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
     </aside>
+  );
+}
+
+function flattenUnits(nodes: OrganizationUnitTreeNode[], prefix = ''): { id: string; label: string }[] {
+  const result: { id: string; label: string }[] = [];
+  for (const node of nodes) {
+    result.push({ id: node.id, label: prefix + node.name });
+    result.push(...flattenUnits(node.children, prefix + node.name + ' › '));
+  }
+  return result;
+}
+
+function AssignEmployeeForm({ employeeId, onClose }: { employeeId: string; onClose: () => void }) {
+  const { data: tree = [] } = useOrgUnitTree();
+  const { data: positions = [] } = usePositions();
+  const assignMutation = useAssignEmployee();
+
+  const [unitId, setUnitId] = useState('');
+  const [positionId, setPositionId] = useState('');
+  const [isPrimary, setIsPrimary] = useState(true);
+
+  const flatUnits = flattenUnits(tree);
+
+  const handleSubmit = () => {
+    if (!unitId || !positionId) return;
+    assignMutation.mutate({
+      employeeId,
+      organizationUnitId: unitId,
+      positionId,
+      isPrimary,
+      startDate: new Date().toISOString(),
+    }, { onSuccess: () => onClose() });
+  };
+
+  const fieldStyle: React.CSSProperties = {
+    width: '100%', padding: '7px 10px', fontSize: '13px',
+    border: '1px solid #d1d5db', borderRadius: '6px', boxSizing: 'border-box',
+  };
+
+  return (
+    <div style={{ marginTop: '16px', padding: '12px', backgroundColor: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+      <div style={{ fontWeight: 600, color: '#374151', marginBottom: '10px', fontSize: '13px' }}>Przypisz do jednostki</div>
+
+      <div style={{ marginBottom: '8px' }}>
+        <label style={{ display: 'block', fontSize: '12px', color: '#6b7280', marginBottom: '3px' }}>Jednostka</label>
+        <select value={unitId} onChange={(e) => setUnitId(e.target.value)} style={fieldStyle}>
+          <option value="">Wybierz...</option>
+          {flatUnits.map((u) => (
+            <option key={u.id} value={u.id}>{u.label}</option>
+          ))}
+        </select>
+      </div>
+
+      <div style={{ marginBottom: '8px' }}>
+        <label style={{ display: 'block', fontSize: '12px', color: '#6b7280', marginBottom: '3px' }}>Stanowisko</label>
+        <select value={positionId} onChange={(e) => setPositionId(e.target.value)} style={fieldStyle}>
+          <option value="">Wybierz...</option>
+          {positions.filter((p) => p.isActive).map((p) => (
+            <option key={p.id} value={p.id}>{p.name}</option>
+          ))}
+        </select>
+      </div>
+
+      <div style={{ marginBottom: '10px' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#374151', cursor: 'pointer' }}>
+          <input type="checkbox" checked={isPrimary} onChange={(e) => setIsPrimary(e.target.checked)} />
+          Przypisanie główne
+        </label>
+      </div>
+
+      {assignMutation.error && (
+        <div style={{ color: '#dc2626', fontSize: '12px', marginBottom: '8px' }}>
+          {(assignMutation.error as Error)?.message || 'Wystąpił błąd'}
+        </div>
+      )}
+
+      <div style={{ display: 'flex', gap: '6px' }}>
+        <button
+          onClick={handleSubmit}
+          disabled={!unitId || !positionId || assignMutation.isPending}
+          style={{
+            flex: 1, padding: '7px', fontSize: '13px', fontWeight: 600,
+            color: '#fff', backgroundColor: (!unitId || !positionId) ? '#93c5fd' : '#3b82f6',
+            border: 'none', borderRadius: '6px', cursor: 'pointer',
+          }}
+        >
+          {assignMutation.isPending ? 'Zapisywanie...' : 'Zapisz'}
+        </button>
+        <button
+          onClick={onClose}
+          style={{
+            padding: '7px 14px', fontSize: '13px', fontWeight: 500,
+            color: '#374151', backgroundColor: '#fff',
+            border: '1px solid #d1d5db', borderRadius: '6px', cursor: 'pointer',
+          }}
+        >
+          Anuluj
+        </button>
+      </div>
+    </div>
   );
 }
 

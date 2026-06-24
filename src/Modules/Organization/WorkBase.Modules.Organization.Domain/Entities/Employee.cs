@@ -32,8 +32,8 @@ public sealed class Employee : AuditableEntity<Guid>, ITenantScoped, IAuditable
         {
             TenantId = tenantId,
             UserId = userId,
-            FirstName = firstName,
-            LastName = lastName,
+            FirstName = Capitalize(firstName),
+            LastName = Capitalize(lastName),
             Email = email,
             EmployeeNumber = employeeNumber,
             HireDate = hireDate,
@@ -46,11 +46,16 @@ public sealed class Employee : AuditableEntity<Guid>, ITenantScoped, IAuditable
 
     public void Update(string firstName, string lastName, string email, string? employeeNumber)
     {
-        FirstName = firstName;
-        LastName = lastName;
+        FirstName = Capitalize(firstName);
+        LastName = Capitalize(lastName);
         Email = email;
         EmployeeNumber = employeeNumber;
     }
+
+    private static string Capitalize(string value)
+        => string.IsNullOrWhiteSpace(value)
+            ? value
+            : string.Concat(value[..1].ToUpperInvariant(), value[1..].ToLowerInvariant());
 
     public void LinkUser(Guid userId)
     {

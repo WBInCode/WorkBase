@@ -31,7 +31,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ message: response.statusText }));
-    throw new ApiError(response.status, error.message ?? response.statusText, error);
+    throw new ApiError(response.status, error.message ?? error.detail ?? error.title ?? response.statusText, error);
   }
 
   if (response.status === 204) {

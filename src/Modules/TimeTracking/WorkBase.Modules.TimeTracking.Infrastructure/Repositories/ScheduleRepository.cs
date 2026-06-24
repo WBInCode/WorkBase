@@ -50,6 +50,18 @@ public sealed class ScheduleRepository(WorkBaseDbContext dbContext) : IScheduleR
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<List<Schedule>> GetByOrgUnitScheduleIdAsync(
+        Guid tenantId, Guid orgUnitScheduleId, DateOnly fromDate, CancellationToken cancellationToken = default)
+    {
+        return await dbContext.Set<Schedule>()
+            .Where(s =>
+                s.TenantId == tenantId
+                && s.OrgUnitScheduleId == orgUnitScheduleId
+                && s.Source == ScheduleSource.OrgUnit
+                && s.Date >= fromDate)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task AddAsync(Schedule schedule, CancellationToken cancellationToken = default)
     {
         await dbContext.Set<Schedule>().AddAsync(schedule, cancellationToken);

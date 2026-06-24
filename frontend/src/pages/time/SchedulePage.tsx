@@ -1,10 +1,12 @@
 import { useState, useMemo, useCallback } from 'react';
 import {
-  ChevronLeft, ChevronRight, Plus, Pencil, Trash2, Calendar, X, Zap,
+  ChevronLeft, ChevronRight, Plus, Pencil, Trash2, Calendar, X, Zap, Building2,
 } from 'lucide-react';
+import TimeInput from '@/components/shared/TimeInput';
 import {
   useTeamSchedules, useCreateSchedule, useUpdateSchedule, useDeleteSchedule,
   useScheduleTemplates, useGenerateBatchSchedules,
+  useOrgUnitSchedule, useCreateOrgUnitSchedule, useUpdateOrgUnitSchedule, useDeleteOrgUnitSchedule,
 } from '@/api/hooks/useTimeTracking';
 import { useEmployees, useOrgUnitTree } from '@/api/hooks/useOrganization';
 import type { ScheduleDto, ScheduleTemplateDto, DayShiftPattern } from '@/api/types/time';
@@ -14,7 +16,10 @@ import { useIsMobile } from '@/shared';
 /* ── helpers ── */
 
 function toDateString(d: Date): string {
-  return d.toISOString().split('T')[0] ?? '';
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 function getWeekRange(date: Date) {
@@ -77,7 +82,21 @@ const SHIFT_COLORS: Record<string, { bg: string; border: string; text: string }>
   dzienna: { bg: '#dbeafe', border: '#93c5fd', text: '#1e40af' },
   nocna: { bg: '#ede9fe', border: '#c4b5fd', text: '#5b21b6' },
   popołudniowa: { bg: '#fef3c7', border: '#fcd34d', text: '#92400e' },
+  nieplanowana: { bg: '#ffedd5', border: '#fdba74', text: '#9a3412' },
 };
+
+const SOURCE_INDICATOR = {
+  OrgUnit: { label: '● Jednostka', opacity: 0.75, borderStyle: 'dashed' },
+  Individual: { label: '', opacity: 1, borderStyle: 'solid' },
+  Unplanned: { label: '⚡ Nieplanowana', opacity: 1, borderStyle: 'dotted' },
+} as const;
+
+type SourceKey = keyof typeof SOURCE_INDICATOR;
+
+function getSourceIndicator(source: string | null | undefined) {
+  const key = (source ?? 'Individual') as SourceKey;
+  return SOURCE_INDICATOR[key] ?? SOURCE_INDICATOR.Individual;
+}
 
 function getShiftStyle(shiftType: string | null) {
   if (!shiftType) return { bg: '#f0fdf4', border: '#86efac', text: '#166534' };
@@ -91,6 +110,7 @@ export function SchedulePage() {
   const [currentDate, setCurrentDate] = useState(() => new Date());
   const [unitId, setUnitId] = useState('');
   const [modal, setModal] = useState<ModalState | null>(null);
+  const [showOrgUnitPanel, setShowOrgUnitPanel] = useState(false);
   const [showGenerator, setShowGenerator] = useState(false);
   const mobile = useIsMobile();
 
@@ -167,17 +187,30 @@ export function SchedulePage() {
           <Calendar size={22} />
           Grafik pracy
         </h1>
-        <button
-          onClick={() => setShowGenerator(true)}
-          style={{
-            display: 'flex', alignItems: 'center', gap: '6px',
-            padding: '8px 16px', fontSize: '13px', fontWeight: 600,
-            color: '#ffffff', backgroundColor: '#7c3aed',
-            border: 'none', borderRadius: '8px', cursor: 'pointer',
-          }}
-        >
-          <Zap size={16} /> Generuj grafik
-        </button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button
+            onClick={() => setShowOrgUnitPanel(true)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '6px',
+              padding: '8px 16px', fontSize: '13px', fontWeight: 600,
+              color: '#7c3aed', backgroundColor: '#f5f3ff',
+              border: '1px solid #c4b5fd', borderRadius: '8px', cursor: 'pointer',
+            }}
+          >
+            <Building2 size={16} /> Grafik jednostki
+          </button>
+          <button
+            onClick={() => setShowGenerator(true)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '6px',
+              padding: '8px 16px', fontSize: '13px', fontWeight: 600,
+              color: '#ffffff', backgroundColor: '#7c3aed',
+              border: 'none', borderRadius: '8px', cursor: 'pointer',
+            }}
+          >
+            <Zap size={16} /> Generuj grafik
+          </button>
+        </div>
       </div>
 
       {/* Controls */}
@@ -250,6 +283,14 @@ export function SchedulePage() {
           <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 3, backgroundColor: '#f0fdf4', border: '1px solid #86efac' }} />
           Inna / brak typu
         </span>
+        <span style={{ marginLeft: '16px', borderLeft: '1px solid #e5e7eb', paddingLeft: '16px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 3, border: '1px dashed #93c5fd', opacity: 0.75 }} />
+          Z grafiku jednostki
+        </span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 3, border: '1px dotted #fdba74', backgroundColor: '#ffedd5' }} />
+          Nieplanowana
+        </span>
       </div>
 
       {/* Loading */}
@@ -306,16 +347,17 @@ export function SchedulePage() {
 
                     if (sched) {
                       const style = getShiftStyle(sched.shiftType);
+                      const src = getSourceIndicator(sched.source);
                       return (
                         <td key={d} style={{ ...tdStyle, textAlign: 'center', padding: '4px', backgroundColor: isWeekend ? '#f8fafc' : undefined }}>
                           <div
                             onClick={() => openEdit(sched)}
                             style={{
-                              backgroundColor: style.bg, border: `1px solid ${style.border}`,
+                              backgroundColor: style.bg, border: `1px ${src.borderStyle} ${style.border}`,
                               borderRadius: '6px', padding: '4px 6px', cursor: 'pointer',
-                              fontSize: '12px', lineHeight: '1.3',
+                              fontSize: '12px', lineHeight: '1.3', opacity: src.opacity,
                             }}
-                            title={`${formatTime(sched.plannedStart)}–${formatTime(sched.plannedEnd)}${sched.shiftType ? ` (${sched.shiftType})` : ''}\nKliknij aby edytować`}
+                            title={`${formatTime(sched.plannedStart)}–${formatTime(sched.plannedEnd)}${sched.shiftType ? ` (${sched.shiftType})` : ''}${src.label ? `\nŹródło: ${src.label}` : ''}\nKliknij aby edytować`}
                           >
                             <div style={{ fontWeight: 600, color: style.text }}>
                               {formatTime(sched.plannedStart)}–{formatTime(sched.plannedEnd)}
@@ -323,6 +365,11 @@ export function SchedulePage() {
                             {sched.shiftType && (
                               <div style={{ fontSize: '10px', color: style.text, opacity: 0.8 }}>
                                 {sched.shiftType}
+                              </div>
+                            )}
+                            {src.label && (
+                              <div style={{ fontSize: '9px', color: style.text, opacity: 0.6, marginTop: '1px' }}>
+                                {src.label}
                               </div>
                             )}
                           </div>
@@ -371,6 +418,15 @@ export function SchedulePage() {
           flatUnits={flatUnits}
           templates={templates ?? []}
           onClose={() => setShowGenerator(false)}
+        />
+      )}
+
+      {/* Org Unit Schedule Panel */}
+      {showOrgUnitPanel && (
+        <OrgUnitSchedulePanel
+          flatUnits={flatUnits}
+          selectedUnitId={unitId}
+          onClose={() => setShowOrgUnitPanel(false)}
         />
       )}
     </div>
@@ -523,19 +579,17 @@ function ScheduleModal({
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
           <div>
             <label style={labelStyle}>Początek</label>
-            <input
-              type="time"
+            <TimeInput
               value={state.plannedStart}
-              onChange={(e) => onChange({ ...state, plannedStart: e.target.value })}
+              onChange={(v) => onChange({ ...state, plannedStart: v })}
               style={inputStyle}
             />
           </div>
           <div>
             <label style={labelStyle}>Koniec</label>
-            <input
-              type="time"
+            <TimeInput
               value={state.plannedEnd}
-              onChange={(e) => onChange({ ...state, plannedEnd: e.target.value })}
+              onChange={(v) => onChange({ ...state, plannedEnd: v })}
               style={inputStyle}
             />
           </div>
@@ -913,18 +967,16 @@ function GenerateScheduleModal({
                     />
                     {wd.label}
                   </label>
-                  <input
-                    type="time"
+                  <TimeInput
                     value={row.plannedStart}
-                    onChange={(e) => updateRow(wd.dow, { plannedStart: e.target.value })}
+                    onChange={(v) => updateRow(wd.dow, { plannedStart: v })}
                     disabled={!row.enabled}
                     style={{ ...inputStyle, width: '100px', padding: '4px 6px', fontSize: '13px' }}
                   />
                   <span style={{ color: '#9ca3af', fontSize: '13px' }}>–</span>
-                  <input
-                    type="time"
+                  <TimeInput
                     value={row.plannedEnd}
-                    onChange={(e) => updateRow(wd.dow, { plannedEnd: e.target.value })}
+                    onChange={(v) => updateRow(wd.dow, { plannedEnd: v })}
                     disabled={!row.enabled}
                     style={{ ...inputStyle, width: '100px', padding: '4px 6px', fontSize: '13px' }}
                   />
@@ -999,6 +1051,246 @@ function GenerateScheduleModal({
               <Zap size={14} /> {generateMut.isPending ? 'Generowanie...' : 'Generuj'}
             </button>
           )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Org Unit Schedule Panel ── */
+
+const WEEKDAY_NAMES = ['Niedziela', 'Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek', 'Sobota'];
+
+function OrgUnitSchedulePanel({
+  flatUnits,
+  selectedUnitId,
+  onClose,
+}: {
+  flatUnits: { id: string; name: string; depth: number }[];
+  selectedUnitId: string;
+  onClose: () => void;
+}) {
+  const [orgUnitId, setOrgUnitId] = useState(selectedUnitId);
+  const [name, setName] = useState('');
+  const [effectiveFrom, setEffectiveFrom] = useState(toDateString(new Date()));
+  const [patterns, setPatterns] = useState<DayShiftPattern[]>([
+    { dayOfWeek: 1, plannedStart: '08:00', plannedEnd: '16:00' },
+    { dayOfWeek: 2, plannedStart: '08:00', plannedEnd: '16:00' },
+    { dayOfWeek: 3, plannedStart: '08:00', plannedEnd: '16:00' },
+    { dayOfWeek: 4, plannedStart: '08:00', plannedEnd: '16:00' },
+    { dayOfWeek: 5, plannedStart: '08:00', plannedEnd: '16:00' },
+  ]);
+
+  const { data: existing } = useOrgUnitSchedule(orgUnitId || undefined);
+  const createMutation = useCreateOrgUnitSchedule();
+  const updateMutation = useUpdateOrgUnitSchedule();
+  const deleteMutation = useDeleteOrgUnitSchedule();
+
+  // Load existing data when org unit changes
+  useMemo(() => {
+    if (existing) {
+      setName(existing.name);
+      setEffectiveFrom(existing.effectiveFrom);
+      try {
+        const parsed = JSON.parse(existing.weekPattern) as DayShiftPattern[];
+        if (parsed.length > 0) setPatterns(parsed);
+      } catch { /* keep defaults */ }
+    }
+  }, [existing]);
+
+  const updatePattern = (index: number, field: keyof DayShiftPattern, value: string | number) => {
+    setPatterns(prev => prev.map((p, i) => i === index ? { ...p, [field]: value } : p));
+  };
+
+  const addDay = () => {
+    const usedDays = patterns.map(p => p.dayOfWeek);
+    const available = [0, 1, 2, 3, 4, 5, 6].find(d => !usedDays.includes(d));
+    if (available !== undefined) {
+      setPatterns(prev => [...prev, { dayOfWeek: available, plannedStart: '08:00', plannedEnd: '16:00' }]);
+    }
+  };
+
+  const removeDay = (index: number) => {
+    setPatterns(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSave = () => {
+    if (!orgUnitId || !name.trim()) return;
+    const weekPattern = JSON.stringify(patterns);
+
+    if (existing) {
+      updateMutation.mutate({ id: existing.id, name, weekPattern, effectiveFrom });
+    } else {
+      createMutation.mutate({ orgUnitId, name, weekPattern, effectiveFrom });
+    }
+  };
+
+  const handleDelete = () => {
+    if (existing && confirm('Usunąć grafik jednostki? Przyszłe wygenerowane wpisy zostaną usunięte.')) {
+      deleteMutation.mutate(existing.id);
+    }
+  };
+
+  const isSaving = createMutation.isPending || updateMutation.isPending;
+  const isSuccess = createMutation.isSuccess || updateMutation.isSuccess;
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
+    }}>
+      <div style={{
+        backgroundColor: '#ffffff', borderRadius: '12px', padding: '28px',
+        width: '600px', maxHeight: '85vh', overflow: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#111827', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Building2 size={20} /> Grafik jednostki organizacyjnej
+          </h2>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280' }}>
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* Org unit selector */}
+        <div style={{ marginBottom: '16px' }}>
+          <label style={labelStyle}>Jednostka organizacyjna</label>
+          <select
+            value={orgUnitId}
+            onChange={(e) => setOrgUnitId(e.target.value)}
+            style={{ ...inputStyle, cursor: 'pointer' }}
+          >
+            <option value="">Wybierz jednostkę...</option>
+            {flatUnits.map(u => (
+              <option key={u.id} value={u.id}>{'  '.repeat(u.depth)}{u.name}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Name */}
+        <div style={{ marginBottom: '16px' }}>
+          <label style={labelStyle}>Nazwa grafiku</label>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="np. Grafik standardowy pon-pt"
+            style={inputStyle}
+          />
+        </div>
+
+        {/* Effective from */}
+        <div style={{ marginBottom: '16px' }}>
+          <label style={labelStyle}>Obowiązuje od</label>
+          <input
+            type="date"
+            value={effectiveFrom}
+            onChange={(e) => setEffectiveFrom(e.target.value)}
+            style={inputStyle}
+          />
+        </div>
+
+        {/* Week pattern */}
+        <div style={{ marginBottom: '16px' }}>
+          <label style={labelStyle}>Wzorzec tygodniowy</label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {patterns.map((p, i) => (
+              <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <select
+                  value={p.dayOfWeek}
+                  onChange={(e) => updatePattern(i, 'dayOfWeek', parseInt(e.target.value))}
+                  style={{ ...inputStyle, width: '140px' }}
+                >
+                  {[0, 1, 2, 3, 4, 5, 6].map(d => (
+                    <option key={d} value={d}>{WEEKDAY_NAMES[d]}</option>
+                  ))}
+                </select>
+                <TimeInput
+                  value={p.plannedStart}
+                  onChange={(v) => updatePattern(i, 'plannedStart', v)}
+                  style={{ ...inputStyle, width: '110px' }}
+                />
+                <span style={{ color: '#6b7280' }}>–</span>
+                <TimeInput
+                  value={p.plannedEnd}
+                  onChange={(v) => updatePattern(i, 'plannedEnd', v)}
+                  style={{ ...inputStyle, width: '110px' }}
+                />
+                <input
+                  value={p.shiftType ?? ''}
+                  onChange={(e) => updatePattern(i, 'shiftType', e.target.value)}
+                  placeholder="typ"
+                  style={{ ...inputStyle, width: '90px' }}
+                />
+                <button onClick={() => removeDay(i)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444' }}>
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            ))}
+            {patterns.length < 7 && (
+              <button onClick={addDay} style={{
+                padding: '6px 12px', fontSize: '12px', color: '#3b82f6', backgroundColor: '#eff6ff',
+                border: '1px solid #bfdbfe', borderRadius: '6px', cursor: 'pointer', alignSelf: 'flex-start',
+              }}>
+                + Dodaj dzień
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Info about inheritance */}
+        <div style={{
+          padding: '12px', backgroundColor: '#f0f9ff', border: '1px solid #bae6fd',
+          borderRadius: '8px', marginBottom: '20px', fontSize: '12px', color: '#0369a1',
+        }}>
+          💡 Grafik jednostki zostanie automatycznie zastosowany do wszystkich pracowników w tej jednostce.
+          Indywidualne wpisy (ręczne) nie zostaną nadpisane.
+          Jednostki podrzędne bez własnego grafiku odziedziczą ten wzorzec.
+        </div>
+
+        {/* Status messages */}
+        {isSuccess && (
+          <div style={{ padding: '10px', backgroundColor: '#f0fdf4', border: '1px solid #86efac', borderRadius: '6px', marginBottom: '16px', fontSize: '13px', color: '#166534' }}>
+            ✓ Grafik zapisany. Wpisy zostaną wygenerowane automatycznie.
+          </div>
+        )}
+
+        {/* Actions */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
+          <div>
+            {existing && (
+              <button
+                onClick={handleDelete}
+                disabled={deleteMutation.isPending}
+                style={{
+                  padding: '10px 16px', fontSize: '13px', fontWeight: 600,
+                  color: '#dc2626', backgroundColor: '#fef2f2',
+                  border: '1px solid #fecaca', borderRadius: '8px', cursor: 'pointer',
+                }}
+              >
+                <Trash2 size={14} style={{ marginRight: '4px' }} /> Usuń grafik
+              </button>
+            )}
+          </div>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button onClick={onClose} style={{
+              padding: '10px 20px', fontSize: '13px', fontWeight: 500,
+              color: '#374151', backgroundColor: '#ffffff',
+              border: '1px solid #d1d5db', borderRadius: '8px', cursor: 'pointer',
+            }}>
+              Anuluj
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={isSaving || !orgUnitId || !name.trim()}
+              style={{
+                padding: '10px 20px', fontSize: '13px', fontWeight: 600,
+                color: '#ffffff', backgroundColor: isSaving ? '#9ca3af' : '#7c3aed',
+                border: 'none', borderRadius: '8px', cursor: isSaving ? 'default' : 'pointer',
+              }}
+            >
+              {existing ? 'Aktualizuj' : 'Utwórz'} grafik
+            </button>
+          </div>
         </div>
       </div>
     </div>

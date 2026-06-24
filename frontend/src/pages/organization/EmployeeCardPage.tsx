@@ -21,9 +21,17 @@ function getCurrentWeekRange() {
   monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
   const sunday = new Date(monday);
   sunday.setDate(monday.getDate() + 6);
+
+  const format = (d: Date) => {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   return {
-    from: monday.toISOString().slice(0, 10),
-    to: sunday.toISOString().slice(0, 10),
+    from: format(monday),
+    to: format(sunday),
   };
 }
 

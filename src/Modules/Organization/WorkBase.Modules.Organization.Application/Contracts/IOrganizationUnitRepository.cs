@@ -11,6 +11,7 @@ public interface IOrganizationUnitRepository
     Task AddAsync(OrganizationUnit unit, CancellationToken cancellationToken = default);
     void Update(OrganizationUnit unit);
     void Remove(OrganizationUnit unit);
+    Task<List<OrganizationUnit>> GetChildrenAsync(Guid parentId, CancellationToken cancellationToken = default);
     Task RebuildClosureAsync(Guid unitId, Guid? oldParentId, Guid? newParentId, CancellationToken cancellationToken = default);
     Task InsertClosureForNewUnitAsync(Guid unitId, Guid? parentId, CancellationToken cancellationToken = default);
     Task<List<OrganizationUnit>> GetAllByTenantAsync(Guid tenantId, CancellationToken cancellationToken = default);

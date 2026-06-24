@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Plus, Pencil, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import TimeInput from '@/components/shared/TimeInput';
 import type { TimeStatusDto, TimeSheetPeriodDto, TimeSheetEntryDto } from '@/api/types/time';
 import { useAdminCreateTimeEntry, useAdminUpdateTimeEntry, useAdminDeleteTimeEntry } from '@/api/hooks/useTimeTracking';
 
@@ -84,12 +85,19 @@ export function EmployeeTimesheetSection({ timeStatus, timesheet, isLoading, emp
 
   const isAdmin = !!employeeId;
 
+  const format = (d: Date) => {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const shiftWeek = (direction: number) => {
     const fromDate = new Date(from);
     fromDate.setDate(fromDate.getDate() + direction * 7);
     const toDate = new Date(fromDate);
     toDate.setDate(fromDate.getDate() + 6);
-    onDateRangeChange(fromDate.toISOString().slice(0, 10), toDate.toISOString().slice(0, 10));
+    onDateRangeChange(format(fromDate), format(toDate));
   };
 
   const goToCurrentWeek = () => {
@@ -98,7 +106,7 @@ export function EmployeeTimesheetSection({ timeStatus, timesheet, isLoading, emp
     monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
-    onDateRangeChange(monday.toISOString().slice(0, 10), sunday.toISOString().slice(0, 10));
+    onDateRangeChange(format(monday), format(sunday));
   };
 
   const openCreate = (date: string) => {
@@ -415,10 +423,9 @@ export function EmployeeTimesheetSection({ timeStatus, timesheet, isLoading, emp
 
               <div>
                 <label style={labelStyle}>Godzina</label>
-                <input
-                  type="time"
+                <TimeInput
                   value={modal.time}
-                  onChange={(e) => setModal({ ...modal, time: e.target.value })}
+                  onChange={(v) => setModal({ ...modal, time: v })}
                   style={inputStyle}
                 />
               </div>

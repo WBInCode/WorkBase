@@ -16,6 +16,7 @@ Log.Logger = new LoggerConfiguration()
 
 try
 {
+    Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
     var builder = WebApplication.CreateBuilder(args);
 
     builder.Host.UseSerilog((context, services, configuration) => configuration
@@ -135,6 +136,12 @@ try
             "task-overdue-detection-daily",
             job => job.ExecuteAsync(),
             "0 6 * * *",
+            new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
+
+        RecurringJob.AddOrUpdate<OrgUnitScheduleRollingGenerationJob>(
+            "org-unit-schedule-rolling-generation",
+            job => job.ExecuteAsync(),
+            "0 2 * * 1", // Every Monday at 02:00 UTC
             new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
     }
 
