@@ -3,6 +3,7 @@ import { Plus, Pencil, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import TimeInput from '@/components/shared/TimeInput';
 import type { TimeStatusDto, TimeSheetPeriodDto, TimeSheetEntryDto } from '@/api/types/time';
 import { useAdminCreateTimeEntry, useAdminUpdateTimeEntry, useAdminDeleteTimeEntry } from '@/api/hooks/useTimeTracking';
+import { colors, typography, statusColors } from '@/theme/tokens';
 
 interface Props {
   timeStatus: TimeStatusDto | undefined;
@@ -22,10 +23,10 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 const STATUS_COLORS: Record<string, { bg: string; text: string; dot: string }> = {
-  'not-started': { bg: '#f3f4f6', text: '#6b7280', dot: '#9ca3af' },
-  'working': { bg: '#dcfce7', text: '#166534', dot: '#22c55e' },
-  'on-break': { bg: '#fef9c3', text: '#854d0e', dot: '#f59e0b' },
-  'ended': { bg: '#dbeafe', text: '#1d4ed8', dot: '#3b82f6' },
+  'not-started': { bg: statusColors.time['not-started'].bg, text: statusColors.time['not-started'].text, dot: colors.gray[400] },
+  'working': { bg: statusColors.time.working.bg, text: statusColors.time.working.text, dot: colors.success[500] },
+  'on-break': { bg: statusColors.time['on-break'].bg, text: statusColors.time['on-break'].text, dot: colors.warning[500] },
+  'ended': { bg: statusColors.time.ended.bg, text: statusColors.time.ended.text, dot: colors.primary[500] },
 };
 
 const ENTRY_TYPE_OPTIONS = [
@@ -163,7 +164,7 @@ export function EmployeeTimesheetSection({ timeStatus, timesheet, isLoading, emp
     return (
       <div style={cardStyle}>
         <h3 style={headingStyle}>Czas pracy</h3>
-        <div style={{ color: '#9ca3af', fontSize: '14px' }}>Ładowanie...</div>
+        <div style={{ color: colors.gray[400], fontSize: typography.fontSize.base }}>Ładowanie...</div>
       </div>
     );
   }
@@ -188,7 +189,7 @@ export function EmployeeTimesheetSection({ timeStatus, timesheet, isLoading, emp
             onChange={(e) => onDateRangeChange(e.target.value, to)}
             style={dateInputStyle}
           />
-          <span style={{ color: '#6b7280', fontSize: '13px' }}>–</span>
+          <span style={{ color: colors.gray[500], fontSize: '13px' }}>–</span>
           <input
             type="date"
             value={to}
@@ -209,14 +210,14 @@ export function EmployeeTimesheetSection({ timeStatus, timesheet, isLoading, emp
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: sc?.dot }} />
-            <span style={{ padding: '3px 10px', borderRadius: '9999px', fontSize: '13px', fontWeight: 500, backgroundColor: sc?.bg, color: sc?.text }}>
+            <span style={{ padding: '3px 10px', borderRadius: '9999px', fontSize: '13px', fontWeight: typography.fontWeight.medium, backgroundColor: sc?.bg, color: sc?.text }}>
               {STATUS_LABELS[timeStatus.status] ?? timeStatus.status}
             </span>
           </div>
-          <div style={{ fontSize: '13px', color: '#6b7280' }}>
-            Przepracowane: <strong style={{ color: '#111827' }}>{timeStatus.workedToday ?? '—'}</strong>
+          <div style={{ fontSize: '13px', color: colors.gray[500] }}>
+            Przepracowane: <strong style={{ color: colors.gray[900] }}>{timeStatus.workedToday ?? '—'}</strong>
             {' · '}
-            Przerwy: <strong style={{ color: '#111827' }}>{timeStatus.breaksToday ?? '—'}</strong>
+            Przerwy: <strong style={{ color: colors.gray[900] }}>{timeStatus.breaksToday ?? '—'}</strong>
           </div>
         </div>
       )}
@@ -236,7 +237,7 @@ export function EmployeeTimesheetSection({ timeStatus, timesheet, isLoading, emp
             <div style={{ marginTop: '12px', overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                 <thead>
-                  <tr style={{ borderBottom: '1px solid #e5e7eb' }}>
+                  <tr style={{ borderBottom: `1px solid ${colors.gray[200]}` }}>
                     <th style={thStyle}>Data</th>
                     <th style={thStyle}>Przepracowane</th>
                     <th style={thStyle}>Przerwy</th>
@@ -250,7 +251,7 @@ export function EmployeeTimesheetSection({ timeStatus, timesheet, isLoading, emp
                     const isExpanded = expandedDay === day.date;
                     const hasEntries = day.entries && day.entries.length > 0;
                     return (
-                      <tr key={day.date} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                      <tr key={day.date} style={{ borderBottom: `1px solid ${colors.gray[100]}` }}>
                         <td colSpan={isAdmin ? 6 : 5} style={{ padding: 0 }}>
                           <div
                             style={{
@@ -269,10 +270,10 @@ export function EmployeeTimesheetSection({ timeStatus, timesheet, isLoading, emp
                               <span style={{
                                 padding: '1px 6px',
                                 borderRadius: '4px',
-                                fontSize: '11px',
-                                fontWeight: 500,
-                                backgroundColor: day.status === 'complete' ? '#dcfce7' : day.status === 'incomplete' ? '#fef9c3' : '#f3f4f6',
-                                color: day.status === 'complete' ? '#166534' : day.status === 'incomplete' ? '#854d0e' : '#6b7280',
+                                fontSize: typography.fontSize.xs,
+                                fontWeight: typography.fontWeight.medium,
+                                backgroundColor: day.status === 'complete' ? colors.success[100] : day.status === 'incomplete' ? colors.warning[100] : colors.gray[100],
+                                color: day.status === 'complete' ? colors.success[800] : day.status === 'incomplete' ? colors.warning[800] : colors.gray[500],
                               }}>
                                 {day.status === 'complete' ? 'OK' : day.status === 'incomplete' ? 'Niekompletny' : day.status}
                               </span>
@@ -292,8 +293,8 @@ export function EmployeeTimesheetSection({ timeStatus, timesheet, isLoading, emp
 
                           {/* Expanded entries */}
                           {isExpanded && hasEntries && (
-                            <div style={{ padding: '8px 16px 12px 24px', backgroundColor: '#f9fafb', borderTop: '1px solid #f3f4f6' }}>
-                              <div style={{ fontSize: '11px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', marginBottom: '8px' }}>
+                            <div style={{ padding: '8px 16px 12px 24px', backgroundColor: colors.gray[50], borderTop: `1px solid ${colors.gray[100]}` }}>
+                              <div style={{ fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: colors.gray[500], textTransform: 'uppercase', marginBottom: '8px' }}>
                                 Rejestr zdarzeń
                               </div>
                               {day.entries.map((entry) => {
@@ -311,13 +312,13 @@ export function EmployeeTimesheetSection({ timeStatus, timesheet, isLoading, emp
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                       <span style={{
                                         width: '8px', height: '8px', borderRadius: '50%', flexShrink: 0,
-                                        backgroundColor: entry.type === 'ClockIn' ? '#22c55e'
-                                          : entry.type === 'ClockOut' ? '#ef4444'
-                                          : entry.type === 'BreakStart' ? '#f59e0b'
-                                          : '#22c55e',
+                                        backgroundColor: entry.type === 'ClockIn' ? colors.success[500]
+                                          : entry.type === 'ClockOut' ? colors.danger[500]
+                                          : entry.type === 'BreakStart' ? colors.warning[500]
+                                          : colors.success[500],
                                       }} />
-                                      <span style={{ fontWeight: 600, color: '#374151', fontVariantNumeric: 'tabular-nums' }}>{time}</span>
-                                      <span style={{ color: '#6b7280' }}>{typeLabel}{breakLabel}</span>
+                                      <span style={{ fontWeight: typography.fontWeight.semibold, color: colors.gray[700], fontVariantNumeric: 'tabular-nums' }}>{time}</span>
+                                      <span style={{ color: colors.gray[500] }}>{typeLabel}{breakLabel}</span>
                                     </div>
                                     {isAdmin && (
                                       <div style={{ display: 'flex', gap: '4px' }}>
@@ -332,7 +333,7 @@ export function EmployeeTimesheetSection({ timeStatus, timesheet, isLoading, emp
                                           <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                                             <button
                                               onClick={() => handleDelete(entry.id)}
-                                              style={{ ...iconBtnSmStyle, color: '#dc2626', backgroundColor: '#fef2f2' }}
+                                              style={{ ...iconBtnSmStyle, color: colors.danger[600], backgroundColor: colors.danger[50] }}
                                             >
                                               ✓
                                             </button>
@@ -347,7 +348,7 @@ export function EmployeeTimesheetSection({ timeStatus, timesheet, isLoading, emp
                                           <button
                                             onClick={() => setDeleteConfirm(entry.id)}
                                             title="Usuń"
-                                            style={{ ...iconBtnSmStyle, color: '#dc2626' }}
+                                            style={{ ...iconBtnSmStyle, color: colors.danger[600] }}
                                           >
                                             <Trash2 size={12} />
                                           </button>
@@ -362,7 +363,7 @@ export function EmployeeTimesheetSection({ timeStatus, timesheet, isLoading, emp
 
                           {/* Expanded but no entries — only for admin */}
                           {isExpanded && !hasEntries && isAdmin && (
-                            <div style={{ padding: '12px 16px', backgroundColor: '#f9fafb', borderTop: '1px solid #f3f4f6', color: '#9ca3af', fontSize: '13px' }}>
+                            <div style={{ padding: '12px 16px', backgroundColor: colors.gray[50], borderTop: `1px solid ${colors.gray[100]}`, color: colors.gray[400], fontSize: '13px' }}>
                               Brak wpisów dla tego dnia.
                             </div>
                           )}
@@ -378,7 +379,7 @@ export function EmployeeTimesheetSection({ timeStatus, timesheet, isLoading, emp
       )}
 
       {!timeStatus && !timesheet && (
-        <div style={{ color: '#9ca3af', fontSize: '14px' }}>Brak danych o czasie pracy.</div>
+        <div style={{ color: colors.gray[400], fontSize: typography.fontSize.base }}>Brak danych o czasie pracy.</div>
       )}
 
       {/* Entry Modal */}
@@ -391,16 +392,16 @@ export function EmployeeTimesheetSection({ timeStatus, timesheet, isLoading, emp
         >
           <div
             style={{
-              backgroundColor: '#fff', borderRadius: '12px', padding: '24px',
+              backgroundColor: colors.white, borderRadius: '12px', padding: '24px',
               width: '400px', maxWidth: '90vw', boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
             }}
             onClick={(e) => e.stopPropagation()}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#111827' }}>
+              <h3 style={{ margin: 0, fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.bold, color: colors.gray[900] }}>
                 {modal.mode === 'create' ? 'Dodaj wpis' : 'Edytuj wpis'}
               </h3>
-              <button onClick={() => setModal(initialModal)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px', color: '#6b7280' }}>✕</button>
+              <button onClick={() => setModal(initialModal)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: typography.fontSize.xl, color: colors.gray[500] }}>✕</button>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -464,7 +465,7 @@ export function EmployeeTimesheetSection({ timeStatus, timesheet, isLoading, emp
             </div>
 
             {(createEntry.error || updateEntry.error) && (
-              <div style={{ marginTop: '12px', padding: '8px 12px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '6px', color: '#dc2626', fontSize: '13px' }}>
+              <div style={{ marginTop: '12px', padding: '8px 12px', backgroundColor: colors.danger[50], border: `1px solid ${colors.danger[200]}`, borderRadius: '6px', color: colors.danger[600], fontSize: '13px' }}>
                 {(createEntry.error as Error)?.message || (updateEntry.error as Error)?.message || 'Wystąpił błąd'}
               </div>
             )}
@@ -473,9 +474,9 @@ export function EmployeeTimesheetSection({ timeStatus, timesheet, isLoading, emp
               <button
                 onClick={() => setModal(initialModal)}
                 style={{
-                  padding: '8px 16px', fontSize: '13px', fontWeight: 500,
-                  color: '#374151', backgroundColor: '#fff',
-                  border: '1px solid #d1d5db', borderRadius: '8px', cursor: 'pointer',
+                  padding: '8px 16px', fontSize: '13px', fontWeight: typography.fontWeight.medium,
+                  color: colors.gray[700], backgroundColor: colors.white,
+                  border: `1px solid ${colors.gray[300]}`, borderRadius: '8px', cursor: 'pointer',
                 }}
               >
                 Anuluj
@@ -484,8 +485,8 @@ export function EmployeeTimesheetSection({ timeStatus, timesheet, isLoading, emp
                 onClick={handleSave}
                 disabled={createEntry.isPending || updateEntry.isPending}
                 style={{
-                  padding: '8px 16px', fontSize: '13px', fontWeight: 600,
-                  color: '#fff', backgroundColor: '#3b82f6',
+                  padding: '8px 16px', fontSize: '13px', fontWeight: typography.fontWeight.semibold,
+                  color: colors.white, backgroundColor: colors.primary[500],
                   border: 'none', borderRadius: '8px', cursor: 'pointer',
                   opacity: (createEntry.isPending || updateEntry.isPending) ? 0.6 : 1,
                 }}
@@ -502,9 +503,9 @@ export function EmployeeTimesheetSection({ timeStatus, timesheet, isLoading, emp
 
 function StatBox({ label, value }: { label: string; value: string }) {
   return (
-    <div style={{ padding: '10px 12px', backgroundColor: '#f9fafb', borderRadius: '8px', textAlign: 'center' }}>
-      <div style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '2px' }}>{label}</div>
-      <div style={{ fontSize: '15px', fontWeight: 700, color: '#111827' }}>{value}</div>
+    <div style={{ padding: '10px 12px', backgroundColor: colors.gray[50], borderRadius: '8px', textAlign: 'center' }}>
+      <div style={{ fontSize: typography.fontSize.sm, color: colors.gray[400], marginBottom: '2px' }}>{label}</div>
+      <div style={{ fontSize: typography.fontSize.md, fontWeight: typography.fontWeight.bold, color: colors.gray[900] }}>{value}</div>
     </div>
   );
 }
@@ -515,70 +516,70 @@ function formatDate(iso: string): string {
 
 const cardStyle: React.CSSProperties = {
   padding: '20px',
-  border: '1px solid #e5e7eb',
+  border: `1px solid ${colors.gray[200]}`,
   borderRadius: '12px',
-  backgroundColor: '#fff',
+  backgroundColor: colors.white,
 };
 
 const headingStyle: React.CSSProperties = {
   margin: '0 0 14px',
-  fontSize: '16px',
-  fontWeight: 700,
-  color: '#111827',
+  fontSize: typography.fontSize.lg,
+  fontWeight: typography.fontWeight.bold,
+  color: colors.gray[900],
 };
 
 const thStyle: React.CSSProperties = {
   textAlign: 'left',
   padding: '6px 8px',
-  color: '#6b7280',
-  fontWeight: 600,
+  color: colors.gray[500],
+  fontWeight: typography.fontWeight.semibold,
 };
 
 const tdStyle: React.CSSProperties = {
   padding: '6px 8px',
-  color: '#111827',
+  color: colors.gray[900],
 };
 
 const iconBtnStyle: React.CSSProperties = {
   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-  width: '28px', height: '28px', border: '1px solid #e5e7eb',
-  borderRadius: '6px', backgroundColor: '#fff', cursor: 'pointer', color: '#3b82f6',
+  width: '28px', height: '28px', border: `1px solid ${colors.gray[200]}`,
+  borderRadius: '6px', backgroundColor: colors.white, cursor: 'pointer', color: colors.primary[500],
 };
 
 const iconBtnSmStyle: React.CSSProperties = {
   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-  width: '24px', height: '24px', border: '1px solid #e5e7eb',
-  borderRadius: '4px', backgroundColor: '#fff', cursor: 'pointer', color: '#6b7280',
+  width: '24px', height: '24px', border: `1px solid ${colors.gray[200]}`,
+  borderRadius: '4px', backgroundColor: colors.white, cursor: 'pointer', color: colors.gray[500],
   padding: 0,
 };
 
 const labelStyle: React.CSSProperties = {
-  display: 'block', fontSize: '12px', fontWeight: 600, color: '#374151', marginBottom: '4px',
+  display: 'block', fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.semibold, color: colors.gray[700], marginBottom: '4px',
 };
 
 const inputStyle: React.CSSProperties = {
-  width: '100%', padding: '8px 12px', fontSize: '14px',
-  border: '1px solid #d1d5db', borderRadius: '8px',
-  color: '#111827', backgroundColor: '#fff',
+  width: '100%', padding: '8px 12px', fontSize: typography.fontSize.base,
+  border: `1px solid ${colors.gray[300]}`, borderRadius: '8px',
+  color: colors.gray[900], backgroundColor: colors.white,
   boxSizing: 'border-box',
 };
 
 const navBtnStyle: React.CSSProperties = {
   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-  width: '32px', height: '32px', border: '1px solid #d1d5db',
-  borderRadius: '6px', backgroundColor: '#fff', cursor: 'pointer', color: '#374151',
+  width: '32px', height: '32px', border: `1px solid ${colors.gray[300]}`,
+  borderRadius: '6px', backgroundColor: colors.white, cursor: 'pointer', color: colors.gray[700],
   padding: 0, flexShrink: 0,
 };
 
 const dateInputStyle: React.CSSProperties = {
   padding: '6px 10px', fontSize: '13px',
-  border: '1px solid #d1d5db', borderRadius: '6px',
-  color: '#111827', backgroundColor: '#fff',
+  border: `1px solid ${colors.gray[300]}`, borderRadius: '6px',
+  color: colors.gray[900], backgroundColor: colors.white,
 };
 
 const presetBtnStyle: React.CSSProperties = {
-  padding: '6px 12px', fontSize: '12px', fontWeight: 500,
-  color: '#3b82f6', backgroundColor: '#eff6ff',
-  border: '1px solid #bfdbfe', borderRadius: '6px', cursor: 'pointer',
+  padding: '6px 12px', fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium,
+  color: colors.primary[500], backgroundColor: colors.primary[50],
+  border: `1px solid ${colors.primary[200]}`, borderRadius: '6px', cursor: 'pointer',
   whiteSpace: 'nowrap',
 };

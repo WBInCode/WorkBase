@@ -22,6 +22,7 @@ import type {
 import { EmployeeForm } from '@/components/Employees/EmployeeForm';
 import { ApiError } from '@/api/client';
 import { useIsMobile } from '@/shared';
+import { colors } from '@/theme/tokens';
 
 const PAGE_SIZE = 20;
 
@@ -32,8 +33,8 @@ const statusLabels: Record<EmployeeStatus, string> = {
 };
 
 const statusColors: Record<EmployeeStatus, { bg: string; text: string }> = {
-  Active: { bg: '#dcfce7', text: '#166534' },
-  Inactive: { bg: '#f3f4f6', text: '#6b7280' },
+  Active: { bg: colors.success[100], text: colors.success[800] },
+  Inactive: { bg: colors.gray[100], text: colors.gray[500] },
   OnLeave: { bg: '#fef9c3', text: '#854d0e' },
 };
 
@@ -76,7 +77,7 @@ export function EmployeeListPage() {
     <div style={{ padding: mobile ? '16px' : '24px 32px', maxWidth: '1200px' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-        <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 600, color: '#111827' }}>Pracownicy</h1>
+        <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 600, color: colors.gray[900] }}>Pracownicy</h1>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button onClick={() => refetch()} style={iconBtnStyle} title="Odśwież" aria-label="Odśwież">
             <RefreshCw size={16} style={isFetching ? { animation: 'spin 1s linear infinite' } : undefined} />
@@ -90,8 +91,8 @@ export function EmployeeListPage() {
               padding: '8px 16px',
               fontSize: '14px',
               fontWeight: 500,
-              color: '#fff',
-              backgroundColor: '#2563eb',
+              color: colors.white,
+              backgroundColor: colors.primary[600],
               border: 'none',
               borderRadius: '6px',
               cursor: 'pointer',
@@ -109,7 +110,7 @@ export function EmployeeListPage() {
         <div style={{ position: 'relative', flex: '1 1 240px', maxWidth: '320px' }}>
           <Search
             size={16}
-            style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }}
+            style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: colors.gray[400] }}
           />
           <input
             type="text"
@@ -121,7 +122,7 @@ export function EmployeeListPage() {
               width: '100%',
               padding: '8px 12px 8px 34px',
               fontSize: '14px',
-              border: '1px solid #d1d5db',
+              border: `1px solid ${colors.gray[300]}`,
               borderRadius: '6px',
               outline: 'none',
               boxSizing: 'border-box',
@@ -194,20 +195,20 @@ export function EmployeeListPage() {
         {/* Table */}
         <div style={{ flex: 1, minWidth: 0 }}>
           {error && (
-            <div style={{ padding: '16px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', color: '#dc2626', fontSize: '14px', marginBottom: '12px' }}>
+            <div style={{ padding: '16px', backgroundColor: colors.danger[50], border: `1px solid ${colors.danger[200]}`, borderRadius: '8px', color: colors.danger[600], fontSize: '14px', marginBottom: '12px' }}>
               Błąd ładowania listy pracowników.
-              <button onClick={() => refetch()} style={{ marginLeft: '12px', color: '#2563eb', background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', textDecoration: 'underline' }}>
+              <button onClick={() => refetch()} style={{ marginLeft: '12px', color: colors.primary[600], background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', textDecoration: 'underline' }}>
                 Ponów
               </button>
             </div>
           )}
 
           {isLoading ? (
-            <div style={{ textAlign: 'center', padding: '48px 0', color: '#6b7280', fontSize: '14px' }}>
+            <div style={{ textAlign: 'center', padding: '48px 0', color: colors.gray[500], fontSize: '14px' }}>
               Ładowanie...
             </div>
           ) : !data || data.items.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '48px 0', color: '#9ca3af' }}>
+            <div style={{ textAlign: 'center', padding: '48px 0', color: colors.gray[400] }}>
               <User size={40} style={{ marginBottom: '12px', opacity: 0.5 }} />
               <div style={{ fontSize: '15px', fontWeight: 500 }}>Brak pracowników</div>
               <div style={{ fontSize: '13px', marginTop: '4px' }}>
@@ -219,10 +220,10 @@ export function EmployeeListPage() {
           ) : (
             <>
               {/* Table */}
-              <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', overflowX: 'auto' }}>
+              <div style={{ border: `1px solid ${colors.gray[200]}`, borderRadius: '8px', overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
                   <thead>
-                    <tr style={{ backgroundColor: '#f9fafb' }}>
+                    <tr style={{ backgroundColor: colors.gray[50] }}>
                       <Th>Imię i nazwisko</Th>
                       <Th>Email</Th>
                       <Th>Nr pracownika</Th>
@@ -252,7 +253,7 @@ export function EmployeeListPage() {
                   justifyContent: 'space-between',
                   marginTop: '12px',
                   fontSize: '13px',
-                  color: '#6b7280',
+                  color: colors.gray[500],
                 }}
               >
                 <span>
@@ -322,14 +323,14 @@ function EmployeeRow({ employee, isSelected, onClick }: { employee: EmployeeDto;
       onDoubleClick={() => navigate(`/org/employees/${employee.id}`)}
       style={{
         cursor: 'pointer',
-        backgroundColor: isSelected ? '#eff6ff' : undefined,
-        borderTop: '1px solid #e5e7eb',
+        backgroundColor: isSelected ? colors.primary[50] : undefined,
+        borderTop: `1px solid ${colors.gray[200]}`,
         transition: 'background-color 0.1s',
       }}
-      onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.backgroundColor = '#f9fafb'; }}
+      onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.backgroundColor = colors.gray[50]; }}
       onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.backgroundColor = ''; }}
     >
-      <Td style={{ fontWeight: 500, color: '#111827' }}>
+      <Td style={{ fontWeight: 500, color: colors.gray[900] }}>
         {employee.firstName} {employee.lastName}
       </Td>
       <Td>{employee.email}</Td>
@@ -359,8 +360,8 @@ function EmployeeRow({ employee, isSelected, onClick }: { employee: EmployeeDto;
             padding: '4px 10px',
             fontSize: '12px',
             fontWeight: 600,
-            color: '#fff',
-            background: '#2563eb',
+            color: colors.white,
+            background: colors.primary[600],
             border: 'none',
             borderRadius: '6px',
             cursor: 'pointer',
@@ -395,9 +396,9 @@ function EmployeeDetailPanel({
       style={{
         width: mobile ? '100%' : '340px',
         flexShrink: 0,
-        border: '1px solid #e5e7eb',
+        border: `1px solid ${colors.gray[200]}`,
         borderRadius: '8px',
-        backgroundColor: '#fff',
+        backgroundColor: colors.white,
         overflow: 'auto',
       }}
     >
@@ -407,21 +408,21 @@ function EmployeeDetailPanel({
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '14px 16px',
-          borderBottom: '1px solid #e5e7eb',
+          borderBottom: `1px solid ${colors.gray[200]}`,
         }}
       >
-        <span style={{ fontSize: '14px', fontWeight: 600, color: '#111827' }}>Szczegóły pracownika</span>
-        <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', padding: '2px', display: 'inline-flex' }} aria-label="Zamknij">
+        <span style={{ fontSize: '14px', fontWeight: 600, color: colors.gray[900] }}>Szczegóły pracownika</span>
+        <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: colors.gray[500], padding: '2px', display: 'inline-flex' }} aria-label="Zamknij">
           <X size={16} />
         </button>
       </div>
 
       {isLoading ? (
-        <div style={{ padding: '32px 16px', textAlign: 'center', color: '#9ca3af', fontSize: '13px' }}>
+        <div style={{ padding: '32px 16px', textAlign: 'center', color: colors.gray[400], fontSize: '13px' }}>
           Ładowanie...
         </div>
       ) : !detail ? (
-        <div style={{ padding: '32px 16px', textAlign: 'center', color: '#9ca3af', fontSize: '13px' }}>
+        <div style={{ padding: '32px 16px', textAlign: 'center', color: colors.gray[400], fontSize: '13px' }}>
           Nie znaleziono danych.
         </div>
       ) : (
@@ -446,10 +447,10 @@ function EmployeeDetailPanel({
               {detail.firstName.charAt(0)}{detail.lastName.charAt(0)}
             </div>
             <div>
-              <div style={{ fontWeight: 600, fontSize: '15px', color: '#111827' }}>
+              <div style={{ fontWeight: 600, fontSize: '15px', color: colors.gray[900] }}>
                 {detail.firstName} {detail.lastName}
               </div>
-              <div style={{ color: '#6b7280', marginTop: '2px' }}>{detail.email}</div>
+              <div style={{ color: colors.gray[500], marginTop: '2px' }}>{detail.email}</div>
             </div>
           </div>
 
@@ -490,8 +491,8 @@ function EmployeeDetailPanel({
               padding: '8px 14px',
               fontSize: '13px',
               fontWeight: 500,
-              color: '#fff',
-              backgroundColor: '#2563eb',
+              color: colors.white,
+              backgroundColor: colors.primary[600],
               border: 'none',
               borderRadius: '6px',
               cursor: 'pointer',
@@ -507,20 +508,20 @@ function EmployeeDetailPanel({
           {/* Assignments */}
           {detail.assignments.length > 0 && (
             <div style={{ marginTop: '16px' }}>
-              <div style={{ fontWeight: 600, color: '#374151', marginBottom: '8px' }}>Przypisania</div>
+              <div style={{ fontWeight: 600, color: colors.gray[700], marginBottom: '8px' }}>Przypisania</div>
               {detail.assignments.map((a) => (
                 <div
                   key={a.id}
                   style={{
                     padding: '8px 10px',
                     borderRadius: '6px',
-                    backgroundColor: '#f9fafb',
+                    backgroundColor: colors.gray[50],
                     marginBottom: '6px',
-                    border: '1px solid #f3f4f6',
+                    border: `1px solid ${colors.gray[100]}`,
                   }}
                 >
-                  <div style={{ fontWeight: 500, color: '#111827' }}>{a.organizationUnitName}</div>
-                  <div style={{ color: '#6b7280', marginTop: '2px' }}>
+                  <div style={{ fontWeight: 500, color: colors.gray[900] }}>{a.organizationUnitName}</div>
+                  <div style={{ color: colors.gray[500], marginTop: '2px' }}>
                     {a.positionName}
                     {a.isPrimary && (
                       <span
@@ -529,15 +530,15 @@ function EmployeeDetailPanel({
                           padding: '1px 6px',
                           borderRadius: '4px',
                           fontSize: '11px',
-                          backgroundColor: '#dbeafe',
-                          color: '#1d4ed8',
+                          backgroundColor: colors.primary[100],
+                          color: colors.primary[700],
                         }}
                       >
                         główne
                       </span>
                     )}
                   </div>
-                  <div style={{ color: '#9ca3af', marginTop: '2px', fontSize: '12px' }}>
+                  <div style={{ color: colors.gray[400], marginTop: '2px', fontSize: '12px' }}>
                     od {formatDate(a.startDate)}
                   </div>
                 </div>
@@ -552,8 +553,8 @@ function EmployeeDetailPanel({
               style={{
                 display: 'flex', alignItems: 'center', gap: '6px',
                 padding: '8px 14px', fontSize: '13px', fontWeight: 500,
-                color: '#3b82f6', backgroundColor: '#eff6ff',
-                border: '1px solid #bfdbfe', borderRadius: '6px',
+                color: colors.primary[500], backgroundColor: colors.primary[50],
+                border: `1px solid ${colors.primary[200]}`, borderRadius: '6px',
                 cursor: 'pointer', marginTop: '16px', width: '100%', justifyContent: 'center',
               }}
             >
@@ -569,15 +570,15 @@ function EmployeeDetailPanel({
 
           {/* Deactivate button — admin only, active employees only */}
           {isAdmin && detail.status === 'Active' && (
-            <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid #fee2e2' }}>
+            <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: `1px solid ${colors.danger[100]}` }}>
               {!showDeactivateConfirm ? (
                 <button
                   onClick={() => setShowDeactivateConfirm(true)}
                   style={{
                     display: 'flex', alignItems: 'center', gap: '6px',
                     padding: '8px 14px', fontSize: '13px', fontWeight: 600,
-                    color: '#dc2626', backgroundColor: '#fef2f2',
-                    border: '1px solid #fecaca', borderRadius: '6px',
+                    color: colors.danger[600], backgroundColor: colors.danger[50],
+                    border: `1px solid ${colors.danger[200]}`, borderRadius: '6px',
                     cursor: 'pointer', width: '100%', justifyContent: 'center',
                   }}
                 >
@@ -585,8 +586,8 @@ function EmployeeDetailPanel({
                   Dezaktywuj pracownika
                 </button>
               ) : (
-                <div style={{ padding: '12px', backgroundColor: '#fef2f2', borderRadius: '8px', border: '1px solid #fecaca' }}>
-                  <p style={{ margin: '0 0 10px', fontSize: '13px', color: '#991b1b', fontWeight: 500 }}>
+                <div style={{ padding: '12px', backgroundColor: colors.danger[50], borderRadius: '8px', border: `1px solid ${colors.danger[200]}` }}>
+                  <p style={{ margin: '0 0 10px', fontSize: '13px', color: colors.danger[800], fontWeight: 500 }}>
                     Dezaktywować <strong>{detail.firstName} {detail.lastName}</strong>?
                   </p>
                   <div style={{ display: 'flex', gap: '6px' }}>
@@ -599,7 +600,7 @@ function EmployeeDetailPanel({
                       disabled={deactivate.isPending}
                       style={{
                         flex: 1, padding: '7px', fontSize: '12px', fontWeight: 600,
-                        color: '#fff', backgroundColor: '#dc2626',
+                        color: colors.white, backgroundColor: colors.danger[600],
                         border: 'none', borderRadius: '6px', cursor: 'pointer',
                         opacity: deactivate.isPending ? 0.6 : 1,
                       }}
@@ -610,15 +611,15 @@ function EmployeeDetailPanel({
                       onClick={() => setShowDeactivateConfirm(false)}
                       style={{
                         padding: '7px 14px', fontSize: '12px', fontWeight: 500,
-                        color: '#374151', backgroundColor: '#fff',
-                        border: '1px solid #d1d5db', borderRadius: '6px', cursor: 'pointer',
+                        color: colors.gray[700], backgroundColor: colors.white,
+                        border: `1px solid ${colors.gray[300]}`, borderRadius: '6px', cursor: 'pointer',
                       }}
                     >
                       Anuluj
                     </button>
                   </div>
                   {deactivate.error && (
-                    <p style={{ margin: '6px 0 0', fontSize: '12px', color: '#dc2626' }}>
+                    <p style={{ margin: '6px 0 0', fontSize: '12px', color: colors.danger[600] }}>
                       {(deactivate.error as Error)?.message || 'Wystąpił błąd.'}
                     </p>
                   )}
@@ -665,15 +666,15 @@ function AssignEmployeeForm({ employeeId, onClose }: { employeeId: string; onClo
 
   const fieldStyle: React.CSSProperties = {
     width: '100%', padding: '7px 10px', fontSize: '13px',
-    border: '1px solid #d1d5db', borderRadius: '6px', boxSizing: 'border-box',
+    border: `1px solid ${colors.gray[300]}`, borderRadius: '6px', boxSizing: 'border-box',
   };
 
   return (
-    <div style={{ marginTop: '16px', padding: '12px', backgroundColor: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
-      <div style={{ fontWeight: 600, color: '#374151', marginBottom: '10px', fontSize: '13px' }}>Przypisz do jednostki</div>
+    <div style={{ marginTop: '16px', padding: '12px', backgroundColor: colors.gray[50], borderRadius: '8px', border: `1px solid ${colors.gray[200]}` }}>
+      <div style={{ fontWeight: 600, color: colors.gray[700], marginBottom: '10px', fontSize: '13px' }}>Przypisz do jednostki</div>
 
       <div style={{ marginBottom: '8px' }}>
-        <label style={{ display: 'block', fontSize: '12px', color: '#6b7280', marginBottom: '3px' }}>Jednostka</label>
+        <label style={{ display: 'block', fontSize: '12px', color: colors.gray[500], marginBottom: '3px' }}>Jednostka</label>
         <select value={unitId} onChange={(e) => setUnitId(e.target.value)} style={fieldStyle}>
           <option value="">Wybierz...</option>
           {flatUnits.map((u) => (
@@ -683,7 +684,7 @@ function AssignEmployeeForm({ employeeId, onClose }: { employeeId: string; onClo
       </div>
 
       <div style={{ marginBottom: '8px' }}>
-        <label style={{ display: 'block', fontSize: '12px', color: '#6b7280', marginBottom: '3px' }}>Stanowisko</label>
+        <label style={{ display: 'block', fontSize: '12px', color: colors.gray[500], marginBottom: '3px' }}>Stanowisko</label>
         <select value={positionId} onChange={(e) => setPositionId(e.target.value)} style={fieldStyle}>
           <option value="">Wybierz...</option>
           {positions.filter((p) => p.isActive).map((p) => (
@@ -693,14 +694,14 @@ function AssignEmployeeForm({ employeeId, onClose }: { employeeId: string; onClo
       </div>
 
       <div style={{ marginBottom: '10px' }}>
-        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#374151', cursor: 'pointer' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: colors.gray[700], cursor: 'pointer' }}>
           <input type="checkbox" checked={isPrimary} onChange={(e) => setIsPrimary(e.target.checked)} />
           Przypisanie główne
         </label>
       </div>
 
       {assignMutation.error && (
-        <div style={{ color: '#dc2626', fontSize: '12px', marginBottom: '8px' }}>
+        <div style={{ color: colors.danger[600], fontSize: '12px', marginBottom: '8px' }}>
           {(assignMutation.error as Error)?.message || 'Wystąpił błąd'}
         </div>
       )}
@@ -711,7 +712,7 @@ function AssignEmployeeForm({ employeeId, onClose }: { employeeId: string; onClo
           disabled={!unitId || !positionId || assignMutation.isPending}
           style={{
             flex: 1, padding: '7px', fontSize: '13px', fontWeight: 600,
-            color: '#fff', backgroundColor: (!unitId || !positionId) ? '#93c5fd' : '#3b82f6',
+            color: colors.white, backgroundColor: (!unitId || !positionId) ? colors.primary[300] : colors.primary[500],
             border: 'none', borderRadius: '6px', cursor: 'pointer',
           }}
         >
@@ -721,8 +722,8 @@ function AssignEmployeeForm({ employeeId, onClose }: { employeeId: string; onClo
           onClick={onClose}
           style={{
             padding: '7px 14px', fontSize: '13px', fontWeight: 500,
-            color: '#374151', backgroundColor: '#fff',
-            border: '1px solid #d1d5db', borderRadius: '6px', cursor: 'pointer',
+            color: colors.gray[700], backgroundColor: colors.white,
+            border: `1px solid ${colors.gray[300]}`, borderRadius: '6px', cursor: 'pointer',
           }}
         >
           Anuluj
@@ -735,8 +736,8 @@ function AssignEmployeeForm({ employeeId, onClose }: { employeeId: string; onClo
 function DetailField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div style={{ marginBottom: '10px' }}>
-      <div style={{ color: '#9ca3af', fontSize: '12px', marginBottom: '2px' }}>{label}</div>
-      <div style={{ color: '#111827' }}>{children}</div>
+      <div style={{ color: colors.gray[400], fontSize: '12px', marginBottom: '2px' }}>{label}</div>
+      <div style={{ color: colors.gray[900] }}>{children}</div>
     </div>
   );
 }
@@ -748,7 +749,7 @@ function Th({ children }: { children: React.ReactNode }) {
         padding: '10px 14px',
         textAlign: 'left',
         fontWeight: 500,
-        color: '#6b7280',
+        color: colors.gray[500],
         fontSize: '13px',
         whiteSpace: 'nowrap',
       }}
@@ -760,7 +761,7 @@ function Th({ children }: { children: React.ReactNode }) {
 
 function Td({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
   return (
-    <td style={{ padding: '10px 14px', color: '#374151', whiteSpace: 'nowrap', ...style }}>
+    <td style={{ padding: '10px 14px', color: colors.gray[700], whiteSpace: 'nowrap', ...style }}>
       {children}
     </td>
   );
@@ -795,21 +796,21 @@ const iconBtnStyle: React.CSSProperties = {
   justifyContent: 'center',
   width: '36px',
   height: '36px',
-  backgroundColor: '#fff',
-  border: '1px solid #d1d5db',
+  backgroundColor: colors.white,
+  border: `1px solid ${colors.gray[300]}`,
   borderRadius: '6px',
   cursor: 'pointer',
-  color: '#374151',
+  color: colors.gray[700],
 };
 
 const selectStyle: React.CSSProperties = {
   padding: '8px 12px',
   fontSize: '14px',
-  border: '1px solid #d1d5db',
+  border: `1px solid ${colors.gray[300]}`,
   borderRadius: '6px',
   outline: 'none',
-  backgroundColor: '#fff',
-  color: '#374151',
+  backgroundColor: colors.white,
+  color: colors.gray[700],
   minWidth: '160px',
 };
 
@@ -820,11 +821,11 @@ function pageBtnStyle(disabled: boolean): React.CSSProperties {
     justifyContent: 'center',
     width: '32px',
     height: '32px',
-    backgroundColor: '#fff',
-    border: '1px solid #d1d5db',
+    backgroundColor: colors.white,
+    border: `1px solid ${colors.gray[300]}`,
     borderRadius: '6px',
     cursor: disabled ? 'not-allowed' : 'pointer',
-    color: disabled ? '#d1d5db' : '#374151',
+    color: disabled ? colors.gray[300] : colors.gray[700],
     opacity: disabled ? 0.5 : 1,
   };
 }

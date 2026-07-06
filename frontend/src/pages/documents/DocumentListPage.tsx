@@ -8,6 +8,7 @@ import {
   useDownloadDocument,
 } from '@/api/hooks/useDocuments';
 import { useIsMobile } from '@/shared';
+import { colors } from '@/theme/tokens';
 
 function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -100,8 +101,8 @@ export function DocumentListPage() {
             alignItems: 'center',
             gap: 8,
             padding: '8px 16px',
-            background: '#2563eb',
-            color: '#fff',
+            background: colors.primary[600],
+            color: colors.white,
             borderRadius: 8,
             cursor: 'pointer',
             fontWeight: 600,
@@ -122,7 +123,7 @@ export function DocumentListPage() {
       {/* Filters */}
       <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
         <div style={{ position: 'relative', flex: 1, minWidth: 200 }}>
-          <Search size={16} style={{ position: 'absolute', left: 10, top: 10, color: '#94a3b8' }} />
+          <Search size={16} style={{ position: 'absolute', left: 10, top: 10, color: colors.slate[400] }} />
           <input
             type="text"
             placeholder="Szukaj dokumentów..."
@@ -149,7 +150,7 @@ export function DocumentListPage() {
               border: '1px solid #e2e8f0',
               borderRadius: 8,
               fontSize: 14,
-              background: '#fff',
+              background: colors.white,
             }}
           >
             <option value="">Wszystkie kategorie</option>
@@ -217,8 +218,8 @@ export function DocumentListPage() {
               disabled={uploadMutation.isPending}
               style={{
                 padding: '8px 20px',
-                background: '#2563eb',
-                color: '#fff',
+                background: colors.primary[600],
+                color: colors.white,
                 border: 'none',
                 borderRadius: 8,
                 cursor: 'pointer',
@@ -258,7 +259,7 @@ export function DocumentListPage() {
           style={{
             textAlign: 'center',
             padding: 48,
-            color: '#94a3b8',
+            color: colors.slate[400],
           }}
         >
           <FolderOpen size={48} style={{ marginBottom: 12, opacity: 0.5 }} />
@@ -328,7 +329,7 @@ export function DocumentListPage() {
                             display: 'flex',
                           }}
                         >
-                          <Download size={14} style={{ color: '#2563eb' }} />
+                          <Download size={14} style={{ color: colors.primary[600] }} />
                         </button>
                         <button
                           onClick={() => handleDelete(doc.id, doc.fileName)}
@@ -342,7 +343,7 @@ export function DocumentListPage() {
                             display: 'flex',
                           }}
                         >
-                          <Trash2 size={14} style={{ color: '#ef4444' }} />
+                          <Trash2 size={14} style={{ color: colors.danger[500] }} />
                         </button>
                       </div>
                     </td>

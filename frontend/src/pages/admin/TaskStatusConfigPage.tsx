@@ -3,6 +3,7 @@ import { ListTodo, Plus, RefreshCw, Edit2, Trash2, X } from 'lucide-react';
 import { useTaskStatuses, useCreateTaskStatus, useUpdateTaskStatus, useDeleteTaskStatus } from '@/api/hooks/useTasks';
 import type { TaskStatusDto, CreateTaskStatusRequest, UpdateTaskStatusRequest } from '@/api/types/tasks';
 import { useIsMobile } from '@/shared';
+import { colors } from '@/theme/tokens';
 
 export function TaskStatusConfigPage() {
   const { data: statuses, isLoading, error, refetch, isFetching } = useTaskStatuses();
@@ -44,7 +45,7 @@ export function TaskStatusConfigPage() {
     <div style={{ padding: mobile ? '16px' : '24px 32px', maxWidth: '900px' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-        <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 600, color: '#111827' }}>Statusy zadań</h1>
+        <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 600, color: colors.gray[900] }}>Statusy zadań</h1>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button onClick={() => refetch()} style={iconBtnStyle} title="Odśwież">
             <RefreshCw size={16} style={isFetching ? { animation: 'spin 1s linear infinite' } : undefined} />
@@ -65,18 +66,18 @@ export function TaskStatusConfigPage() {
 
       {/* Loading / Empty / Table */}
       {isLoading ? (
-        <div style={{ textAlign: 'center', padding: '48px 0', color: '#6b7280', fontSize: '14px' }}>Ładowanie...</div>
+        <div style={{ textAlign: 'center', padding: '48px 0', color: colors.gray[500], fontSize: '14px' }}>Ładowanie...</div>
       ) : !statuses || statuses.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '48px 0', color: '#9ca3af' }}>
+        <div style={{ textAlign: 'center', padding: '48px 0', color: colors.gray[400] }}>
           <ListTodo size={40} style={{ marginBottom: '12px', opacity: 0.5 }} />
           <div style={{ fontSize: '15px', fontWeight: 500 }}>Brak statusów</div>
           <div style={{ fontSize: '13px', marginTop: '4px' }}>Dodaj pierwszy status klikając „Nowy status".</div>
         </div>
       ) : (
-        <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', overflowX: 'auto' }}>
+        <div style={{ border: `1px solid ${colors.gray[200]}`, borderRadius: '8px', overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
             <thead>
-              <tr style={{ backgroundColor: '#f9fafb' }}>
+              <tr style={{ backgroundColor: colors.gray[50] }}>
                 <Th>Kod</Th>
                 <Th>Nazwa</Th>
                 <Th>Kolor</Th>
@@ -88,22 +89,22 @@ export function TaskStatusConfigPage() {
             </thead>
             <tbody>
               {statuses.map((s) => (
-                <tr key={s.id} style={{ borderTop: '1px solid #e5e7eb' }}>
-                  <Td><code style={{ fontSize: '12px', background: '#f3f4f6', padding: '2px 6px', borderRadius: '4px' }}>{s.code}</code></Td>
+                <tr key={s.id} style={{ borderTop: `1px solid ${colors.gray[200]}` }}>
+                  <Td><code style={{ fontSize: '12px', background: colors.gray[100], padding: '2px 6px', borderRadius: '4px' }}>{s.code}</code></Td>
                   <Td style={{ fontWeight: 500 }}>{s.name}</Td>
                   <Td>
                     {s.color && (
-                      <span style={{ display: 'inline-block', width: 16, height: 16, borderRadius: 4, backgroundColor: s.color, border: '1px solid #d1d5db' }} />
+                      <span style={{ display: 'inline-block', width: 16, height: 16, borderRadius: 4, backgroundColor: s.color, border: `1px solid ${colors.gray[300]}` }} />
                     )}
                   </Td>
                   <Td>
                     {s.isDefault && (
-                      <span style={{ display: 'inline-block', padding: '2px 8px', fontSize: '11px', fontWeight: 600, borderRadius: '10px', backgroundColor: '#dbeafe', color: '#1e40af' }}>Domyślny</span>
+                      <span style={{ display: 'inline-block', padding: '2px 8px', fontSize: '11px', fontWeight: 600, borderRadius: '10px', backgroundColor: colors.primary[100], color: colors.primary[800] }}>Domyślny</span>
                     )}
                   </Td>
                   <Td>
                     {s.isFinal && (
-                      <span style={{ display: 'inline-block', padding: '2px 8px', fontSize: '11px', fontWeight: 600, borderRadius: '10px', backgroundColor: '#dcfce7', color: '#166534' }}>Końcowy</span>
+                      <span style={{ display: 'inline-block', padding: '2px 8px', fontSize: '11px', fontWeight: 600, borderRadius: '10px', backgroundColor: colors.success[100], color: colors.success[800] }}>Końcowy</span>
                     )}
                   </Td>
                   <Td>{s.sortOrder}</Td>
@@ -112,7 +113,7 @@ export function TaskStatusConfigPage() {
                       <button onClick={() => { setEditing(s); setShowForm(true); }} style={smallIconBtn} title="Edytuj">
                         <Edit2 size={14} />
                       </button>
-                      <button onClick={() => handleDelete(s.id)} style={{ ...smallIconBtn, color: '#dc2626' }} title="Usuń">
+                      <button onClick={() => handleDelete(s.id)} style={{ ...smallIconBtn, color: colors.danger[600] }} title="Usuń">
                         <Trash2 size={14} />
                       </button>
                     </div>
@@ -173,10 +174,10 @@ function StatusFormModal({ status, isPending, error, onSubmit, onClose }: {
     <div style={overlayStyle}>
       <div style={modalStyle}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 600, color: '#111827' }}>
+          <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 600, color: colors.gray[900] }}>
             {status ? 'Edytuj status' : 'Nowy status'}
           </h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280' }}><X size={20} /></button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: colors.gray[500] }}><X size={20} /></button>
         </div>
 
         {error && (
@@ -205,10 +206,10 @@ function StatusFormModal({ status, isPending, error, onSubmit, onClose }: {
             </label>
           </div>
           <div style={{ display: 'flex', gap: '16px' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#374151', cursor: 'pointer' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: colors.gray[700], cursor: 'pointer' }}>
               <input type="checkbox" checked={isDefault} onChange={(e) => setIsDefault(e.target.checked)} /> Domyślny
             </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#374151', cursor: 'pointer' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: colors.gray[700], cursor: 'pointer' }}>
               <input type="checkbox" checked={isFinal} onChange={(e) => setIsFinal(e.target.checked)} /> Końcowy
             </label>
           </div>
@@ -226,46 +227,46 @@ function StatusFormModal({ status, isPending, error, onSubmit, onClose }: {
 
 /* ── Table helpers ── */
 function Th({ children, style }: { children?: React.ReactNode; style?: React.CSSProperties }) {
-  return <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: '#6b7280', whiteSpace: 'nowrap', ...style }}>{children}</th>;
+  return <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: colors.gray[500], whiteSpace: 'nowrap', ...style }}>{children}</th>;
 }
 function Td({ children, style }: { children?: React.ReactNode; style?: React.CSSProperties }) {
-  return <td style={{ padding: '10px 14px', color: '#111827', ...style }}>{children}</td>;
+  return <td style={{ padding: '10px 14px', color: colors.gray[900], ...style }}>{children}</td>;
 }
 
 /* ── Styles ── */
 const iconBtnStyle: React.CSSProperties = {
   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-  width: '34px', height: '34px', border: '1px solid #d1d5db', borderRadius: '6px',
-  background: '#fff', color: '#374151', cursor: 'pointer',
+  width: '34px', height: '34px', border: `1px solid ${colors.gray[300]}`, borderRadius: '6px',
+  background: colors.white, color: colors.gray[700], cursor: 'pointer',
 };
 const primaryBtnStyle: React.CSSProperties = {
   display: 'inline-flex', alignItems: 'center', gap: '6px',
   padding: '7px 16px', fontSize: '13px', fontWeight: 600,
-  color: '#fff', backgroundColor: '#4f46e5', border: 'none', borderRadius: '6px', cursor: 'pointer',
+  color: colors.white, backgroundColor: '#4f46e5', border: 'none', borderRadius: '6px', cursor: 'pointer',
 };
 const cancelBtnStyle: React.CSSProperties = {
   padding: '7px 16px', fontSize: '13px', fontWeight: 500,
-  color: '#374151', backgroundColor: '#fff', border: '1px solid #d1d5db', borderRadius: '6px', cursor: 'pointer',
+  color: colors.gray[700], backgroundColor: colors.white, border: `1px solid ${colors.gray[300]}`, borderRadius: '6px', cursor: 'pointer',
 };
 const smallIconBtn: React.CSSProperties = {
   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-  width: '28px', height: '28px', background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', borderRadius: '4px',
+  width: '28px', height: '28px', background: 'none', border: 'none', cursor: 'pointer', color: colors.gray[500], borderRadius: '4px',
 };
 const errorBoxStyle: React.CSSProperties = {
   padding: '12px 16px', marginBottom: '16px', borderRadius: '8px',
-  backgroundColor: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', fontSize: '13px',
+  backgroundColor: colors.danger[50], border: `1px solid ${colors.danger[200]}`, color: colors.danger[800], fontSize: '13px',
 };
 const retryLinkStyle: React.CSSProperties = {
-  marginLeft: '8px', color: '#2563eb', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', fontSize: '13px',
+  marginLeft: '8px', color: colors.primary[600], background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', fontSize: '13px',
 };
 const overlayStyle: React.CSSProperties = {
   position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100,
 };
 const modalStyle: React.CSSProperties = {
-  backgroundColor: '#fff', borderRadius: '12px', padding: '24px', width: '100%', maxWidth: '460px', maxHeight: '90vh', overflow: 'auto',
+  backgroundColor: colors.white, borderRadius: '12px', padding: '24px', width: '100%', maxWidth: '460px', maxHeight: '90vh', overflow: 'auto',
   boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
 };
-const labelStyle: React.CSSProperties = { display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px', fontWeight: 500, color: '#374151' };
+const labelStyle: React.CSSProperties = { display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px', fontWeight: 500, color: colors.gray[700] };
 const inputStyle: React.CSSProperties = {
-  padding: '8px 10px', fontSize: '13px', border: '1px solid #d1d5db', borderRadius: '6px', outline: 'none',
+  padding: '8px 10px', fontSize: '13px', border: `1px solid ${colors.gray[300]}`, borderRadius: '6px', outline: 'none',
 };

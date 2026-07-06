@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, createContext, useContext, type ReactNode } from 'react';
 import { X, Bell, CheckCircle, AlertCircle, Info } from 'lucide-react';
+import { colors } from '@/theme/tokens';
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -89,7 +90,7 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) =
         gap: '10px',
         padding: '12px 14px',
         borderRadius: '10px',
-        backgroundColor: '#ffffff',
+        backgroundColor: colors.white,
         border: `1px solid ${config.border}`,
         boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
         pointerEvents: 'auto',
@@ -100,9 +101,9 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) =
     >
       <config.icon size={18} color={config.iconColor} style={{ flexShrink: 0, marginTop: '2px' }} />
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: '14px', fontWeight: 600, color: '#111827' }}>{toast.title}</div>
+        <div style={{ fontSize: '14px', fontWeight: 600, color: colors.gray[900] }}>{toast.title}</div>
         {toast.message && (
-          <div style={{ fontSize: '13px', color: '#6b7280', marginTop: '2px', lineHeight: 1.4 }}>
+          <div style={{ fontSize: '13px', color: colors.gray[500], marginTop: '2px', lineHeight: 1.4 }}>
             {toast.message}
           </div>
         )}
@@ -111,7 +112,7 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) =
         onClick={() => onRemove(toast.id)}
         style={{
           background: 'none', border: 'none', cursor: 'pointer',
-          color: '#9ca3af', padding: '2px', flexShrink: 0,
+          color: colors.gray[400], padding: '2px', flexShrink: 0,
         }}
       >
         <X size={14} />
@@ -121,9 +122,9 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) =
 }
 
 const toastStyles = {
-  info: { icon: Info, iconColor: '#2563eb', border: '#bfdbfe' },
-  success: { icon: CheckCircle, iconColor: '#16a34a', border: '#bbf7d0' },
-  error: { icon: AlertCircle, iconColor: '#dc2626', border: '#fecaca' },
+  info: { icon: Info, iconColor: colors.primary[600], border: colors.primary[200] },
+  success: { icon: CheckCircle, iconColor: colors.success[600], border: colors.success[200] },
+  error: { icon: AlertCircle, iconColor: colors.danger[600], border: colors.danger[200] },
   notification: { icon: Bell, iconColor: '#7c3aed', border: '#ddd6fe' },
 };
 

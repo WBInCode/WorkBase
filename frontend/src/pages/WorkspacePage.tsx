@@ -14,6 +14,7 @@ import {
   ActivityFeed,
 } from '@/components/Workspace';
 import { useIsMobile } from '@/shared';
+import { colors } from '@/theme/tokens';
 
 export function WorkspacePage() {
   const auth = useAuth();
@@ -34,10 +35,10 @@ export function WorkspacePage() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 700, color: '#111827' }}>
+          <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 700, color: colors.gray[900] }}>
             {greeting}, {user?.name?.split(' ')[0] ?? 'Użytkowniku'}
           </h1>
-          <p style={{ margin: '4px 0 0', fontSize: '14px', color: '#6b7280' }}>
+          <p style={{ margin: '4px 0 0', fontSize: '14px', color: colors.gray[500] }}>
             {new Date().toLocaleDateString('pl-PL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
           </p>
         </div>

@@ -3,6 +3,7 @@ import { Coffee, Plus, RefreshCw, Edit2, Trash2, X } from 'lucide-react';
 import { useBreakPolicies, useCreateBreakPolicy, useUpdateBreakPolicy, useDeleteBreakPolicy } from '@/api/hooks/useTimeTracking';
 import type { BreakPolicyDto } from '@/api/types/time';
 import { useIsMobile } from '@/shared';
+import { colors } from '@/theme/tokens';
 
 export function BreakPoliciesConfigPage() {
   const { data: policies, isLoading, error, refetch, isFetching } = useBreakPolicies();
@@ -44,7 +45,7 @@ export function BreakPoliciesConfigPage() {
     <div style={{ padding: mobile ? '16px' : '24px 32px', maxWidth: '1000px' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-        <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 600, color: '#111827' }}>Polityki przerw</h1>
+        <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 600, color: colors.gray[900] }}>Polityki przerw</h1>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button onClick={() => refetch()} style={iconBtnStyle} title="Odśwież">
             <RefreshCw size={16} style={isFetching ? { animation: 'spin 1s linear infinite' } : undefined} />
@@ -65,18 +66,18 @@ export function BreakPoliciesConfigPage() {
 
       {/* Loading / Empty / Table */}
       {isLoading ? (
-        <div style={{ textAlign: 'center', padding: '48px 0', color: '#6b7280', fontSize: '14px' }}>Ładowanie...</div>
+        <div style={{ textAlign: 'center', padding: '48px 0', color: colors.gray[500], fontSize: '14px' }}>Ładowanie...</div>
       ) : !policies || policies.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '48px 0', color: '#9ca3af' }}>
+        <div style={{ textAlign: 'center', padding: '48px 0', color: colors.gray[400] }}>
           <Coffee size={40} style={{ marginBottom: '12px', opacity: 0.5 }} />
           <div style={{ fontSize: '15px', fontWeight: 500 }}>Brak polityk przerw</div>
           <div style={{ fontSize: '13px', marginTop: '4px' }}>Dodaj pierwszą politykę klikając „Nowa polityka".</div>
         </div>
       ) : (
-        <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', overflowX: 'auto' }}>
+        <div style={{ border: `1px solid ${colors.gray[200]}`, borderRadius: '8px', overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
             <thead>
-              <tr style={{ backgroundColor: '#f9fafb' }}>
+              <tr style={{ backgroundColor: colors.gray[50] }}>
                 <Th>Nazwa</Th>
                 <Th>Typ</Th>
                 <Th>Max / dzień</Th>
@@ -88,7 +89,7 @@ export function BreakPoliciesConfigPage() {
             </thead>
             <tbody>
               {policies.map((p) => (
-                <tr key={p.id} style={{ borderTop: '1px solid #e5e7eb' }}>
+                <tr key={p.id} style={{ borderTop: `1px solid ${colors.gray[200]}` }}>
                   <Td style={{ fontWeight: 500 }}>{p.name}</Td>
                   <Td>
                     <span style={{
@@ -99,8 +100,8 @@ export function BreakPoliciesConfigPage() {
                       borderRadius: '12px',
                       fontSize: '12px',
                       fontWeight: 600,
-                      backgroundColor: p.breakType === 'Paid' ? '#d1fae5' : '#fef3c7',
-                      color: p.breakType === 'Paid' ? '#059669' : '#d97706',
+                      backgroundColor: p.breakType === 'Paid' ? '#d1fae5' : colors.warning[100],
+                      color: p.breakType === 'Paid' ? colors.emerald[600] : colors.warning[600],
                     }}>
                       {p.breakType === 'Paid' ? 'Płatna' : 'Bezpłatna'}
                     </span>
@@ -114,7 +115,7 @@ export function BreakPoliciesConfigPage() {
                       width: '8px',
                       height: '8px',
                       borderRadius: '50%',
-                      backgroundColor: p.isActive ? '#10b981' : '#d1d5db',
+                      backgroundColor: p.isActive ? '#10b981' : colors.gray[300],
                     }} />
                     {' '}{p.isActive ? 'Tak' : 'Nie'}
                   </Td>
@@ -123,7 +124,7 @@ export function BreakPoliciesConfigPage() {
                       <button onClick={() => { setEditing(p); setShowForm(true); }} style={smallIconBtn} title="Edytuj">
                         <Edit2 size={14} />
                       </button>
-                      <button onClick={() => handleDelete(p.id)} style={{ ...smallIconBtn, color: '#dc2626' }} title="Usuń">
+                      <button onClick={() => handleDelete(p.id)} style={{ ...smallIconBtn, color: colors.danger[600] }} title="Usuń">
                         <Trash2 size={14} />
                       </button>
                     </div>
@@ -186,10 +187,10 @@ function BreakPolicyFormModal({ policy, isPending, error, onSubmit, onClose }: {
     <div style={overlayStyle}>
       <div style={modalStyle}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 600, color: '#111827' }}>
+          <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 600, color: colors.gray[900] }}>
             {policy ? 'Edytuj politykę przerw' : 'Nowa polityka przerw'}
           </h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280' }}><X size={20} /></button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: colors.gray[500] }}><X size={20} /></button>
         </div>
 
         {error && (
@@ -237,7 +238,7 @@ function BreakPolicyFormModal({ policy, isPending, error, onSubmit, onClose }: {
             />
           </div>
 
-          <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#374151', cursor: 'pointer' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: colors.gray[700], cursor: 'pointer' }}>
             <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} /> Aktywna
           </label>
 
@@ -264,7 +265,7 @@ function LimitField({ label, enabled, onToggle, value, onChange, min }: {
 }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-      <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#374151', cursor: 'pointer', minWidth: '160px' }}>
+      <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: colors.gray[700], cursor: 'pointer', minWidth: '160px' }}>
         <input type="checkbox" checked={enabled} onChange={(e) => onToggle(e.target.checked)} />
         {label}
       </label>
@@ -278,7 +279,7 @@ function LimitField({ label, enabled, onToggle, value, onChange, min }: {
           required
         />
       ) : (
-        <span style={{ fontSize: '12px', color: '#9ca3af', fontStyle: 'italic' }}>bez limitu</span>
+        <span style={{ fontSize: '12px', color: colors.gray[400], fontStyle: 'italic' }}>bez limitu</span>
       )}
     </div>
   );
@@ -286,51 +287,51 @@ function LimitField({ label, enabled, onToggle, value, onChange, min }: {
 
 /* ── NoLimit badge ── */
 function NoLimit() {
-  return <span style={{ fontSize: '11px', color: '#9ca3af', fontStyle: 'italic' }}>bez limitu</span>;
+  return <span style={{ fontSize: '11px', color: colors.gray[400], fontStyle: 'italic' }}>bez limitu</span>;
 }
 
 /* ── Table helpers ── */
 function Th({ children, style }: { children?: React.ReactNode; style?: React.CSSProperties }) {
-  return <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: '#6b7280', whiteSpace: 'nowrap', ...style }}>{children}</th>;
+  return <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: colors.gray[500], whiteSpace: 'nowrap', ...style }}>{children}</th>;
 }
 function Td({ children, style }: { children?: React.ReactNode; style?: React.CSSProperties }) {
-  return <td style={{ padding: '10px 14px', color: '#111827', ...style }}>{children}</td>;
+  return <td style={{ padding: '10px 14px', color: colors.gray[900], ...style }}>{children}</td>;
 }
 
 /* ── Styles ── */
 const iconBtnStyle: React.CSSProperties = {
   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-  width: '34px', height: '34px', border: '1px solid #d1d5db', borderRadius: '6px',
-  background: '#fff', color: '#374151', cursor: 'pointer',
+  width: '34px', height: '34px', border: `1px solid ${colors.gray[300]}`, borderRadius: '6px',
+  background: colors.white, color: colors.gray[700], cursor: 'pointer',
 };
 const primaryBtnStyle: React.CSSProperties = {
   display: 'inline-flex', alignItems: 'center', gap: '6px',
   padding: '7px 16px', fontSize: '13px', fontWeight: 600,
-  color: '#fff', backgroundColor: '#4f46e5', border: 'none', borderRadius: '6px', cursor: 'pointer',
+  color: colors.white, backgroundColor: '#4f46e5', border: 'none', borderRadius: '6px', cursor: 'pointer',
 };
 const cancelBtnStyle: React.CSSProperties = {
   padding: '7px 16px', fontSize: '13px', fontWeight: 500,
-  color: '#374151', backgroundColor: '#fff', border: '1px solid #d1d5db', borderRadius: '6px', cursor: 'pointer',
+  color: colors.gray[700], backgroundColor: colors.white, border: `1px solid ${colors.gray[300]}`, borderRadius: '6px', cursor: 'pointer',
 };
 const smallIconBtn: React.CSSProperties = {
   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-  width: '28px', height: '28px', background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', borderRadius: '4px',
+  width: '28px', height: '28px', background: 'none', border: 'none', cursor: 'pointer', color: colors.gray[500], borderRadius: '4px',
 };
 const errorBoxStyle: React.CSSProperties = {
   padding: '12px 16px', marginBottom: '16px', borderRadius: '8px',
-  backgroundColor: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', fontSize: '13px',
+  backgroundColor: colors.danger[50], border: `1px solid ${colors.danger[200]}`, color: colors.danger[800], fontSize: '13px',
 };
 const retryLinkStyle: React.CSSProperties = {
-  marginLeft: '8px', color: '#2563eb', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', fontSize: '13px',
+  marginLeft: '8px', color: colors.primary[600], background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', fontSize: '13px',
 };
 const overlayStyle: React.CSSProperties = {
   position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100,
 };
 const modalStyle: React.CSSProperties = {
-  backgroundColor: '#fff', borderRadius: '12px', padding: '24px', width: '100%', maxWidth: '520px', maxHeight: '90vh', overflow: 'auto',
+  backgroundColor: colors.white, borderRadius: '12px', padding: '24px', width: '100%', maxWidth: '520px', maxHeight: '90vh', overflow: 'auto',
   boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
 };
-const labelStyle: React.CSSProperties = { display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px', fontWeight: 500, color: '#374151' };
+const labelStyle: React.CSSProperties = { display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px', fontWeight: 500, color: colors.gray[700] };
 const inputStyle: React.CSSProperties = {
-  padding: '8px 10px', fontSize: '13px', border: '1px solid #d1d5db', borderRadius: '6px', outline: 'none',
+  padding: '8px 10px', fontSize: '13px', border: `1px solid ${colors.gray[300]}`, borderRadius: '6px', outline: 'none',
 };

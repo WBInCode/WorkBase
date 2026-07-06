@@ -6,6 +6,7 @@ import { useLeaveCalendar, useLeaveTypes } from '@/api/hooks/useLeave';
 import { useEmployees } from '@/api/hooks/useOrganization';
 import type { LeaveCalendarEntryDto } from '@/api/types/leave';
 import { useIsMobile } from '@/shared';
+import { colors } from '@/theme/tokens';
 
 function getMonthDays(year: number, month: number): Date[] {
   const days: Date[] = [];
@@ -32,9 +33,9 @@ function formatDateKey(date: Date): string {
 const DAY_NAMES = ['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'So', 'Nd'];
 
 const DEFAULT_COLORS: Record<string, string> = {
-  ANNUAL: '#3b82f6',
-  ON_DEMAND: '#f59e0b',
-  SICK: '#ef4444',
+  ANNUAL: colors.primary[500],
+  ON_DEMAND: colors.warning[500],
+  SICK: colors.danger[500],
   CHILDCARE: '#8b5cf6',
 };
 
@@ -121,10 +122,10 @@ export function LeaveCalendarPage() {
         }}
       >
         <div>
-          <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 700, color: '#111827' }}>
+          <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 700, color: colors.gray[900] }}>
             Kalendarz nieobecności
           </h1>
-          <p style={{ margin: '4px 0 0', fontSize: '14px', color: '#6b7280' }}>
+          <p style={{ margin: '4px 0 0', fontSize: '14px', color: colors.gray[500] }}>
             Przegląd nieobecności zespołu
           </p>
         </div>
@@ -139,7 +140,7 @@ export function LeaveCalendarPage() {
               textAlign: 'center',
               fontSize: '15px',
               fontWeight: 600,
-              color: '#111827',
+              color: colors.gray[900],
               textTransform: 'capitalize',
             }}
           >
@@ -154,9 +155,9 @@ export function LeaveCalendarPage() {
               padding: '6px 12px',
               fontSize: '13px',
               fontWeight: 500,
-              color: '#374151',
-              backgroundColor: '#fff',
-              border: '1px solid #d1d5db',
+              color: colors.gray[700],
+              backgroundColor: colors.white,
+              border: `1px solid ${colors.gray[300]}`,
               borderRadius: '6px',
               cursor: 'pointer',
               marginLeft: '4px',
@@ -176,17 +177,17 @@ export function LeaveCalendarPage() {
                 width: '12px',
                 height: '12px',
                 borderRadius: '3px',
-                backgroundColor: t.color ?? DEFAULT_COLORS[t.code] ?? '#6b7280',
+                backgroundColor: t.color ?? DEFAULT_COLORS[t.code] ?? colors.gray[500],
               }}
             />
-            <span style={{ fontSize: '12px', color: '#6b7280' }}>{t.name}</span>
+            <span style={{ fontSize: '12px', color: colors.gray[500] }}>{t.name}</span>
           </div>
         ))}
       </div>
 
       {/* Calendar grid */}
       {isLoading ? (
-        <div style={{ padding: '40px', textAlign: 'center', color: '#9ca3af', fontSize: '14px' }}>
+        <div style={{ padding: '40px', textAlign: 'center', color: colors.gray[400], fontSize: '14px' }}>
           Ładowanie kalendarza...
         </div>
       ) : employees.length === 0 ? (
@@ -194,11 +195,11 @@ export function LeaveCalendarPage() {
           style={{
             padding: '40px',
             textAlign: 'center',
-            color: '#6b7280',
+            color: colors.gray[500],
             fontSize: '14px',
-            backgroundColor: '#f9fafb',
+            backgroundColor: colors.gray[50],
             borderRadius: '10px',
-            border: '1px dashed #d1d5db',
+            border: `1px dashed ${colors.gray[300]}`,
           }}
         >
           Brak pracowników do wyświetlenia.
@@ -207,27 +208,27 @@ export function LeaveCalendarPage() {
         <div
           style={{
             overflowX: 'auto',
-            border: '1px solid #e5e7eb',
+            border: `1px solid ${colors.gray[200]}`,
             borderRadius: '10px',
-            backgroundColor: '#fff',
+            backgroundColor: colors.white,
           }}
         >
           <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: `${days.length * 36 + 200}px` }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid #e5e7eb' }}>
+              <tr style={{ borderBottom: `1px solid ${colors.gray[200]}` }}>
                 <th
                   style={{
                     position: 'sticky',
                     left: 0,
                     zIndex: 2,
-                    backgroundColor: '#f9fafb',
+                    backgroundColor: colors.gray[50],
                     padding: '8px 14px',
                     textAlign: 'left',
                     fontSize: '12px',
                     fontWeight: 600,
-                    color: '#6b7280',
+                    color: colors.gray[500],
                     minWidth: '180px',
-                    borderRight: '1px solid #e5e7eb',
+                    borderRight: `1px solid ${colors.gray[200]}`,
                   }}
                 >
                   Pracownik
@@ -245,14 +246,14 @@ export function LeaveCalendarPage() {
                         textAlign: 'center',
                         fontSize: '10px',
                         fontWeight: 500,
-                        color: we ? '#d1d5db' : isToday ? '#2563eb' : '#9ca3af',
-                        backgroundColor: isToday ? '#eff6ff' : we ? '#fafafa' : '#f9fafb',
+                        color: we ? colors.gray[300] : isToday ? colors.primary[600] : colors.gray[400],
+                        backgroundColor: isToday ? colors.primary[50] : we ? '#fafafa' : colors.gray[50],
                         minWidth: '32px',
-                        borderBottom: '1px solid #e5e7eb',
+                        borderBottom: `1px solid ${colors.gray[200]}`,
                       }}
                     >
                       <div>{DAY_NAMES[dayIndex]}</div>
-                      <div style={{ fontSize: '12px', fontWeight: 600, color: we ? '#d1d5db' : isToday ? '#2563eb' : '#6b7280' }}>
+                      <div style={{ fontSize: '12px', fontWeight: 600, color: we ? colors.gray[300] : isToday ? colors.primary[600] : colors.gray[500] }}>
                         {d.getDate()}
                       </div>
                     </th>
@@ -268,7 +269,7 @@ export function LeaveCalendarPage() {
                   <tr
                     key={emp.id}
                     style={{
-                      borderBottom: '1px solid #f3f4f6',
+                      borderBottom: `1px solid ${colors.gray[100]}`,
                       backgroundColor: isCurrentUser ? '#fefce8' : undefined,
                     }}
                   >
@@ -277,12 +278,12 @@ export function LeaveCalendarPage() {
                         position: 'sticky',
                         left: 0,
                         zIndex: 1,
-                        backgroundColor: isCurrentUser ? '#fefce8' : '#fff',
+                        backgroundColor: isCurrentUser ? '#fefce8' : colors.white,
                         padding: '6px 14px',
                         fontSize: '13px',
                         fontWeight: isCurrentUser ? 600 : 400,
-                        color: '#374151',
-                        borderRight: '1px solid #e5e7eb',
+                        color: colors.gray[700],
+                        borderRight: `1px solid ${colors.gray[200]}`,
                         whiteSpace: 'nowrap',
                       }}
                     >
@@ -294,13 +295,13 @@ export function LeaveCalendarPage() {
                       const entries = empDayMap?.get(dateKey);
                       const isToday = dateKey === formatDateKey(now);
 
-                      let cellBg = we ? '#fafafa' : isToday ? '#eff6ff' : 'transparent';
+                      let cellBg = we ? '#fafafa' : isToday ? colors.primary[50] : 'transparent';
                       let cellColor: string | undefined;
                       let title = '';
 
                       if (entries && entries.length > 0) {
                         const e = entries[0]!;
-                        cellColor = e.leaveTypeColor ?? DEFAULT_COLORS[e.leaveTypeCode] ?? '#6b7280';
+                        cellColor = e.leaveTypeColor ?? DEFAULT_COLORS[e.leaveTypeCode] ?? colors.gray[500];
                         cellBg = `${cellColor}33`;
                         title = `${e.leaveTypeName}${e.dayFraction < 1 ? ` (${Math.round(e.dayFraction * 100)}%)` : ''}`;
                       }
@@ -350,8 +351,8 @@ const navBtnStyle: React.CSSProperties = {
   width: '32px',
   height: '32px',
   borderRadius: '6px',
-  border: '1px solid #d1d5db',
-  backgroundColor: '#fff',
+  border: `1px solid ${colors.gray[300]}`,
+  backgroundColor: colors.white,
   cursor: 'pointer',
-  color: '#374151',
+  color: colors.gray[700],
 };

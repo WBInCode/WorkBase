@@ -5,6 +5,7 @@ import { mapUserClaims } from '@/auth';
 import { useTimesheet, type TimesheetFilter } from '@/api/hooks/useTimeTracking';
 import type { TimeSheetDayDto, TimeSheetEntryDto } from '@/api/types/time';
 import { useIsMobile } from '@/shared';
+import { colors } from '@/theme/tokens';
 
 type PeriodType = 'day' | 'week' | 'month';
 
@@ -75,10 +76,10 @@ function getMonthRange(date: Date): { from: string; to: string } {
 }
 
 const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }> = {
-  complete: { bg: '#dcfce7', text: '#166534', label: 'Kompletny' },
-  approved: { bg: '#dbeafe', text: '#1e40af', label: 'Zatwierdzony' },
-  incomplete: { bg: '#fef3c7', text: '#92400e', label: 'Niekompletny' },
-  empty: { bg: '#f3f4f6', text: '#6b7280', label: 'Brak danych' },
+  complete: { bg: colors.success[100], text: colors.success[800], label: 'Kompletny' },
+  approved: { bg: colors.primary[100], text: colors.primary[800], label: 'Zatwierdzony' },
+  incomplete: { bg: colors.warning[100], text: colors.warning[800], label: 'Niekompletny' },
+  empty: { bg: colors.gray[100], text: colors.gray[500], label: 'Brak danych' },
 };
 
 export function TimesheetPage() {
@@ -143,7 +144,7 @@ export function TimesheetPage() {
 
   if (!employeeId) {
     return (
-      <div style={{ padding: '32px', textAlign: 'center', color: '#6b7280' }}>
+      <div style={{ padding: '32px', textAlign: 'center', color: colors.gray[500] }}>
         Brak przypisanego profilu pracownika.
       </div>
     );
@@ -152,7 +153,7 @@ export function TimesheetPage() {
   return (
     <div style={{ padding: mobile ? '16px' : '24px 32px', maxWidth: '1100px' }}>
       {/* Header */}
-      <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#111827', margin: '0 0 20px' }}>
+      <h1 style={{ fontSize: '22px', fontWeight: 700, color: colors.gray[900], margin: '0 0 20px' }}>
         Karta czasu pracy
       </h1>
 
@@ -162,17 +163,17 @@ export function TimesheetPage() {
         flexWrap: 'wrap',
       }}>
         {/* Period switcher */}
-        <div style={{ display: 'flex', borderRadius: '8px', border: '1px solid #e5e7eb', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', borderRadius: '8px', border: `1px solid ${colors.gray[200]}`, overflow: 'hidden' }}>
           {(['day', 'week', 'month'] as PeriodType[]).map((p) => (
             <button
               key={p}
               onClick={() => setPeriod(p)}
               style={{
                 padding: '6px 16px', fontSize: '13px', fontWeight: period === p ? 600 : 400,
-                color: period === p ? '#ffffff' : '#374151',
-                backgroundColor: period === p ? '#3b82f6' : '#ffffff',
+                color: period === p ? colors.white : colors.gray[700],
+                backgroundColor: period === p ? colors.primary[500] : colors.white,
                 border: 'none', cursor: 'pointer',
-                borderRight: p !== 'month' ? '1px solid #e5e7eb' : undefined,
+                borderRight: p !== 'month' ? `1px solid ${colors.gray[200]}` : undefined,
               }}
             >
               {{ day: 'Dzień', week: 'Tydzień', month: 'Miesiąc' }[p]}
@@ -187,8 +188,8 @@ export function TimesheetPage() {
             onClick={goToToday}
             style={{
               padding: '6px 12px', fontSize: '12px', fontWeight: 500,
-              color: '#3b82f6', backgroundColor: '#eff6ff',
-              border: '1px solid #bfdbfe', borderRadius: '6px', cursor: 'pointer',
+              color: colors.primary[500], backgroundColor: colors.primary[50],
+              border: `1px solid ${colors.primary[200]}`, borderRadius: '6px', cursor: 'pointer',
             }}
           >
             Dziś
@@ -197,7 +198,7 @@ export function TimesheetPage() {
         </div>
 
         {/* Period label */}
-        <span style={{ fontSize: '15px', fontWeight: 600, color: '#374151', textTransform: 'capitalize' }}>
+        <span style={{ fontSize: '15px', fontWeight: 600, color: colors.gray[700], textTransform: 'capitalize' }}>
           {periodLabel}
         </span>
       </div>
@@ -205,22 +206,22 @@ export function TimesheetPage() {
       {/* Summary cards */}
       {data && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px', marginBottom: '24px' }}>
-          <SummaryCard icon={<Briefcase size={18} />} label="Czas pracy" value={formatDuration(data.totalWorked)} color="#3b82f6" />
-          <SummaryCard icon={<Coffee size={18} />} label="Przerwy" value={formatDuration(data.totalBreaks)} color="#f59e0b" />
-          <SummaryCard icon={<Clock size={18} />} label="Netto" value={formatDuration(data.netWorked)} color="#059669" />
+          <SummaryCard icon={<Briefcase size={18} />} label="Czas pracy" value={formatDuration(data.totalWorked)} color={colors.primary[500]} />
+          <SummaryCard icon={<Coffee size={18} />} label="Przerwy" value={formatDuration(data.totalBreaks)} color={colors.warning[500]} />
+          <SummaryCard icon={<Clock size={18} />} label="Netto" value={formatDuration(data.netWorked)} color={colors.emerald[600]} />
           <SummaryCard icon={<AlertCircle size={18} />} label="Dni" value={`${data.daysWorked} / ${data.daysWorked + data.daysIncomplete}`} color="#6366f1" />
         </div>
       )}
 
       {/* Loading / Error */}
       {isLoading && (
-        <div style={{ padding: '40px', textAlign: 'center', color: '#9ca3af' }}>
+        <div style={{ padding: '40px', textAlign: 'center', color: colors.gray[400] }}>
           Ładowanie danych...
         </div>
       )}
 
       {error && (
-        <div style={{ padding: '16px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', color: '#dc2626', fontSize: '14px' }}>
+        <div style={{ padding: '16px', backgroundColor: colors.danger[50], border: `1px solid ${colors.danger[200]}`, borderRadius: '8px', color: colors.danger[600], fontSize: '14px' }}>
           Błąd ładowania danych: {error.message}
         </div>
       )}
@@ -242,14 +243,14 @@ export function TimesheetPage() {
 function SummaryCard({ icon, label, value, color }: { icon: React.ReactNode; label: string; value: string; color: string }) {
   return (
     <div style={{
-      padding: '14px 16px', borderRadius: '10px', border: '1px solid #e5e7eb',
-      backgroundColor: '#ffffff',
+      padding: '14px 16px', borderRadius: '10px', border: `1px solid ${colors.gray[200]}`,
+      backgroundColor: colors.white,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
         <span style={{ color }}>{icon}</span>
-        <span style={{ fontSize: '12px', color: '#6b7280', fontWeight: 500 }}>{label}</span>
+        <span style={{ fontSize: '12px', color: colors.gray[500], fontWeight: 500 }}>{label}</span>
       </div>
-      <span style={{ fontSize: '20px', fontWeight: 700, color: '#111827', fontVariantNumeric: 'tabular-nums' }}>
+      <span style={{ fontSize: '20px', fontWeight: 700, color: colors.gray[900], fontVariantNumeric: 'tabular-nums' }}>
         {value}
       </span>
     </div>
@@ -262,8 +263,8 @@ function NavButton({ onClick, icon }: { onClick: () => void; icon: React.ReactNo
       onClick={onClick}
       style={{
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-        width: '32px', height: '32px', border: '1px solid #e5e7eb',
-        borderRadius: '6px', backgroundColor: '#ffffff', cursor: 'pointer', color: '#374151',
+        width: '32px', height: '32px', border: `1px solid ${colors.gray[200]}`,
+        borderRadius: '6px', backgroundColor: colors.white, cursor: 'pointer', color: colors.gray[700],
       }}
     >
       {icon}
@@ -288,34 +289,34 @@ function StatusBadge({ status }: { status: string }) {
 function DayView({ day }: { day?: TimeSheetDayDto }) {
   if (!day) {
     return (
-      <div style={{ padding: '40px', textAlign: 'center', color: '#9ca3af', border: '1px solid #e5e7eb', borderRadius: '10px' }}>
+      <div style={{ padding: '40px', textAlign: 'center', color: colors.gray[400], border: `1px solid ${colors.gray[200]}`, borderRadius: '10px' }}>
         Brak danych za wybrany dzień.
       </div>
     );
   }
 
   return (
-    <div style={{ border: '1px solid #e5e7eb', borderRadius: '10px', overflow: 'hidden' }}>
+    <div style={{ border: `1px solid ${colors.gray[200]}`, borderRadius: '10px', overflow: 'hidden' }}>
       <div style={{
-        padding: '16px 20px', backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb',
+        padding: '16px 20px', backgroundColor: colors.gray[50], borderBottom: `1px solid ${colors.gray[200]}`,
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
       }}>
-        <span style={{ fontSize: '15px', fontWeight: 600, color: '#111827' }}>
+        <span style={{ fontSize: '15px', fontWeight: 600, color: colors.gray[900] }}>
           {formatDateLong(day.date)}
         </span>
         <StatusBadge status={day.status} />
       </div>
 
       <div style={{ padding: '20px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '20px' }}>
-        <DetailRow label="Czas pracy brutto" value={formatDuration(day.totalWorked)} color="#3b82f6" />
-        <DetailRow label="Przerwy" value={formatDuration(day.totalBreaks)} color="#f59e0b" />
-        <DetailRow label="Czas netto" value={formatDuration(day.netWorked)} color="#059669" />
+        <DetailRow label="Czas pracy brutto" value={formatDuration(day.totalWorked)} color={colors.primary[500]} />
+        <DetailRow label="Przerwy" value={formatDuration(day.totalBreaks)} color={colors.warning[500]} />
+        <DetailRow label="Czas netto" value={formatDuration(day.netWorked)} color={colors.emerald[600]} />
       </div>
 
       {/* Timeline */}
       {day.entries && day.entries.length > 0 && (
         <div style={{ padding: '0 20px 20px' }}>
-          <div style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px' }}>
+          <div style={{ fontSize: '12px', fontWeight: 600, color: colors.gray[500], textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px' }}>
             Rejestr zdarzeń
           </div>
           <EntryTimeline entries={day.entries} />
@@ -323,7 +324,7 @@ function DayView({ day }: { day?: TimeSheetDayDto }) {
       )}
 
       {day.note && (
-        <div style={{ padding: '12px 20px', borderTop: '1px solid #e5e7eb', fontSize: '13px', color: '#6b7280' }}>
+        <div style={{ padding: '12px 20px', borderTop: `1px solid ${colors.gray[200]}`, fontSize: '13px', color: colors.gray[500] }}>
           <strong>Notatka:</strong> {day.note}
         </div>
       )}
@@ -334,7 +335,7 @@ function DayView({ day }: { day?: TimeSheetDayDto }) {
 function DetailRow({ label, value, color }: { label: string; value: string; color: string }) {
   return (
     <div>
-      <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>{label}</div>
+      <div style={{ fontSize: '12px', color: colors.gray[500], marginBottom: '4px' }}>{label}</div>
       <div style={{ fontSize: '22px', fontWeight: 700, color, fontVariantNumeric: 'tabular-nums' }}>{value}</div>
     </div>
   );
@@ -346,17 +347,17 @@ function WeekView({ days }: { days: TimeSheetDayDto[] }) {
 
   if (days.length === 0) {
     return (
-      <div style={{ padding: '40px', textAlign: 'center', color: '#9ca3af', border: '1px solid #e5e7eb', borderRadius: '10px' }}>
+      <div style={{ padding: '40px', textAlign: 'center', color: colors.gray[400], border: `1px solid ${colors.gray[200]}`, borderRadius: '10px' }}>
         Brak danych za wybrany tydzień.
       </div>
     );
   }
 
   return (
-    <div style={{ border: '1px solid #e5e7eb', borderRadius: '10px', overflowX: 'auto' }}>
+    <div style={{ border: `1px solid ${colors.gray[200]}`, borderRadius: '10px', overflowX: 'auto' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
         <thead>
-          <tr style={{ backgroundColor: '#f9fafb' }}>
+          <tr style={{ backgroundColor: colors.gray[50] }}>
             <th style={thStyle}>Dzień</th>
             <th style={{ ...thStyle, textAlign: 'right' }}>Czas pracy</th>
             <th style={{ ...thStyle, textAlign: 'right' }}>Przerwy</th>
@@ -371,7 +372,7 @@ function WeekView({ days }: { days: TimeSheetDayDto[] }) {
             const hasEntries = day.entries && day.entries.length > 0;
             const isExpanded = expandedDate === day.date;
             return (
-              <tr key={day.date} style={{ borderTop: '1px solid #e5e7eb' }}>
+              <tr key={day.date} style={{ borderTop: `1px solid ${colors.gray[200]}` }}>
                 <td colSpan={5} style={{ padding: 0 }}>
                   <div
                     onClick={() => hasEntries && setExpandedDate(isExpanded ? null : day.date)}
@@ -382,20 +383,20 @@ function WeekView({ days }: { days: TimeSheetDayDto[] }) {
                   >
                     <span style={{ ...tdStyle, fontWeight: 500, display: 'flex', alignItems: 'center', gap: '4px' }}>
                       {hasEntries && (isExpanded
-                        ? <ChevronUp size={14} color="#9ca3af" />
-                        : <ChevronDown size={14} color="#9ca3af" />
+                        ? <ChevronUp size={14} color={colors.gray[400]} />
+                        : <ChevronDown size={14} color={colors.gray[400]} />
                       )}
                       {formatDate(day.date)}
                     </span>
                     <span style={{ ...tdStyle, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
                       {formatDuration(day.totalWorked)}
                     </span>
-                    <span style={{ ...tdStyle, textAlign: 'right', fontVariantNumeric: 'tabular-nums', color: '#92400e' }}>
+                    <span style={{ ...tdStyle, textAlign: 'right', fontVariantNumeric: 'tabular-nums', color: colors.warning[800] }}>
                       {formatDuration(day.totalBreaks)}
                     </span>
                     <span style={{
                       ...tdStyle, textAlign: 'right', fontWeight: 600, fontVariantNumeric: 'tabular-nums',
-                      color: isLow ? '#dc2626' : '#059669',
+                      color: isLow ? colors.danger[600] : colors.emerald[600],
                     }}>
                       {formatDuration(day.netWorked)}
                     </span>
@@ -404,7 +405,7 @@ function WeekView({ days }: { days: TimeSheetDayDto[] }) {
                     </span>
                   </div>
                   {isExpanded && hasEntries && (
-                    <div style={{ padding: '8px 20px 14px 32px', backgroundColor: '#f9fafb', borderTop: '1px solid #f3f4f6' }}>
+                    <div style={{ padding: '8px 20px 14px 32px', backgroundColor: colors.gray[50], borderTop: `1px solid ${colors.gray[100]}` }}>
                       <EntryTimeline entries={day.entries} />
                     </div>
                   )}
@@ -422,17 +423,17 @@ function WeekView({ days }: { days: TimeSheetDayDto[] }) {
 function MonthView({ days }: { days: TimeSheetDayDto[] }) {
   if (days.length === 0) {
     return (
-      <div style={{ padding: '40px', textAlign: 'center', color: '#9ca3af', border: '1px solid #e5e7eb', borderRadius: '10px' }}>
+      <div style={{ padding: '40px', textAlign: 'center', color: colors.gray[400], border: `1px solid ${colors.gray[200]}`, borderRadius: '10px' }}>
         Brak danych za wybrany miesiąc.
       </div>
     );
   }
 
   return (
-    <div style={{ border: '1px solid #e5e7eb', borderRadius: '10px', overflowX: 'auto' }}>
+    <div style={{ border: `1px solid ${colors.gray[200]}`, borderRadius: '10px', overflowX: 'auto' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
         <thead>
-          <tr style={{ backgroundColor: '#f9fafb' }}>
+          <tr style={{ backgroundColor: colors.gray[50] }}>
             <th style={thStyle}>Data</th>
             <th style={{ ...thStyle, textAlign: 'right' }}>Brutto</th>
             <th style={{ ...thStyle, textAlign: 'right' }}>Netto</th>
@@ -447,19 +448,19 @@ function MonthView({ days }: { days: TimeSheetDayDto[] }) {
               <tr
                 key={day.date}
                 style={{
-                  borderTop: '1px solid #f3f4f6',
+                  borderTop: `1px solid ${colors.gray[100]}`,
                   backgroundColor: isEmpty ? '#fafafa' : undefined,
                 }}
               >
                 <td style={{ ...tdStyle, padding: '6px 16px' }}>
                   <span style={{ fontWeight: 500, fontSize: '13px' }}>{formatDate(day.date)}</span>
                 </td>
-                <td style={{ ...tdStyle, padding: '6px 16px', textAlign: 'right', fontVariantNumeric: 'tabular-nums', color: isEmpty ? '#d1d5db' : '#374151' }}>
+                <td style={{ ...tdStyle, padding: '6px 16px', textAlign: 'right', fontVariantNumeric: 'tabular-nums', color: isEmpty ? colors.gray[300] : colors.gray[700] }}>
                   {formatDuration(day.totalWorked)}
                 </td>
                 <td style={{
                   ...tdStyle, padding: '6px 16px', textAlign: 'right', fontWeight: 600, fontVariantNumeric: 'tabular-nums',
-                  color: isEmpty ? '#d1d5db' : (netMins < 480 && netMins > 0 ? '#dc2626' : '#059669'),
+                  color: isEmpty ? colors.gray[300] : (netMins < 480 && netMins > 0 ? colors.danger[600] : colors.emerald[600]),
                 }}>
                   {formatDuration(day.netWorked)}
                 </td>
@@ -476,10 +477,10 @@ function MonthView({ days }: { days: TimeSheetDayDto[] }) {
 }
 
 const ENTRY_CONFIG: Record<string, { label: string; color: string; icon: typeof Play }> = {
-  ClockIn: { label: 'Rozpoczęcie pracy', color: '#059669', icon: Play },
-  ClockOut: { label: 'Zakończenie pracy', color: '#dc2626', icon: Square },
-  BreakStart: { label: 'Rozpoczęcie przerwy', color: '#d97706', icon: Coffee },
-  BreakEnd: { label: 'Zakończenie przerwy', color: '#059669', icon: Coffee },
+  ClockIn: { label: 'Rozpoczęcie pracy', color: colors.emerald[600], icon: Play },
+  ClockOut: { label: 'Zakończenie pracy', color: colors.danger[600], icon: Square },
+  BreakStart: { label: 'Rozpoczęcie przerwy', color: colors.warning[600], icon: Coffee },
+  BreakEnd: { label: 'Zakończenie przerwy', color: colors.emerald[600], icon: Coffee },
 };
 
 const BREAK_TYPE_LABELS: Record<string, string> = {
@@ -507,10 +508,10 @@ function EntryTimeline({ entries }: { entries: TimeSheetEntryDto[] }) {
               <div style={{
                 width: '10px', height: '10px', borderRadius: '50%', flexShrink: 0,
                 backgroundColor: cfg.color, marginTop: '5px',
-                border: '2px solid #fff', boxShadow: `0 0 0 2px ${cfg.color}33`,
+                border: `2px solid ${colors.white}`, boxShadow: `0 0 0 2px ${cfg.color}33`,
               }} />
               {!isLast && (
-                <div style={{ width: '2px', flex: 1, backgroundColor: '#e5e7eb', minHeight: '16px' }} />
+                <div style={{ width: '2px', flex: 1, backgroundColor: colors.gray[200], minHeight: '16px' }} />
               )}
             </div>
             {/* Content */}
@@ -521,7 +522,7 @@ function EntryTimeline({ entries }: { entries: TimeSheetEntryDto[] }) {
                   {formatEntryTime(entry.entryTime)}
                 </span>
               </div>
-              <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '1px' }}>
+              <div style={{ fontSize: '12px', color: colors.gray[500], marginTop: '1px' }}>
                 {cfg.label}{breakLabel}
               </div>
             </div>
@@ -537,12 +538,12 @@ const thStyle: React.CSSProperties = {
   textAlign: 'left',
   fontSize: '12px',
   fontWeight: 600,
-  color: '#6b7280',
+  color: colors.gray[500],
   textTransform: 'uppercase',
   letterSpacing: '0.05em',
 };
 
 const tdStyle: React.CSSProperties = {
   padding: '10px 16px',
-  color: '#374151',
+  color: colors.gray[700],
 };

@@ -1,4 +1,5 @@
 import { QRCodeSVG } from 'qrcode.react';
+import { colors } from '@/theme/tokens';
 
 interface MyQrBadgeProps {
   employeeId: string;
@@ -12,14 +13,14 @@ export function MyQrBadge({ employeeId, employeeName, employeeNumber }: MyQrBadg
 
   return (
     <div style={{
-      backgroundColor: '#ffffff',
+      backgroundColor: colors.white,
       borderRadius: '12px',
-      border: '1px solid #e5e7eb',
+      border: `1px solid ${colors.gray[200]}`,
       padding: '20px',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '16px' }}>
         <span style={{ fontSize: '16px' }}>🪪</span>
-        <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: '#111827' }}>
+        <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: colors.gray[900] }}>
           Moja karta QR
         </h3>
       </div>
@@ -37,20 +38,20 @@ export function MyQrBadge({ employeeId, employeeName, employeeNumber }: MyQrBadg
             size={120}
             level="M"
             bgColor="#f8fafc"
-            fgColor="#0f172a"
+            fgColor={colors.slate[900]}
           />
         </div>
 
         <div>
-          <div style={{ fontSize: '16px', fontWeight: 600, color: '#111827', marginBottom: '4px' }}>
+          <div style={{ fontSize: '16px', fontWeight: 600, color: colors.gray[900], marginBottom: '4px' }}>
             {employeeName}
           </div>
           {employeeNumber && (
-            <div style={{ fontSize: '13px', color: '#6b7280', marginBottom: '12px' }}>
+            <div style={{ fontSize: '13px', color: colors.gray[500], marginBottom: '12px' }}>
               Nr: {employeeNumber}
             </div>
           )}
-          <div style={{ fontSize: '12px', color: '#9ca3af', lineHeight: 1.5 }}>
+          <div style={{ fontSize: '12px', color: colors.gray[400], lineHeight: 1.5 }}>
             Pokaż ten kod na kiosku<br />aby szybko się odbić
           </div>
         </div>

@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { X } from 'lucide-react';
 import type { LeaveTypeDto } from '@/api/types/leave';
+import { colors } from '@/theme/tokens';
 
 interface LeaveRequestFormProps {
   employeeId: string;
@@ -88,7 +89,7 @@ export function LeaveRequestForm({
     >
       <div
         style={{
-          backgroundColor: '#fff',
+          backgroundColor: colors.white,
           borderRadius: '12px',
           width: '100%',
           maxWidth: '480px',
@@ -102,10 +103,10 @@ export function LeaveRequestForm({
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: '20px 24px 16px',
-            borderBottom: '1px solid #e5e7eb',
+            borderBottom: `1px solid ${colors.gray[200]}`,
           }}
         >
-          <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 600, color: '#111827' }}>
+          <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 600, color: colors.gray[900] }}>
             Nowy wniosek urlopowy
           </h2>
           <button
@@ -114,7 +115,7 @@ export function LeaveRequestForm({
               background: 'none',
               border: 'none',
               cursor: 'pointer',
-              color: '#6b7280',
+              color: colors.gray[500],
               padding: '4px',
               display: 'inline-flex',
               borderRadius: '4px',
@@ -131,10 +132,10 @@ export function LeaveRequestForm({
             <div
               style={{
                 padding: '10px 14px',
-                backgroundColor: '#fef2f2',
-                border: '1px solid #fecaca',
+                backgroundColor: colors.danger[50],
+                border: `1px solid ${colors.danger[200]}`,
                 borderRadius: '6px',
-                color: '#dc2626',
+                color: colors.danger[600],
                 fontSize: '13px',
                 marginBottom: '16px',
               }}
@@ -210,8 +211,8 @@ export function LeaveRequestForm({
                     style={{
                       marginLeft: 'auto',
                       fontSize: '11px',
-                      backgroundColor: '#fef3c7',
-                      color: '#92400e',
+                      backgroundColor: colors.warning[100],
+                      color: colors.warning[800],
                       padding: '2px 8px',
                       borderRadius: '4px',
                     }}
@@ -256,7 +257,7 @@ export function LeaveRequestForm({
               gap: '10px',
               marginTop: '24px',
               paddingTop: '16px',
-              borderTop: '1px solid #e5e7eb',
+              borderTop: `1px solid ${colors.gray[200]}`,
             }}
           >
             <button
@@ -266,9 +267,9 @@ export function LeaveRequestForm({
                 padding: '8px 16px',
                 fontSize: '14px',
                 fontWeight: 500,
-                color: '#374151',
-                backgroundColor: '#fff',
-                border: '1px solid #d1d5db',
+                color: colors.gray[700],
+                backgroundColor: colors.white,
+                border: `1px solid ${colors.gray[300]}`,
                 borderRadius: '6px',
                 cursor: 'pointer',
               }}
@@ -282,8 +283,8 @@ export function LeaveRequestForm({
                 padding: '8px 20px',
                 fontSize: '14px',
                 fontWeight: 500,
-                color: '#fff',
-                backgroundColor: !isValid || isSubmitting ? '#93c5fd' : '#2563eb',
+                color: colors.white,
+                backgroundColor: !isValid || isSubmitting ? colors.primary[300] : colors.primary[600],
                 border: 'none',
                 borderRadius: '6px',
                 cursor: !isValid || isSubmitting ? 'not-allowed' : 'pointer',
@@ -315,11 +316,11 @@ function FieldGroup({
           marginBottom: '4px',
           fontSize: '13px',
           fontWeight: 500,
-          color: '#374151',
+          color: colors.gray[700],
         }}
       >
         {label}
-        {required && <span style={{ color: '#dc2626', marginLeft: '2px' }}>*</span>}
+        {required && <span style={{ color: colors.danger[600], marginLeft: '2px' }}>*</span>}
       </label>
       {children}
     </div>
@@ -330,7 +331,7 @@ const inputStyle: React.CSSProperties = {
   width: '100%',
   padding: '8px 12px',
   fontSize: '14px',
-  border: '1px solid #d1d5db',
+  border: `1px solid ${colors.gray[300]}`,
   borderRadius: '6px',
   outline: 'none',
   boxSizing: 'border-box',
