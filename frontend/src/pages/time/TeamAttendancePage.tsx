@@ -5,7 +5,7 @@ import { useEmployees, useOrgUnitTree } from '@/api/hooks/useOrganization';
 import type { TimeSheetPeriodDto, TimeAnomalyDto } from '@/api/types/time';
 import type { EmployeeDto, OrganizationUnitTreeNode } from '@/api/types/organization';
 import { useIsMobile } from '@/shared';
-import ExcelJS from 'exceljs';
+import type ExcelJS from 'exceljs';
 import { colors } from '@/theme/tokens';
 
 /* ── helpers ── */
@@ -196,7 +196,10 @@ export function TeamAttendancePage() {
 
   /* Excel export */
   const exportExcel = useCallback(async () => {
-    const wb = new ExcelJS.Workbook();
+    // Loaded on demand — exceljs is a large dependency, kept out of the main
+    // and route bundles until the user actually triggers an export.
+    const { default: ExcelJSLib } = await import('exceljs');
+    const wb = new ExcelJSLib.Workbook();
     wb.creator = 'WorkBase';
     const ws = wb.addWorksheet('Raport czasu pracy');
 

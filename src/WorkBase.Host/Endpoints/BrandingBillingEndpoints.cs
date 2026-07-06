@@ -129,7 +129,11 @@ public static class BillingEndpoints
             Event stripeEvent;
             try
             {
-                stripeEvent = EventUtility.ConstructEvent(json, signatureHeader, webhookSecret);
+                // throwOnApiVersionMismatch: false — we only read a handful of fields from
+                // the event payload and don't want webhook delivery to fail just because
+                // Stripe's account API version differs from the version this Stripe.net
+                // build was compiled against. Signature verification still applies.
+                stripeEvent = EventUtility.ConstructEvent(json, signatureHeader, webhookSecret, throwOnApiVersionMismatch: false);
             }
             catch (StripeException ex)
             {
