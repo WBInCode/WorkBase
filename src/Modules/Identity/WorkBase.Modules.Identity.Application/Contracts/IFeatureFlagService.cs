@@ -14,4 +14,10 @@ public interface IFeatureFlagService
     /// the plan. Returns NotFound if no active plan with that id exists.
     /// </summary>
     Task<Result> ApplyPlanAsync(Guid tenantId, Guid planId, string? userId, CancellationToken ct = default);
+
+    /// <summary>Lists active, sellable LicensePlans (e.g. Bronze/Silver/Gold) for the operator panel.</summary>
+    Task<List<LicensePlanSummaryDto>> GetActivePlansAsync(CancellationToken ct = default);
 }
+
+public sealed record LicensePlanSummaryDto(Guid Id, string Name, string[] IncludedModules);
+

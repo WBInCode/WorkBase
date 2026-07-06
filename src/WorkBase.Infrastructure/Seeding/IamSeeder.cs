@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using WorkBase.Infrastructure.Persistence;
 using WorkBase.Modules.Identity.Domain.Entities;
+using WorkBase.Shared.Auth;
 using WorkBase.Shared.Modules;
 
 namespace WorkBase.Infrastructure.Seeding;
@@ -142,6 +143,11 @@ public static class IamSeeder
         // Config
         permissions.Add(CreatePermission(permissionId++, "config", Actions.Manage, description: "Zarządzanie konfiguracją systemu (wynagrodzenia, branding)"));
 
+        // Platform (operator-only, see docs/05-module-licensing-architecture.md step 5) —
+        // deliberately NOT granted to Admin below, only to Super Admin, and further gated at
+        // the endpoint level to require the caller's tenant to be our own operator tenant.
+        permissions.Add(CreatePermission(permissionId++, "platform", "manage-tenants", description: "Zarządzanie firmami (tenantami) i ich planami licencyjnymi"));
+
         return permissions;
     }
 
@@ -186,8 +192,9 @@ public static class IamSeeder
                 Guid.Parse($"30000000-0000-0000-0000-{rpId++:D12}")));
         }
 
-        // Admin — gets ALL permissions (full system management)
-        foreach (var permission in permissions)
+        // Admin — gets ALL permissions (full system management) except platform.manage-tenants,
+        // which is reserved for Super Admin of our own operator tenant (see PlatformConstants).
+        foreach (var permission in permissions.Where(p => p.FullCode != PlatformConstants.ManageTenantsPermission))
         {
             rolePermissions.Add(SetId(
                 RolePermission.Create(AdminRoleId, permission.Id),

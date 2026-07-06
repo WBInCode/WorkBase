@@ -15,6 +15,7 @@ import { EmployeeCardPage } from '@/pages/organization/EmployeeCardPage';
 import { RolesPage } from '@/pages/admin/RolesPage';
 import { PermissionsMatrixPage } from '@/pages/admin/PermissionsMatrixPage';
 import { FeatureFlagsPage } from '@/pages/admin/FeatureFlagsPage';
+import { PlatformTenantsPage } from '@/pages/admin/PlatformTenantsPage';
 import { LeaveTypesConfigPage } from '@/pages/admin/LeaveTypesConfigPage';
 import { TaskStatusConfigPage } from '@/pages/admin/TaskStatusConfigPage';
 import { BreakPoliciesConfigPage } from '@/pages/admin/BreakPoliciesConfigPage';
@@ -96,6 +97,7 @@ function AppRoutes() {
         <Route path="/admin/roles" element={isAdmin ? <RolesPage /> : <Navigate to="/workspace" replace />} />
         <Route path="/admin/permissions" element={isAdmin ? <PermissionsMatrixPage /> : <Navigate to="/workspace" replace />} />
         <Route path="/admin/feature-flags" element={isAdmin ? <FeatureFlagsPage /> : <Navigate to="/workspace" replace />} />
+        <Route path="/admin/tenants" element={isAdmin ? <PlatformTenantsPage /> : <Navigate to="/workspace" replace />} />
         <Route path="/admin/leave-types" element={isAdmin ? <LeaveTypesConfigPage /> : <Navigate to="/workspace" replace />} />
         <Route path="/admin/task-statuses" element={isAdmin ? <TaskStatusConfigPage /> : <Navigate to="/workspace" replace />} />
         <Route path="/admin/break-policies" element={isAdmin ? <BreakPoliciesConfigPage /> : <Navigate to="/workspace" replace />} />

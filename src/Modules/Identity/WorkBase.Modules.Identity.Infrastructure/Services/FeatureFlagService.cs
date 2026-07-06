@@ -73,4 +73,12 @@ public sealed class FeatureFlagService(WorkBaseDbContext db) : IFeatureFlagServi
         await db.SaveChangesAsync(ct);
         return Result.Success();
     }
+
+    public async Task<List<LicensePlanSummaryDto>> GetActivePlansAsync(CancellationToken ct = default)
+        => await db.Set<LicensePlan>()
+            .AsNoTracking()
+            .Where(p => p.IsActive)
+            .OrderBy(p => p.Name)
+            .Select(p => new LicensePlanSummaryDto(p.Id, p.Name, p.IncludedModules))
+            .ToListAsync(ct);
 }

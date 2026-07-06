@@ -1,5 +1,16 @@
 namespace WorkBase.Modules.Organization.Application.Dtos;
 
+/// <summary>Used by the platform-operator "companies" panel (docs/05-module-licensing-architecture.md step 5).</summary>
+public sealed record TenantSummaryDto(
+    Guid Id,
+    string Name,
+    string Slug,
+    string? KeycloakRealmName,
+    Guid? LicensePlanId,
+    string Status,
+    bool IsActive,
+    DateTime? TrialExpiresAt);
+
 public sealed record OrganizationUnitDto(
     Guid Id,
     string Name,
