@@ -420,6 +420,44 @@ namespace WorkBase.Infrastructure.Persistence.Migrations
                     b.ToTable("cfg_department_module_workflows", (string)null);
                 });
 
+            modelBuilder.Entity("WorkBase.Infrastructure.Persistence.Entities.LicensePlan", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string[]>("IncludedModules")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasColumnName("included_modules");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("name");
+
+                    b.HasKey("Id")
+                        .HasName("pk_cfg_license_plans");
+
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasDatabaseName("ix_cfg_license_plans_name");
+
+                    b.ToTable("cfg_license_plans", (string)null);
+                });
+
             modelBuilder.Entity("WorkBase.Infrastructure.Persistence.Entities.OnboardingRequest", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2900,12 +2938,35 @@ namespace WorkBase.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(128)")
                         .HasColumnName("slug");
 
+                    b.Property<string>("KeycloakRealmName")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("keycloak_realm_name");
+
+                    b.Property<Guid?>("LicensePlanId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("license_plan_id");
+
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1)
+                        .HasColumnName("status");
+
+                    b.Property<DateTime?>("TrialExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("trial_expires_at");
+
                     b.HasKey("Id")
                         .HasName("pk_org_tenants");
 
                     b.HasIndex("Slug")
                         .IsUnique()
                         .HasDatabaseName("ix_org_tenants_slug");
+
+                    b.HasIndex("KeycloakRealmName")
+                        .IsUnique()
+                        .HasDatabaseName("ix_org_tenants_keycloak_realm_name");
 
                     b.ToTable("org_tenants", (string)null);
                 });
