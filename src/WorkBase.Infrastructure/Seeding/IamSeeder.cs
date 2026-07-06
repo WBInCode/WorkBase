@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using WorkBase.Infrastructure.Persistence;
 using WorkBase.Modules.Identity.Domain.Entities;
+using WorkBase.Shared.Modules;
 
 namespace WorkBase.Infrastructure.Seeding;
 
@@ -19,7 +20,9 @@ public static class IamSeeder
     private static readonly Guid PracownikRoleId = Guid.Parse("10000000-0000-0000-0000-000000000004");
     private static readonly Guid HrRoleId = Guid.Parse("10000000-0000-0000-0000-000000000005");
 
-    // Module names
+    // Module names — sourced from the single ModuleCatalog (src/WorkBase.Shared/Modules/ModuleCatalog.cs)
+    // so newly added modules automatically get baseline CRUD permissions, data scopes and a
+    // feature flag row (enabled by default for the seeded default tenant).
     private static class Modules
     {
         public const string Organization = "org";
@@ -32,11 +35,7 @@ public static class IamSeeder
         public const string Notification = "notification";
         public const string Documents = "documents";
 
-        public static readonly string[] All =
-        [
-            Organization, Identity, Time, Leave, Tasks,
-            Workflow, Dashboard, Notification, Documents
-        ];
+        public static readonly string[] All = ModuleCatalog.All.Select(m => m.Key).ToArray();
     }
 
     // Standard CRUD actions

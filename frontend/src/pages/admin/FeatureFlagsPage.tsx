@@ -4,15 +4,24 @@ import { useFeatureFlags, useToggleFeatureFlag } from '@/api/hooks/useIam';
 import { useIsMobile } from '@/shared';
 import { colors } from '@/theme/tokens';
 
+// Keep in sync with src/WorkBase.Shared/Modules/ModuleCatalog.cs (Key -> DisplayName).
+// FeatureFlag.Module stores the short key (e.g. "org", "time"), not the PascalCase namespace.
 const moduleLabels: Record<string, string> = {
-  Organization: 'Organizacja',
-  TimeTracking: 'Czas pracy',
-  Leave: 'Urlopy',
-  Tasks: 'Zadania',
-  Documents: 'Dokumenty',
-  Notifications: 'Powiadomienia',
-  Dashboard: 'Dashboard',
-  Workflow: 'Obieg dokumentów',
+  org: 'Organizacja',
+  identity: 'Zarządzanie dostępem',
+  time: 'Czas pracy',
+  leave: 'Urlopy',
+  tasks: 'Zadania',
+  workflow: 'Procesy',
+  dashboard: 'Dashboard',
+  notification: 'Powiadomienia',
+  documents: 'Dokumenty',
+  integration: 'Integracje',
+  forms: 'Formularze',
+  cases: 'Sprawy',
+  contacts: 'Kontakty',
+  sales: 'Sprzedaż',
+  ai: 'AI',
 };
 
 export function FeatureFlagsPage() {

@@ -2,44 +2,24 @@ using System.Reflection;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using WorkBase.Shared.Domain;
+using WorkBase.Shared.Modules;
 
 namespace WorkBase.Infrastructure;
 
 public static class ModuleDiscovery
 {
-    private static readonly string[] ModuleAssemblyNames =
-    [
-        "WorkBase.Modules.Identity.Infrastructure",
-        "WorkBase.Modules.Organization.Infrastructure",
-        "WorkBase.Modules.TimeTracking.Infrastructure",
-        "WorkBase.Modules.Workflow.Infrastructure",
-        "WorkBase.Modules.Leave.Infrastructure",
-        "WorkBase.Modules.Tasks.Infrastructure",
-        "WorkBase.Modules.Dashboard.Infrastructure",
-        "WorkBase.Modules.Notification.Infrastructure",
-        "WorkBase.Modules.Documents.Infrastructure",
-        "WorkBase.Modules.Integration.Infrastructure",
-        "WorkBase.Modules.Cases.Infrastructure",
-        "WorkBase.Modules.Contacts.Infrastructure",
-        "WorkBase.Modules.Forms.Infrastructure",
-        "WorkBase.Modules.Sales.Infrastructure",
-        "WorkBase.Modules.AI.Infrastructure",
-        "WorkBase.Modules.Identity.Api",
-        "WorkBase.Modules.Organization.Api",
-        "WorkBase.Modules.TimeTracking.Api",
-        "WorkBase.Modules.Workflow.Api",
-        "WorkBase.Modules.Leave.Api",
-        "WorkBase.Modules.Tasks.Api",
-        "WorkBase.Modules.Dashboard.Api",
-        "WorkBase.Modules.Notification.Api",
-        "WorkBase.Modules.Documents.Api",
-        "WorkBase.Modules.Integration.Api",
-        "WorkBase.Modules.Cases.Api",
-        "WorkBase.Modules.Contacts.Api",
-        "WorkBase.Modules.Forms.Api",
-        "WorkBase.Modules.Sales.Api",
-        "WorkBase.Modules.AI.Api"
-    ];
+    /// <summary>
+    /// Infrastructure/Api assembly names for every module, derived from the single
+    /// source of truth in <see cref="ModuleCatalog"/>. Adding a module only requires
+    /// a new entry in ModuleCatalog.All — no change needed here.
+    /// </summary>
+    private static readonly string[] ModuleAssemblyNames = ModuleCatalog.All
+        .SelectMany(m => new[]
+        {
+            $"WorkBase.Modules.{m.Namespace}.Infrastructure",
+            $"WorkBase.Modules.{m.Namespace}.Api",
+        })
+        .ToArray();
 
     /// <summary>
     /// Scans all module assemblies for IModule implementations and registers their services.
