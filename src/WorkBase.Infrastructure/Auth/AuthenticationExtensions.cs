@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using WorkBase.Infrastructure.Auth.MultiRealm;
 
 namespace WorkBase.Infrastructure.Auth;
 
@@ -17,46 +18,102 @@ public static class AuthenticationExtensions
         var requireHttps = configuration.GetValue<bool>("Keycloak:RequireHttpsMetadata");
         var metadataAddress = configuration["Keycloak:MetadataAddress"];
 
+        // Multi-realm Keycloak (docs/05-module-licensing-architecture.md step 6). Disabled by
+        // default (Keycloak:MultiRealmEnabled unset/false) — every existing deployment keeps
+        // using the framework's built-in single-Authority validation below, byte-for-byte
+        // unchanged. Only flip this on after a dedicated security review (see
+        // DynamicIssuerValidation's doc comment for what needs re-checking first).
+        var multiRealmEnabled = configuration.GetValue<bool>("Keycloak:MultiRealmEnabled");
+
+        if (multiRealmEnabled)
+        {
+            services.AddSingleton<TenantIssuerCache>();
+            services.AddSingleton<DynamicIssuerValidation>();
+            services.AddHostedService<TenantIssuerCacheRefreshService>();
+        }
+
         services
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
-                options.Authority = authority;
                 options.Audience = audience;
                 options.RequireHttpsMetadata = requireHttps;
                 options.MapInboundClaims = false;
 
-                if (!string.IsNullOrEmpty(metadataAddress))
+                if (multiRealmEnabled)
                 {
-                    options.MetadataAddress = metadataAddress;
-                }
-
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuer = true,
-                    ValidIssuer = authority,
-                    ValidateAudience = true,
-                    ValidAudience = audience,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    NameClaimType = ClaimTypes.NameIdentifier,
-                    RoleClaimType = "roles"
-                };
-
-                options.Events = new JwtBearerEvents
-                {
-                    OnTokenValidated = async context =>
+                    // Do NOT set options.Authority / MetadataAddress here: that would make the
+                    // framework fetch a single realm's metadata and fight with our own dynamic
+                    // per-issuer resolution below.
+                    options.TokenValidationParameters = new TokenValidationParameters
                     {
-                        MapKeycloakClaims(context);
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidAudience = audience,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        NameClaimType = ClaimTypes.NameIdentifier,
+                        RoleClaimType = "roles",
+                    };
 
-                        if (context.Principal is not null)
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
                         {
-                            await UserProvisioningService.OnTokenValidatedAsync(
-                                context.HttpContext.RequestServices,
-                                context.Principal);
+                            var dynamicValidation = context.HttpContext.RequestServices.GetRequiredService<DynamicIssuerValidation>();
+                            context.Options.TokenValidationParameters.IssuerValidator = dynamicValidation.ValidateIssuer;
+                            context.Options.TokenValidationParameters.IssuerSigningKeyResolver = dynamicValidation.ResolveSigningKeys;
+                            return Task.CompletedTask;
+                        },
+                        OnTokenValidated = async context =>
+                        {
+                            MapKeycloakClaims(context);
+
+                            if (context.Principal is not null)
+                            {
+                                await UserProvisioningService.OnTokenValidatedAsync(
+                                    context.HttpContext.RequestServices,
+                                    context.Principal);
+                            }
                         }
+                    };
+                }
+                else
+                {
+                    options.Authority = authority;
+
+                    if (!string.IsNullOrEmpty(metadataAddress))
+                    {
+                        options.MetadataAddress = metadataAddress;
                     }
-                };
+
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidIssuer = authority,
+                        ValidateAudience = true,
+                        ValidAudience = audience,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        NameClaimType = ClaimTypes.NameIdentifier,
+                        RoleClaimType = "roles"
+                    };
+
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnTokenValidated = async context =>
+                        {
+                            MapKeycloakClaims(context);
+
+                            if (context.Principal is not null)
+                            {
+                                await UserProvisioningService.OnTokenValidatedAsync(
+                                    context.HttpContext.RequestServices,
+                                    context.Principal);
+                            }
+                        }
+                    };
+                }
             });
 
         services.AddAuthorization();
@@ -78,3 +135,4 @@ public static class AuthenticationExtensions
         }
     }
 }
+

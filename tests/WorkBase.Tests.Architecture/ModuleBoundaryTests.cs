@@ -1,16 +1,15 @@
 using System.Reflection;
 using NetArchTest.Rules;
+using WorkBase.Shared.Modules;
 using Xunit;
 
 namespace WorkBase.Tests.Architecture;
 
 public class ModuleBoundaryTests
 {
-    private static readonly string[] ModuleNames =
-    [
-        "Organization", "Identity", "TimeTracking", "Leave", "Tasks",
-        "Workflow", "Dashboard", "Notification", "Documents"
-    ];
+    // Sourced from the single ModuleCatalog (src/WorkBase.Shared/Modules/ModuleCatalog.cs)
+    // so newly added modules are automatically covered by these isolation checks.
+    private static readonly string[] ModuleNames = ModuleCatalog.All.Select(m => m.Namespace).ToArray();
 
     [Fact]
     public void Modules_ShouldNot_HaveDirectCrossReferences()

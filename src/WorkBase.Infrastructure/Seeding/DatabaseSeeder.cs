@@ -17,6 +17,8 @@ public static class DatabaseSeeder
         await dbContext.Database.MigrateAsync();
         logger.LogInformation("Database migrations applied successfully.");
 
+        await TenantSeeder.SeedAsync(dbContext, logger);
+        await LicensePlanSeeder.SeedAsync(dbContext, logger);
         await IamSeeder.SeedAsync(dbContext, logger);
         await OrganizationSeeder.SeedAsync(dbContext, logger);
         await WorkflowSeeder.SeedAsync(dbContext, logger);

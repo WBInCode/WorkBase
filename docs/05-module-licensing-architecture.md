@@ -246,16 +246,41 @@ To wymaga osobnej, dokładniejszej analizy bezpieczeństwa przed wdrożeniem —
 
 ## 7. Plan wdrożenia (kolejność rekomendowana)
 
-| Krok | Zakres | Ryzyko | Zależności |
-|---|---|---|---|
-| 1 | `ModuleCatalog.cs` + refaktor `IamSeeder`/testów architektury do korzystania z niego | Niskie | brak |
-| 2 | Encja `Tenant` + migracja EF Core | Niskie | Krok 1 |
-| 3 | Egzekwowanie flag na backendzie (`TenantBehavior` + `ModuleResolver`) | Średnie (dotyka pipeline wszystkich requestów) | Krok 1, 2 |
-| 4 | Encja `LicensePlan` + endpoint "zastosuj plan do tenanta" | Niskie | Krok 2 |
-| 5 | Panel operatora: lista firm → wybór planu/modułów (rozszerzenie `FeatureFlagsPage`) | Niskie (UI) | Krok 2, 4 |
-| 6 | Multi-realm Keycloak: rozszerzenie `IKeycloakAdminService` + dynamiczna walidacja JWT | Wysokie (bezpieczeństwo, wymaga osobnego review) | Krok 2 |
+| Krok | Zakres | Ryzyko | Zależności | Status |
+|---|---|---|---|---|
+| 1 | `ModuleCatalog.cs` + refaktor `IamSeeder`/testów architektury do korzystania z niego | Niskie | brak | ✅ Wykonane |
+| 2 | Encja `Tenant` (rozszerzona) + `LicensePlan` + migracja EF Core | Niskie | Krok 1 | ✅ Kod wykonany — **migracja EF wymaga wygenerowania lokalnie** (brak SDK .NET w środowisku agenta), patrz commit `3a8695c` |
+| 3 | Egzekwowanie flag na backendzie (`TenantBehavior` + `ModuleResolver`) | Średnie (dotyka pipeline wszystkich requestów) | Krok 1, 2 | ✅ Zrobione (commit `fd33a49`) |
+| 4 | Endpoint "zastosuj plan do tenanta" (materializacja `LicensePlan` → `FeatureFlag`) | Niskie | Krok 2 | ✅ Zrobione (commit `701f98c`) — na razie tylko dla własnego tenanta (patrz krok 5) |
+| 5 | Panel operatora: lista firm → wybór planu/modułów (rozszerzenie `FeatureFlagsPage`) | Niskie (UI) | Krok 2, 4 | ✅ Zrobione (commit `65e89b2`) — nowe pojęcie "operatora platformy" (`PlatformConstants` + `RequirePlatformOperator()`), patrz uwaga poniżej |
+| 6 | Multi-realm Keycloak: rozszerzenie `IKeycloakAdminService` + dynamiczna walidacja JWT | Wysokie (bezpieczeństwo, wymaga osobnego review) | Krok 2 | ✅ Kod gotowy do review (commity `02924d8`, `36ce6fd`) — **domyślnie WYŁĄCZONE** (`Keycloak:MultiRealmEnabled=false`), patrz uwagi poniżej |
 
 Kroki 1–5 mają sens do wdrożenia i przetestowania **jeszcze na jednym, współdzielonym realmie** — nie trzeba czekać na multi-realm, żeby mieć działające zarządzanie modułami/pakietami per firma. Krok 6 to osobny, większy projekt.
+
+### Uwaga do kroku 2 — wymagana akcja ręczna
+
+Przy okazji tego kroku naprawiony został realny bug w `WorkBaseDbContext.GetModuleInfrastructureAssemblies()` — metoda skanowała tylko 9 z 15 assembly modułów pod kątem konfiguracji EF, więc tabele modułów Integration/Cases/Contacts/Forms/Sales/AI **nigdy nie były częścią modelu EF**, niezależnie od migracji. Po tej poprawce najbliższa migracja będzie odpowiednio większa (nowe tabele dla 6 modułów + nowe kolumny w `org_tenants` + nowa tabela `cfg_license_plans`).
+
+Przed mergem do `main` należy lokalnie (środowisko z zainstalowanym SDK .NET) wygenerować migrację:
+```powershell
+dotnet ef migrations add AddTenantAndLicensePlan `
+  --project src/WorkBase.Infrastructure/WorkBase.Infrastructure.csproj `
+  --startup-project src/WorkBase.Host/WorkBase.Host.csproj
+```
+i zweryfikować wynik (`dotnet build`, `dotnet test`, przegląd wygenerowanego SQL) przed połączeniem z gałęzią główną.
+
+### Uwaga do kroku 6 — status i co jeszcze wymaga zrobienia przed włączeniem
+
+**Zrobione i bezpieczne domyślnie:**
+- `IKeycloakAdminService.CreateRealmAsync/CreateClientAsync/CreateRealmRolesAsync` — czysto addytywne, idempotentne, nie dotykają istniejącego logowania. Bezpieczne do użycia od razu przy budowaniu automatycznego onboardingu nowej firmy.
+- Dynamiczna walidacja JWT (`TenantIssuerCache`, `DynamicIssuerValidation`) — kod gotowy, ale **domyślnie wyłączony** przez `Keycloak:MultiRealmEnabled=false`. Dopóki flaga jest wyłączona, cały istniejący, jednorealmowy przepływ logowania jest bit-w-bit niezmieniony.
+
+**Wymagane PRZED ustawieniem `Keycloak:MultiRealmEnabled=true` na produkcji:**
+1. Potwierdzić, że `Keycloak:Audience`/client_id (`workbase-api`) jest identyczny w każdym realmie tenanta — dziś `ValidAudience` to wciąż jedna, stała wartość.
+2. Ocenić, czy 5-minutowy interwał odświeżania cache issuerów jest akceptowalny (tyle może potrwać, zanim zawieszenie/usunięcie realmu faktycznie zablokuje logowanie).
+3. Testy integracyjne na prawdziwej, wielorealmowej instancji Keycloak — obecnie brak.
+4. Weryfikacja obciążenia: jeden `ConfigurationManager` (i jego wewnętrzny cache JWKS) na realm — sprawdzić, czy skaluje się dla docelowej liczby firm.
+5. Dedykowany przegląd bezpieczeństwa całego mechanizmu (nie tylko code review) — to zmiana dotykająca uwierzytelniania wszystkich najemców jednocześnie.
 
 ---
 

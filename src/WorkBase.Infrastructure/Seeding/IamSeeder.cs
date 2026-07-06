@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using WorkBase.Infrastructure.Persistence;
 using WorkBase.Modules.Identity.Domain.Entities;
+using WorkBase.Shared.Auth;
+using WorkBase.Shared.Modules;
 
 namespace WorkBase.Infrastructure.Seeding;
 
@@ -19,7 +21,9 @@ public static class IamSeeder
     private static readonly Guid PracownikRoleId = Guid.Parse("10000000-0000-0000-0000-000000000004");
     private static readonly Guid HrRoleId = Guid.Parse("10000000-0000-0000-0000-000000000005");
 
-    // Module names
+    // Module names — sourced from the single ModuleCatalog (src/WorkBase.Shared/Modules/ModuleCatalog.cs)
+    // so newly added modules automatically get baseline CRUD permissions, data scopes and a
+    // feature flag row (enabled by default for the seeded default tenant).
     private static class Modules
     {
         public const string Organization = "org";
@@ -32,11 +36,7 @@ public static class IamSeeder
         public const string Notification = "notification";
         public const string Documents = "documents";
 
-        public static readonly string[] All =
-        [
-            Organization, Identity, Time, Leave, Tasks,
-            Workflow, Dashboard, Notification, Documents
-        ];
+        public static readonly string[] All = ModuleCatalog.All.Select(m => m.Key).ToArray();
     }
 
     // Standard CRUD actions
@@ -143,6 +143,11 @@ public static class IamSeeder
         // Config
         permissions.Add(CreatePermission(permissionId++, "config", Actions.Manage, description: "Zarządzanie konfiguracją systemu (wynagrodzenia, branding)"));
 
+        // Platform (operator-only, see docs/05-module-licensing-architecture.md step 5) —
+        // deliberately NOT granted to Admin below, only to Super Admin, and further gated at
+        // the endpoint level to require the caller's tenant to be our own operator tenant.
+        permissions.Add(CreatePermission(permissionId++, "platform", "manage-tenants", description: "Zarządzanie firmami (tenantami) i ich planami licencyjnymi"));
+
         return permissions;
     }
 
@@ -187,8 +192,9 @@ public static class IamSeeder
                 Guid.Parse($"30000000-0000-0000-0000-{rpId++:D12}")));
         }
 
-        // Admin — gets ALL permissions (full system management)
-        foreach (var permission in permissions)
+        // Admin — gets ALL permissions (full system management) except platform.manage-tenants,
+        // which is reserved for Super Admin of our own operator tenant (see PlatformConstants).
+        foreach (var permission in permissions.Where(p => p.FullCode != PlatformConstants.ManageTenantsPermission))
         {
             rolePermissions.Add(SetId(
                 RolePermission.Create(AdminRoleId, permission.Id),

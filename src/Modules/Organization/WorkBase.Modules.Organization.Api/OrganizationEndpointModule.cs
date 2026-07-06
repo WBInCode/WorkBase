@@ -12,6 +12,7 @@ public sealed class OrganizationEndpointModule : IEndpointModule
         endpoints.MapEmployeeEndpoints();
         endpoints.MapPositionEndpoints();
         endpoints.MapUnitTypeEndpoints();
+        endpoints.MapTenantEndpoints();
         return endpoints;
     }
 }

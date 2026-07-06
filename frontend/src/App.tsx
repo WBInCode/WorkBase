@@ -20,6 +20,7 @@ const EmployeeCardPage = lazy(() => import('@/pages/organization/EmployeeCardPag
 const RolesPage = lazy(() => import('@/pages/admin/RolesPage').then((m) => ({ default: m.RolesPage })));
 const PermissionsMatrixPage = lazy(() => import('@/pages/admin/PermissionsMatrixPage').then((m) => ({ default: m.PermissionsMatrixPage })));
 const FeatureFlagsPage = lazy(() => import('@/pages/admin/FeatureFlagsPage').then((m) => ({ default: m.FeatureFlagsPage })));
+const PlatformTenantsPage = lazy(() => import('@/pages/admin/PlatformTenantsPage').then((m) => ({ default: m.PlatformTenantsPage })));
 const LeaveTypesConfigPage = lazy(() => import('@/pages/admin/LeaveTypesConfigPage').then((m) => ({ default: m.LeaveTypesConfigPage })));
 const TaskStatusConfigPage = lazy(() => import('@/pages/admin/TaskStatusConfigPage').then((m) => ({ default: m.TaskStatusConfigPage })));
 const BreakPoliciesConfigPage = lazy(() => import('@/pages/admin/BreakPoliciesConfigPage').then((m) => ({ default: m.BreakPoliciesConfigPage })));
@@ -109,6 +110,7 @@ function AppRoutes() {
         <Route path="/admin/roles" element={isAdmin ? <RolesPage /> : <Navigate to="/workspace" replace />} />
         <Route path="/admin/permissions" element={isAdmin ? <PermissionsMatrixPage /> : <Navigate to="/workspace" replace />} />
         <Route path="/admin/feature-flags" element={isAdmin ? <FeatureFlagsPage /> : <Navigate to="/workspace" replace />} />
+        <Route path="/admin/tenants" element={isAdmin ? <PlatformTenantsPage /> : <Navigate to="/workspace" replace />} />
         <Route path="/admin/leave-types" element={isAdmin ? <LeaveTypesConfigPage /> : <Navigate to="/workspace" replace />} />
         <Route path="/admin/task-statuses" element={isAdmin ? <TaskStatusConfigPage /> : <Navigate to="/workspace" replace />} />
         <Route path="/admin/break-policies" element={isAdmin ? <BreakPoliciesConfigPage /> : <Navigate to="/workspace" replace />} />

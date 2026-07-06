@@ -9,6 +9,8 @@ import type {
   UpdateRolePermissionsRequest,
   AssignUserRoleRequest,
   FeatureFlagDto,
+  LicensePlanSummaryDto,
+  TenantSummaryDto,
 } from '@/api/types/iam';
 
 export function useRoles() {
@@ -112,5 +114,54 @@ export function useToggleFeatureFlag() {
     mutationFn: (module: string) =>
       api.put<void>(`/api/iam/feature-flags/${module}/toggle`, {}),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['iam', 'feature-flags'] }),
+  });
+}
+
+export function useLicensePlans() {
+  return useQuery({
+    queryKey: ['iam', 'license-plans'],
+    queryFn: () => api.get<LicensePlanSummaryDto[]>('/api/iam/feature-flags/plans'),
+  });
+}
+
+// --- Platform-operator "companies" panel (docs/05-module-licensing-architecture.md step 5).
+// Only usable by users authenticated in the operator tenant with the platform.manage-tenants
+// permission — the backend enforces this (RequirePlatformOperator), these hooks will simply
+// receive a 403 for anyone else.
+
+export function usePlatformTenants() {
+  return useQuery({
+    queryKey: ['platform', 'tenants'],
+    queryFn: () => api.get<TenantSummaryDto[]>('/api/org/tenants'),
+  });
+}
+
+export function usePlatformTenantFeatureFlags(tenantId: string | null) {
+  return useQuery({
+    queryKey: ['platform', 'tenants', tenantId, 'feature-flags'],
+    queryFn: () => api.get<FeatureFlagDto[]>(`/api/iam/feature-flags/tenant/${tenantId}`),
+    enabled: !!tenantId,
+  });
+}
+
+export function useTogglePlatformTenantFeatureFlag(tenantId: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (module: string) =>
+      api.put<void>(`/api/iam/feature-flags/tenant/${tenantId}/${module}/toggle`, {}),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ['platform', 'tenants', tenantId, 'feature-flags'] }),
+  });
+}
+
+export function useApplyLicensePlanToPlatformTenant(tenantId: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (planId: string) =>
+      api.post<void>(`/api/iam/feature-flags/tenant/${tenantId}/apply-plan/${planId}`, {}),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['platform', 'tenants', tenantId, 'feature-flags'] });
+      qc.invalidateQueries({ queryKey: ['platform', 'tenants'] });
+    },
   });
 }

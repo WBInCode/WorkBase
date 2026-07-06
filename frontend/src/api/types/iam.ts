@@ -52,3 +52,22 @@ export interface FeatureFlagDto {
   enabledAt: string | null;
   enabledBy: string | null;
 }
+
+export interface LicensePlanSummaryDto {
+  id: string;
+  name: string;
+  includedModules: string[];
+}
+
+/** Platform-operator "companies" panel (docs/05-module-licensing-architecture.md step 5). */
+export interface TenantSummaryDto {
+  id: string;
+  name: string;
+  slug: string;
+  keycloakRealmName: string | null;
+  licensePlanId: string | null;
+  status: string;
+  isActive: boolean;
+  trialExpiresAt: string | null;
+}
+
