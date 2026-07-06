@@ -7,6 +7,7 @@ import {
   AlertsWidget,
 } from '@/components/Dashboard';
 import { useIsMobile } from '@/shared';
+import { colors } from '@/theme/tokens';
 
 export function DashboardPage() {
   const { data, isLoading, dataUpdatedAt, refetch, isFetching } = useDashboardSummary();
@@ -21,13 +22,13 @@ export function DashboardPage() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 700, color: '#111827' }}>
+          <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 700, color: colors.gray[900] }}>
             Dashboard
           </h1>
-          <p style={{ margin: '4px 0 0', fontSize: '14px', color: '#6b7280' }}>
+          <p style={{ margin: '4px 0 0', fontSize: '14px', color: colors.gray[500] }}>
             Podsumowanie operacyjne
             {lastUpdate && (
-              <span style={{ marginLeft: '8px', fontSize: '12px', color: '#9ca3af' }}>
+              <span style={{ marginLeft: '8px', fontSize: '12px', color: colors.gray[400] }}>
                 · odświeżono {lastUpdate}
               </span>
             )}
@@ -39,8 +40,8 @@ export function DashboardPage() {
           style={{
             display: 'inline-flex', alignItems: 'center', gap: '6px',
             padding: '8px 14px', fontSize: '13px', fontWeight: 500,
-            color: '#374151', backgroundColor: '#fff',
-            border: '1px solid #d1d5db', borderRadius: '6px',
+            color: colors.gray[700], backgroundColor: colors.white,
+            border: `1px solid ${colors.gray[300]}`, borderRadius: '6px',
             cursor: isFetching ? 'default' : 'pointer',
             opacity: isFetching ? 0.6 : 1,
           }}

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Play, Square, Coffee, CoffeeIcon, Loader2, RotateCcw } from 'lucide-react';
 import { useTimeStatus, useBreakAvailability, useClockIn, useClockOut, useStartBreak, useEndBreak } from '@/api/hooks/useTimeTracking';
+import { colors } from '@/theme/tokens';
 
 interface ClockButtonProps {
   employeeId: string;
@@ -9,10 +10,10 @@ interface ClockButtonProps {
 type TimeStatus = 'not-started' | 'working' | 'on-break' | 'ended';
 
 const STATUS_CONFIG: Record<TimeStatus, { label: string; color: string; bg: string; dot: string }> = {
-  'not-started': { label: 'Nierozpoczęty', color: '#6b7280', bg: '#f3f4f6', dot: '#9ca3af' },
-  'working': { label: 'W pracy', color: '#059669', bg: '#ecfdf5', dot: '#10b981' },
-  'on-break': { label: 'Przerwa', color: '#d97706', bg: '#fffbeb', dot: '#f59e0b' },
-  'ended': { label: 'Zakończony', color: '#6b7280', bg: '#f3f4f6', dot: '#9ca3af' },
+  'not-started': { label: 'Nierozpoczęty', color: colors.gray[500], bg: colors.gray[100], dot: colors.gray[400] },
+  'working': { label: 'W pracy', color: colors.emerald[600], bg: '#ecfdf5', dot: '#10b981' },
+  'on-break': { label: 'Przerwa', color: colors.warning[600], bg: colors.warning[50], dot: colors.warning[500] },
+  'ended': { label: 'Zakończony', color: colors.gray[500], bg: colors.gray[100], dot: colors.gray[400] },
 };
 
 function parseDuration(duration: string): number {
@@ -136,8 +137,8 @@ export function ClockButton({ employeeId }: ClockButtonProps) {
   if (isLoading) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 12px' }}>
-        <Loader2 size={14} style={{ animation: 'wb-spin 1s linear infinite', color: '#9ca3af' }} />
-        <span style={{ fontSize: '13px', color: '#9ca3af' }}>Ładowanie...</span>
+        <Loader2 size={14} style={{ animation: 'wb-spin 1s linear infinite', color: colors.gray[400] }} />
+        <span style={{ fontSize: '13px', color: colors.gray[400] }}>Ładowanie...</span>
       </div>
     );
   }
@@ -198,7 +199,7 @@ export function ClockButton({ employeeId }: ClockButtonProps) {
             disabled={isMutating}
             icon={<Play size={14} />}
             label="Rozpocznij"
-            color="#059669"
+            color={colors.emerald[600]}
             bg="#d1fae5"
             hoverBg="#a7f3d0"
           />
@@ -212,8 +213,8 @@ export function ClockButton({ employeeId }: ClockButtonProps) {
               disabled={isMutating}
               icon={<Coffee size={14} />}
               label="Przerwa"
-              color="#d97706"
-              bg="#fef3c7"
+              color={colors.warning[600]}
+              bg={colors.warning[100]}
               hoverBg="#fde68a"
             />
             <ActionButton
@@ -222,9 +223,9 @@ export function ClockButton({ employeeId }: ClockButtonProps) {
               disabled={isMutating}
               icon={<Square size={14} />}
               label="Zakończ"
-              color="#dc2626"
-              bg="#fee2e2"
-              hoverBg="#fecaca"
+              color={colors.danger[600]}
+              bg={colors.danger[100]}
+              hoverBg={colors.danger[200]}
             />
           </>
         )}
@@ -236,7 +237,7 @@ export function ClockButton({ employeeId }: ClockButtonProps) {
             disabled={isMutating}
             icon={<CoffeeIcon size={14} />}
             label="Wróć"
-            color="#059669"
+            color={colors.emerald[600]}
             bg="#d1fae5"
             hoverBg="#a7f3d0"
           />
@@ -249,7 +250,7 @@ export function ClockButton({ employeeId }: ClockButtonProps) {
             disabled={isMutating}
             icon={<RotateCcw size={14} />}
             label="Wznów"
-            color="#059669"
+            color={colors.emerald[600]}
             bg="#d1fae5"
             hoverBg="#a7f3d0"
           />
@@ -273,16 +274,16 @@ export function ClockButton({ employeeId }: ClockButtonProps) {
               top: 'calc(100% + 8px)',
               right: 0,
               zIndex: 100,
-              backgroundColor: '#fff',
+              backgroundColor: colors.white,
               borderRadius: '10px',
               boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-              border: '1px solid #e5e7eb',
+              border: `1px solid ${colors.gray[200]}`,
               padding: '16px',
               minWidth: '240px',
               animation: 'wb-fadeIn 0.15s ease-out',
             }}
           >
-            <p style={{ margin: '0 0 12px', fontSize: '13px', fontWeight: 500, color: '#374151' }}>
+            <p style={{ margin: '0 0 12px', fontSize: '13px', fontWeight: 500, color: colors.gray[700] }}>
               {confirmAction.label}
             </p>
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
@@ -290,9 +291,9 @@ export function ClockButton({ employeeId }: ClockButtonProps) {
                 className="wb-action-btn"
                 onClick={() => setConfirmAction(null)}
                 style={{
-                  color: '#6b7280',
-                  backgroundColor: '#f3f4f6',
-                  border: '1px solid #d1d5db',
+                  color: colors.gray[500],
+                  backgroundColor: colors.gray[100],
+                  border: `1px solid ${colors.gray[300]}`,
                 }}
               >
                 Anuluj
@@ -301,9 +302,9 @@ export function ClockButton({ employeeId }: ClockButtonProps) {
                 className="wb-action-btn"
                 onClick={confirmAction.onConfirm}
                 style={{
-                  color: '#fff',
-                  backgroundColor: '#dc2626',
-                  border: '1px solid #dc2626',
+                  color: colors.white,
+                  backgroundColor: colors.danger[600],
+                  border: `1px solid ${colors.danger[600]}`,
                 }}
               >
                 Zakończ
@@ -330,24 +331,24 @@ export function ClockButton({ employeeId }: ClockButtonProps) {
               top: 'calc(100% + 8px)',
               right: 0,
               zIndex: 100,
-              backgroundColor: '#fff',
+              backgroundColor: colors.white,
               borderRadius: '10px',
               boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-              border: '1px solid #e5e7eb',
+              border: `1px solid ${colors.gray[200]}`,
               padding: '14px',
               minWidth: '260px',
               animation: 'wb-fadeIn 0.15s ease-out',
             }}
           >
-            <p style={{ margin: '0 0 10px', fontSize: '13px', fontWeight: 600, color: '#374151' }}>
+            <p style={{ margin: '0 0 10px', fontSize: '13px', fontWeight: 600, color: colors.gray[700] }}>
               Wybierz typ przerwy
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {breakAvail?.options.map((opt) => {
                 const isPaid = opt.breakType === 'Paid';
-                const color = isPaid ? '#059669' : '#d97706';
-                const bg = isPaid ? '#d1fae5' : '#fef3c7';
-                const disabledBg = '#f3f4f6';
+                const color = isPaid ? colors.emerald[600] : colors.warning[600];
+                const bg = isPaid ? '#d1fae5' : colors.warning[100];
+                const disabledBg = colors.gray[100];
                 return (
                   <button
                     key={opt.breakType}
@@ -359,7 +360,7 @@ export function ClockButton({ employeeId }: ClockButtonProps) {
                       width: '100%',
                       textAlign: 'left',
                       borderRadius: '8px',
-                      border: `1px solid ${opt.available ? color + '33' : '#d1d5db'}`,
+                      border: `1px solid ${opt.available ? color + '33' : colors.gray[300]}`,
                       backgroundColor: opt.available ? bg : disabledBg,
                       padding: '10px 12px',
                       opacity: opt.available ? 1 : 0.6,
@@ -371,36 +372,36 @@ export function ClockButton({ employeeId }: ClockButtonProps) {
                       display: 'flex',
                       alignItems: 'center',
                       gap: '6px',
-                      color: opt.available ? color : '#9ca3af',
+                      color: opt.available ? color : colors.gray[400],
                       fontSize: '13px',
                       fontWeight: 600,
                     }}>
                       <Coffee size={14} /> {opt.label}
                     </div>
-                    <div style={{ marginTop: '6px', fontSize: '11px', color: '#6b7280', lineHeight: '1.5' }}>
+                    <div style={{ marginTop: '6px', fontSize: '11px', color: colors.gray[500], lineHeight: '1.5' }}>
                       {opt.maxPerDay != null ? (
                         <div>Przerwy: <b>{opt.usedCount}</b> / {opt.maxPerDay}</div>
                       ) : (
-                        <div>Przerwy: <b>{opt.usedCount}</b> <span style={{ color: '#9ca3af' }}>(bez limitu)</span></div>
+                        <div>Przerwy: <b>{opt.usedCount}</b> <span style={{ color: colors.gray[400] }}>(bez limitu)</span></div>
                       )}
                       {opt.maxMinutesPerDay != null ? (
                         <div>Czas: <b>{Math.round(opt.usedMinutesToday)}</b> / {opt.maxMinutesPerDay} min</div>
                       ) : (
-                        <div>Czas: <b>{Math.round(opt.usedMinutesToday)}</b> min <span style={{ color: '#9ca3af' }}>(bez limitu)</span></div>
+                        <div>Czas: <b>{Math.round(opt.usedMinutesToday)}</b> min <span style={{ color: colors.gray[400] }}>(bez limitu)</span></div>
                       )}
                       {opt.maxMinutesPerBreak != null && (
                         <div>Max na przerwe: {opt.maxMinutesPerBreak} min</div>
                       )}
                     </div>
                     {opt.denialReason && (
-                      <div style={{ marginTop: '4px', fontSize: '11px', color: '#dc2626', fontWeight: 500 }}>
+                      <div style={{ marginTop: '4px', fontSize: '11px', color: colors.danger[600], fontWeight: 500 }}>
                         {opt.denialReason}
                       </div>
                     )}
                   </button>
                 );
               }) ?? (
-                <div style={{ textAlign: 'center', color: '#9ca3af', fontSize: '12px', padding: '8px' }}>
+                <div style={{ textAlign: 'center', color: colors.gray[400], fontSize: '12px', padding: '8px' }}>
                   <Loader2 size={14} style={{ animation: 'wb-spin 1s linear infinite', display: 'inline-block', marginRight: '4px' }} />
                   Ładowanie...
                 </div>
@@ -424,8 +425,8 @@ export function ClockButton({ employeeId }: ClockButtonProps) {
             whiteSpace: 'nowrap',
             zIndex: 50,
             boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-            color: flash.type === 'ok' ? '#065f46' : '#991b1b',
-            backgroundColor: flash.type === 'ok' ? '#d1fae5' : '#fee2e2',
+            color: flash.type === 'ok' ? '#065f46' : colors.danger[800],
+            backgroundColor: flash.type === 'ok' ? '#d1fae5' : colors.danger[100],
             border: `1px solid ${flash.type === 'ok' ? '#6ee7b7' : '#fca5a5'}`,
             animation: 'wb-fadeIn 0.2s ease-out',
           }}

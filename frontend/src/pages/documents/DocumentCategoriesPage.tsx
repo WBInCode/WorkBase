@@ -7,6 +7,7 @@ import {
   useDeleteDocumentCategory,
 } from '@/api/hooks/useDocuments';
 import { useIsMobile } from '@/shared';
+import { colors } from '@/theme/tokens';
 
 export function DocumentCategoriesPage() {
   const { data: categories = [], isLoading } = useDocumentCategories();
@@ -68,8 +69,8 @@ export function DocumentCategoriesPage() {
             alignItems: 'center',
             gap: 8,
             padding: '8px 16px',
-            background: '#2563eb',
-            color: '#fff',
+            background: colors.primary[600],
+            color: colors.white,
             border: 'none',
             borderRadius: 8,
             cursor: 'pointer',
@@ -132,8 +133,8 @@ export function DocumentCategoriesPage() {
               disabled={createMutation.isPending || !newName.trim()}
               style={{
                 padding: '8px 20px',
-                background: '#2563eb',
-                color: '#fff',
+                background: colors.primary[600],
+                color: colors.white,
                 border: 'none',
                 borderRadius: 8,
                 cursor: 'pointer',
@@ -169,7 +170,7 @@ export function DocumentCategoriesPage() {
       {isLoading ? (
         <p style={{ color: '#64748b' }}>Ładowanie...</p>
       ) : categories.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: 48, color: '#94a3b8' }}>
+        <div style={{ textAlign: 'center', padding: 48, color: colors.slate[400] }}>
           <FolderOpen size={48} style={{ marginBottom: 12, opacity: 0.5 }} />
           <p style={{ fontSize: 16, margin: 0 }}>Brak kategorii</p>
         </div>
@@ -183,7 +184,7 @@ export function DocumentCategoriesPage() {
                 alignItems: 'center',
                 gap: 12,
                 padding: 16,
-                background: '#fff',
+                background: colors.white,
                 border: '1px solid #e2e8f0',
                 borderRadius: 10,
               }}
@@ -221,12 +222,12 @@ export function DocumentCategoriesPage() {
                     title="Zapisz"
                     style={{
                       padding: 6,
-                      background: '#22c55e',
+                      background: colors.success[500],
                       border: 'none',
                       borderRadius: 6,
                       cursor: 'pointer',
                       display: 'flex',
-                      color: '#fff',
+                      color: colors.white,
                     }}
                   >
                     <Check size={14} />
@@ -248,7 +249,7 @@ export function DocumentCategoriesPage() {
                 </>
               ) : (
                 <>
-                  <FolderOpen size={20} style={{ color: '#f59e0b', flexShrink: 0 }} />
+                  <FolderOpen size={20} style={{ color: colors.warning[500], flexShrink: 0 }} />
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 600, fontSize: 15 }}>{cat.name}</div>
                     {cat.description && (
@@ -283,7 +284,7 @@ export function DocumentCategoriesPage() {
                       display: 'flex',
                     }}
                   >
-                    <Trash2 size={14} style={{ color: '#ef4444' }} />
+                    <Trash2 size={14} style={{ color: colors.danger[500] }} />
                   </button>
                 </>
               )}

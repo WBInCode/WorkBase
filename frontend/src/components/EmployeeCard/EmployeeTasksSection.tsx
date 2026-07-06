@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import type { TaskItemDto } from '@/api/types/tasks';
+import { colors } from '@/theme/tokens';
 
 interface Props {
   tasks: TaskItemDto[];
@@ -13,7 +14,7 @@ export function EmployeeTasksSection({ tasks, isLoading }: Props) {
     return (
       <div style={cardStyle}>
         <h3 style={headingStyle}>Zadania</h3>
-        <div style={{ color: '#9ca3af', fontSize: '14px' }}>Ładowanie...</div>
+        <div style={{ color: colors.gray[400], fontSize: '14px' }}>Ładowanie...</div>
       </div>
     );
   }
@@ -26,19 +27,19 @@ export function EmployeeTasksSection({ tasks, isLoading }: Props) {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
         <h3 style={{ ...headingStyle, margin: 0 }}>
           Zadania
-          <span style={{ fontSize: '13px', fontWeight: 400, color: '#6b7280', marginLeft: '8px' }}>
+          <span style={{ fontSize: '13px', fontWeight: 400, color: colors.gray[500], marginLeft: '8px' }}>
             ({open.length} otwartych, {completed.length} zakończonych)
           </span>
         </h3>
       </div>
 
       {tasks.length === 0 ? (
-        <div style={{ color: '#9ca3af', fontSize: '14px' }}>Brak przypisanych zadań.</div>
+        <div style={{ color: colors.gray[400], fontSize: '14px' }}>Brak przypisanych zadań.</div>
       ) : (
         <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
           <thead>
-            <tr style={{ borderBottom: '1px solid #e5e7eb' }}>
+            <tr style={{ borderBottom: `1px solid ${colors.gray[200]}` }}>
               <th style={thStyle}>Tytuł</th>
               <th style={thStyle}>Priorytet</th>
               <th style={thStyle}>Status</th>
@@ -52,11 +53,11 @@ export function EmployeeTasksSection({ tasks, isLoading }: Props) {
                 <tr
                   key={t.id}
                   onClick={() => navigate(`/tasks/${t.id}`)}
-                  style={{ borderBottom: '1px solid #f3f4f6', cursor: 'pointer' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#f9fafb'; }}
+                  style={{ borderBottom: `1px solid ${colors.gray[100]}`, cursor: 'pointer' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = colors.gray[50]; }}
                   onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = ''; }}
                 >
-                  <td style={{ ...tdStyle, fontWeight: 500, color: '#111827', maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <td style={{ ...tdStyle, fontWeight: 500, color: colors.gray[900], maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {t.title}
                   </td>
                   <td style={tdStyle}>
@@ -69,7 +70,7 @@ export function EmployeeTasksSection({ tasks, isLoading }: Props) {
                       {t.statusName}
                     </span>
                   </td>
-                  <td style={{ ...tdStyle, color: isOverdue ? '#dc2626' : '#111827', fontWeight: isOverdue ? 600 : 400 }}>
+                  <td style={{ ...tdStyle, color: isOverdue ? colors.danger[600] : colors.gray[900], fontWeight: isOverdue ? 600 : 400 }}>
                     {t.dueDate ? formatDate(t.dueDate) : '—'}
                     {isOverdue && <span style={{ marginLeft: '4px', fontSize: '11px' }}>⚠</span>}
                   </td>
@@ -90,26 +91,26 @@ function formatDate(iso: string): string {
 
 const cardStyle: React.CSSProperties = {
   padding: '20px',
-  border: '1px solid #e5e7eb',
+  border: `1px solid ${colors.gray[200]}`,
   borderRadius: '12px',
-  backgroundColor: '#fff',
+  backgroundColor: colors.white,
 };
 
 const headingStyle: React.CSSProperties = {
   margin: '0 0 14px',
   fontSize: '16px',
   fontWeight: 700,
-  color: '#111827',
+  color: colors.gray[900],
 };
 
 const thStyle: React.CSSProperties = {
   textAlign: 'left',
   padding: '6px 8px',
-  color: '#6b7280',
+  color: colors.gray[500],
   fontWeight: 600,
 };
 
 const tdStyle: React.CSSProperties = {
   padding: '6px 8px',
-  color: '#111827',
+  color: colors.gray[900],
 };

@@ -14,6 +14,7 @@ import {
   EmployeeActivityTimeline,
 } from '@/components/EmployeeCard';
 import { useIsMobile } from '@/shared';
+import { colors } from '@/theme/tokens';
 
 function getCurrentWeekRange() {
   const now = new Date();
@@ -52,7 +53,7 @@ export function EmployeeCardPage() {
   if (empLoading) {
     return (
       <div style={{ padding: pad, maxWidth: '1000px' }}>
-        <div style={{ color: '#9ca3af', fontSize: '14px', textAlign: 'center', padding: '48px 0' }}>
+        <div style={{ color: colors.gray[400], fontSize: '14px', textAlign: 'center', padding: '48px 0' }}>
           Ładowanie danych pracownika...
         </div>
       </div>
@@ -62,11 +63,11 @@ export function EmployeeCardPage() {
   if (error || !employee) {
     return (
       <div style={{ padding: pad, maxWidth: '1000px' }}>
-        <div style={{ padding: '16px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', color: '#dc2626', fontSize: '14px' }}>
+        <div style={{ padding: '16px', backgroundColor: colors.danger[50], border: `1px solid ${colors.danger[200]}`, borderRadius: '8px', color: colors.danger[600], fontSize: '14px' }}>
           Nie udało się załadować danych pracownika.
           <button
             onClick={() => navigate('/org/employees')}
-            style={{ marginLeft: '12px', color: '#2563eb', background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', textDecoration: 'underline' }}
+            style={{ marginLeft: '12px', color: colors.primary[600], background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', textDecoration: 'underline' }}
           >
             Wróć do listy
           </button>
@@ -87,9 +88,9 @@ export function EmployeeCardPage() {
           padding: '6px 12px',
           fontSize: '13px',
           fontWeight: 500,
-          color: '#6b7280',
+          color: colors.gray[500],
           backgroundColor: 'transparent',
-          border: '1px solid #e5e7eb',
+          border: `1px solid ${colors.gray[200]}`,
           borderRadius: '6px',
           cursor: 'pointer',
           marginBottom: '16px',

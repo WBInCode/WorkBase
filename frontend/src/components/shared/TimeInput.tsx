@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect, type CSSProperties } from 'react';
 import { Clock } from 'lucide-react';
+import { colors } from '@/theme/tokens';
 
 interface TimeInputProps {
   value: string; // "HH:mm"
@@ -125,7 +126,7 @@ export default function TimeInput({ value, onChange, style, disabled }: TimeInpu
             border: 'none',
             cursor: disabled ? 'default' : 'pointer',
             padding: '2px',
-            color: '#9ca3af',
+            color: colors.gray[400],
             display: 'flex',
             alignItems: 'center',
           }}
@@ -146,8 +147,8 @@ export default function TimeInput({ value, onChange, style, disabled }: TimeInpu
             minWidth: '90px',
             maxHeight: '200px',
             overflowY: 'auto',
-            background: '#fff',
-            border: '1px solid #e5e7eb',
+            background: colors.white,
+            border: `1px solid ${colors.gray[200]}`,
             borderRadius: '8px',
             boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
             marginTop: '4px',
@@ -163,12 +164,12 @@ export default function TimeInput({ value, onChange, style, disabled }: TimeInpu
                 fontSize: '13px',
                 cursor: 'pointer',
                 background: slot === value ? '#7c3aed' : 'transparent',
-                color: slot === value ? '#fff' : '#374151',
+                color: slot === value ? colors.white : colors.gray[700],
                 fontWeight: slot === value ? 600 : 400,
               }}
               onMouseEnter={(e) => {
                 if (slot !== value) {
-                  e.currentTarget.style.background = '#f3f4f6';
+                  e.currentTarget.style.background = colors.gray[100];
                 }
               }}
               onMouseLeave={(e) => {

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Camera, XCircle, RefreshCw } from 'lucide-react';
+import { colors } from '@/theme/tokens';
 
 interface QrScannerProps {
   onScan: (value: string) => void;
@@ -105,7 +106,7 @@ export function QrScanner({ onScan, onClose, facingMode = 'environment' }: QrSca
         {error && (
           <div style={{ padding: '12px', borderRadius: '8px', backgroundColor: 'rgba(239,68,68,0.15)', color: '#fca5a5', fontSize: '13px', marginBottom: '12px' }}>
             {error}
-            <button onClick={startCamera} style={{ marginLeft: '8px', color: '#93c5fd', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', fontSize: '13px' }}>
+            <button onClick={startCamera} style={{ marginLeft: '8px', color: colors.primary[300], background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', fontSize: '13px' }}>
               <RefreshCw size={12} style={{ verticalAlign: 'middle', marginRight: '4px' }} />
               Ponów
             </button>
@@ -137,7 +138,7 @@ export function QrScanner({ onScan, onClose, facingMode = 'environment' }: QrSca
             <div style={{
               position: 'absolute', bottom: '12px', left: '50%', transform: 'translateX(-50%)',
               padding: '6px 16px', borderRadius: '20px',
-              backgroundColor: 'rgba(0,0,0,0.6)', color: '#94a3b8', fontSize: '12px', fontWeight: 500,
+              backgroundColor: 'rgba(0,0,0,0.6)', color: colors.slate[400], fontSize: '12px', fontWeight: 500,
             }}>
               Umieść kod QR w ramce
             </div>
@@ -156,9 +157,9 @@ const overlayStyle: React.CSSProperties = {
 };
 const containerStyle: React.CSSProperties = {
   width: '380px', maxWidth: '95vw', padding: '20px',
-  backgroundColor: '#1e293b', borderRadius: '16px',
+  backgroundColor: colors.slate[800], borderRadius: '16px',
   boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
 };
 const closeBtnStyle: React.CSSProperties = {
-  background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8',
+  background: 'none', border: 'none', cursor: 'pointer', color: colors.slate[400],
 };

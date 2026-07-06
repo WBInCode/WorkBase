@@ -1,6 +1,7 @@
 import { ShieldAlert, AlertCircle, CheckCircle, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { AnomalySummaryDto } from '@/api/types/dashboard';
+import { colors, typography } from '@/theme/tokens';
 
 interface Props {
   data: AnomalySummaryDto | undefined;
@@ -15,28 +16,28 @@ export function AlertsWidget({ data, isLoading }: Props) {
   return (
     <div style={cardStyle}>
       <div style={headerStyle}>
-        <ShieldAlert size={18} color="#dc2626" />
+        <ShieldAlert size={18} color={colors.danger[600]} />
         <span style={titleStyle}>Anomalie</span>
       </div>
 
-      <div style={{ fontSize: '36px', fontWeight: 700, color: data.newAnomalies > 0 ? '#dc2626' : '#111827', margin: '8px 0' }}>
+      <div style={{ fontSize: '36px', fontWeight: typography.fontWeight.bold, color: data.newAnomalies > 0 ? colors.danger[600] : colors.gray[900], margin: '8px 0' }}>
         {data.newAnomalies}
-        <span style={{ fontSize: '14px', fontWeight: 400, color: '#9ca3af', marginLeft: '6px' }}>nowych</span>
+        <span style={{ fontSize: typography.fontSize.base, fontWeight: typography.fontWeight.normal, color: colors.gray[400], marginLeft: '6px' }}>nowych</span>
       </div>
 
       <div style={metricsGrid}>
         <Metric
-          icon={<AlertCircle size={14} color="#dc2626" />}
+          icon={<AlertCircle size={14} color={colors.danger[600]} />}
           label="Nowe"
           value={data.newAnomalies}
-          color="#dc2626"
+          color={colors.danger[600]}
           highlight={data.newAnomalies > 0}
         />
         <Metric
-          icon={<CheckCircle size={14} color="#16a34a" />}
+          icon={<CheckCircle size={14} color={colors.success[600]} />}
           label="Rozpatrzone (tydzień)"
           value={data.reviewedThisWeek}
-          color="#16a34a"
+          color={colors.success[600]}
         />
       </div>
 
@@ -53,12 +54,12 @@ function Metric({ icon, label, value, color, highlight }: {
   return (
     <div style={{
       display: 'flex', alignItems: 'center', gap: '8px',
-      ...(highlight ? { padding: '6px 8px', backgroundColor: '#fef2f2', borderRadius: '6px' } : {}),
+      ...(highlight ? { padding: '6px 8px', backgroundColor: colors.danger[50], borderRadius: '6px' } : {}),
     }}>
       {icon}
       <div>
-        <div style={{ fontSize: '18px', fontWeight: 600, color }}>{value}</div>
-        <div style={{ fontSize: '11px', color: '#9ca3af' }}>{label}</div>
+        <div style={{ fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.semibold, color }}>{value}</div>
+        <div style={{ fontSize: typography.fontSize.xs, color: colors.gray[400] }}>{label}</div>
       </div>
     </div>
   );
@@ -68,10 +69,10 @@ function WidgetSkeleton() {
   return (
     <div style={cardStyle}>
       <div style={headerStyle}>
-        <ShieldAlert size={18} color="#d1d5db" />
+        <ShieldAlert size={18} color={colors.gray[300]} />
         <span style={titleStyle}>Anomalie</span>
       </div>
-      <div style={{ height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: '14px' }}>
+      <div style={{ height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: colors.gray[400], fontSize: typography.fontSize.base }}>
         Ładowanie...
       </div>
     </div>
@@ -79,9 +80,9 @@ function WidgetSkeleton() {
 }
 
 const cardStyle: React.CSSProperties = {
-  backgroundColor: '#fff',
+  backgroundColor: colors.white,
   borderRadius: '12px',
-  border: '1px solid #e5e7eb',
+  border: `1px solid ${colors.gray[200]}`,
   padding: '20px',
   boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
 };
@@ -94,9 +95,9 @@ const headerStyle: React.CSSProperties = {
 };
 
 const titleStyle: React.CSSProperties = {
-  fontSize: '14px',
-  fontWeight: 600,
-  color: '#374151',
+  fontSize: typography.fontSize.base,
+  fontWeight: typography.fontWeight.semibold,
+  color: colors.gray[700],
 };
 
 const metricsGrid: React.CSSProperties = {
@@ -105,7 +106,7 @@ const metricsGrid: React.CSSProperties = {
   gap: '12px',
   marginTop: '12px',
   paddingTop: '12px',
-  borderTop: '1px solid #f3f4f6',
+  borderTop: `1px solid ${colors.gray[100]}`,
 };
 
 const drillDownStyle: React.CSSProperties = {
@@ -114,9 +115,9 @@ const drillDownStyle: React.CSSProperties = {
   gap: '4px',
   marginTop: '12px',
   paddingTop: '12px',
-  borderTop: '1px solid #f3f4f6',
+  borderTop: `1px solid ${colors.gray[100]}`,
   fontSize: '13px',
-  fontWeight: 500,
-  color: '#2563eb',
+  fontWeight: typography.fontWeight.medium,
+  color: colors.primary[600],
   textDecoration: 'none',
 };

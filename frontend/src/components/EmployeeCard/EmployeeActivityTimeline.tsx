@@ -1,5 +1,6 @@
 import type { LeaveRequestDto } from '@/api/types/leave';
 import type { TaskItemDto } from '@/api/types/tasks';
+import { colors } from '@/theme/tokens';
 
 interface TimelineEntry {
   id: string;
@@ -21,7 +22,7 @@ export function EmployeeActivityTimeline({ tasks, leaveRequests, isLoading }: Pr
     return (
       <div style={cardStyle}>
         <h3 style={headingStyle}>Ostatnia aktywność</h3>
-        <div style={{ color: '#9ca3af', fontSize: '14px' }}>Ładowanie...</div>
+        <div style={{ color: colors.gray[400], fontSize: '14px' }}>Ładowanie...</div>
       </div>
     );
   }
@@ -36,7 +37,7 @@ export function EmployeeActivityTimeline({ tasks, leaveRequests, isLoading }: Pr
       type: 'task',
       title: t.title,
       description: `Zadanie utworzone · ${t.statusName} · ${t.priorityName}`,
-      color: t.statusColor || '#6b7280',
+      color: t.statusColor || colors.gray[500],
     });
     if (t.completedAt) {
       entries.push({
@@ -45,7 +46,7 @@ export function EmployeeActivityTimeline({ tasks, leaveRequests, isLoading }: Pr
         type: 'task',
         title: t.title,
         description: 'Zadanie zakończone',
-        color: '#22c55e',
+        color: colors.success[500],
       });
     }
   }
@@ -58,7 +59,7 @@ export function EmployeeActivityTimeline({ tasks, leaveRequests, isLoading }: Pr
       type: 'leave',
       title: `${r.leaveTypeName} (${r.totalDays} dni)`,
       description: `${formatDate(r.startDate)} – ${formatDate(r.endDate)} · ${statusLabel(r.status)}`,
-      color: r.leaveTypeColor || '#6b7280',
+      color: r.leaveTypeColor || colors.gray[500],
     });
   }
 
@@ -70,11 +71,11 @@ export function EmployeeActivityTimeline({ tasks, leaveRequests, isLoading }: Pr
       <h3 style={headingStyle}>Ostatnia aktywność</h3>
 
       {visible.length === 0 ? (
-        <div style={{ color: '#9ca3af', fontSize: '14px' }}>Brak aktywności.</div>
+        <div style={{ color: colors.gray[400], fontSize: '14px' }}>Brak aktywności.</div>
       ) : (
         <div style={{ position: 'relative', paddingLeft: '24px' }}>
           {/* Vertical line */}
-          <div style={{ position: 'absolute', left: '7px', top: '4px', bottom: '4px', width: '2px', backgroundColor: '#e5e7eb' }} />
+          <div style={{ position: 'absolute', left: '7px', top: '4px', bottom: '4px', width: '2px', backgroundColor: colors.gray[200] }} />
 
           {visible.map((entry) => (
             <div key={entry.id} style={{ position: 'relative', marginBottom: '16px' }}>
@@ -87,10 +88,10 @@ export function EmployeeActivityTimeline({ tasks, leaveRequests, isLoading }: Pr
                 height: '12px',
                 borderRadius: '50%',
                 backgroundColor: entry.color,
-                border: '2px solid #fff',
-                boxShadow: '0 0 0 2px #e5e7eb',
+                border: `2px solid ${colors.white}`,
+                boxShadow: `0 0 0 2px ${colors.gray[200]}`,
               }} />
-              <div style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '2px' }}>
+              <div style={{ fontSize: '12px', color: colors.gray[400], marginBottom: '2px' }}>
                 {entry.date.toLocaleDateString('pl-PL')} {entry.date.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}
                 <span style={{
                   marginLeft: '8px',
@@ -104,8 +105,8 @@ export function EmployeeActivityTimeline({ tasks, leaveRequests, isLoading }: Pr
                   {entry.type === 'task' ? 'Zadanie' : 'Urlop'}
                 </span>
               </div>
-              <div style={{ fontSize: '14px', fontWeight: 500, color: '#111827' }}>{entry.title}</div>
-              <div style={{ fontSize: '13px', color: '#6b7280', marginTop: '1px' }}>{entry.description}</div>
+              <div style={{ fontSize: '14px', fontWeight: 500, color: colors.gray[900] }}>{entry.title}</div>
+              <div style={{ fontSize: '13px', color: colors.gray[500], marginTop: '1px' }}>{entry.description}</div>
             </div>
           ))}
         </div>
@@ -131,9 +132,9 @@ function statusLabel(status: string): string {
 
 const cardStyle: React.CSSProperties = {
   padding: '20px',
-  border: '1px solid #e5e7eb',
+  border: `1px solid ${colors.gray[200]}`,
   borderRadius: '12px',
-  backgroundColor: '#fff',
+  backgroundColor: colors.white,
 };
 
 const headingStyle: React.CSSProperties = {

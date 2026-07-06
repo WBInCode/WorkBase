@@ -12,6 +12,7 @@ import { useEmployees, useOrgUnitTree } from '@/api/hooks/useOrganization';
 import type { ScheduleDto, ScheduleTemplateDto, DayShiftPattern } from '@/api/types/time';
 import type { EmployeeDto, OrganizationUnitTreeNode } from '@/api/types/organization';
 import { useIsMobile } from '@/shared';
+import { colors } from '@/theme/tokens';
 
 /* ── helpers ── */
 
@@ -79,9 +80,9 @@ function flattenUnits(nodes: OrganizationUnitTreeNode[]): { id: string; name: st
 }
 
 const SHIFT_COLORS: Record<string, { bg: string; border: string; text: string }> = {
-  dzienna: { bg: '#dbeafe', border: '#93c5fd', text: '#1e40af' },
+  dzienna: { bg: colors.primary[100], border: colors.primary[300], text: colors.primary[800] },
   nocna: { bg: '#ede9fe', border: '#c4b5fd', text: '#5b21b6' },
-  popołudniowa: { bg: '#fef3c7', border: '#fcd34d', text: '#92400e' },
+  popołudniowa: { bg: colors.warning[100], border: colors.warning[200], text: colors.warning[800] },
   nieplanowana: { bg: '#ffedd5', border: '#fdba74', text: '#9a3412' },
 };
 
@@ -99,8 +100,8 @@ function getSourceIndicator(source: string | null | undefined) {
 }
 
 function getShiftStyle(shiftType: string | null) {
-  if (!shiftType) return { bg: '#f0fdf4', border: '#86efac', text: '#166534' };
-  return SHIFT_COLORS[shiftType.toLowerCase()] ?? { bg: '#f3f4f6', border: '#d1d5db', text: '#374151' };
+  if (!shiftType) return { bg: colors.success[50], border: '#86efac', text: colors.success[800] };
+  return SHIFT_COLORS[shiftType.toLowerCase()] ?? { bg: colors.gray[100], border: colors.gray[300], text: colors.gray[700] };
 }
 
 /* ── main component ── */
@@ -183,7 +184,7 @@ export function SchedulePage() {
     <div style={{ padding: mobile ? '16px' : '24px 32px' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-        <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#111827', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <h1 style={{ fontSize: '22px', fontWeight: 700, color: colors.gray[900], margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Calendar size={22} />
           Grafik pracy
         </h1>
@@ -216,17 +217,17 @@ export function SchedulePage() {
       {/* Controls */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
         {/* View mode */}
-        <div style={{ display: 'flex', borderRadius: '8px', border: '1px solid #e5e7eb', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', borderRadius: '8px', border: `1px solid ${colors.gray[200]}`, overflow: 'hidden' }}>
           {(['week', 'month'] as const).map((m) => (
             <button
               key={m}
               onClick={() => setViewMode(m)}
               style={{
                 padding: '6px 16px', fontSize: '13px', fontWeight: viewMode === m ? 600 : 400,
-                color: viewMode === m ? '#ffffff' : '#374151',
-                backgroundColor: viewMode === m ? '#3b82f6' : '#ffffff',
+                color: viewMode === m ? colors.white : colors.gray[700],
+                backgroundColor: viewMode === m ? colors.primary[500] : colors.white,
                 border: 'none', cursor: 'pointer',
-                borderRight: m === 'week' ? '1px solid #e5e7eb' : undefined,
+                borderRight: m === 'week' ? `1px solid ${colors.gray[200]}` : undefined,
               }}
             >
               {{ week: 'Tydzień', month: 'Miesiąc' }[m]}
@@ -241,8 +242,8 @@ export function SchedulePage() {
             onClick={() => setCurrentDate(new Date())}
             style={{
               padding: '6px 12px', fontSize: '12px', fontWeight: 500,
-              color: '#3b82f6', backgroundColor: '#eff6ff',
-              border: '1px solid #bfdbfe', borderRadius: '6px', cursor: 'pointer',
+              color: colors.primary[500], backgroundColor: colors.primary[50],
+              border: `1px solid ${colors.primary[200]}`, borderRadius: '6px', cursor: 'pointer',
             }}
           >
             Dziś
@@ -250,7 +251,7 @@ export function SchedulePage() {
           <NavBtn onClick={() => navigate(1)}><ChevronRight size={18} /></NavBtn>
         </div>
 
-        <span style={{ fontSize: '15px', fontWeight: 600, color: '#374151', textTransform: 'capitalize' }}>
+        <span style={{ fontSize: '15px', fontWeight: 600, color: colors.gray[700], textTransform: 'capitalize' }}>
           {periodLabel}
         </span>
 
@@ -260,8 +261,8 @@ export function SchedulePage() {
           onChange={(e) => setUnitId(e.target.value)}
           style={{
             marginLeft: 'auto', padding: '6px 10px', fontSize: '13px',
-            border: '1px solid #e5e7eb', borderRadius: '6px', color: '#374151',
-            backgroundColor: '#ffffff', minWidth: '200px',
+            border: `1px solid ${colors.gray[200]}`, borderRadius: '6px', color: colors.gray[700],
+            backgroundColor: colors.white, minWidth: '200px',
           }}
         >
           <option value="">Wszystkie jednostki</option>
@@ -272,7 +273,7 @@ export function SchedulePage() {
       </div>
 
       {/* Legend */}
-      <div style={{ display: 'flex', gap: '16px', marginBottom: '16px', fontSize: '12px', color: '#6b7280', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: '16px', marginBottom: '16px', fontSize: '12px', color: colors.gray[500], flexWrap: 'wrap' }}>
         {Object.entries(SHIFT_COLORS).map(([type, c]) => (
           <span key={type} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
             <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 3, backgroundColor: c.bg, border: `1px solid ${c.border}` }} />
@@ -280,10 +281,10 @@ export function SchedulePage() {
           </span>
         ))}
         <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 3, backgroundColor: '#f0fdf4', border: '1px solid #86efac' }} />
+          <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 3, backgroundColor: colors.success[50], border: '1px solid #86efac' }} />
           Inna / brak typu
         </span>
-        <span style={{ marginLeft: '16px', borderLeft: '1px solid #e5e7eb', paddingLeft: '16px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+        <span style={{ marginLeft: '16px', borderLeft: `1px solid ${colors.gray[200]}`, paddingLeft: '16px', display: 'flex', alignItems: 'center', gap: '4px' }}>
           <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 3, border: '1px dashed #93c5fd', opacity: 0.75 }} />
           Z grafiku jednostki
         </span>
@@ -295,23 +296,23 @@ export function SchedulePage() {
 
       {/* Loading */}
       {isLoading && (
-        <div style={{ padding: '40px', textAlign: 'center', color: '#9ca3af' }}>Ładowanie grafiku...</div>
+        <div style={{ padding: '40px', textAlign: 'center', color: colors.gray[400] }}>Ładowanie grafiku...</div>
       )}
 
       {/* Empty */}
       {!isLoading && employees.length === 0 && (
-        <div style={{ padding: '40px', textAlign: 'center', color: '#9ca3af', border: '1px solid #e5e7eb', borderRadius: '10px' }}>
+        <div style={{ padding: '40px', textAlign: 'center', color: colors.gray[400], border: `1px solid ${colors.gray[200]}`, borderRadius: '10px' }}>
           Brak pracowników w wybranej jednostce.
         </div>
       )}
 
       {/* Grid */}
       {!isLoading && employees.length > 0 && (
-        <div style={{ overflowX: 'auto', border: '1px solid #e5e7eb', borderRadius: '10px' }}>
+        <div style={{ overflowX: 'auto', border: `1px solid ${colors.gray[200]}`, borderRadius: '10px' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', minWidth: dates.length * 90 + 200 }}>
             <thead>
-              <tr style={{ backgroundColor: '#f9fafb' }}>
-                <th style={{ ...thStyle, position: 'sticky', left: 0, backgroundColor: '#f9fafb', zIndex: 1, minWidth: '180px' }}>
+              <tr style={{ backgroundColor: colors.gray[50] }}>
+                <th style={{ ...thStyle, position: 'sticky', left: 0, backgroundColor: colors.gray[50], zIndex: 1, minWidth: '180px' }}>
                   Pracownik
                 </th>
                 {dates.map((d) => {
@@ -322,7 +323,7 @@ export function SchedulePage() {
                       key={d}
                       style={{
                         ...thStyle, textAlign: 'center', minWidth: '80px',
-                        backgroundColor: isWeekend ? '#f1f5f9' : '#f9fafb', fontSize: '11px',
+                        backgroundColor: isWeekend ? '#f1f5f9' : colors.gray[50], fontSize: '11px',
                       }}
                     >
                       {formatWeekdayShort(d)}
@@ -333,10 +334,10 @@ export function SchedulePage() {
             </thead>
             <tbody>
               {employees.map((emp) => (
-                <tr key={emp.id} style={{ borderTop: '1px solid #e5e7eb' }}>
+                <tr key={emp.id} style={{ borderTop: `1px solid ${colors.gray[200]}` }}>
                   <td style={{
                     ...tdStyle, fontWeight: 500, position: 'sticky', left: 0,
-                    backgroundColor: '#ffffff', zIndex: 1, whiteSpace: 'nowrap',
+                    backgroundColor: colors.white, zIndex: 1, whiteSpace: 'nowrap',
                   }}>
                     {emp.lastName} {emp.firstName}
                   </td>
@@ -382,10 +383,10 @@ export function SchedulePage() {
                         <button
                           onClick={() => openAdd(emp.id, d)}
                           style={{
-                            width: '100%', height: '36px', border: '1px dashed #d1d5db',
+                            width: '100%', height: '36px', border: `1px dashed ${colors.gray[300]}`,
                             borderRadius: '6px', backgroundColor: 'transparent', cursor: 'pointer',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color: '#9ca3af', fontSize: '14px',
+                            color: colors.gray[400], fontSize: '14px',
                           }}
                           title="Dodaj zmianę"
                         >
@@ -530,22 +531,22 @@ function ScheduleModal({
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          backgroundColor: '#ffffff', borderRadius: '12px', padding: '24px',
+          backgroundColor: colors.white, borderRadius: '12px', padding: '24px',
           width: '420px', maxWidth: '95vw', boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
         }}
       >
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#111827', margin: 0 }}>
+          <h2 style={{ fontSize: '18px', fontWeight: 700, color: colors.gray[900], margin: 0 }}>
             {state.mode === 'add' ? 'Dodaj zmianę' : 'Edytuj zmianę'}
           </h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', padding: '4px' }}>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: colors.gray[500], padding: '4px' }}>
             <X size={20} />
           </button>
         </div>
 
         {/* Info */}
-        <div style={{ marginBottom: '16px', fontSize: '14px', color: '#374151' }}>
+        <div style={{ marginBottom: '16px', fontSize: '14px', color: colors.gray[700] }}>
           <div><strong>Pracownik:</strong> {employeeName}</div>
           <div style={{ textTransform: 'capitalize' }}><strong>Data:</strong> {dateLabel}</div>
         </div>
@@ -561,9 +562,9 @@ function ScheduleModal({
                   onClick={() => applyTemplate(tpl)}
                   style={{
                     padding: '4px 10px', fontSize: '12px', fontWeight: 500,
-                    border: '1px solid #d1d5db', borderRadius: '6px',
-                    backgroundColor: state.templateId === tpl.id ? '#eff6ff' : '#ffffff',
-                    color: state.templateId === tpl.id ? '#3b82f6' : '#374151',
+                    border: `1px solid ${colors.gray[300]}`, borderRadius: '6px',
+                    backgroundColor: state.templateId === tpl.id ? colors.primary[50] : colors.white,
+                    color: state.templateId === tpl.id ? colors.primary[500] : colors.gray[700],
                     cursor: 'pointer',
                   }}
                   title={tpl.description ?? tpl.definition}
@@ -609,7 +610,7 @@ function ScheduleModal({
 
         {/* Error */}
         {error && (
-          <div style={{ marginBottom: '12px', padding: '8px 12px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '6px', color: '#dc2626', fontSize: '13px' }}>
+          <div style={{ marginBottom: '12px', padding: '8px 12px', backgroundColor: colors.danger[50], border: `1px solid ${colors.danger[200]}`, borderRadius: '6px', color: colors.danger[600], fontSize: '13px' }}>
             {error}
           </div>
         )}
@@ -623,8 +624,8 @@ function ScheduleModal({
               style={{
                 display: 'flex', alignItems: 'center', gap: '4px',
                 padding: '8px 14px', fontSize: '13px', fontWeight: 600,
-                color: '#dc2626', backgroundColor: '#fef2f2',
-                border: '1px solid #fecaca', borderRadius: '8px', cursor: 'pointer',
+                color: colors.danger[600], backgroundColor: colors.danger[50],
+                border: `1px solid ${colors.danger[200]}`, borderRadius: '8px', cursor: 'pointer',
                 marginRight: 'auto', opacity: deleteMut.isPending ? 0.5 : 1,
               }}
             >
@@ -635,8 +636,8 @@ function ScheduleModal({
             onClick={onClose}
             style={{
               padding: '8px 16px', fontSize: '13px', fontWeight: 500,
-              color: '#374151', backgroundColor: '#ffffff',
-              border: '1px solid #e5e7eb', borderRadius: '8px', cursor: 'pointer',
+              color: colors.gray[700], backgroundColor: colors.white,
+              border: `1px solid ${colors.gray[200]}`, borderRadius: '8px', cursor: 'pointer',
             }}
           >
             Anuluj
@@ -647,7 +648,7 @@ function ScheduleModal({
             style={{
               display: 'flex', alignItems: 'center', gap: '4px',
               padding: '8px 16px', fontSize: '13px', fontWeight: 600,
-              color: '#ffffff', backgroundColor: '#3b82f6',
+              color: colors.white, backgroundColor: colors.primary[500],
               border: 'none', borderRadius: '8px', cursor: 'pointer',
               opacity: saving ? 0.5 : 1,
             }}
@@ -668,8 +669,8 @@ function NavBtn({ onClick, children }: { onClick: () => void; children: React.Re
       onClick={onClick}
       style={{
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-        width: '32px', height: '32px', border: '1px solid #e5e7eb',
-        borderRadius: '6px', backgroundColor: '#ffffff', cursor: 'pointer', color: '#374151',
+        width: '32px', height: '32px', border: `1px solid ${colors.gray[200]}`,
+        borderRadius: '6px', backgroundColor: colors.white, cursor: 'pointer', color: colors.gray[700],
       }}
     >
       {children}
@@ -836,18 +837,18 @@ function GenerateScheduleModal({
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          backgroundColor: '#ffffff', borderRadius: '14px', padding: '28px',
+          backgroundColor: colors.white, borderRadius: '14px', padding: '28px',
           width: '600px', maxWidth: '95vw', maxHeight: '90vh', overflowY: 'auto',
           boxShadow: '0 20px 60px rgba(0,0,0,0.25)',
         }}
       >
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#111827', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: 700, color: colors.gray[900], margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Zap size={20} color="#7c3aed" />
             Generuj grafik pracy
           </h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', padding: '4px' }}>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: colors.gray[500], padding: '4px' }}>
             <X size={20} />
           </button>
         </div>
@@ -865,7 +866,7 @@ function GenerateScheduleModal({
               <option key={u.id} value={u.id}>{'  '.repeat(u.depth)}{u.name}</option>
             ))}
           </select>
-          <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
+          <div style={{ fontSize: '12px', color: colors.gray[500], marginTop: '4px' }}>
             Pracowników: <strong>{genEmployees.length}</strong>
           </div>
         </div>
@@ -880,9 +881,9 @@ function GenerateScheduleModal({
                 onClick={() => setRangeMode(m)}
                 style={{
                   padding: '5px 14px', fontSize: '12px', fontWeight: rangeMode === m ? 600 : 400,
-                  color: rangeMode === m ? '#ffffff' : '#374151',
-                  backgroundColor: rangeMode === m ? '#7c3aed' : '#f3f4f6',
-                  border: '1px solid ' + (rangeMode === m ? '#7c3aed' : '#e5e7eb'),
+                  color: rangeMode === m ? colors.white : colors.gray[700],
+                  backgroundColor: rangeMode === m ? '#7c3aed' : colors.gray[100],
+                  border: '1px solid ' + (rangeMode === m ? '#7c3aed' : colors.gray[200]),
                   borderRadius: '6px', cursor: 'pointer',
                 }}
               >
@@ -911,7 +912,7 @@ function GenerateScheduleModal({
             </div>
           )}
           {dateRange && (
-            <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
+            <div style={{ fontSize: '12px', color: colors.gray[500], marginTop: '4px' }}>
               Okres: {dateRange.from} → {dateRange.to}
             </div>
           )}
@@ -928,8 +929,8 @@ function GenerateScheduleModal({
                   onClick={() => applyTemplateToAll(tpl)}
                   style={{
                     padding: '4px 10px', fontSize: '12px', fontWeight: 500,
-                    border: '1px solid #d1d5db', borderRadius: '6px',
-                    backgroundColor: '#ffffff', color: '#374151', cursor: 'pointer',
+                    border: `1px solid ${colors.gray[300]}`, borderRadius: '6px',
+                    backgroundColor: colors.white, color: colors.gray[700], cursor: 'pointer',
                   }}
                   title={tpl.definition}
                 >
@@ -943,7 +944,7 @@ function GenerateScheduleModal({
         {/* Week pattern */}
         <div style={{ marginBottom: '16px' }}>
           <label style={labelStyle}>Wzorzec tygodnia</label>
-          <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden' }}>
+          <div style={{ border: `1px solid ${colors.gray[200]}`, borderRadius: '8px', overflow: 'hidden' }}>
             {WEEKDAYS.map((wd, i) => {
               const row = weekRows[wd.dow] ?? { enabled: false, plannedStart: '08:00', plannedEnd: '16:00', shiftType: '' };
               const isWeekend = wd.dow === 0 || wd.dow === 6;
@@ -953,12 +954,12 @@ function GenerateScheduleModal({
                   style={{
                     display: 'flex', alignItems: 'center', gap: '10px',
                     padding: '8px 12px',
-                    borderTop: i > 0 ? '1px solid #f3f4f6' : undefined,
-                    backgroundColor: isWeekend ? '#fafafa' : '#ffffff',
+                    borderTop: i > 0 ? `1px solid ${colors.gray[100]}` : undefined,
+                    backgroundColor: isWeekend ? '#fafafa' : colors.white,
                     opacity: row.enabled ? 1 : 0.5,
                   }}
                 >
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: '120px', cursor: 'pointer', fontSize: '13px', fontWeight: 500, color: '#374151' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: '120px', cursor: 'pointer', fontSize: '13px', fontWeight: 500, color: colors.gray[700] }}>
                     <input
                       type="checkbox"
                       checked={row.enabled}
@@ -973,7 +974,7 @@ function GenerateScheduleModal({
                     disabled={!row.enabled}
                     style={{ ...inputStyle, width: '100px', padding: '4px 6px', fontSize: '13px' }}
                   />
-                  <span style={{ color: '#9ca3af', fontSize: '13px' }}>–</span>
+                  <span style={{ color: colors.gray[400], fontSize: '13px' }}>–</span>
                   <TimeInput
                     value={row.plannedEnd}
                     onChange={(v) => updateRow(wd.dow, { plannedEnd: v })}
@@ -996,17 +997,17 @@ function GenerateScheduleModal({
 
         {/* Overwrite */}
         <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', color: '#374151' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', color: colors.gray[700] }}>
             <input
               type="checkbox"
               checked={overwrite}
               onChange={(e) => setOverwrite(e.target.checked)}
-              style={{ accentColor: '#dc2626' }}
+              style={{ accentColor: colors.danger[600] }}
             />
             <span>Nadpisz istniejące wpisy grafiku</span>
           </label>
           {overwrite && (
-            <div style={{ marginTop: '4px', padding: '6px 10px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '6px', fontSize: '12px', color: '#dc2626' }}>
+            <div style={{ marginTop: '4px', padding: '6px 10px', backgroundColor: colors.danger[50], border: `1px solid ${colors.danger[200]}`, borderRadius: '6px', fontSize: '12px', color: colors.danger[600] }}>
               Uwaga: istniejące grafiki w wybranym okresie zostaną zastąpione.
             </div>
           )}
@@ -1014,12 +1015,12 @@ function GenerateScheduleModal({
 
         {/* Error / Success */}
         {error && (
-          <div style={{ marginBottom: '12px', padding: '8px 12px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '6px', color: '#dc2626', fontSize: '13px' }}>
+          <div style={{ marginBottom: '12px', padding: '8px 12px', backgroundColor: colors.danger[50], border: `1px solid ${colors.danger[200]}`, borderRadius: '6px', color: colors.danger[600], fontSize: '13px' }}>
             {error}
           </div>
         )}
         {success && (
-          <div style={{ marginBottom: '12px', padding: '8px 12px', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '6px', color: '#166534', fontSize: '13px' }}>
+          <div style={{ marginBottom: '12px', padding: '8px 12px', backgroundColor: colors.success[50], border: '1px solid #bbf7d0', borderRadius: '6px', color: colors.success[800], fontSize: '13px' }}>
             {success}
           </div>
         )}
@@ -1030,8 +1031,8 @@ function GenerateScheduleModal({
             onClick={onClose}
             style={{
               padding: '8px 16px', fontSize: '13px', fontWeight: 500,
-              color: '#374151', backgroundColor: '#ffffff',
-              border: '1px solid #e5e7eb', borderRadius: '8px', cursor: 'pointer',
+              color: colors.gray[700], backgroundColor: colors.white,
+              border: `1px solid ${colors.gray[200]}`, borderRadius: '8px', cursor: 'pointer',
             }}
           >
             {success ? 'Zamknij' : 'Anuluj'}
@@ -1043,7 +1044,7 @@ function GenerateScheduleModal({
               style={{
                 display: 'flex', alignItems: 'center', gap: '6px',
                 padding: '8px 20px', fontSize: '13px', fontWeight: 600,
-                color: '#ffffff', backgroundColor: '#7c3aed',
+                color: colors.white, backgroundColor: '#7c3aed',
                 border: 'none', borderRadius: '8px', cursor: 'pointer',
                 opacity: generateMut.isPending ? 0.5 : 1,
               }}
@@ -1140,14 +1141,14 @@ function OrgUnitSchedulePanel({
       display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
     }}>
       <div style={{
-        backgroundColor: '#ffffff', borderRadius: '12px', padding: '28px',
+        backgroundColor: colors.white, borderRadius: '12px', padding: '28px',
         width: '600px', maxHeight: '85vh', overflow: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#111827', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <h2 style={{ fontSize: '18px', fontWeight: 700, color: colors.gray[900], margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Building2 size={20} /> Grafik jednostki organizacyjnej
           </h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280' }}>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: colors.gray[500] }}>
             <X size={20} />
           </button>
         </div>
@@ -1209,7 +1210,7 @@ function OrgUnitSchedulePanel({
                   onChange={(v) => updatePattern(i, 'plannedStart', v)}
                   style={{ ...inputStyle, width: '110px' }}
                 />
-                <span style={{ color: '#6b7280' }}>–</span>
+                <span style={{ color: colors.gray[500] }}>–</span>
                 <TimeInput
                   value={p.plannedEnd}
                   onChange={(v) => updatePattern(i, 'plannedEnd', v)}
@@ -1221,15 +1222,15 @@ function OrgUnitSchedulePanel({
                   placeholder="typ"
                   style={{ ...inputStyle, width: '90px' }}
                 />
-                <button onClick={() => removeDay(i)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444' }}>
+                <button onClick={() => removeDay(i)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: colors.danger[500] }}>
                   <Trash2 size={14} />
                 </button>
               </div>
             ))}
             {patterns.length < 7 && (
               <button onClick={addDay} style={{
-                padding: '6px 12px', fontSize: '12px', color: '#3b82f6', backgroundColor: '#eff6ff',
-                border: '1px solid #bfdbfe', borderRadius: '6px', cursor: 'pointer', alignSelf: 'flex-start',
+                padding: '6px 12px', fontSize: '12px', color: colors.primary[500], backgroundColor: colors.primary[50],
+                border: `1px solid ${colors.primary[200]}`, borderRadius: '6px', cursor: 'pointer', alignSelf: 'flex-start',
               }}>
                 + Dodaj dzień
               </button>
@@ -1249,7 +1250,7 @@ function OrgUnitSchedulePanel({
 
         {/* Status messages */}
         {isSuccess && (
-          <div style={{ padding: '10px', backgroundColor: '#f0fdf4', border: '1px solid #86efac', borderRadius: '6px', marginBottom: '16px', fontSize: '13px', color: '#166534' }}>
+          <div style={{ padding: '10px', backgroundColor: colors.success[50], border: '1px solid #86efac', borderRadius: '6px', marginBottom: '16px', fontSize: '13px', color: colors.success[800] }}>
             ✓ Grafik zapisany. Wpisy zostaną wygenerowane automatycznie.
           </div>
         )}
@@ -1263,8 +1264,8 @@ function OrgUnitSchedulePanel({
                 disabled={deleteMutation.isPending}
                 style={{
                   padding: '10px 16px', fontSize: '13px', fontWeight: 600,
-                  color: '#dc2626', backgroundColor: '#fef2f2',
-                  border: '1px solid #fecaca', borderRadius: '8px', cursor: 'pointer',
+                  color: colors.danger[600], backgroundColor: colors.danger[50],
+                  border: `1px solid ${colors.danger[200]}`, borderRadius: '8px', cursor: 'pointer',
                 }}
               >
                 <Trash2 size={14} style={{ marginRight: '4px' }} /> Usuń grafik
@@ -1274,8 +1275,8 @@ function OrgUnitSchedulePanel({
           <div style={{ display: 'flex', gap: '8px' }}>
             <button onClick={onClose} style={{
               padding: '10px 20px', fontSize: '13px', fontWeight: 500,
-              color: '#374151', backgroundColor: '#ffffff',
-              border: '1px solid #d1d5db', borderRadius: '8px', cursor: 'pointer',
+              color: colors.gray[700], backgroundColor: colors.white,
+              border: `1px solid ${colors.gray[300]}`, borderRadius: '8px', cursor: 'pointer',
             }}>
               Anuluj
             </button>
@@ -1284,7 +1285,7 @@ function OrgUnitSchedulePanel({
               disabled={isSaving || !orgUnitId || !name.trim()}
               style={{
                 padding: '10px 20px', fontSize: '13px', fontWeight: 600,
-                color: '#ffffff', backgroundColor: isSaving ? '#9ca3af' : '#7c3aed',
+                color: colors.white, backgroundColor: isSaving ? colors.gray[400] : '#7c3aed',
                 border: 'none', borderRadius: '8px', cursor: isSaving ? 'default' : 'pointer',
               }}
             >
@@ -1303,14 +1304,14 @@ const thStyle: React.CSSProperties = {
   textAlign: 'left',
   fontSize: '12px',
   fontWeight: 600,
-  color: '#6b7280',
+  color: colors.gray[500],
   textTransform: 'uppercase',
   letterSpacing: '0.04em',
 };
 
 const tdStyle: React.CSSProperties = {
   padding: '8px',
-  color: '#374151',
+  color: colors.gray[700],
   verticalAlign: 'top',
 };
 
@@ -1318,7 +1319,7 @@ const labelStyle: React.CSSProperties = {
   display: 'block',
   fontSize: '12px',
   fontWeight: 600,
-  color: '#374151',
+  color: colors.gray[700],
   marginBottom: '4px',
 };
 
@@ -1326,8 +1327,8 @@ const inputStyle: React.CSSProperties = {
   width: '100%',
   padding: '8px 10px',
   fontSize: '14px',
-  border: '1px solid #d1d5db',
+  border: `1px solid ${colors.gray[300]}`,
   borderRadius: '6px',
-  color: '#111827',
+  color: colors.gray[900],
   boxSizing: 'border-box',
 };

@@ -7,11 +7,12 @@ import { useEmployees } from '@/api/hooks/useOrganization';
 import { ApprovalActionBar } from '@/components/Leave';
 import type { ApprovalDecision, ApprovalRequestDto } from '@/api/types/workflow';
 import { useIsMobile } from '@/shared';
+import { colors } from '@/theme/tokens';
 
 const STATUS_CONFIG: Record<string, { label: string; bg: string; color: string }> = {
-  Pending: { label: 'Oczekuje', bg: '#fef3c7', color: '#92400e' },
+  Pending: { label: 'Oczekuje', bg: colors.warning[100], color: colors.warning[800] },
   Approved: { label: 'Zaakceptowany', bg: '#d1fae5', color: '#065f46' },
-  Rejected: { label: 'Odrzucony', bg: '#fef2f2', color: '#dc2626' },
+  Rejected: { label: 'Odrzucony', bg: colors.danger[50], color: colors.danger[600] },
   Returned: { label: 'Cofnięty', bg: '#fff7ed', color: '#c2410c' },
 };
 
@@ -24,14 +25,14 @@ const thStyle: React.CSSProperties = {
   textAlign: 'left',
   fontSize: '12px',
   fontWeight: 600,
-  color: '#6b7280',
+  color: colors.gray[500],
   textTransform: 'uppercase',
   letterSpacing: '0.04em',
 };
 
 const tdStyle: React.CSSProperties = {
   padding: '12px 14px',
-  color: '#111827',
+  color: colors.gray[900],
 };
 
 export function PendingApprovalsPage() {
@@ -89,12 +90,12 @@ export function PendingApprovalsPage() {
           marginBottom: '24px',
         }}
       >
-        <ClipboardCheck size={24} style={{ color: '#2563eb' }} />
+        <ClipboardCheck size={24} style={{ color: colors.primary[600] }} />
         <div>
-          <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 700, color: '#111827' }}>
+          <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 700, color: colors.gray[900] }}>
             Oczekujące akceptacje
           </h1>
-          <p style={{ margin: '4px 0 0', fontSize: '14px', color: '#6b7280' }}>
+          <p style={{ margin: '4px 0 0', fontSize: '14px', color: colors.gray[500] }}>
             Wnioski oczekujące na Twoją decyzję
           </p>
         </div>
@@ -111,8 +112,8 @@ export function PendingApprovalsPage() {
               borderRadius: '14px',
               fontSize: '13px',
               fontWeight: 600,
-              backgroundColor: '#fef3c7',
-              color: '#92400e',
+              backgroundColor: colors.warning[100],
+              color: colors.warning[800],
             }}
           >
             {pendingApprovals.length}
@@ -122,16 +123,16 @@ export function PendingApprovalsPage() {
 
       {/* Content */}
       {isLoading ? (
-        <div style={{ padding: '20px', textAlign: 'center', color: '#9ca3af', fontSize: '14px' }}>
+        <div style={{ padding: '20px', textAlign: 'center', color: colors.gray[400], fontSize: '14px' }}>
           Ładowanie...
         </div>
       ) : error ? (
         <div
           style={{
             padding: '16px',
-            backgroundColor: '#fef2f2',
+            backgroundColor: colors.danger[50],
             borderRadius: '8px',
-            color: '#dc2626',
+            color: colors.danger[600],
             fontSize: '14px',
           }}
         >
@@ -142,28 +143,28 @@ export function PendingApprovalsPage() {
           style={{
             padding: '48px 32px',
             textAlign: 'center',
-            color: '#6b7280',
+            color: colors.gray[500],
             fontSize: '14px',
-            backgroundColor: '#f9fafb',
+            backgroundColor: colors.gray[50],
             borderRadius: '10px',
-            border: '1px dashed #d1d5db',
+            border: `1px dashed ${colors.gray[300]}`,
           }}
         >
-          <ClipboardCheck size={36} style={{ color: '#d1d5db', marginBottom: '12px' }} />
+          <ClipboardCheck size={36} style={{ color: colors.gray[300], marginBottom: '12px' }} />
           <div>Brak wniosków oczekujących na akceptację.</div>
         </div>
       ) : (
         <div
           style={{
-            backgroundColor: '#fff',
+            backgroundColor: colors.white,
             borderRadius: '10px',
-            border: '1px solid #e5e7eb',
+            border: `1px solid ${colors.gray[200]}`,
             overflowX: 'auto',
           }}
         >
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
             <thead>
-              <tr style={{ backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+              <tr style={{ backgroundColor: colors.gray[50], borderBottom: `1px solid ${colors.gray[200]}` }}>
                 <th style={thStyle}>Typ wniosku</th>
                 <th style={thStyle}>Wnioskodawca</th>
                 <th style={{ ...thStyle, textAlign: 'center' }}>Status</th>
@@ -182,7 +183,7 @@ export function PendingApprovalsPage() {
                 const isExpanded = expandedId === approval.id;
 
                 return (
-                  <tr key={approval.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                  <tr key={approval.id} style={{ borderBottom: `1px solid ${colors.gray[100]}` }}>
                     {/* Row cells */}
                     <td style={tdStyle}>
                       <div style={{ fontWeight: 500 }}>{entityLabel}</div>
@@ -203,12 +204,12 @@ export function PendingApprovalsPage() {
                         {statusCfg?.label}
                       </span>
                     </td>
-                    <td style={{ ...tdStyle, color: approval.dueDate ? '#111827' : '#9ca3af' }}>
+                    <td style={{ ...tdStyle, color: approval.dueDate ? colors.gray[900] : colors.gray[400] }}>
                       {approval.dueDate
                         ? new Date(approval.dueDate).toLocaleDateString('pl-PL')
                         : '—'}
                     </td>
-                    <td style={{ ...tdStyle, color: '#6b7280' }}>
+                    <td style={{ ...tdStyle, color: colors.gray[500] }}>
                       {new Date(approval.createdAt).toLocaleDateString('pl-PL')}
                     </td>
                     <td style={{ ...tdStyle, textAlign: 'center' }}>
@@ -226,9 +227,9 @@ export function PendingApprovalsPage() {
                               marginTop: '4px',
                               padding: '4px 10px',
                               fontSize: '12px',
-                              color: '#6b7280',
+                              color: colors.gray[500],
                               backgroundColor: 'transparent',
-                              border: '1px solid #d1d5db',
+                              border: `1px solid ${colors.gray[300]}`,
                               borderRadius: '4px',
                               cursor: 'pointer',
                             }}
@@ -243,9 +244,9 @@ export function PendingApprovalsPage() {
                             padding: '6px 14px',
                             fontSize: '13px',
                             fontWeight: 500,
-                            color: '#2563eb',
-                            backgroundColor: '#eff6ff',
-                            border: '1px solid #bfdbfe',
+                            color: colors.primary[600],
+                            backgroundColor: colors.primary[50],
+                            border: `1px solid ${colors.primary[200]}`,
                             borderRadius: '6px',
                             cursor: 'pointer',
                           }}
@@ -268,9 +269,9 @@ export function PendingApprovalsPage() {
           style={{
             marginTop: '16px',
             padding: '12px 16px',
-            backgroundColor: '#fef2f2',
+            backgroundColor: colors.danger[50],
             borderRadius: '8px',
-            color: '#dc2626',
+            color: colors.danger[600],
             fontSize: '14px',
           }}
         >

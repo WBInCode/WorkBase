@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Bell } from 'lucide-react';
 import { useNotifications, useUnreadCount, useMarkNotificationRead } from '@/api/hooks/useNotifications';
+import { colors } from '@/theme/tokens';
 
 interface NotificationBellProps {
   userId: string;
@@ -34,7 +35,7 @@ export function NotificationBell({ userId }: NotificationBellProps) {
           background: 'none',
           border: 'none',
           cursor: 'pointer',
-          color: '#6b7280',
+          color: colors.gray[500],
           padding: '4px',
           display: 'inline-flex',
         }}
@@ -47,8 +48,8 @@ export function NotificationBell({ userId }: NotificationBellProps) {
               position: 'absolute',
               top: '-2px',
               right: '-4px',
-              backgroundColor: '#ef4444',
-              color: '#fff',
+              backgroundColor: colors.danger[500],
+              color: colors.white,
               fontSize: '10px',
               fontWeight: 700,
               borderRadius: '9999px',
@@ -76,8 +77,8 @@ export function NotificationBell({ userId }: NotificationBellProps) {
             maxWidth: 'calc(100vw - 32px)',
             maxHeight: '400px',
             overflow: 'auto',
-            backgroundColor: '#fff',
-            border: '1px solid #e5e7eb',
+            backgroundColor: colors.white,
+            border: `1px solid ${colors.gray[200]}`,
             borderRadius: '8px',
             boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
             zIndex: 1000,
@@ -86,17 +87,17 @@ export function NotificationBell({ userId }: NotificationBellProps) {
           <div
             style={{
               padding: '12px 16px',
-              borderBottom: '1px solid #e5e7eb',
+              borderBottom: `1px solid ${colors.gray[200]}`,
               fontWeight: 600,
               fontSize: '14px',
-              color: '#1f2937',
+              color: colors.gray[800],
             }}
           >
             Powiadomienia {count > 0 && `(${count} nieprzeczytanych)`}
           </div>
 
           {(!notifications || notifications.length === 0) ? (
-            <div style={{ padding: '24px 16px', textAlign: 'center', color: '#9ca3af', fontSize: '13px' }}>
+            <div style={{ padding: '24px 16px', textAlign: 'center', color: colors.gray[400], fontSize: '13px' }}>
               Brak powiadomień
             </div>
           ) : (
@@ -108,14 +109,14 @@ export function NotificationBell({ userId }: NotificationBellProps) {
                 }}
                 style={{
                   padding: '10px 16px',
-                  borderBottom: '1px solid #f3f4f6',
+                  borderBottom: `1px solid ${colors.gray[100]}`,
                   cursor: n.isRead ? 'default' : 'pointer',
-                  backgroundColor: n.isRead ? '#fff' : '#eff6ff',
+                  backgroundColor: n.isRead ? colors.white : colors.primary[50],
                   transition: 'background-color 0.15s',
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div style={{ fontWeight: n.isRead ? 400 : 600, fontSize: '13px', color: '#1f2937' }}>
+                  <div style={{ fontWeight: n.isRead ? 400 : 600, fontSize: '13px', color: colors.gray[800] }}>
                     {n.title}
                   </div>
                   {!n.isRead && (
@@ -124,7 +125,7 @@ export function NotificationBell({ userId }: NotificationBellProps) {
                         width: '8px',
                         height: '8px',
                         borderRadius: '50%',
-                        backgroundColor: '#3b82f6',
+                        backgroundColor: colors.primary[500],
                         flexShrink: 0,
                         marginTop: '4px',
                         marginLeft: '8px',
@@ -132,10 +133,10 @@ export function NotificationBell({ userId }: NotificationBellProps) {
                     />
                   )}
                 </div>
-                <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '2px' }}>
+                <div style={{ fontSize: '12px', color: colors.gray[500], marginTop: '2px' }}>
                   {n.body.length > 100 ? n.body.slice(0, 100) + '…' : n.body}
                 </div>
-                <div style={{ fontSize: '11px', color: '#9ca3af', marginTop: '4px' }}>
+                <div style={{ fontSize: '11px', color: colors.gray[400], marginTop: '4px' }}>
                   {new Date(n.createdAt).toLocaleString('pl-PL')}
                 </div>
               </div>

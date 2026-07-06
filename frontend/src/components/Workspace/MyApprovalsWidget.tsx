@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { ClipboardCheck, Clock } from 'lucide-react';
 import type { ApprovalRequestDto } from '@/api/types/workflow';
+import { colors } from '@/theme/tokens';
 
 interface Props {
   approvals: ApprovalRequestDto[];
@@ -15,10 +16,10 @@ export function MyApprovalsWidget({ approvals, isLoading }: Props) {
     return (
       <div style={cardStyle}>
         <div style={headerStyle}>
-          <ClipboardCheck size={18} color="#f59e0b" />
+          <ClipboardCheck size={18} color={colors.warning[500]} />
           <span style={titleStyle}>Oczekujące akceptacje</span>
         </div>
-        <div style={{ padding: '20px', textAlign: 'center', color: '#9ca3af', fontSize: '14px' }}>Ładowanie...</div>
+        <div style={{ padding: '20px', textAlign: 'center', color: colors.gray[400], fontSize: '14px' }}>Ładowanie...</div>
       </div>
     );
   }
@@ -26,12 +27,12 @@ export function MyApprovalsWidget({ approvals, isLoading }: Props) {
   return (
     <div style={cardStyle}>
       <div style={headerStyle}>
-        <ClipboardCheck size={18} color="#f59e0b" />
+        <ClipboardCheck size={18} color={colors.warning[500]} />
         <span style={titleStyle}>Oczekujące akceptacje</span>
         {pending.length > 0 && (
           <span style={{
             marginLeft: 'auto', padding: '2px 8px', borderRadius: '10px',
-            fontSize: '12px', fontWeight: 600, backgroundColor: '#fef3c7', color: '#92400e',
+            fontSize: '12px', fontWeight: 600, backgroundColor: colors.warning[100], color: colors.warning[800],
           }}>
             {pending.length}
           </span>
@@ -49,15 +50,15 @@ export function MyApprovalsWidget({ approvals, isLoading }: Props) {
               style={rowStyle}
             >
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '13px', fontWeight: 500, color: '#111827' }}>
+                <div style={{ fontSize: '13px', fontWeight: 500, color: colors.gray[900] }}>
                   {a.workflowEntityType ?? 'Wniosek'}
                 </div>
-                <div style={{ fontSize: '12px', color: '#9ca3af' }}>
+                <div style={{ fontSize: '12px', color: colors.gray[400] }}>
                   {new Date(a.createdAt).toLocaleDateString('pl-PL')}
                 </div>
               </div>
               {a.dueDate && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#f59e0b' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: colors.warning[500] }}>
                   <Clock size={12} />
                   {new Date(a.dueDate).toLocaleDateString('pl-PL')}
                 </div>
@@ -67,7 +68,7 @@ export function MyApprovalsWidget({ approvals, isLoading }: Props) {
           {pending.length > 5 && (
             <div
               onClick={() => navigate('/leave/approvals')}
-              style={{ padding: '8px', textAlign: 'center', fontSize: '13px', color: '#2563eb', cursor: 'pointer', fontWeight: 500 }}
+              style={{ padding: '8px', textAlign: 'center', fontSize: '13px', color: colors.primary[600], cursor: 'pointer', fontWeight: 500 }}
             >
               + {pending.length - 5} więcej →
             </div>
@@ -79,19 +80,19 @@ export function MyApprovalsWidget({ approvals, isLoading }: Props) {
 }
 
 const cardStyle: React.CSSProperties = {
-  backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #e5e7eb',
+  backgroundColor: colors.white, borderRadius: '12px', border: `1px solid ${colors.gray[200]}`,
   padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
 };
 const headerStyle: React.CSSProperties = {
   display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px',
 };
-const titleStyle: React.CSSProperties = { fontSize: '14px', fontWeight: 600, color: '#374151' };
+const titleStyle: React.CSSProperties = { fontSize: '14px', fontWeight: 600, color: colors.gray[700] };
 const rowStyle: React.CSSProperties = {
   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
   padding: '10px 12px', borderRadius: '8px', cursor: 'pointer',
-  backgroundColor: '#f9fafb',
+  backgroundColor: colors.gray[50],
 };
 const emptyStyle: React.CSSProperties = {
-  padding: '16px', textAlign: 'center', color: '#9ca3af', fontSize: '13px',
-  backgroundColor: '#f9fafb', borderRadius: '8px', border: '1px dashed #d1d5db',
+  padding: '16px', textAlign: 'center', color: colors.gray[400], fontSize: '13px',
+  backgroundColor: colors.gray[50], borderRadius: '8px', border: `1px dashed ${colors.gray[300]}`,
 };

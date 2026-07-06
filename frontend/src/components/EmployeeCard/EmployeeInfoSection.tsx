@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useAuth } from 'react-oidc-context';
 import { useSetEmployeeHourlyRate, useDeactivateEmployee } from '@/api/hooks/useOrganization';
 import { UserMinus } from 'lucide-react';
+import { colors } from '@/theme/tokens';
 
 const statusLabels: Record<EmployeeStatus, string> = {
   Active: 'Aktywny',
@@ -12,8 +13,8 @@ const statusLabels: Record<EmployeeStatus, string> = {
 };
 
 const statusColors: Record<EmployeeStatus, { bg: string; text: string }> = {
-  Active: { bg: '#dcfce7', text: '#166534' },
-  Inactive: { bg: '#f3f4f6', text: '#6b7280' },
+  Active: { bg: colors.success[100], text: colors.success[800] },
+  Inactive: { bg: colors.gray[100], text: colors.gray[500] },
   OnLeave: { bg: '#fef9c3', text: '#854d0e' },
 };
 
@@ -56,10 +57,10 @@ export function EmployeeInfoSection({ employee }: Props) {
           {employee.firstName.charAt(0)}{employee.lastName.charAt(0)}
         </div>
         <div style={{ flex: 1 }}>
-          <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 700, color: '#111827' }}>
+          <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 700, color: colors.gray[900] }}>
             {employee.firstName} {employee.lastName}
           </h2>
-          <p style={{ margin: '2px 0 0', fontSize: '14px', color: '#6b7280' }}>{employee.email}</p>
+          <p style={{ margin: '2px 0 0', fontSize: '14px', color: colors.gray[500] }}>{employee.email}</p>
         </div>
         <span style={{ padding: '4px 12px', borderRadius: '9999px', fontSize: '13px', fontWeight: 500, backgroundColor: color.bg, color: color.text }}>
           {statusLabels[employee.status]}
@@ -78,7 +79,7 @@ export function EmployeeInfoSection({ employee }: Props) {
         {employee.supervisor && (
           <Field label="Przełożony">
             <span
-              style={{ color: '#2563eb', cursor: 'pointer', textDecoration: 'underline' }}
+              style={{ color: colors.primary[600], cursor: 'pointer', textDecoration: 'underline' }}
               onClick={() => navigate(`/org/employees/${employee.supervisor!.employeeId}`)}
             >
               {employee.supervisor.firstName} {employee.supervisor.lastName}
@@ -100,13 +101,13 @@ export function EmployeeInfoSection({ employee }: Props) {
                 <button
                   onClick={saveRate}
                   disabled={setRate.isPending}
-                  style={{ padding: '4px 10px', border: 'none', background: '#2563eb', color: '#fff', borderRadius: 4, cursor: 'pointer', fontSize: 12 }}
+                  style={{ padding: '4px 10px', border: 'none', background: colors.primary[600], color: colors.white, borderRadius: 4, cursor: 'pointer', fontSize: 12 }}
                 >
                   Zapisz
                 </button>
                 <button
                   onClick={() => { setEditingRate(false); setRateInput(employee.hourlyRate != null ? String(employee.hourlyRate) : ''); }}
-                  style={{ padding: '4px 10px', border: '1px solid #cbd5e1', background: '#fff', borderRadius: 4, cursor: 'pointer', fontSize: 12 }}
+                  style={{ padding: '4px 10px', border: '1px solid #cbd5e1', background: colors.white, borderRadius: 4, cursor: 'pointer', fontSize: 12 }}
                 >
                   Anuluj
                 </button>
@@ -114,7 +115,7 @@ export function EmployeeInfoSection({ employee }: Props) {
             ) : (
               <span
                 onClick={() => setEditingRate(true)}
-                style={{ cursor: 'pointer', color: employee.hourlyRate != null ? '#111827' : '#9ca3af', textDecoration: 'underline' }}
+                style={{ cursor: 'pointer', color: employee.hourlyRate != null ? colors.gray[900] : colors.gray[400], textDecoration: 'underline' }}
                 title="Kliknij aby edytować"
               >
                 {employee.hourlyRate != null ? `${employee.hourlyRate.toFixed(2)} PLN/h` : 'Ustaw stawkę'}
@@ -127,22 +128,22 @@ export function EmployeeInfoSection({ employee }: Props) {
       {/* Assignments */}
       {employee.assignments.length > 0 && (
         <div style={{ marginTop: '20px' }}>
-          <h4 style={{ margin: '0 0 10px', fontSize: '14px', fontWeight: 600, color: '#374151' }}>
+          <h4 style={{ margin: '0 0 10px', fontSize: '14px', fontWeight: 600, color: colors.gray[700] }}>
             Przypisania organizacyjne
           </h4>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
             {employee.assignments.map((a) => (
-              <div key={a.id} style={{ padding: '8px 12px', borderRadius: '8px', backgroundColor: '#f9fafb', border: '1px solid #e5e7eb', fontSize: '13px' }}>
-                <div style={{ fontWeight: 600, color: '#111827' }}>{a.organizationUnitName}</div>
-                <div style={{ color: '#6b7280', marginTop: '2px' }}>
+              <div key={a.id} style={{ padding: '8px 12px', borderRadius: '8px', backgroundColor: colors.gray[50], border: `1px solid ${colors.gray[200]}`, fontSize: '13px' }}>
+                <div style={{ fontWeight: 600, color: colors.gray[900] }}>{a.organizationUnitName}</div>
+                <div style={{ color: colors.gray[500], marginTop: '2px' }}>
                   {a.positionName}
                   {a.isPrimary && (
-                    <span style={{ marginLeft: '6px', padding: '1px 6px', borderRadius: '4px', fontSize: '11px', backgroundColor: '#dbeafe', color: '#1d4ed8' }}>
+                    <span style={{ marginLeft: '6px', padding: '1px 6px', borderRadius: '4px', fontSize: '11px', backgroundColor: colors.primary[100], color: colors.primary[700] }}>
                       główne
                     </span>
                   )}
                 </div>
-                <div style={{ color: '#9ca3af', marginTop: '2px', fontSize: '12px' }}>
+                <div style={{ color: colors.gray[400], marginTop: '2px', fontSize: '12px' }}>
                   od {formatDate(a.startDate)}
                 </div>
               </div>
@@ -153,15 +154,15 @@ export function EmployeeInfoSection({ employee }: Props) {
 
       {/* Deactivate button — admin only, active employees only */}
       {isAdmin && employee.status === 'Active' && (
-        <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid #fee2e2' }}>
+        <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: `1px solid ${colors.danger[100]}` }}>
           {!showDeactivateConfirm ? (
             <button
               onClick={() => setShowDeactivateConfirm(true)}
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: '8px',
                 padding: '10px 20px', fontSize: '13px', fontWeight: 600,
-                color: '#dc2626', backgroundColor: '#fef2f2',
-                border: '1px solid #fecaca', borderRadius: '8px',
+                color: colors.danger[600], backgroundColor: colors.danger[50],
+                border: `1px solid ${colors.danger[200]}`, borderRadius: '8px',
                 cursor: 'pointer',
               }}
             >
@@ -169,11 +170,11 @@ export function EmployeeInfoSection({ employee }: Props) {
               Dezaktywuj pracownika
             </button>
           ) : (
-            <div style={{ padding: '16px', backgroundColor: '#fef2f2', borderRadius: '8px', border: '1px solid #fecaca' }}>
-              <p style={{ margin: '0 0 12px', fontSize: '14px', color: '#991b1b', fontWeight: 500 }}>
+            <div style={{ padding: '16px', backgroundColor: colors.danger[50], borderRadius: '8px', border: `1px solid ${colors.danger[200]}` }}>
+              <p style={{ margin: '0 0 12px', fontSize: '14px', color: colors.danger[800], fontWeight: 500 }}>
                 Czy na pewno chcesz dezaktywować pracownika <strong>{employee.firstName} {employee.lastName}</strong>?
               </p>
-              <p style={{ margin: '0 0 16px', fontSize: '13px', color: '#b91c1c' }}>
+              <p style={{ margin: '0 0 16px', fontSize: '13px', color: colors.danger[700] }}>
                 Pracownik zostanie oznaczony jako nieaktywny. Nie będzie widoczny w raportach i listach aktywnych pracowników.
               </p>
               <div style={{ display: 'flex', gap: '8px' }}>
@@ -182,7 +183,7 @@ export function EmployeeInfoSection({ employee }: Props) {
                   disabled={deactivate.isPending}
                   style={{
                     padding: '8px 20px', fontSize: '13px', fontWeight: 600,
-                    color: '#ffffff', backgroundColor: '#dc2626',
+                    color: colors.white, backgroundColor: colors.danger[600],
                     border: 'none', borderRadius: '6px', cursor: 'pointer',
                     opacity: deactivate.isPending ? 0.6 : 1,
                   }}
@@ -193,15 +194,15 @@ export function EmployeeInfoSection({ employee }: Props) {
                   onClick={() => setShowDeactivateConfirm(false)}
                   style={{
                     padding: '8px 20px', fontSize: '13px', fontWeight: 500,
-                    color: '#374151', backgroundColor: '#ffffff',
-                    border: '1px solid #d1d5db', borderRadius: '6px', cursor: 'pointer',
+                    color: colors.gray[700], backgroundColor: colors.white,
+                    border: `1px solid ${colors.gray[300]}`, borderRadius: '6px', cursor: 'pointer',
                   }}
                 >
                   Anuluj
                 </button>
               </div>
               {deactivate.error && (
-                <p style={{ margin: '8px 0 0', fontSize: '13px', color: '#dc2626' }}>
+                <p style={{ margin: '8px 0 0', fontSize: '13px', color: colors.danger[600] }}>
                   Błąd: {(deactivate.error as Error)?.message || 'Nie udało się dezaktywować pracownika.'}
                 </p>
               )}
@@ -216,8 +217,8 @@ export function EmployeeInfoSection({ employee }: Props) {
 function Field({ label, value, children }: { label: string; value?: string; children?: React.ReactNode }) {
   return (
     <div>
-      <div style={{ color: '#9ca3af', fontSize: '12px', marginBottom: '2px' }}>{label}</div>
-      <div style={{ color: '#111827', fontWeight: 500 }}>{children ?? value}</div>
+      <div style={{ color: colors.gray[400], fontSize: '12px', marginBottom: '2px' }}>{label}</div>
+      <div style={{ color: colors.gray[900], fontWeight: 500 }}>{children ?? value}</div>
     </div>
   );
 }
@@ -228,9 +229,9 @@ function formatDate(iso: string): string {
 
 const cardStyle: React.CSSProperties = {
   padding: '20px',
-  border: '1px solid #e5e7eb',
+  border: `1px solid ${colors.gray[200]}`,
   borderRadius: '12px',
-  backgroundColor: '#fff',
+  backgroundColor: colors.white,
 };
 
 const avatarStyle: React.CSSProperties = {
