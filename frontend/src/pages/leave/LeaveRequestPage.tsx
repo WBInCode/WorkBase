@@ -6,13 +6,14 @@ import { useLeaveTypes, useLeaveBalances, useLeaveRequests, useSubmitLeaveReques
 import { LeaveBalanceCard, LeaveRequestForm } from '@/components/Leave';
 import type { LeaveRequestStatus } from '@/api/types/leave';
 import { useIsMobile } from '@/shared';
+import { colors } from '@/theme/tokens';
 
 const STATUS_CONFIG: Record<LeaveRequestStatus, { label: string; bg: string; color: string }> = {
-  Draft: { label: 'Szkic', bg: '#f3f4f6', color: '#6b7280' },
-  Pending: { label: 'Oczekuje', bg: '#fef3c7', color: '#92400e' },
+  Draft: { label: 'Szkic', bg: colors.gray[100], color: colors.gray[500] },
+  Pending: { label: 'Oczekuje', bg: colors.warning[100], color: colors.warning[800] },
   Approved: { label: 'Zaakceptowany', bg: '#d1fae5', color: '#065f46' },
-  Rejected: { label: 'Odrzucony', bg: '#fef2f2', color: '#dc2626' },
-  Cancelled: { label: 'Anulowany', bg: '#f3f4f6', color: '#6b7280' },
+  Rejected: { label: 'Odrzucony', bg: colors.danger[50], color: colors.danger[600] },
+  Cancelled: { label: 'Anulowany', bg: colors.gray[100], color: colors.gray[500] },
 };
 
 export function LeaveRequestPage() {
@@ -63,10 +64,10 @@ export function LeaveRequestPage() {
         }}
       >
         <div>
-          <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 700, color: '#111827' }}>
+          <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 700, color: colors.gray[900] }}>
             Urlopy
           </h1>
-          <p style={{ margin: '4px 0 0', fontSize: '14px', color: '#6b7280' }}>
+          <p style={{ margin: '4px 0 0', fontSize: '14px', color: colors.gray[500] }}>
             Twoje saldo i wnioski urlopowe
           </p>
         </div>
@@ -79,9 +80,9 @@ export function LeaveRequestPage() {
             style={{
               padding: '7px 12px',
               fontSize: '14px',
-              border: '1px solid #d1d5db',
+              border: `1px solid ${colors.gray[300]}`,
               borderRadius: '6px',
-              backgroundColor: '#fff',
+              backgroundColor: colors.white,
               cursor: 'pointer',
             }}
           >
@@ -101,8 +102,8 @@ export function LeaveRequestPage() {
               padding: '8px 16px',
               fontSize: '14px',
               fontWeight: 500,
-              color: '#fff',
-              backgroundColor: '#2563eb',
+              color: colors.white,
+              backgroundColor: colors.primary[600],
               border: 'none',
               borderRadius: '6px',
               cursor: 'pointer',
@@ -120,7 +121,7 @@ export function LeaveRequestPage() {
           style={{
             fontSize: '15px',
             fontWeight: 600,
-            color: '#374151',
+            color: colors.gray[700],
             marginBottom: '12px',
           }}
         >
@@ -135,7 +136,7 @@ export function LeaveRequestPage() {
           style={{
             fontSize: '15px',
             fontWeight: 600,
-            color: '#374151',
+            color: colors.gray[700],
             marginBottom: '12px',
           }}
         >
@@ -143,7 +144,7 @@ export function LeaveRequestPage() {
         </h2>
 
         {requestsLoading ? (
-          <div style={{ padding: '20px', textAlign: 'center', color: '#9ca3af', fontSize: '14px' }}>
+          <div style={{ padding: '20px', textAlign: 'center', color: colors.gray[400], fontSize: '14px' }}>
             Ładowanie...
           </div>
         ) : requests.length === 0 ? (
@@ -151,11 +152,11 @@ export function LeaveRequestPage() {
             style={{
               padding: '32px',
               textAlign: 'center',
-              color: '#6b7280',
+              color: colors.gray[500],
               fontSize: '14px',
-              backgroundColor: '#f9fafb',
+              backgroundColor: colors.gray[50],
               borderRadius: '10px',
-              border: '1px dashed #d1d5db',
+              border: `1px dashed ${colors.gray[300]}`,
             }}
           >
             Brak wniosków urlopowych w tym roku.
@@ -163,15 +164,15 @@ export function LeaveRequestPage() {
         ) : (
           <div
             style={{
-              backgroundColor: '#fff',
+              backgroundColor: colors.white,
               borderRadius: '10px',
-              border: '1px solid #e5e7eb',
+              border: `1px solid ${colors.gray[200]}`,
               overflowX: 'auto',
             }}
           >
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
               <thead>
-                <tr style={{ backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+                <tr style={{ backgroundColor: colors.gray[50], borderBottom: `1px solid ${colors.gray[200]}` }}>
                   <th style={thStyle}>Typ</th>
                   <th style={thStyle}>Od</th>
                   <th style={thStyle}>Do</th>
@@ -183,11 +184,11 @@ export function LeaveRequestPage() {
               <tbody>
                 {requests.map((r) => {
                   const cfg = STATUS_CONFIG[r.status] ?? STATUS_CONFIG.Draft;
-                  const typeColor = r.leaveTypeColor ?? '#6b7280';
+                  const typeColor = r.leaveTypeColor ?? colors.gray[500];
                   return (
                     <tr
                       key={r.id}
-                      style={{ borderBottom: '1px solid #f3f4f6' }}
+                      style={{ borderBottom: `1px solid ${colors.gray[100]}` }}
                     >
                       <td style={tdStyle}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -230,7 +231,7 @@ export function LeaveRequestPage() {
                       <td
                         style={{
                           ...tdStyle,
-                          color: '#9ca3af',
+                          color: colors.gray[400],
                           maxWidth: '200px',
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
@@ -271,12 +272,12 @@ const thStyle: React.CSSProperties = {
   textAlign: 'left',
   fontSize: '12px',
   fontWeight: 600,
-  color: '#6b7280',
+  color: colors.gray[500],
   textTransform: 'uppercase',
   letterSpacing: '0.5px',
 };
 
 const tdStyle: React.CSSProperties = {
   padding: '10px 14px',
-  color: '#374151',
+  color: colors.gray[700],
 };

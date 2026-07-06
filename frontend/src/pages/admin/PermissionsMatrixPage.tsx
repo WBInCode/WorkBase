@@ -8,6 +8,7 @@ import {
 } from '@/api/hooks/useIam';
 import type { PermissionDto } from '@/api/types/iam';
 import { useIsMobile } from '@/shared';
+import { colors } from '@/theme/tokens';
 
 interface ModuleGroup {
   module: string;
@@ -123,7 +124,7 @@ export function PermissionsMatrixPage() {
     <div style={{ padding: mobile ? '16px' : '24px 32px', maxWidth: '1200px' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-        <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 600, color: '#111827' }}>
+        <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 600, color: colors.gray[900] }}>
           Matryca uprawnień
         </h1>
         <div style={{ display: 'flex', gap: '8px' }}>
@@ -153,7 +154,7 @@ export function PermissionsMatrixPage() {
 
       {/* Role selector */}
       <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <label style={{ fontSize: '14px', fontWeight: 500, color: '#374151' }}>Rola:</label>
+        <label style={{ fontSize: '14px', fontWeight: 500, color: colors.gray[700] }}>Rola:</label>
         <select
           value={selectedRoleId ?? ''}
           onChange={(e) => {
@@ -170,7 +171,7 @@ export function PermissionsMatrixPage() {
           ))}
         </select>
         {isSystem && (
-          <span style={{ fontSize: '13px', color: '#92400e', backgroundColor: '#fef3c7', padding: '4px 10px', borderRadius: '4px' }}>
+          <span style={{ fontSize: '13px', color: colors.warning[800], backgroundColor: colors.warning[100], padding: '4px 10px', borderRadius: '4px' }}>
             Rola systemowa — tylko podgląd
           </span>
         )}
@@ -178,7 +179,7 @@ export function PermissionsMatrixPage() {
 
       {/* Saved confirmation */}
       {updateMutation.isSuccess && !dirty && (
-        <div style={{ padding: '10px 16px', backgroundColor: '#dcfce7', border: '1px solid #bbf7d0', borderRadius: '8px', color: '#166534', fontSize: '14px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <div style={{ padding: '10px 16px', backgroundColor: colors.success[100], border: `1px solid ${colors.success[200]}`, borderRadius: '8px', color: colors.success[800], fontSize: '14px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
           <Check size={16} />
           Uprawnienia zostały zapisane.
         </div>
@@ -193,15 +194,15 @@ export function PermissionsMatrixPage() {
 
       {/* Content */}
       {isLoading || rolePermsQuery.isLoading ? (
-        <div style={{ textAlign: 'center', padding: '48px 0', color: '#6b7280', fontSize: '14px' }}>
+        <div style={{ textAlign: 'center', padding: '48px 0', color: colors.gray[500], fontSize: '14px' }}>
           Ładowanie...
         </div>
       ) : !selectedRoleId ? (
-        <div style={{ textAlign: 'center', padding: '48px 0', color: '#9ca3af', fontSize: '14px' }}>
+        <div style={{ textAlign: 'center', padding: '48px 0', color: colors.gray[400], fontSize: '14px' }}>
           Wybierz rolę, aby zobaczyć matrycę uprawnień.
         </div>
       ) : (
-        <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', overflowX: 'auto' }}>
+        <div style={{ border: `1px solid ${colors.gray[200]}`, borderRadius: '8px', overflowX: 'auto' }}>
           {moduleGroups.map((group) => (
             <ModuleSection
               key={group.module}
@@ -244,7 +245,7 @@ function ModuleSection({
   const someChecked = checkedCount > 0 && !allChecked;
 
   return (
-    <div style={{ borderBottom: '1px solid #e5e7eb' }}>
+    <div style={{ borderBottom: `1px solid ${colors.gray[200]}` }}>
       {/* Module header */}
       <div
         style={{
@@ -252,7 +253,7 @@ function ModuleSection({
           alignItems: 'center',
           gap: '10px',
           padding: '10px 14px',
-          backgroundColor: '#f9fafb',
+          backgroundColor: colors.gray[50],
           cursor: 'pointer',
           userSelect: 'none',
         }}
@@ -271,10 +272,10 @@ function ModuleSection({
           onClick={(e) => e.stopPropagation()}
           style={{ width: '16px', height: '16px', cursor: disabled ? 'default' : 'pointer' }}
         />
-        <span style={{ fontWeight: 600, fontSize: '14px', color: '#111827', textTransform: 'capitalize' }}>
+        <span style={{ fontWeight: 600, fontSize: '14px', color: colors.gray[900], textTransform: 'capitalize' }}>
           {moduleDisplayName(group.module)}
         </span>
-        <span style={{ fontSize: '12px', color: '#6b7280' }}>
+        <span style={{ fontSize: '12px', color: colors.gray[500] }}>
           ({checkedCount}/{group.permissions.length})
         </span>
       </div>
@@ -291,7 +292,7 @@ function ModuleSection({
                 gap: '10px',
                 padding: '6px 0',
                 fontSize: '13px',
-                color: '#374151',
+                color: colors.gray[700],
                 cursor: disabled ? 'default' : 'pointer',
               }}
             >
@@ -302,7 +303,7 @@ function ModuleSection({
                 onChange={() => { if (!disabled) onTogglePermission(perm.id); }}
                 style={{ width: '15px', height: '15px', cursor: disabled ? 'default' : 'pointer' }}
               />
-              <span style={{ fontFamily: 'monospace', fontSize: '12px', color: '#6b7280', minWidth: '180px' }}>
+              <span style={{ fontFamily: 'monospace', fontSize: '12px', color: colors.gray[500], minWidth: '180px' }}>
                 {perm.fullCode}
               </span>
               <span>{perm.description ?? `${perm.action}${perm.scope ? ` (${perm.scope})` : ''}`}</span>
@@ -346,11 +347,11 @@ const iconBtnStyle: React.CSSProperties = {
   justifyContent: 'center',
   width: '32px',
   height: '32px',
-  border: '1px solid #d1d5db',
+  border: `1px solid ${colors.gray[300]}`,
   borderRadius: '6px',
-  backgroundColor: '#fff',
+  backgroundColor: colors.white,
   cursor: 'pointer',
-  color: '#374151',
+  color: colors.gray[700],
 };
 
 const primaryBtnStyle: React.CSSProperties = {
@@ -360,8 +361,8 @@ const primaryBtnStyle: React.CSSProperties = {
   padding: '8px 16px',
   fontSize: '14px',
   fontWeight: 500,
-  color: '#fff',
-  backgroundColor: '#2563eb',
+  color: colors.white,
+  backgroundColor: colors.primary[600],
   border: 'none',
   borderRadius: '6px',
   cursor: 'pointer',
@@ -370,19 +371,19 @@ const primaryBtnStyle: React.CSSProperties = {
 const selectStyle: React.CSSProperties = {
   padding: '8px 12px',
   fontSize: '14px',
-  border: '1px solid #d1d5db',
+  border: `1px solid ${colors.gray[300]}`,
   borderRadius: '6px',
   outline: 'none',
   minWidth: '260px',
-  backgroundColor: '#fff',
+  backgroundColor: colors.white,
 };
 
 const errorBoxStyle: React.CSSProperties = {
   padding: '12px 16px',
-  backgroundColor: '#fef2f2',
-  border: '1px solid #fecaca',
+  backgroundColor: colors.danger[50],
+  border: `1px solid ${colors.danger[200]}`,
   borderRadius: '8px',
-  color: '#dc2626',
+  color: colors.danger[600],
   fontSize: '14px',
   marginBottom: '12px',
 };

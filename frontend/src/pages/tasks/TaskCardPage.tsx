@@ -16,6 +16,7 @@ import {
 } from '@/api/hooks/useTasks';
 import { useEmployees } from '@/api/hooks/useOrganization';
 import { useIsMobile } from '@/shared';
+import { colors } from '@/theme/tokens';
 
 export function TaskCardPage() {
   const { id } = useParams<{ id: string }>();
@@ -57,7 +58,7 @@ export function TaskCardPage() {
         <button onClick={() => navigate('/tasks')} style={backBtnStyle}>
           <ArrowLeft size={16} /> Powrót
         </button>
-        <div style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>
+        <div style={{ padding: '40px', textAlign: 'center', color: colors.gray[500] }}>
           Zadanie nie zostało znalezione.
         </div>
       </div>
@@ -91,11 +92,11 @@ export function TaskCardPage() {
 
       {/* Header */}
       <div style={{ marginTop: '16px', marginBottom: '24px' }}>
-        <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 700, color: '#111827' }}>
+        <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 700, color: colors.gray[900] }}>
           {task.title}
         </h1>
         {task.description && (
-          <p style={{ margin: '8px 0 0', fontSize: '14px', color: '#6b7280', lineHeight: 1.6 }}>
+          <p style={{ margin: '8px 0 0', fontSize: '14px', color: colors.gray[500], lineHeight: 1.6 }}>
             {task.description}
           </p>
         )}
@@ -104,17 +105,17 @@ export function TaskCardPage() {
       {/* Info grid */}
       <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
         <InfoCard label="Status">
-          <Badge label={task.statusName} color={task.statusColor ?? '#6b7280'} />
+          <Badge label={task.statusName} color={task.statusColor ?? colors.gray[500]} />
         </InfoCard>
         <InfoCard label="Priorytet">
-          <Badge label={task.priorityName} color={task.priorityColor ?? '#6b7280'} />
+          <Badge label={task.priorityName} color={task.priorityColor ?? colors.gray[500]} />
         </InfoCard>
         <InfoCard label="Przypisane do">
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-            <UserCircle size={16} color="#9ca3af" />
+            <UserCircle size={16} color={colors.gray[400]} />
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
               <span style={{ fontWeight: 500 }}>{employeeMap.get(task.assigneeId) ?? '—'}</span>
-              <span style={{ padding: '2px 6px', fontSize: '10px', fontWeight: 600, letterSpacing: '0.3px', textTransform: 'uppercase', backgroundColor: '#fef3c7', color: '#92400e', borderRadius: '999px' }}>
+              <span style={{ padding: '2px 6px', fontSize: '10px', fontWeight: 600, letterSpacing: '0.3px', textTransform: 'uppercase', backgroundColor: colors.warning[100], color: colors.warning[800], borderRadius: '999px' }}>
                 Główny wykonawca
               </span>
             </span>
@@ -127,7 +128,7 @@ export function TaskCardPage() {
         </InfoCard>
         <InfoCard label="Termin">
           {task.dueDate ? (
-            <span style={{ color: isOverdue ? '#dc2626' : '#374151', fontWeight: isOverdue ? 600 : 400 }}>
+            <span style={{ color: isOverdue ? colors.danger[600] : colors.gray[700], fontWeight: isOverdue ? 600 : 400 }}>
               {isOverdue && <AlertTriangle size={14} style={{ marginRight: '4px', verticalAlign: 'middle' }} />}
               {new Date(task.dueDate).toLocaleString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
             </span>
@@ -135,7 +136,7 @@ export function TaskCardPage() {
         </InfoCard>
         <InfoCard label="Utworzono">
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Clock size={14} color="#9ca3af" />
+            <Clock size={14} color={colors.gray[400]} />
             {new Date(task.createdAt).toLocaleDateString('pl-PL')}
           </div>
         </InfoCard>
@@ -148,7 +149,7 @@ export function TaskCardPage() {
       <div style={{ display: 'flex', gap: '16px', marginBottom: '28px', flexWrap: 'wrap' }}>
         {/* Change status */}
         <div style={actionCardStyle}>
-          <div style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>Zmień status</div>
+          <div style={{ fontSize: '13px', fontWeight: 600, color: colors.gray[700], marginBottom: '8px' }}>Zmień status</div>
           <div style={{ display: 'flex', gap: '8px' }}>
             <select value={newStatusId} onChange={(e) => setNewStatusId(e.target.value)} style={selectStyle}>
               <option value="">— wybierz —</option>
@@ -169,7 +170,7 @@ export function TaskCardPage() {
       {/* Attachments */}
       <div style={{ marginBottom: '28px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-          <h2 style={{ fontSize: '16px', fontWeight: 600, color: '#111827', margin: 0 }}>
+          <h2 style={{ fontSize: '16px', fontWeight: 600, color: colors.gray[900], margin: 0 }}>
             <Paperclip size={16} style={{ verticalAlign: 'middle', marginRight: '6px' }} />
             Załączniki ({attachments.length})
           </h2>
@@ -179,7 +180,7 @@ export function TaskCardPage() {
             style={{
               display: 'inline-flex', alignItems: 'center', gap: '6px',
               padding: '6px 12px', fontSize: '13px', fontWeight: 500,
-              color: '#2563eb', backgroundColor: '#eff6ff', border: '1px solid #bfdbfe',
+              color: colors.primary[600], backgroundColor: colors.primary[50], border: `1px solid ${colors.primary[200]}`,
               borderRadius: '6px', cursor: 'pointer',
             }}
           >
@@ -200,8 +201,8 @@ export function TaskCardPage() {
 
         {attachments.length === 0 ? (
           <div style={{
-            padding: '20px', textAlign: 'center', color: '#9ca3af', fontSize: '14px',
-            backgroundColor: '#f9fafb', borderRadius: '8px', border: '1px dashed #d1d5db',
+            padding: '20px', textAlign: 'center', color: colors.gray[400], fontSize: '14px',
+            backgroundColor: colors.gray[50], borderRadius: '8px', border: `1px dashed ${colors.gray[300]}`,
           }}>
             Brak załączników.
           </div>
@@ -210,15 +211,15 @@ export function TaskCardPage() {
             {attachments.map((a) => (
               <div key={a.id} style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '10px 14px', backgroundColor: '#f9fafb', borderRadius: '8px',
-                border: '1px solid #e5e7eb',
+                padding: '10px 14px', backgroundColor: colors.gray[50], borderRadius: '8px',
+                border: `1px solid ${colors.gray[200]}`,
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-                  <Paperclip size={14} color="#9ca3af" />
-                  <span style={{ fontSize: '14px', color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <Paperclip size={14} color={colors.gray[400]} />
+                  <span style={{ fontSize: '14px', color: colors.gray[700], overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {a.fileName}
                   </span>
-                  <span style={{ fontSize: '12px', color: '#9ca3af', flexShrink: 0 }}>
+                  <span style={{ fontSize: '12px', color: colors.gray[400], flexShrink: 0 }}>
                     ({formatFileSize(a.fileSizeBytes)})
                   </span>
                 </div>
@@ -226,7 +227,7 @@ export function TaskCardPage() {
                   onClick={() => downloadMutation.mutate({ taskId: id!, attachmentId: a.id, fileName: a.fileName })}
                   style={{
                     display: 'inline-flex', alignItems: 'center', gap: '4px',
-                    padding: '4px 8px', fontSize: '12px', color: '#2563eb',
+                    padding: '4px 8px', fontSize: '12px', color: colors.primary[600],
                     backgroundColor: 'transparent', border: 'none', cursor: 'pointer',
                   }}
                 >
@@ -240,14 +241,14 @@ export function TaskCardPage() {
 
       {/* Comments */}
       <div>
-        <h2 style={{ fontSize: '16px', fontWeight: 600, color: '#111827', marginBottom: '12px' }}>
+        <h2 style={{ fontSize: '16px', fontWeight: 600, color: colors.gray[900], marginBottom: '12px' }}>
           Komentarze ({comments.length})
         </h2>
 
         {comments.length === 0 ? (
           <div style={{
-            padding: '20px', textAlign: 'center', color: '#9ca3af', fontSize: '14px',
-            backgroundColor: '#f9fafb', borderRadius: '8px', border: '1px dashed #d1d5db',
+            padding: '20px', textAlign: 'center', color: colors.gray[400], fontSize: '14px',
+            backgroundColor: colors.gray[50], borderRadius: '8px', border: `1px dashed ${colors.gray[300]}`,
             marginBottom: '12px',
           }}>
             Brak komentarzy.
@@ -256,18 +257,18 @@ export function TaskCardPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '12px' }}>
             {comments.map((c) => (
               <div key={c.id} style={{
-                padding: '12px 16px', backgroundColor: '#f9fafb', borderRadius: '8px',
-                border: '1px solid #e5e7eb',
+                padding: '12px 16px', backgroundColor: colors.gray[50], borderRadius: '8px',
+                border: `1px solid ${colors.gray[200]}`,
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                  <span style={{ fontSize: '13px', fontWeight: 600, color: '#374151' }}>
+                  <span style={{ fontSize: '13px', fontWeight: 600, color: colors.gray[700] }}>
                     {employeeMap.get(c.authorId) ?? 'Nieznany'}
                   </span>
-                  <span style={{ fontSize: '12px', color: '#9ca3af' }}>
+                  <span style={{ fontSize: '12px', color: colors.gray[400] }}>
                     {new Date(c.createdAt).toLocaleString('pl-PL')}
                   </span>
                 </div>
-                <div style={{ fontSize: '14px', color: '#374151', lineHeight: 1.5 }}>
+                <div style={{ fontSize: '14px', color: colors.gray[700], lineHeight: 1.5 }}>
                   {c.content}
                 </div>
               </div>
@@ -284,7 +285,7 @@ export function TaskCardPage() {
             onKeyDown={(e) => { if (e.key === 'Enter') handleAddComment(); }}
             style={{
               flex: 1, padding: '8px 12px', fontSize: '14px',
-              border: '1px solid #d1d5db', borderRadius: '6px',
+              border: `1px solid ${colors.gray[300]}`, borderRadius: '6px',
             }}
           />
           <button
@@ -293,7 +294,7 @@ export function TaskCardPage() {
             style={{
               display: 'inline-flex', alignItems: 'center', gap: '6px',
               padding: '8px 16px', fontSize: '14px', fontWeight: 500,
-              color: '#fff', backgroundColor: '#2563eb', border: 'none',
+              color: colors.white, backgroundColor: colors.primary[600], border: 'none',
               borderRadius: '6px', cursor: 'pointer',
             }}
           >
@@ -308,13 +309,13 @@ export function TaskCardPage() {
 function InfoCard({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div style={{
-      padding: '12px 16px', backgroundColor: '#f9fafb', borderRadius: '8px',
-      border: '1px solid #e5e7eb',
+      padding: '12px 16px', backgroundColor: colors.gray[50], borderRadius: '8px',
+      border: `1px solid ${colors.gray[200]}`,
     }}>
-      <div style={{ fontSize: '11px', fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
+      <div style={{ fontSize: '11px', fontWeight: 600, color: colors.gray[400], textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
         {label}
       </div>
-      <div style={{ fontSize: '14px', color: '#374151' }}>{children}</div>
+      <div style={{ fontSize: '14px', color: colors.gray[700] }}>{children}</div>
     </div>
   );
 }
@@ -332,24 +333,24 @@ function Badge({ label, color }: { label: string; color: string }) {
 
 const backBtnStyle: React.CSSProperties = {
   display: 'inline-flex', alignItems: 'center', gap: '6px',
-  padding: '6px 12px', fontSize: '14px', color: '#374151',
-  backgroundColor: 'transparent', border: '1px solid #d1d5db',
+  padding: '6px 12px', fontSize: '14px', color: colors.gray[700],
+  backgroundColor: 'transparent', border: `1px solid ${colors.gray[300]}`,
   borderRadius: '6px', cursor: 'pointer',
 };
 const selectStyle: React.CSSProperties = {
-  padding: '7px 12px', fontSize: '14px', border: '1px solid #d1d5db',
-  borderRadius: '6px', backgroundColor: '#fff', cursor: 'pointer', flex: 1,
+  padding: '7px 12px', fontSize: '14px', border: `1px solid ${colors.gray[300]}`,
+  borderRadius: '6px', backgroundColor: colors.white, cursor: 'pointer', flex: 1,
 };
 const actionCardStyle: React.CSSProperties = {
-  flex: '1 1 200px', padding: '12px 16px', backgroundColor: '#fff',
-  borderRadius: '8px', border: '1px solid #e5e7eb',
+  flex: '1 1 200px', padding: '12px 16px', backgroundColor: colors.white,
+  borderRadius: '8px', border: `1px solid ${colors.gray[200]}`,
 };
 const actionBtnStyle: React.CSSProperties = {
-  padding: '7px 14px', fontSize: '14px', fontWeight: 500, color: '#fff',
-  backgroundColor: '#2563eb', border: 'none', borderRadius: '6px', cursor: 'pointer',
+  padding: '7px 14px', fontSize: '14px', fontWeight: 500, color: colors.white,
+  backgroundColor: colors.primary[600], border: 'none', borderRadius: '6px', cursor: 'pointer',
 };
 const errorStyle: React.CSSProperties = {
-  marginTop: '6px', fontSize: '12px', color: '#dc2626',
+  marginTop: '6px', fontSize: '12px', color: colors.danger[600],
 };
 
 function formatFileSize(bytes: number): string {

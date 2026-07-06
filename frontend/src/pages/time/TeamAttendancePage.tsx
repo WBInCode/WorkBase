@@ -6,6 +6,7 @@ import type { TimeSheetPeriodDto, TimeAnomalyDto } from '@/api/types/time';
 import type { EmployeeDto, OrganizationUnitTreeNode } from '@/api/types/organization';
 import { useIsMobile } from '@/shared';
 import type ExcelJS from 'exceljs';
+import { colors } from '@/theme/tokens';
 
 /* ── helpers ── */
 
@@ -107,9 +108,9 @@ const ANOMALY_TYPE_LABELS: Record<string, string> = {
 };
 
 const ANOMALY_COLORS: Record<string, string> = {
-  MissingClockOut: '#dc2626',
-  MissingClockIn: '#dc2626',
-  LateArrival: '#f59e0b',
+  MissingClockOut: colors.danger[600],
+  MissingClockIn: colors.danger[600],
+  LateArrival: colors.warning[500],
   DoubleClockIn: '#9333ea',
   ExcessiveShift: '#ea580c',
 };
@@ -311,7 +312,7 @@ export function TeamAttendancePage() {
     <div style={{ padding: mobile ? '16px' : '24px 32px' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-        <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#111827', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <h1 style={{ fontSize: '22px', fontWeight: 700, color: colors.gray[900], margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Users size={22} />
           Raport czasu pracy zespołu
         </h1>
@@ -321,7 +322,7 @@ export function TeamAttendancePage() {
           style={{
             display: 'flex', alignItems: 'center', gap: '6px',
             padding: '8px 16px', fontSize: '13px', fontWeight: 600,
-            color: '#ffffff', backgroundColor: '#059669',
+            color: colors.white, backgroundColor: colors.emerald[600],
             border: 'none', borderRadius: '8px', cursor: 'pointer',
             opacity: (!timesheets || employees.length === 0) ? 0.5 : 1,
           }}
@@ -333,17 +334,17 @@ export function TeamAttendancePage() {
       {/* Controls */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
         {/* View mode */}
-        <div style={{ display: 'flex', borderRadius: '8px', border: '1px solid #e5e7eb', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', borderRadius: '8px', border: `1px solid ${colors.gray[200]}`, overflow: 'hidden' }}>
           {(['week', 'month'] as const).map((m) => (
             <button
               key={m}
               onClick={() => setViewMode(m)}
               style={{
                 padding: '6px 16px', fontSize: '13px', fontWeight: viewMode === m ? 600 : 400,
-                color: viewMode === m ? '#ffffff' : '#374151',
-                backgroundColor: viewMode === m ? '#3b82f6' : '#ffffff',
+                color: viewMode === m ? colors.white : colors.gray[700],
+                backgroundColor: viewMode === m ? colors.primary[500] : colors.white,
                 border: 'none', cursor: 'pointer',
-                borderRight: m === 'week' ? '1px solid #e5e7eb' : undefined,
+                borderRight: m === 'week' ? `1px solid ${colors.gray[200]}` : undefined,
               }}
             >
               {{ week: 'Tydzień', month: 'Miesiąc' }[m]}
@@ -358,8 +359,8 @@ export function TeamAttendancePage() {
             onClick={() => setCurrentDate(new Date())}
             style={{
               padding: '6px 12px', fontSize: '12px', fontWeight: 500,
-              color: '#3b82f6', backgroundColor: '#eff6ff',
-              border: '1px solid #bfdbfe', borderRadius: '6px', cursor: 'pointer',
+              color: colors.primary[500], backgroundColor: colors.primary[50],
+              border: `1px solid ${colors.primary[200]}`, borderRadius: '6px', cursor: 'pointer',
             }}
           >
             Dziś
@@ -367,7 +368,7 @@ export function TeamAttendancePage() {
           <NavBtn onClick={() => navigate(1)}><ChevronRight size={18} /></NavBtn>
         </div>
 
-        <span style={{ fontSize: '15px', fontWeight: 600, color: '#374151', textTransform: 'capitalize' }}>
+        <span style={{ fontSize: '15px', fontWeight: 600, color: colors.gray[700], textTransform: 'capitalize' }}>
           {periodLabel}
         </span>
 
@@ -377,8 +378,8 @@ export function TeamAttendancePage() {
           onChange={(e) => setUnitId(e.target.value)}
           style={{
             marginLeft: 'auto', padding: '6px 10px', fontSize: '13px',
-            border: '1px solid #e5e7eb', borderRadius: '6px', color: '#374151',
-            backgroundColor: '#ffffff', minWidth: '200px',
+            border: `1px solid ${colors.gray[200]}`, borderRadius: '6px', color: colors.gray[700],
+            backgroundColor: colors.white, minWidth: '200px',
           }}
         >
           <option value="">Wszystkie jednostki</option>
@@ -391,15 +392,15 @@ export function TeamAttendancePage() {
       </div>
 
       {/* Legend */}
-      <div style={{ display: 'flex', gap: '16px', marginBottom: '16px', fontSize: '12px', color: '#6b7280', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: '16px', marginBottom: '16px', fontSize: '12px', color: colors.gray[500], flexWrap: 'wrap' }}>
         <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, backgroundColor: '#dcfce7' }} /> ≥ 8h
+          <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, backgroundColor: colors.success[100] }} /> ≥ 8h
         </span>
         <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, backgroundColor: '#fef3c7' }} /> &lt; 8h
+          <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, backgroundColor: colors.warning[100] }} /> &lt; 8h
         </span>
         <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, backgroundColor: '#f3f4f6' }} /> Brak
+          <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, backgroundColor: colors.gray[100] }} /> Brak
         </span>
         {Object.entries(ANOMALY_TYPE_LABELS).map(([type, label]) => (
           <span key={type} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -410,7 +411,7 @@ export function TeamAttendancePage() {
 
       {/* Loading */}
       {tsLoading && (
-        <div style={{ padding: '40px', textAlign: 'center', color: '#9ca3af' }}>
+        <div style={{ padding: '40px', textAlign: 'center', color: colors.gray[400] }}>
           Ładowanie danych zespołu...
         </div>
       )}
@@ -418,8 +419,8 @@ export function TeamAttendancePage() {
       {/* Empty */}
       {!tsLoading && employees.length === 0 && (
         <div style={{
-          padding: '40px', textAlign: 'center', color: '#9ca3af',
-          border: '1px solid #e5e7eb', borderRadius: '10px',
+          padding: '40px', textAlign: 'center', color: colors.gray[400],
+          border: `1px solid ${colors.gray[200]}`, borderRadius: '10px',
         }}>
           Brak pracowników w wybranej jednostce.
         </div>
@@ -427,11 +428,11 @@ export function TeamAttendancePage() {
 
       {/* Grid table */}
       {!tsLoading && employees.length > 0 && (
-        <div style={{ overflowX: 'auto', border: '1px solid #e5e7eb', borderRadius: '10px' }}>
+        <div style={{ overflowX: 'auto', border: `1px solid ${colors.gray[200]}`, borderRadius: '10px' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', minWidth: dates.length * 60 + 220 }}>
             <thead>
-              <tr style={{ backgroundColor: '#f9fafb' }}>
-                <th style={{ ...thStyle, position: 'sticky', left: 0, backgroundColor: '#f9fafb', zIndex: 1, minWidth: '180px' }}>
+              <tr style={{ backgroundColor: colors.gray[50] }}>
+                <th style={{ ...thStyle, position: 'sticky', left: 0, backgroundColor: colors.gray[50], zIndex: 1, minWidth: '180px' }}>
                   Pracownik
                 </th>
                 {dates.map((d) => {
@@ -444,7 +445,7 @@ export function TeamAttendancePage() {
                         ...thStyle,
                         textAlign: 'center',
                         minWidth: '52px',
-                        backgroundColor: isWeekend ? '#f1f5f9' : '#f9fafb',
+                        backgroundColor: isWeekend ? '#f1f5f9' : colors.gray[50],
                         fontSize: '11px',
                       }}
                     >
@@ -452,7 +453,7 @@ export function TeamAttendancePage() {
                     </th>
                   );
                 })}
-                <th style={{ ...thStyle, textAlign: 'right', minWidth: '70px', backgroundColor: '#f0fdf4' }}>Suma</th>
+                <th style={{ ...thStyle, textAlign: 'right', minWidth: '70px', backgroundColor: colors.success[50] }}>Suma</th>
               </tr>
             </thead>
             <tbody>
@@ -466,10 +467,10 @@ export function TeamAttendancePage() {
                 }
 
                 return (
-                  <tr key={emp.id} style={{ borderTop: '1px solid #e5e7eb' }}>
+                  <tr key={emp.id} style={{ borderTop: `1px solid ${colors.gray[200]}` }}>
                     <td style={{
                       ...tdStyle, fontWeight: 500, position: 'sticky', left: 0,
-                      backgroundColor: '#ffffff', zIndex: 1, whiteSpace: 'nowrap',
+                      backgroundColor: colors.white, zIndex: 1, whiteSpace: 'nowrap',
                     }}>
                       {emp.lastName} {emp.firstName}
                     </td>
@@ -480,10 +481,10 @@ export function TeamAttendancePage() {
                       const day = new Date(d + 'T00:00:00');
                       const isWeekend = day.getDay() === 0 || day.getDay() === 6;
 
-                      let bg = isWeekend ? '#f8fafc' : '#ffffff';
-                      if (mins >= 480) bg = '#dcfce7';
-                      else if (mins > 0) bg = '#fef3c7';
-                      else if (!isWeekend && !cell) bg = '#f3f4f6';
+                      let bg = isWeekend ? '#f8fafc' : colors.white;
+                      if (mins >= 480) bg = colors.success[100];
+                      else if (mins > 0) bg = colors.warning[100];
+                      else if (!isWeekend && !cell) bg = colors.gray[100];
 
                       return (
                         <td
@@ -504,7 +505,7 @@ export function TeamAttendancePage() {
                             <span style={{ position: 'absolute', top: 2, right: 2 }}>
                               <AlertTriangle
                                 size={10}
-                                color={ANOMALY_COLORS[cellAnomalies[0]!.type] ?? '#dc2626'}
+                                color={ANOMALY_COLORS[cellAnomalies[0]!.type] ?? colors.danger[600]}
                               />
                             </span>
                           )}
@@ -513,8 +514,8 @@ export function TeamAttendancePage() {
                     })}
                     <td style={{
                       ...tdStyle, textAlign: 'right', fontWeight: 700,
-                      fontVariantNumeric: 'tabular-nums', backgroundColor: '#f0fdf4',
-                      color: '#059669',
+                      fontVariantNumeric: 'tabular-nums', backgroundColor: colors.success[50],
+                      color: colors.emerald[600],
                     }}>
                       {ts ? formatDuration(ts.netWorked) : '—'}
                     </td>
@@ -537,8 +538,8 @@ function NavBtn({ onClick, children }: { onClick: () => void; children: React.Re
       onClick={onClick}
       style={{
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-        width: '32px', height: '32px', border: '1px solid #e5e7eb',
-        borderRadius: '6px', backgroundColor: '#ffffff', cursor: 'pointer', color: '#374151',
+        width: '32px', height: '32px', border: `1px solid ${colors.gray[200]}`,
+        borderRadius: '6px', backgroundColor: colors.white, cursor: 'pointer', color: colors.gray[700],
       }}
     >
       {children}
@@ -551,12 +552,12 @@ const thStyle: React.CSSProperties = {
   textAlign: 'left',
   fontSize: '12px',
   fontWeight: 600,
-  color: '#6b7280',
+  color: colors.gray[500],
   textTransform: 'uppercase',
   letterSpacing: '0.04em',
 };
 
 const tdStyle: React.CSSProperties = {
   padding: '8px',
-  color: '#374151',
+  color: colors.gray[700],
 };

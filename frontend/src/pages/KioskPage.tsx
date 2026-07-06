@@ -7,6 +7,7 @@ import { QrScanner } from '@/components/QrScanner';
 import { KioskQrDisplay } from '@/components/TimeTracking/KioskQrDisplay';
 import { useKioskHeartbeat } from '@/components/TimeTracking/useKioskHeartbeat';
 import { api } from '@/api/client';
+import { colors } from '@/theme/tokens';
 
 type KioskMode = 'badge' | 'qr-display' | 'qr-scan' | 'clock';
 
@@ -174,7 +175,7 @@ export function KioskPage() {
         {/* Mode: Badge / PIN entry */}
         {mode === 'badge' && (
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '18px', color: '#94a3b8', marginBottom: '24px' }}>
+            <div style={{ fontSize: '18px', color: colors.slate[400], marginBottom: '24px' }}>
               Wpisz numer identyfikacyjny
             </div>
             <form onSubmit={handleBadgeSubmit} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
@@ -188,7 +189,7 @@ export function KioskPage() {
                 style={badgeInputStyle(!!lookupError)}
               />
               {lookupError && (
-                <div style={{ color: '#f87171', fontSize: '16px', fontWeight: 500 }}>{lookupError}</div>
+                <div style={{ color: colors.danger[400], fontSize: '16px', fontWeight: 500 }}>{lookupError}</div>
               )}
               <button type="submit" disabled={!badgeInput.trim() || lookupLoading} style={submitButtonStyle(!!badgeInput.trim(), lookupLoading)}>
                 {lookupLoading ? 'Szukam...' : 'Potwierdź'}
@@ -200,7 +201,7 @@ export function KioskPage() {
         {/* Mode: QR display (kiosk shows rotating QR, employee scans with phone) */}
         {mode === 'qr-display' && (
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '18px', color: '#94a3b8', marginBottom: '24px' }}>
+            <div style={{ fontSize: '18px', color: colors.slate[400], marginBottom: '24px' }}>
               Zeskanuj ten kod swoim telefonem
             </div>
             <KioskQrDisplay locationId={kioskLocation ?? undefined} ttlSeconds={25} />
@@ -210,7 +211,7 @@ export function KioskPage() {
         {/* Mode: QR scan (kiosk scans employee's QR badge from phone) */}
         {mode === 'qr-scan' && (
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '18px', color: '#94a3b8', marginBottom: '24px' }}>
+            <div style={{ fontSize: '18px', color: colors.slate[400], marginBottom: '24px' }}>
               Pokaż swój kod QR do kamery
             </div>
             <QrScanner
@@ -248,9 +249,9 @@ export function KioskPage() {
             gap: '8px',
             padding: '12px 20px',
             borderRadius: '12px',
-            border: '1px solid #334155',
+            border: `1px solid ${colors.slate[700]}`,
             backgroundColor: 'transparent',
-            color: '#94a3b8',
+            color: colors.slate[400],
             fontSize: '15px',
             fontWeight: 500,
             cursor: 'pointer',
@@ -272,7 +273,7 @@ export function KioskPage() {
         {employeeName}
       </div>
       {identifiedEmployee?.employeeNumber && (
-        <div style={{ fontSize: '14px', color: '#64748b', marginBottom: '32px' }}>
+        <div style={{ fontSize: '14px', color: colors.slate[400], marginBottom: '32px' }}>
           Nr: {identifiedEmployee.employeeNumber}
         </div>
       )}
@@ -283,33 +284,33 @@ export function KioskPage() {
         fontSize: '16px',
         fontWeight: 600,
         marginBottom: '40px',
-        ...statusBadgeStyle[status] ?? { backgroundColor: '#334155', color: '#94a3b8' },
+        ...statusBadgeStyle[status] ?? { backgroundColor: colors.slate[700], color: colors.slate[400] },
       }}>
         {statusLabels[status] ?? 'Nieznany'}
       </div>
 
       {isLoading ? (
-        <div style={{ color: '#94a3b8', fontSize: '16px' }}>Ładowanie...</div>
+        <div style={{ color: colors.slate[400], fontSize: '16px' }}>Ładowanie...</div>
       ) : !activeEmployeeId ? (
-        <div style={{ color: '#f87171', fontSize: '16px' }}>Brak przypisanego pracownika</div>
+        <div style={{ color: colors.danger[400], fontSize: '16px' }}>Brak przypisanego pracownika</div>
       ) : (
         <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', justifyContent: 'center' }}>
           {status === 'not-started' && (
-            <KioskButton icon={LogIn} label="Rozpocznij" color="#22c55e" onClick={() => handleAction('clock-in')} disabled={isPending} />
+            <KioskButton icon={LogIn} label="Rozpocznij" color={colors.success[500]} onClick={() => handleAction('clock-in')} disabled={isPending} />
           )}
           {status === 'working' && (
             <>
-              <KioskButton icon={Coffee} label="Przerwa" color="#f59e0b" onClick={() => handleAction('break-start')} disabled={isPending} />
-              <KioskButton icon={LogOut} label="Zakończ" color="#ef4444" onClick={() => handleAction('clock-out')} disabled={isPending} />
+              <KioskButton icon={Coffee} label="Przerwa" color={colors.warning[500]} onClick={() => handleAction('break-start')} disabled={isPending} />
+              <KioskButton icon={LogOut} label="Zakończ" color={colors.danger[500]} onClick={() => handleAction('clock-out')} disabled={isPending} />
             </>
           )}
           {status === 'on-break' && (
-            <KioskButton icon={Coffee} label="Wznów" color="#3b82f6" onClick={() => handleAction('break-end')} disabled={isPending} />
+            <KioskButton icon={Coffee} label="Wznów" color={colors.primary[500]} onClick={() => handleAction('break-end')} disabled={isPending} />
           )}
           {status === 'ended' && (
             <>
-              <div style={{ fontSize: '18px', color: '#94a3b8', width: '100%', textAlign: 'center', marginBottom: '12px' }}>Dzień zakończony ✓</div>
-              <KioskButton icon={LogIn} label="Rozpocznij ponownie" color="#22c55e" onClick={() => handleAction('clock-in')} disabled={isPending} />
+              <div style={{ fontSize: '18px', color: colors.slate[400], width: '100%', textAlign: 'center', marginBottom: '12px' }}>Dzień zakończony ✓</div>
+              <KioskButton icon={LogIn} label="Rozpocznij ponownie" color={colors.success[500]} onClick={() => handleAction('clock-in')} disabled={isPending} />
             </>
           )}
         </div>
@@ -328,8 +329,8 @@ export function KioskPage() {
           borderRadius: '12px',
           fontSize: '18px',
           fontWeight: 600,
-          backgroundColor: feedback.type === 'success' ? '#166534' : '#991b1b',
-          color: '#fff',
+          backgroundColor: feedback.type === 'success' ? colors.success[800] : colors.danger[800],
+          color: colors.white,
           boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
           zIndex: 50,
         }}>
@@ -370,9 +371,9 @@ function ModeTab({ icon: Icon, label, active, onClick }: {
         gap: '8px',
         padding: '12px 24px',
         borderRadius: '12px',
-        border: active ? '2px solid #6366f1' : '2px solid #334155',
+        border: active ? '2px solid #6366f1' : `2px solid ${colors.slate[700]}`,
         backgroundColor: active ? '#6366f1' : 'transparent',
-        color: active ? '#fff' : '#94a3b8',
+        color: active ? colors.white : colors.slate[400],
         fontSize: '15px',
         fontWeight: 600,
         cursor: 'pointer',
@@ -394,9 +395,9 @@ function KioskFooter({ kioskLocation }: { kioskLocation: string | null }) {
         style={{
           padding: '8px 20px',
           borderRadius: '8px',
-          border: '1px solid #334155',
+          border: `1px solid ${colors.slate[700]}`,
           backgroundColor: 'transparent',
-          color: '#64748b',
+          color: colors.slate[400],
           fontSize: '13px',
           cursor: 'pointer',
         }}
@@ -432,7 +433,7 @@ function KioskButton({ icon: Icon, label, color, onClick, disabled }: {
         borderRadius: '24px',
         border: 'none',
         backgroundColor: color,
-        color: '#fff',
+        color: colors.white,
         cursor: disabled ? 'default' : 'pointer',
         opacity: disabled ? 0.6 : 1,
         fontSize: '18px',
@@ -442,7 +443,7 @@ function KioskButton({ icon: Icon, label, color, onClick, disabled }: {
         touchAction: 'manipulation',
       }}
     >
-      <Icon size={48} color="#fff" />
+      <Icon size={48} color={colors.white} />
       {label}
     </button>
   );
@@ -456,8 +457,8 @@ const containerStyle: React.CSSProperties = {
   flexDirection: 'column',
   alignItems: 'center',
   justifyContent: 'center',
-  backgroundColor: '#0f172a',
-  color: '#ffffff',
+  backgroundColor: colors.slate[900],
+  color: colors.white,
   fontFamily: 'system-ui, -apple-system, sans-serif',
   padding: '24px',
   userSelect: 'none',
@@ -472,7 +473,7 @@ const clockStyle: React.CSSProperties = {
 
 const dateStyle: React.CSSProperties = {
   fontSize: '18px',
-  color: '#94a3b8',
+  color: colors.slate[400],
   marginBottom: '16px',
 };
 
@@ -484,10 +485,10 @@ const statusLabels: Record<string, string> = {
 };
 
 const statusBadgeStyle: Record<string, React.CSSProperties> = {
-  'not-started': { backgroundColor: '#334155', color: '#94a3b8' },
-  working: { backgroundColor: '#166534', color: '#dcfce7' },
-  'on-break': { backgroundColor: '#92400e', color: '#fef3c7' },
-  ended: { backgroundColor: '#1e40af', color: '#dbeafe' },
+  'not-started': { backgroundColor: colors.slate[700], color: colors.slate[400] },
+  working: { backgroundColor: colors.success[800], color: colors.success[100] },
+  'on-break': { backgroundColor: colors.warning[800], color: colors.warning[100] },
+  ended: { backgroundColor: colors.primary[800], color: colors.primary[100] },
 };
 
 const actionLabels: Record<string, string> = {
@@ -507,9 +508,9 @@ function badgeInputStyle(hasError: boolean): React.CSSProperties {
     fontVariantNumeric: 'tabular-nums',
     textAlign: 'center',
     borderRadius: '16px',
-    border: hasError ? '2px solid #ef4444' : '2px solid #334155',
-    backgroundColor: '#1e293b',
-    color: '#fff',
+    border: hasError ? `2px solid ${colors.danger[500]}` : `2px solid ${colors.slate[700]}`,
+    backgroundColor: colors.slate[800],
+    color: colors.white,
     outline: 'none',
     letterSpacing: '4px',
   };
@@ -522,8 +523,8 @@ function submitButtonStyle(hasValue: boolean, loading: boolean): React.CSSProper
     fontWeight: 600,
     borderRadius: '16px',
     border: 'none',
-    backgroundColor: hasValue ? '#6366f1' : '#334155',
-    color: '#fff',
+    backgroundColor: hasValue ? '#6366f1' : colors.slate[700],
+    color: colors.white,
     cursor: hasValue ? 'pointer' : 'default',
     opacity: loading ? 0.6 : 1,
     transition: 'background-color 0.2s',

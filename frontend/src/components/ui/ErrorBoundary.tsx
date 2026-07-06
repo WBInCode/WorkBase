@@ -1,5 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { colors } from '@/theme/tokens';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -48,13 +49,13 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             padding: '32px',
             margin: '16px',
             borderRadius: '8px',
-            backgroundColor: '#fef2f2',
-            border: '1px solid #fecaca',
+            backgroundColor: colors.danger[50],
+            border: `1px solid ${colors.danger[200]}`,
             textAlign: 'center',
           }}
         >
-          <AlertTriangle size={32} color="#dc2626" />
-          <div style={{ fontSize: '16px', fontWeight: 600, color: '#991b1b' }}>
+          <AlertTriangle size={32} color={colors.danger[600]} />
+          <div style={{ fontSize: '16px', fontWeight: 600, color: colors.danger[800] }}>
             Coś poszło nie tak
           </div>
           <div style={{ fontSize: '14px', color: '#7f1d1d', maxWidth: '480px' }}>
@@ -69,8 +70,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               padding: '8px 16px',
               fontSize: '14px',
               fontWeight: 500,
-              color: '#fff',
-              backgroundColor: '#dc2626',
+              color: colors.white,
+              backgroundColor: colors.danger[600],
               border: 'none',
               borderRadius: '6px',
               cursor: 'pointer',

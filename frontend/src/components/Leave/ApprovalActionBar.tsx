@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { CheckCircle, XCircle, RotateCcw } from 'lucide-react';
 import type { ApprovalDecision } from '@/api/types/workflow';
+import { colors } from '@/theme/tokens';
 
 interface ApprovalActionBarProps {
   onDecide: (decision: ApprovalDecision, comment: string) => void;
@@ -14,9 +15,9 @@ const ACTIONS: {
   bg: string;
   bgHover: string;
 }[] = [
-  { decision: 'approve', label: 'Akceptuj', icon: CheckCircle, bg: '#16a34a', bgHover: '#15803d' },
-  { decision: 'reject', label: 'Odrzuć', icon: XCircle, bg: '#dc2626', bgHover: '#b91c1c' },
-  { decision: 'return', label: 'Cofnij', icon: RotateCcw, bg: '#d97706', bgHover: '#b45309' },
+  { decision: 'approve', label: 'Akceptuj', icon: CheckCircle, bg: colors.success[600], bgHover: colors.success[700] },
+  { decision: 'reject', label: 'Odrzuć', icon: XCircle, bg: colors.danger[600], bgHover: colors.danger[700] },
+  { decision: 'return', label: 'Cofnij', icon: RotateCcw, bg: colors.warning[600], bgHover: colors.warning[700] },
 ];
 
 export function ApprovalActionBar({ onDecide, isPending }: ApprovalActionBarProps) {
@@ -44,7 +45,7 @@ export function ApprovalActionBar({ onDecide, isPending }: ApprovalActionBarProp
             display: 'block',
             fontSize: '13px',
             fontWeight: 500,
-            color: '#374151',
+            color: colors.gray[700],
             marginBottom: '4px',
           }}
         >
@@ -59,7 +60,7 @@ export function ApprovalActionBar({ onDecide, isPending }: ApprovalActionBarProp
             width: '100%',
             padding: '8px 12px',
             fontSize: '14px',
-            border: '1px solid #d1d5db',
+            border: `1px solid ${colors.gray[300]}`,
             borderRadius: '6px',
             resize: 'vertical',
             fontFamily: 'inherit',
@@ -81,7 +82,7 @@ export function ApprovalActionBar({ onDecide, isPending }: ApprovalActionBarProp
               padding: '8px 16px',
               fontSize: '14px',
               fontWeight: 500,
-              color: '#fff',
+              color: colors.white,
               backgroundColor: bg,
               border: 'none',
               borderRadius: '6px',

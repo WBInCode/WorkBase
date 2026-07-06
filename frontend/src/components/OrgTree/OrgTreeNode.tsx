@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ChevronRight, ChevronDown, Building2, Users, Briefcase, FolderTree } from 'lucide-react';
 import type { OrganizationUnitTreeNode } from '@/api/types/organization';
+import { colors } from '@/theme/tokens';
 
 interface OrgTreeNodeProps {
   node: OrganizationUnitTreeNode;
@@ -61,7 +62,7 @@ export function OrgTreeNode({ node, level, onSelect, selectedId }: OrgTreeNodePr
           opacity: node.isActive ? 1 : 0.5,
         }}
         onMouseEnter={(e) => {
-          if (!isSelected) e.currentTarget.style.backgroundColor = '#f3f4f6';
+          if (!isSelected) e.currentTarget.style.backgroundColor = colors.gray[100];
         }}
         onMouseLeave={(e) => {
           if (!isSelected) e.currentTarget.style.backgroundColor = 'transparent';
@@ -76,7 +77,7 @@ export function OrgTreeNode({ node, level, onSelect, selectedId }: OrgTreeNodePr
             display: 'inline-flex',
             width: '20px',
             justifyContent: 'center',
-            color: '#6b7280',
+            color: colors.gray[500],
             flexShrink: 0,
           }}
         >
@@ -85,14 +86,14 @@ export function OrgTreeNode({ node, level, onSelect, selectedId }: OrgTreeNodePr
           ) : null}
         </span>
 
-        <Icon size={18} style={{ color: '#3b82f6', flexShrink: 0 }} />
+        <Icon size={18} style={{ color: colors.primary[500], flexShrink: 0 }} />
 
-        <span style={{ fontWeight: level === 0 ? 600 : 400, fontSize: '14px', color: '#111827' }}>
+        <span style={{ fontWeight: level === 0 ? 600 : 400, fontSize: '14px', color: colors.gray[900] }}>
           {node.name}
         </span>
 
         {node.code && (
-          <span style={{ fontSize: '12px', color: '#9ca3af', marginLeft: '4px' }}>
+          <span style={{ fontSize: '12px', color: colors.gray[400], marginLeft: '4px' }}>
             ({node.code})
           </span>
         )}
@@ -100,8 +101,8 @@ export function OrgTreeNode({ node, level, onSelect, selectedId }: OrgTreeNodePr
         <span
           style={{
             fontSize: '11px',
-            color: '#6b7280',
-            backgroundColor: '#f3f4f6',
+            color: colors.gray[500],
+            backgroundColor: colors.gray[100],
             padding: '1px 6px',
             borderRadius: '4px',
             marginLeft: 'auto',
@@ -115,8 +116,8 @@ export function OrgTreeNode({ node, level, onSelect, selectedId }: OrgTreeNodePr
           <span
             style={{
               fontSize: '11px',
-              color: '#ef4444',
-              backgroundColor: '#fef2f2',
+              color: colors.danger[500],
+              backgroundColor: colors.danger[50],
               padding: '1px 6px',
               borderRadius: '4px',
               flexShrink: 0,

@@ -6,6 +6,7 @@ import { mapUserClaims } from '@/auth';
 import { ClockButton } from '@/components/TimeTracking';
 import { NotificationBell } from '@/components/Notifications';
 import { useIsMobile } from '@/shared';
+import { colors } from '@/theme/tokens';
 
 function useLiveClock() {
   const [now, setNow] = useState(new Date());
@@ -111,7 +112,7 @@ export function MainLayout({ children }: MainLayoutProps) {
   }, [location.pathname, isMobile]);
 
   return (
-    <div style={{ display: 'flex', height: '100vh', fontFamily: 'system-ui, -apple-system, sans-serif', background: '#0f172a' }}>
+    <div style={{ display: 'flex', height: '100vh', fontFamily: 'system-ui, -apple-system, sans-serif', background: colors.slate[900] }}>
       {/* Mobile backdrop */}
       {isMobile && sidebarOpen && (
         <div
@@ -130,7 +131,7 @@ export function MainLayout({ children }: MainLayoutProps) {
         style={{
           width: sidebarOpen ? '250px' : '0px',
           overflow: 'hidden',
-          background: 'linear-gradient(180deg, #0f172a 0%, #1e293b 100%)',
+          background: `linear-gradient(180deg, ${colors.slate[900]} 0%, ${colors.slate[800]} 100%)`,
           color: '#e2e8f0',
           display: 'flex',
           flexDirection: 'column',
@@ -158,7 +159,7 @@ export function MainLayout({ children }: MainLayoutProps) {
             justifyContent: 'center',
             fontSize: 16,
             fontWeight: 800,
-            color: '#fff',
+            color: colors.white,
             flexShrink: 0,
           }}>
             W
@@ -204,7 +205,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                       gap: 10,
                       padding: '8px 10px',
                       borderRadius: 8,
-                      color: isActive ? '#f8fafc' : '#94a3b8',
+                  color: isActive ? '#f8fafc' : colors.slate[400],
                       background: isActive
                         ? 'linear-gradient(90deg, rgba(99,102,241,0.2), rgba(99,102,241,0.05))'
                         : 'transparent',
@@ -222,7 +223,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                     }}
                     onMouseLeave={(e) => {
                       if (!isActive) e.currentTarget.style.background = 'transparent';
-                      if (!isActive) e.currentTarget.style.color = '#94a3b8';
+                      if (!isActive) e.currentTarget.style.color = colors.slate[400];
                     }}
                   >
                     {isActive && (
@@ -275,7 +276,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                     gap: 10,
                     padding: '8px 10px',
                     borderRadius: 8,
-                    color: isActive ? '#f8fafc' : '#94a3b8',
+                  color: isActive ? '#f8fafc' : colors.slate[400],
                     background: isActive
                       ? 'linear-gradient(90deg, rgba(99,102,241,0.2), rgba(99,102,241,0.05))'
                       : 'transparent',
@@ -293,7 +294,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                   }}
                   onMouseLeave={(e) => {
                     if (!isActive) e.currentTarget.style.background = 'transparent';
-                    if (!isActive) e.currentTarget.style.color = '#94a3b8';
+                    if (!isActive) e.currentTarget.style.color = colors.slate[400];
                   }}
                 >
                   {isActive && (
@@ -334,7 +335,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                 justifyContent: 'center',
                 fontSize: 13,
                 fontWeight: 700,
-                color: '#fff',
+                color: colors.white,
                 flexShrink: 0,
               }}>
                 {(user.name ?? 'U').charAt(0).toUpperCase()}
@@ -359,7 +360,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                 padding: '7px 8px',
                 fontSize: 12,
                 fontWeight: 500,
-                color: '#94a3b8',
+                color: colors.slate[400],
                 backgroundColor: 'rgba(51,65,85,0.4)',
                 border: '1px solid rgba(100,116,139,0.25)',
                 borderRadius: 6,
@@ -373,7 +374,7 @@ export function MainLayout({ children }: MainLayoutProps) {
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = 'rgba(51,65,85,0.4)';
-                e.currentTarget.style.color = '#94a3b8';
+                e.currentTarget.style.color = colors.slate[400];
               }}
             >
               <LogOut size={14} />
@@ -392,8 +393,8 @@ export function MainLayout({ children }: MainLayoutProps) {
             alignItems: 'center',
             padding: '0 20px',
             height: '52px',
-            borderBottom: '1px solid #e5e7eb',
-            backgroundColor: '#ffffff',
+            borderBottom: `1px solid ${colors.gray[200]}`,
+            backgroundColor: colors.white,
             flexShrink: 0,
             boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
           }}
@@ -404,7 +405,7 @@ export function MainLayout({ children }: MainLayoutProps) {
               background: 'none',
               border: 'none',
               cursor: 'pointer',
-              color: '#6b7280',
+              color: colors.gray[500],
               padding: '4px',
               display: 'inline-flex',
             }}
@@ -416,7 +417,7 @@ export function MainLayout({ children }: MainLayoutProps) {
           <div style={{ flex: 1 }} />
 
           {!isMobile && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#6b7280', fontSize: '13px', marginRight: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: colors.gray[500], fontSize: '13px', marginRight: '12px' }}>
               <Clock size={14} />
               <span style={{ fontVariantNumeric: 'tabular-nums' }}>
                 {now.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
@@ -434,7 +435,7 @@ export function MainLayout({ children }: MainLayoutProps) {
         </header>
 
         {/* Page content */}
-        <main style={{ flex: 1, overflow: 'auto', backgroundColor: '#f8fafc', paddingBottom: isMobile ? '60px' : undefined }}>
+        <main style={{ flex: 1, overflow: 'auto', backgroundColor: colors.gray[50], paddingBottom: isMobile ? '60px' : undefined }}>
           {children}
         </main>
 
@@ -443,8 +444,8 @@ export function MainLayout({ children }: MainLayoutProps) {
           <nav style={{
             position: 'fixed', bottom: 0, left: 0, right: 0,
             height: '56px',
-            backgroundColor: '#fff',
-            borderTop: '1px solid #e5e7eb',
+            backgroundColor: colors.white,
+            borderTop: `1px solid ${colors.gray[200]}`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-around',
@@ -474,12 +475,12 @@ function BottomTab({ icon: Icon, label, path, currentPath }: {
       style={{
         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
         textDecoration: 'none',
-        color: isActive ? '#2563eb' : '#9ca3af',
+        color: isActive ? colors.primary[600] : colors.gray[400],
         fontSize: '11px', fontWeight: isActive ? 600 : 400,
         padding: '4px 12px',
       }}
     >
-      <Icon size={20} color={isActive ? '#2563eb' : '#9ca3af'} />
+      <Icon size={20} color={isActive ? colors.primary[600] : colors.gray[400]} />
       {label}
     </Link>
   );
@@ -492,10 +493,10 @@ function BottomTabMore({ onClick }: { onClick: () => void }) {
       style={{
         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
         background: 'none', border: 'none', cursor: 'pointer',
-        color: '#9ca3af', fontSize: '11px', padding: '4px 12px',
+        color: colors.gray[400], fontSize: '11px', padding: '4px 12px',
       }}
     >
-      <MoreHorizontal size={20} color="#9ca3af" />
+      <MoreHorizontal size={20} color={colors.gray[400]} />
       Więcej
     </button>
   );

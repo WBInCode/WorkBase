@@ -1,5 +1,6 @@
 import { Clock, CalendarDays, ListTodo } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { colors } from '@/theme/tokens';
 
 interface ActivityItem {
   id: string;
@@ -23,7 +24,7 @@ export function ActivityFeed({ tasks, leaveRequests }: ActivityFeedProps) {
     items.push({
       id: `task-${t.id}`,
       icon: <ListTodo size={14} />,
-      iconBg: '#eff6ff',
+      iconBg: colors.primary[50],
       text: `Zadanie "${t.title}" — ${t.statusName ?? ''}`,
       time: t.updatedAt ? formatRelative(t.updatedAt) : '',
     });
@@ -35,7 +36,7 @@ export function ActivityFeed({ tasks, leaveRequests }: ActivityFeedProps) {
     items.push({
       id: `leave-${lr.id}`,
       icon: <CalendarDays size={14} />,
-      iconBg: '#f0fdf4',
+      iconBg: colors.success[50],
       text: `Wniosek urlopowy (${lr.leaveTypeName ?? ''}) — ${statusLabel}`,
       time: lr.createdAt ? formatRelative(lr.createdAt) : '',
     });
@@ -46,14 +47,14 @@ export function ActivityFeed({ tasks, leaveRequests }: ActivityFeedProps) {
   const feed = items.slice(0, 8);
 
   return (
-    <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', backgroundColor: '#fff' }}>
-      <div style={{ padding: '14px 16px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <Clock size={16} color="#6b7280" />
-        <span style={{ fontWeight: 600, fontSize: '14px', color: '#111827' }}>Ostatnia aktywność</span>
+    <div style={{ border: `1px solid ${colors.gray[200]}`, borderRadius: '8px', backgroundColor: colors.white }}>
+      <div style={{ padding: '14px 16px', borderBottom: `1px solid ${colors.gray[200]}`, display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <Clock size={16} color={colors.gray[500]} />
+        <span style={{ fontWeight: 600, fontSize: '14px', color: colors.gray[900] }}>Ostatnia aktywność</span>
       </div>
 
       {feed.length === 0 ? (
-        <div style={{ padding: '24px 16px', textAlign: 'center', color: '#9ca3af', fontSize: '13px' }}>
+        <div style={{ padding: '24px 16px', textAlign: 'center', color: colors.gray[400], fontSize: '13px' }}>
           Brak ostatniej aktywności
         </div>
       ) : (
@@ -79,15 +80,15 @@ export function ActivityFeed({ tasks, leaveRequests }: ActivityFeedProps) {
                   alignItems: 'center',
                   justifyContent: 'center',
                   flexShrink: 0,
-                  color: '#374151',
+                  color: colors.gray[700],
                 }}
               >
                 {item.icon}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ color: '#374151', lineHeight: '1.4' }}>{item.text}</div>
+                <div style={{ color: colors.gray[700], lineHeight: '1.4' }}>{item.text}</div>
                 {item.time && (
-                  <div style={{ color: '#9ca3af', fontSize: '11px', marginTop: '2px' }}>{item.time}</div>
+                  <div style={{ color: colors.gray[400], fontSize: '11px', marginTop: '2px' }}>{item.time}</div>
                 )}
               </div>
             </div>

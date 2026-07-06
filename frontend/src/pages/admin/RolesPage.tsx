@@ -3,6 +3,7 @@ import { Shield, Plus, RefreshCw, Edit2, Users, Lock } from 'lucide-react';
 import { useRoles, useCreateRole, useUpdateRole } from '@/api/hooks/useIam';
 import type { RoleDto, CreateRoleRequest, UpdateRoleRequest } from '@/api/types/iam';
 import { useIsMobile } from '@/shared';
+import { colors } from '@/theme/tokens';
 
 const typeLabels: Record<string, string> = {
   System: 'Systemowa',
@@ -11,8 +12,8 @@ const typeLabels: Record<string, string> = {
 };
 
 const typeColors: Record<string, { bg: string; text: string }> = {
-  System: { bg: '#fef3c7', text: '#92400e' },
-  Organizational: { bg: '#dbeafe', text: '#1e40af' },
+  System: { bg: colors.warning[100], text: colors.warning[800] },
+  Organizational: { bg: colors.primary[100], text: colors.primary[800] },
   Custom: { bg: '#f3e8ff', text: '#6b21a8' },
 };
 
@@ -53,7 +54,7 @@ export function RolesPage() {
     <div style={{ padding: mobile ? '16px' : '24px 32px', maxWidth: '1000px' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-        <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 600, color: '#111827' }}>Role</h1>
+        <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 600, color: colors.gray[900] }}>Role</h1>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button
             onClick={() => refetch()}
@@ -83,11 +84,11 @@ export function RolesPage() {
 
       {/* Loading */}
       {isLoading ? (
-        <div style={{ textAlign: 'center', padding: '48px 0', color: '#6b7280', fontSize: '14px' }}>
+        <div style={{ textAlign: 'center', padding: '48px 0', color: colors.gray[500], fontSize: '14px' }}>
           Ładowanie...
         </div>
       ) : !roles || roles.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '48px 0', color: '#9ca3af' }}>
+        <div style={{ textAlign: 'center', padding: '48px 0', color: colors.gray[400] }}>
           <Shield size={40} style={{ marginBottom: '12px', opacity: 0.5 }} />
           <div style={{ fontSize: '15px', fontWeight: 500 }}>Brak ról</div>
           <div style={{ fontSize: '13px', marginTop: '4px' }}>
@@ -95,10 +96,10 @@ export function RolesPage() {
           </div>
         </div>
       ) : (
-        <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', overflowX: 'auto' }}>
+        <div style={{ border: `1px solid ${colors.gray[200]}`, borderRadius: '8px', overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
             <thead>
-              <tr style={{ backgroundColor: '#f9fafb' }}>
+              <tr style={{ backgroundColor: colors.gray[50] }}>
                 <Th>Nazwa</Th>
                 <Th>Typ</Th>
                 <Th>Poziom</Th>
@@ -151,14 +152,14 @@ export function RolesPage() {
 function RoleRow({ role, onEdit }: { role: RoleDto; onEdit: () => void }) {
   const tc = typeColors[role.type] ?? typeColors.Custom;
   return (
-    <tr style={{ borderTop: '1px solid #e5e7eb' }}>
+    <tr style={{ borderTop: `1px solid ${colors.gray[200]}` }}>
       <td style={cellStyle}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          {role.type === 'System' && <Lock size={14} style={{ color: '#9ca3af' }} />}
-          <span style={{ fontWeight: 500, color: '#111827' }}>{role.name}</span>
+          {role.type === 'System' && <Lock size={14} style={{ color: colors.gray[400] }} />}
+          <span style={{ fontWeight: 500, color: colors.gray[900] }}>{role.name}</span>
         </div>
         {role.description && (
-          <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '2px' }}>{role.description}</div>
+          <div style={{ fontSize: '12px', color: colors.gray[500], marginTop: '2px' }}>{role.description}</div>
         )}
       </td>
       <td style={cellStyle}>
@@ -177,13 +178,13 @@ function RoleRow({ role, onEdit }: { role: RoleDto; onEdit: () => void }) {
       <td style={cellStyle}>{role.level}</td>
       <td style={cellStyle}>
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-          <Shield size={14} style={{ color: '#6b7280' }} />
+          <Shield size={14} style={{ color: colors.gray[500] }} />
           {role.permissionCount}
         </span>
       </td>
       <td style={cellStyle}>
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-          <Users size={14} style={{ color: '#6b7280' }} />
+          <Users size={14} style={{ color: colors.gray[500] }} />
           {role.userCount}
         </span>
       </td>
@@ -194,8 +195,8 @@ function RoleRow({ role, onEdit }: { role: RoleDto; onEdit: () => void }) {
           borderRadius: '999px',
           fontSize: '12px',
           fontWeight: 500,
-          backgroundColor: role.isActive ? '#dcfce7' : '#f3f4f6',
-          color: role.isActive ? '#166534' : '#6b7280',
+          backgroundColor: role.isActive ? colors.success[100] : colors.gray[100],
+          color: role.isActive ? colors.success[800] : colors.gray[500],
         }}>
           {role.isActive ? 'Aktywna' : 'Nieaktywna'}
         </span>
@@ -307,7 +308,7 @@ function Th({ children, style }: { children?: React.ReactNode; style?: React.CSS
         textAlign: 'left',
         fontSize: '12px',
         fontWeight: 600,
-        color: '#6b7280',
+        color: colors.gray[500],
         textTransform: 'uppercase',
         letterSpacing: '0.05em',
         ...style,
@@ -331,11 +332,11 @@ const iconBtnStyle: React.CSSProperties = {
   justifyContent: 'center',
   width: '32px',
   height: '32px',
-  border: '1px solid #d1d5db',
+  border: `1px solid ${colors.gray[300]}`,
   borderRadius: '6px',
-  backgroundColor: '#fff',
+  backgroundColor: colors.white,
   cursor: 'pointer',
-  color: '#374151',
+  color: colors.gray[700],
 };
 
 const primaryBtnStyle: React.CSSProperties = {
@@ -345,8 +346,8 @@ const primaryBtnStyle: React.CSSProperties = {
   padding: '8px 16px',
   fontSize: '14px',
   fontWeight: 500,
-  color: '#fff',
-  backgroundColor: '#2563eb',
+  color: colors.white,
+  backgroundColor: colors.primary[600],
   border: 'none',
   borderRadius: '6px',
   cursor: 'pointer',
@@ -359,25 +360,25 @@ const secondaryBtnStyle: React.CSSProperties = {
   padding: '8px 16px',
   fontSize: '14px',
   fontWeight: 500,
-  color: '#374151',
-  backgroundColor: '#fff',
-  border: '1px solid #d1d5db',
+  color: colors.gray[700],
+  backgroundColor: colors.white,
+  border: `1px solid ${colors.gray[300]}`,
   borderRadius: '6px',
   cursor: 'pointer',
 };
 
 const errorBoxStyle: React.CSSProperties = {
   padding: '12px 16px',
-  backgroundColor: '#fef2f2',
-  border: '1px solid #fecaca',
+  backgroundColor: colors.danger[50],
+  border: `1px solid ${colors.danger[200]}`,
   borderRadius: '8px',
-  color: '#dc2626',
+  color: colors.danger[600],
   fontSize: '14px',
 };
 
 const retryLinkStyle: React.CSSProperties = {
   marginLeft: '12px',
-  color: '#2563eb',
+  color: colors.primary[600],
   background: 'none',
   border: 'none',
   cursor: 'pointer',
@@ -396,7 +397,7 @@ const overlayStyle: React.CSSProperties = {
 };
 
 const modalStyle: React.CSSProperties = {
-  backgroundColor: '#fff',
+  backgroundColor: colors.white,
   borderRadius: '12px',
   padding: '24px',
   width: '100%',
@@ -410,13 +411,13 @@ const labelStyle: React.CSSProperties = {
   gap: '4px',
   fontSize: '13px',
   fontWeight: 500,
-  color: '#374151',
+  color: colors.gray[700],
 };
 
 const inputStyle: React.CSSProperties = {
   padding: '8px 12px',
   fontSize: '14px',
-  border: '1px solid #d1d5db',
+  border: `1px solid ${colors.gray[300]}`,
   borderRadius: '6px',
   outline: 'none',
   boxSizing: 'border-box',

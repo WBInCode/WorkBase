@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlertTriangle, CheckCircle2, ListTodo } from 'lucide-react';
 import type { TaskItemDto } from '@/api/types/tasks';
+import { colors } from '@/theme/tokens';
 
 interface Props {
   tasks: TaskItemDto[];
@@ -34,7 +35,7 @@ export function MyTasksList({ tasks, isLoading }: Props) {
     return (
       <div style={cardStyle}>
         <Header count={0} completedToday={0} />
-        <div style={{ padding: '20px', textAlign: 'center', color: '#9ca3af', fontSize: '14px' }}>Ładowanie...</div>
+        <div style={{ padding: '20px', textAlign: 'center', color: colors.gray[400], fontSize: '14px' }}>Ładowanie...</div>
       </div>
     );
   }
@@ -55,20 +56,20 @@ export function MyTasksList({ tasks, isLoading }: Props) {
                 onClick={() => navigate(`/tasks/${t.id}`)}
                 style={{
                   ...rowStyle,
-                  borderLeft: `3px solid ${isOverdue ? '#dc2626' : '#f59e0b'}`,
+                  borderLeft: `3px solid ${isOverdue ? colors.danger[600] : colors.warning[500]}`,
                 }}
               >
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '14px', fontWeight: 500, color: '#111827' }}>{t.title}</div>
-                  <div style={{ fontSize: '12px', color: '#9ca3af', marginTop: '2px' }}>
-                    <Badge label={t.statusName} color={t.statusColor ?? '#6b7280'} />
+                  <div style={{ fontSize: '14px', fontWeight: 500, color: colors.gray[900] }}>{t.title}</div>
+                  <div style={{ fontSize: '12px', color: colors.gray[400], marginTop: '2px' }}>
+                    <Badge label={t.statusName} color={t.statusColor ?? colors.gray[500]} />
                     <span style={{ marginLeft: '6px' }}>
-                      <Badge label={t.priorityName} color={t.priorityColor ?? '#6b7280'} />
+                      <Badge label={t.priorityName} color={t.priorityColor ?? colors.gray[500]} />
                     </span>
                   </div>
                 </div>
                 <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                  <span style={{ fontSize: '12px', color: isOverdue ? '#dc2626' : '#f59e0b', fontWeight: 600 }}>
+                  <span style={{ fontSize: '12px', color: isOverdue ? colors.danger[600] : colors.warning[500], fontWeight: 600 }}>
                     {isOverdue && <AlertTriangle size={12} style={{ marginRight: '3px', verticalAlign: 'middle' }} />}
                     {new Date(t.dueDate!).toLocaleDateString('pl-PL')}
                   </span>
@@ -79,13 +80,13 @@ export function MyTasksList({ tasks, isLoading }: Props) {
           {other.slice(0, 5).map((t) => (
             <div key={t.id} onClick={() => navigate(`/tasks/${t.id}`)} style={rowStyle}>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '14px', fontWeight: 500, color: '#111827' }}>{t.title}</div>
-                <div style={{ fontSize: '12px', color: '#9ca3af', marginTop: '2px' }}>
-                  <Badge label={t.statusName} color={t.statusColor ?? '#6b7280'} />
+                <div style={{ fontSize: '14px', fontWeight: 500, color: colors.gray[900] }}>{t.title}</div>
+                <div style={{ fontSize: '12px', color: colors.gray[400], marginTop: '2px' }}>
+                  <Badge label={t.statusName} color={t.statusColor ?? colors.gray[500]} />
                 </div>
               </div>
               {t.dueDate && (
-                <span style={{ fontSize: '12px', color: '#9ca3af' }}>
+                <span style={{ fontSize: '12px', color: colors.gray[400] }}>
                   {new Date(t.dueDate).toLocaleDateString('pl-PL')}
                 </span>
               )}
@@ -94,7 +95,7 @@ export function MyTasksList({ tasks, isLoading }: Props) {
           {other.length > 5 && (
             <div
               onClick={() => navigate('/tasks/my')}
-              style={{ padding: '8px', textAlign: 'center', fontSize: '13px', color: '#2563eb', cursor: 'pointer', fontWeight: 500 }}
+              style={{ padding: '8px', textAlign: 'center', fontSize: '13px', color: colors.primary[600], cursor: 'pointer', fontWeight: 500 }}
             >
               + {other.length - 5} więcej →
             </div>
@@ -110,11 +111,11 @@ function Header({ count, completedToday }: { count: number; completedToday: numb
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <ListTodo size={18} color="#7c3aed" />
-        <span style={{ fontSize: '14px', fontWeight: 600, color: '#374151' }}>Moje zadania</span>
-        <span style={{ fontSize: '12px', color: '#9ca3af' }}>({count})</span>
+        <span style={{ fontSize: '14px', fontWeight: 600, color: colors.gray[700] }}>Moje zadania</span>
+        <span style={{ fontSize: '12px', color: colors.gray[400] }}>({count})</span>
       </div>
       {completedToday > 0 && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#16a34a' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: colors.success[600] }}>
           <CheckCircle2 size={14} /> {completedToday} ukończone dziś
         </div>
       )}
@@ -134,15 +135,15 @@ function Badge({ label, color }: { label: string; color: string }) {
 }
 
 const cardStyle: React.CSSProperties = {
-  backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #e5e7eb',
+  backgroundColor: colors.white, borderRadius: '12px', border: `1px solid ${colors.gray[200]}`,
   padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
 };
 const rowStyle: React.CSSProperties = {
   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
   padding: '10px 12px', borderRadius: '8px', cursor: 'pointer',
-  backgroundColor: '#f9fafb', transition: 'background-color 0.15s',
+  backgroundColor: colors.gray[50], transition: 'background-color 0.15s',
 };
 const emptyStyle: React.CSSProperties = {
-  padding: '20px', textAlign: 'center', color: '#6b7280', fontSize: '14px',
-  backgroundColor: '#f9fafb', borderRadius: '8px', border: '1px dashed #d1d5db',
+  padding: '20px', textAlign: 'center', color: colors.gray[500], fontSize: '14px',
+  backgroundColor: colors.gray[50], borderRadius: '8px', border: `1px dashed ${colors.gray[300]}`,
 };

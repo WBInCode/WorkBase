@@ -5,6 +5,7 @@ import { api } from '@/api/client';
 import { ApiError } from '@/api/client';
 import type { CreateEmployeeRequest } from '@/api/types/organization';
 import { useIsMobile } from '@/shared';
+import { colors } from '@/theme/tokens';
 
 /* ─── Employee fields available for mapping ─── */
 const EMPLOYEE_FIELDS = [
@@ -163,10 +164,10 @@ export function CsvImportPage() {
   /* ── Render ── */
   return (
     <div style={{ padding: mobile ? '16px' : '24px 32px', maxWidth: '960px' }}>
-      <h1 style={{ margin: '0 0 8px', fontSize: '22px', fontWeight: 600, color: '#111827' }}>
+      <h1 style={{ margin: '0 0 8px', fontSize: '22px', fontWeight: 600, color: colors.gray[900] }}>
         Import pracowników z CSV
       </h1>
-      <p style={{ margin: '0 0 24px', fontSize: '14px', color: '#6b7280' }}>
+      <p style={{ margin: '0 0 24px', fontSize: '14px', color: colors.gray[500] }}>
         {step === 'upload' && 'Wybierz plik CSV z danymi pracowników.'}
         {step === 'mapping' && 'Przypisz kolumny CSV do pól pracownika.'}
         {step === 'preview' && 'Sprawdź podgląd danych przed importem.'}
@@ -185,14 +186,14 @@ export function CsvImportPage() {
       {/* ── MAPPING ── */}
       {step === 'mapping' && csv && (
         <div>
-          <div style={{ fontSize: '13px', color: '#6b7280', marginBottom: '12px' }}>
+          <div style={{ fontSize: '13px', color: colors.gray[500], marginBottom: '12px' }}>
             Plik: <strong>{fileName}</strong> — {csv.rows.length} wierszy, {csv.headers.length} kolumn
           </div>
 
-          <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', overflowX: 'auto' }}>
+          <div style={{ border: `1px solid ${colors.gray[200]}`, borderRadius: '8px', overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
               <thead>
-                <tr style={{ backgroundColor: '#f9fafb' }}>
+                <tr style={{ backgroundColor: colors.gray[50] }}>
                   <th style={thStyle}>Pole pracownika</th>
                   <th style={thStyle}>Kolumna CSV</th>
                   <th style={thStyle}>Podgląd (wiersz 1)</th>
@@ -200,10 +201,10 @@ export function CsvImportPage() {
               </thead>
               <tbody>
                 {EMPLOYEE_FIELDS.map((field) => (
-                  <tr key={field.key} style={{ borderTop: '1px solid #e5e7eb' }}>
+                  <tr key={field.key} style={{ borderTop: `1px solid ${colors.gray[200]}` }}>
                     <td style={{ ...tdStyle, fontWeight: 500 }}>
                       {field.label}
-                      {field.required && <span style={{ color: '#dc2626', marginLeft: '2px' }}>*</span>}
+                      {field.required && <span style={{ color: colors.danger[600], marginLeft: '2px' }}>*</span>}
                     </td>
                     <td style={tdStyle}>
                       <select
@@ -224,7 +225,7 @@ export function CsvImportPage() {
                         ))}
                       </select>
                     </td>
-                    <td style={{ ...tdStyle, color: '#6b7280', fontSize: '13px' }}>
+                    <td style={{ ...tdStyle, color: colors.gray[500], fontSize: '13px' }}>
                       {mapping[field.key] !== null && csv.rows[0]
                         ? csv.rows[0][mapping[field.key]!] ?? '—'
                         : '—'}
@@ -254,16 +255,16 @@ export function CsvImportPage() {
       {step === 'preview' && csv && (
         <div>
           <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
-            <StatBadge label="Wszystkich" value={mappedRows.length} color="#2563eb" />
-            <StatBadge label="Poprawnych" value={validRows.length} color="#16a34a" />
-            <StatBadge label="Z błędami" value={invalidRows.length} color="#dc2626" />
+            <StatBadge label="Wszystkich" value={mappedRows.length} color={colors.primary[600]} />
+            <StatBadge label="Poprawnych" value={validRows.length} color={colors.success[600]} />
+            <StatBadge label="Z błędami" value={invalidRows.length} color={colors.danger[600]} />
           </div>
 
           {/* Preview table (first 50 rows) */}
-          <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'auto', maxHeight: '400px' }}>
+          <div style={{ border: `1px solid ${colors.gray[200]}`, borderRadius: '8px', overflow: 'auto', maxHeight: '400px' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
               <thead>
-                <tr style={{ backgroundColor: '#f9fafb', position: 'sticky', top: 0 }}>
+                <tr style={{ backgroundColor: colors.gray[50], position: 'sticky', top: 0 }}>
                   <th style={thStyle}>#</th>
                   {EMPLOYEE_FIELDS.map((f) => (
                     <th key={f.key} style={thStyle}>{f.label}</th>
@@ -279,21 +280,21 @@ export function CsvImportPage() {
                     <tr
                       key={i}
                       style={{
-                        borderTop: '1px solid #e5e7eb',
-                        backgroundColor: hasErrors ? '#fef2f2' : undefined,
+                        borderTop: `1px solid ${colors.gray[200]}`,
+                        backgroundColor: hasErrors ? colors.danger[50] : undefined,
                       }}
                     >
-                      <td style={{ ...tdStyle, color: '#9ca3af', fontSize: '12px' }}>{i + 1}</td>
+                      <td style={{ ...tdStyle, color: colors.gray[400], fontSize: '12px' }}>{i + 1}</td>
                       {EMPLOYEE_FIELDS.map((f) => (
                         <td key={f.key} style={tdStyle}>{row[f.key] || '—'}</td>
                       ))}
                       <td style={tdStyle}>
                         {hasErrors ? (
-                          <span style={{ color: '#dc2626', fontSize: '12px' }}>
+                          <span style={{ color: colors.danger[600], fontSize: '12px' }}>
                             {v!.errors.join(', ')}
                           </span>
                         ) : (
-                          <CheckCircle2 size={14} style={{ color: '#16a34a' }} />
+                          <CheckCircle2 size={14} style={{ color: colors.success[600] }} />
                         )}
                       </td>
                     </tr>
@@ -303,7 +304,7 @@ export function CsvImportPage() {
             </table>
           </div>
           {mappedRows.length > 50 && (
-            <div style={{ fontSize: '12px', color: '#9ca3af', marginTop: '4px' }}>
+            <div style={{ fontSize: '12px', color: colors.gray[400], marginTop: '4px' }}>
               Pokazano pierwsze 50 z {mappedRows.length} wierszy.
             </div>
           )}
@@ -326,7 +327,7 @@ export function CsvImportPage() {
       {/* ── IMPORTING ── */}
       {step === 'importing' && (
         <div style={{ textAlign: 'center', padding: '40px 0' }}>
-          <div style={{ fontSize: '15px', fontWeight: 500, color: '#111827', marginBottom: '12px' }}>
+          <div style={{ fontSize: '15px', fontWeight: 500, color: colors.gray[900], marginBottom: '12px' }}>
             Importowanie... {importProgress} / {mappedRows.length}
           </div>
           <div
@@ -335,7 +336,7 @@ export function CsvImportPage() {
               maxWidth: '400px',
               margin: '0 auto',
               height: '8px',
-              backgroundColor: '#e5e7eb',
+              backgroundColor: colors.gray[200],
               borderRadius: '4px',
               overflow: 'hidden',
             }}
@@ -344,7 +345,7 @@ export function CsvImportPage() {
               style={{
                 width: `${mappedRows.length ? (importProgress / mappedRows.length) * 100 : 0}%`,
                 height: '100%',
-                backgroundColor: '#2563eb',
+                backgroundColor: colors.primary[600],
                 transition: 'width 0.2s',
                 borderRadius: '4px',
               }}
@@ -368,19 +369,19 @@ export function CsvImportPage() {
             return (
               <>
                 <div style={{ display: 'flex', gap: '16px', marginBottom: '20px' }}>
-                  <StatBadge label="Zaimportowano" value={succeeded} color="#16a34a" />
-                  <StatBadge label="Błędów" value={failed} color="#dc2626" />
-                  <StatBadge label="Łącznie" value={importResults.length} color="#6b7280" />
+                  <StatBadge label="Zaimportowano" value={succeeded} color={colors.success[600]} />
+                  <StatBadge label="Błędów" value={failed} color={colors.danger[600]} />
+                  <StatBadge label="Łącznie" value={importResults.length} color={colors.gray[500]} />
                 </div>
 
                 {succeeded > 0 && (
                   <div
                     style={{
                       padding: '12px 16px',
-                      backgroundColor: '#f0fdf4',
+                      backgroundColor: colors.success[50],
                       border: '1px solid #bbf7d0',
                       borderRadius: '8px',
-                      color: '#166534',
+                      color: colors.success[800],
                       fontSize: '14px',
                       marginBottom: '12px',
                       display: 'flex',
@@ -395,10 +396,10 @@ export function CsvImportPage() {
 
                 {/* Error rows */}
                 {failed > 0 && (
-                  <div style={{ border: '1px solid #fecaca', borderRadius: '8px', overflow: 'auto', maxHeight: '300px' }}>
+                  <div style={{ border: `1px solid ${colors.danger[200]}`, borderRadius: '8px', overflow: 'auto', maxHeight: '300px' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                       <thead>
-                        <tr style={{ backgroundColor: '#fef2f2' }}>
+                        <tr style={{ backgroundColor: colors.danger[50] }}>
                           <th style={thStyle}>Wiersz</th>
                           <th style={thStyle}>Dane</th>
                           <th style={thStyle}>Błąd</th>
@@ -410,12 +411,12 @@ export function CsvImportPage() {
                           .map((r) => {
                             const row = mappedRows[r.rowIndex];
                             return (
-                              <tr key={r.rowIndex} style={{ borderTop: '1px solid #fecaca' }}>
-                                <td style={{ ...tdStyle, color: '#9ca3af' }}>{r.rowIndex + 1}</td>
+                              <tr key={r.rowIndex} style={{ borderTop: `1px solid ${colors.danger[200]}` }}>
+                                <td style={{ ...tdStyle, color: colors.gray[400] }}>{r.rowIndex + 1}</td>
                                 <td style={tdStyle}>
                                   {row ? `${row.firstName} ${row.lastName} (${row.email})` : '—'}
                                 </td>
-                                <td style={{ ...tdStyle, color: '#dc2626' }}>{r.error}</td>
+                                <td style={{ ...tdStyle, color: colors.danger[600] }}>{r.error}</td>
                               </tr>
                             );
                           })}
@@ -464,12 +465,12 @@ function DropZone({ onFile }: { onFile: (file: File) => void }) {
       }}
       onClick={() => inputRef.current?.click()}
       style={{
-        border: `2px dashed ${dragOver ? '#2563eb' : '#d1d5db'}`,
+        border: `2px dashed ${dragOver ? colors.primary[600] : colors.gray[300]}`,
         borderRadius: '12px',
         padding: '48px 32px',
         textAlign: 'center',
         cursor: 'pointer',
-        backgroundColor: dragOver ? '#eff6ff' : '#fafafa',
+        backgroundColor: dragOver ? colors.primary[50] : '#fafafa',
         transition: 'all 0.15s',
       }}
       role="button"
@@ -488,11 +489,11 @@ function DropZone({ onFile }: { onFile: (file: File) => void }) {
           e.target.value = '';
         }}
       />
-      <FileSpreadsheet size={40} style={{ color: '#9ca3af', marginBottom: '12px' }} />
-      <div style={{ fontSize: '15px', fontWeight: 500, color: '#374151', marginBottom: '4px' }}>
+      <FileSpreadsheet size={40} style={{ color: colors.gray[400], marginBottom: '12px' }} />
+      <div style={{ fontSize: '15px', fontWeight: 500, color: colors.gray[700], marginBottom: '4px' }}>
         Przeciągnij plik CSV lub kliknij, aby wybrać
       </div>
-      <div style={{ fontSize: '13px', color: '#9ca3af' }}>
+      <div style={{ fontSize: '13px', color: colors.gray[400] }}>
         Obsługiwane: .csv (separator: przecinek lub średnik)
       </div>
     </div>
@@ -521,7 +522,7 @@ function StepIndicator({ current }: { current: Step }) {
                 style={{
                   width: '24px',
                   height: '2px',
-                  backgroundColor: isDone ? '#2563eb' : '#e5e7eb',
+                  backgroundColor: isDone ? colors.primary[600] : colors.gray[200],
                 }}
               />
             )}
@@ -534,9 +535,9 @@ function StepIndicator({ current }: { current: Step }) {
                 borderRadius: '9999px',
                 fontSize: '12px',
                 fontWeight: isActive ? 600 : 400,
-                backgroundColor: isActive ? '#eff6ff' : isDone ? '#f0fdf4' : '#f9fafb',
-                color: isActive ? '#2563eb' : isDone ? '#16a34a' : '#9ca3af',
-                border: `1px solid ${isActive ? '#bfdbfe' : isDone ? '#bbf7d0' : '#e5e7eb'}`,
+                backgroundColor: isActive ? colors.primary[50] : isDone ? colors.success[50] : colors.gray[50],
+                color: isActive ? colors.primary[600] : isDone ? colors.success[600] : colors.gray[400],
+                border: `1px solid ${isActive ? colors.primary[200] : isDone ? '#bbf7d0' : colors.gray[200]}`,
               }}
             >
               {isDone ? <CheckCircle2 size={12} /> : null}
@@ -555,12 +556,12 @@ function StatBadge({ label, value, color }: { label: string; value: number; colo
       style={{
         padding: '10px 16px',
         borderRadius: '8px',
-        backgroundColor: '#f9fafb',
-        border: '1px solid #e5e7eb',
+        backgroundColor: colors.gray[50],
+        border: `1px solid ${colors.gray[200]}`,
       }}
     >
       <div style={{ fontSize: '20px', fontWeight: 700, color }}>{value}</div>
-      <div style={{ fontSize: '12px', color: '#6b7280' }}>{label}</div>
+      <div style={{ fontSize: '12px', color: colors.gray[500] }}>{label}</div>
     </div>
   );
 }
@@ -571,24 +572,24 @@ const thStyle: React.CSSProperties = {
   padding: '10px 14px',
   textAlign: 'left',
   fontWeight: 500,
-  color: '#6b7280',
+  color: colors.gray[500],
   fontSize: '13px',
   whiteSpace: 'nowrap',
 };
 
 const tdStyle: React.CSSProperties = {
   padding: '8px 14px',
-  color: '#374151',
+  color: colors.gray[700],
 };
 
 const selectStyle: React.CSSProperties = {
   padding: '6px 10px',
   fontSize: '13px',
-  border: '1px solid #d1d5db',
+  border: `1px solid ${colors.gray[300]}`,
   borderRadius: '6px',
   outline: 'none',
-  backgroundColor: '#fff',
-  color: '#374151',
+  backgroundColor: colors.white,
+  color: colors.gray[700],
   width: '100%',
 };
 
@@ -599,9 +600,9 @@ const secondaryBtnStyle: React.CSSProperties = {
   padding: '8px 16px',
   fontSize: '14px',
   fontWeight: 500,
-  color: '#374151',
-  backgroundColor: '#fff',
-  border: '1px solid #d1d5db',
+  color: colors.gray[700],
+  backgroundColor: colors.white,
+  border: `1px solid ${colors.gray[300]}`,
   borderRadius: '6px',
   cursor: 'pointer',
 };
@@ -614,8 +615,8 @@ function primaryBtnStyle(disabled: boolean): React.CSSProperties {
     padding: '8px 20px',
     fontSize: '14px',
     fontWeight: 500,
-    color: '#fff',
-    backgroundColor: disabled ? '#93c5fd' : '#2563eb',
+    color: colors.white,
+    backgroundColor: disabled ? colors.primary[300] : colors.primary[600],
     border: 'none',
     borderRadius: '6px',
     cursor: disabled ? 'not-allowed' : 'pointer',

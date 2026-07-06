@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { Palmtree } from 'lucide-react';
 import type { LeaveRequestDto, LeaveRequestStatus } from '@/api/types/leave';
+import { colors } from '@/theme/tokens';
 
 interface Props {
   requests: LeaveRequestDto[];
@@ -8,11 +9,11 @@ interface Props {
 }
 
 const STATUS_CFG: Record<LeaveRequestStatus, { label: string; bg: string; color: string }> = {
-  Draft: { label: 'Szkic', bg: '#f3f4f6', color: '#6b7280' },
-  Pending: { label: 'Oczekuje', bg: '#fef3c7', color: '#92400e' },
+  Draft: { label: 'Szkic', bg: colors.gray[100], color: colors.gray[500] },
+  Pending: { label: 'Oczekuje', bg: colors.warning[100], color: colors.warning[800] },
   Approved: { label: 'Zaakceptowany', bg: '#d1fae5', color: '#065f46' },
-  Rejected: { label: 'Odrzucony', bg: '#fef2f2', color: '#dc2626' },
-  Cancelled: { label: 'Anulowany', bg: '#f3f4f6', color: '#6b7280' },
+  Rejected: { label: 'Odrzucony', bg: colors.danger[50], color: colors.danger[600] },
+  Cancelled: { label: 'Anulowany', bg: colors.gray[100], color: colors.gray[500] },
 };
 
 export function MyLeaveWidget({ requests, isLoading }: Props) {
@@ -26,10 +27,10 @@ export function MyLeaveWidget({ requests, isLoading }: Props) {
     return (
       <div style={cardStyle}>
         <div style={headerStyle}>
-          <Palmtree size={18} color="#059669" />
+          <Palmtree size={18} color={colors.emerald[600]} />
           <span style={titleStyle}>Moje urlopy</span>
         </div>
-        <div style={{ padding: '20px', textAlign: 'center', color: '#9ca3af', fontSize: '14px' }}>Ładowanie...</div>
+        <div style={{ padding: '20px', textAlign: 'center', color: colors.gray[400], fontSize: '14px' }}>Ładowanie...</div>
       </div>
     );
   }
@@ -37,7 +38,7 @@ export function MyLeaveWidget({ requests, isLoading }: Props) {
   return (
     <div style={cardStyle}>
       <div style={headerStyle}>
-        <Palmtree size={18} color="#059669" />
+        <Palmtree size={18} color={colors.emerald[600]} />
         <span style={titleStyle}>Moje urlopy</span>
       </div>
 
@@ -58,9 +59,9 @@ export function MyLeaveWidget({ requests, isLoading }: Props) {
                     {r.leaveTypeColor && (
                       <div style={{ width: '8px', height: '8px', borderRadius: '2px', backgroundColor: r.leaveTypeColor, flexShrink: 0 }} />
                     )}
-                    <span style={{ fontSize: '13px', fontWeight: 500, color: '#111827' }}>{r.leaveTypeName}</span>
+                    <span style={{ fontSize: '13px', fontWeight: 500, color: colors.gray[900] }}>{r.leaveTypeName}</span>
                   </div>
-                  <div style={{ fontSize: '12px', color: '#9ca3af', marginTop: '2px' }}>
+                  <div style={{ fontSize: '12px', color: colors.gray[400], marginTop: '2px' }}>
                     {new Date(r.startDate).toLocaleDateString('pl-PL')} – {new Date(r.endDate).toLocaleDateString('pl-PL')}
                     <span style={{ marginLeft: '6px' }}>({r.totalDays} dni)</span>
                   </div>
@@ -81,19 +82,19 @@ export function MyLeaveWidget({ requests, isLoading }: Props) {
 }
 
 const cardStyle: React.CSSProperties = {
-  backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #e5e7eb',
+  backgroundColor: colors.white, borderRadius: '12px', border: `1px solid ${colors.gray[200]}`,
   padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
 };
 const headerStyle: React.CSSProperties = {
   display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px',
 };
-const titleStyle: React.CSSProperties = { fontSize: '14px', fontWeight: 600, color: '#374151' };
+const titleStyle: React.CSSProperties = { fontSize: '14px', fontWeight: 600, color: colors.gray[700] };
 const rowStyle: React.CSSProperties = {
   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
   padding: '10px 12px', borderRadius: '8px', cursor: 'pointer',
-  backgroundColor: '#f9fafb',
+  backgroundColor: colors.gray[50],
 };
 const emptyStyle: React.CSSProperties = {
-  padding: '16px', textAlign: 'center', color: '#9ca3af', fontSize: '13px',
-  backgroundColor: '#f9fafb', borderRadius: '8px', border: '1px dashed #d1d5db',
+  padding: '16px', textAlign: 'center', color: colors.gray[400], fontSize: '13px',
+  backgroundColor: colors.gray[50], borderRadius: '8px', border: `1px dashed ${colors.gray[300]}`,
 };

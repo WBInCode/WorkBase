@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { ToggleLeft, ToggleRight, RefreshCw, Flag } from 'lucide-react';
 import { useFeatureFlags, useToggleFeatureFlag } from '@/api/hooks/useIam';
 import { useIsMobile } from '@/shared';
+import { colors } from '@/theme/tokens';
 
 const moduleLabels: Record<string, string> = {
   Organization: 'Organizacja',
@@ -30,14 +31,14 @@ export function FeatureFlagsPage() {
     <div style={{ padding: mobile ? '16px' : '24px 32px', maxWidth: '800px' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-        <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 600, color: '#111827' }}>Flagi funkcjonalności</h1>
+        <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 600, color: colors.gray[900] }}>Flagi funkcjonalności</h1>
         <button
           onClick={() => refetch()}
           style={{
             display: 'inline-flex', alignItems: 'center', gap: '6px',
             padding: '7px 12px', fontSize: '13px', fontWeight: 500,
-            color: '#374151', backgroundColor: '#fff',
-            border: '1px solid #d1d5db', borderRadius: '6px', cursor: 'pointer',
+            color: colors.gray[700], backgroundColor: colors.white,
+            border: `1px solid ${colors.gray[300]}`, borderRadius: '6px', cursor: 'pointer',
           }}
           title="Odśwież"
         >
@@ -49,20 +50,20 @@ export function FeatureFlagsPage() {
       {error && (
         <div style={{
           padding: '12px 16px', marginBottom: '16px', borderRadius: '8px',
-          backgroundColor: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', fontSize: '13px',
+          backgroundColor: colors.danger[50], border: `1px solid ${colors.danger[200]}`, color: colors.danger[800], fontSize: '13px',
         }}>
           Błąd ładowania flag.
-          <button onClick={() => refetch()} style={{ marginLeft: '8px', color: '#2563eb', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', fontSize: '13px' }}>Ponów</button>
+          <button onClick={() => refetch()} style={{ marginLeft: '8px', color: colors.primary[600], background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', fontSize: '13px' }}>Ponów</button>
         </div>
       )}
 
       {/* Loading */}
       {isLoading ? (
-        <div style={{ textAlign: 'center', padding: '48px 0', color: '#6b7280', fontSize: '14px' }}>
+        <div style={{ textAlign: 'center', padding: '48px 0', color: colors.gray[500], fontSize: '14px' }}>
           Ładowanie...
         </div>
       ) : !flags || flags.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '48px 0', color: '#9ca3af' }}>
+        <div style={{ textAlign: 'center', padding: '48px 0', color: colors.gray[400] }}>
           <Flag size={40} style={{ marginBottom: '12px', opacity: 0.5 }} />
           <div style={{ fontSize: '15px', fontWeight: 500 }}>Brak flag</div>
           <div style={{ fontSize: '13px', marginTop: '4px' }}>
@@ -77,14 +78,14 @@ export function FeatureFlagsPage() {
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 padding: '16px 20px', borderRadius: '8px',
-                border: '1px solid #e5e7eb', backgroundColor: '#fff',
+                border: `1px solid ${colors.gray[200]}`, backgroundColor: colors.white,
               }}
             >
               <div>
-                <div style={{ fontSize: '14px', fontWeight: 600, color: '#111827' }}>
+                <div style={{ fontSize: '14px', fontWeight: 600, color: colors.gray[900] }}>
                   {moduleLabels[flag.module] ?? flag.module}
                 </div>
-                <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '2px' }}>
+                <div style={{ fontSize: '12px', color: colors.gray[500], marginTop: '2px' }}>
                   Moduł: {flag.module}
                   {flag.enabledAt && (
                     <span style={{ marginLeft: '12px' }}>
@@ -101,8 +102,8 @@ export function FeatureFlagsPage() {
                   display: 'inline-flex', alignItems: 'center', gap: '6px',
                   padding: '6px 14px', fontSize: '13px', fontWeight: 500, borderRadius: '6px',
                   border: 'none', cursor: toggleMutation.isPending ? 'wait' : 'pointer',
-                  backgroundColor: flag.isEnabled ? '#dcfce7' : '#f3f4f6',
-                  color: flag.isEnabled ? '#166534' : '#6b7280',
+                  backgroundColor: flag.isEnabled ? colors.success[100] : colors.gray[100],
+                  color: flag.isEnabled ? colors.success[800] : colors.gray[500],
                 }}
               >
                 {flag.isEnabled ? <ToggleRight size={18} /> : <ToggleLeft size={18} />}
