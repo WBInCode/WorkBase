@@ -1,4 +1,4 @@
-import { BrowserRouter, HashRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter, HashRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from 'react-oidc-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useEffect } from 'react';
@@ -6,6 +6,7 @@ import { oidcConfig, ProtectedRoute } from '@/auth';
 import { setTokenProvider } from '@/api/client';
 import { getRouterMode } from '@/shared';
 import { MainLayout } from '@/layouts/MainLayout';
+import { ErrorBoundary } from '@/components/ui';
 import { AuthCallbackPage } from '@/pages/AuthCallbackPage';
 import { OrgTreePage } from '@/pages/organization/OrgTreePage';
 import { EmployeeListPage } from '@/pages/organization/EmployeeListPage';
@@ -66,8 +67,11 @@ function AppRoutes() {
     }
   }, [auth.user, navigate]);
 
+  const location = useLocation();
+
   return (
     <MainLayout>
+      <ErrorBoundary key={location.pathname}>
       <Routes>
         <Route path="/workspace" element={<WorkspacePage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
@@ -99,6 +103,7 @@ function AppRoutes() {
         <Route path="/admin/unit-types" element={isAdmin ? <UnitTypesConfigPage /> : <Navigate to="/workspace" replace />} />
         <Route path="*" element={<Navigate to="/workspace" replace />} />
       </Routes>
+      </ErrorBoundary>
     </MainLayout>
   );
 }
@@ -111,33 +116,35 @@ function AppRouter({ children }: { children: React.ReactNode }) {
 
 function App() {
   return (
-    <AuthProvider {...oidcConfig}>
-      <QueryClientProvider client={queryClient}>
-        <ToastProvider>
-        <AppRouter>
-          <Routes>
-            <Route path="/auth/callback" element={<AuthCallbackPage />} />
-            <Route
-              path="/kiosk"
-              element={
-                <ProtectedRoute>
-                  <KioskPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/*"
-              element={
-                <ProtectedRoute>
-                  <AppRoutes />
-                </ProtectedRoute>
-              }
-            />
-          </Routes>
-        </AppRouter>
-        </ToastProvider>
-      </QueryClientProvider>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider {...oidcConfig}>
+        <QueryClientProvider client={queryClient}>
+          <ToastProvider>
+          <AppRouter>
+            <Routes>
+              <Route path="/auth/callback" element={<AuthCallbackPage />} />
+              <Route
+                path="/kiosk"
+                element={
+                  <ProtectedRoute>
+                    <KioskPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/*"
+                element={
+                  <ProtectedRoute>
+                    <AppRoutes />
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </AppRouter>
+          </ToastProvider>
+        </QueryClientProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 

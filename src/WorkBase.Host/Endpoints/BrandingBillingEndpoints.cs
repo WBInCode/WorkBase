@@ -2,6 +2,9 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Stripe;
 using WorkBase.Infrastructure.Persistence;
 using WorkBase.Infrastructure.Persistence.Entities;
 using WorkBase.Shared.Api;
@@ -110,11 +113,99 @@ public static class BillingEndpoints
             return Results.Ok(invoices);
         }).WithName("GetInvoices").WithSummary("Pobierz faktury");
 
-        // Stripe webhook (no auth — verified by Stripe signature)
-        endpoints.MapPost("/api/billing/webhook", (HttpContext http, WorkBaseDbContext db) =>
+        // Stripe webhook — signature verified against Stripe:WebhookSecret before any processing
+        endpoints.MapPost("/api/billing/webhook", async (HttpContext http, WorkBaseDbContext db, IConfiguration configuration, ILogger<Program> logger) =>
         {
-            // In production: verify Stripe-Signature header using webhook secret
-            // Parse event type and update subscription/invoice status accordingly
+            var webhookSecret = configuration["Stripe:WebhookSecret"];
+            if (string.IsNullOrEmpty(webhookSecret))
+            {
+                logger.LogError("Stripe webhook received but Stripe:WebhookSecret is not configured; rejecting request.");
+                return Results.Problem(statusCode: StatusCodes.Status503ServiceUnavailable, title: "Webhook not configured");
+            }
+
+            var json = await new StreamReader(http.Request.Body).ReadToEndAsync();
+            var signatureHeader = http.Request.Headers["Stripe-Signature"].ToString();
+
+            Event stripeEvent;
+            try
+            {
+                stripeEvent = EventUtility.ConstructEvent(json, signatureHeader, webhookSecret);
+            }
+            catch (StripeException ex)
+            {
+                logger.LogWarning(ex, "Stripe webhook signature verification failed.");
+                return Results.BadRequest(new { Error = "Invalid signature" });
+            }
+
+            switch (stripeEvent.Type)
+            {
+                case "customer.subscription.updated":
+                case "customer.subscription.created":
+                    if (stripeEvent.Data.Object is Subscription updatedSub)
+                    {
+                        var sub = await db.Set<BillingSubscription>()
+                            .FirstOrDefaultAsync(s => s.StripeSubscriptionId == updatedSub.Id);
+                        if (sub is not null)
+                        {
+                            sub.Status = updatedSub.Status;
+                            sub.CurrentPeriodStart = updatedSub.CurrentPeriodStart;
+                            sub.CurrentPeriodEnd = updatedSub.CurrentPeriodEnd;
+                            await db.SaveChangesAsync();
+                        }
+                    }
+                    break;
+
+                case "customer.subscription.deleted":
+                    if (stripeEvent.Data.Object is Subscription deletedSub)
+                    {
+                        var sub = await db.Set<BillingSubscription>()
+                            .FirstOrDefaultAsync(s => s.StripeSubscriptionId == deletedSub.Id);
+                        if (sub is not null)
+                        {
+                            sub.Status = "canceled";
+                            sub.CanceledAt = DateTime.UtcNow;
+                            await db.SaveChangesAsync();
+                        }
+                    }
+                    break;
+
+                case "invoice.paid":
+                case "invoice.payment_failed":
+                    if (stripeEvent.Data.Object is Invoice invoice)
+                    {
+                        var billingInvoice = await db.Set<BillingInvoice>()
+                            .FirstOrDefaultAsync(i => i.StripeInvoiceId == invoice.Id);
+                        if (billingInvoice is null)
+                        {
+                            var sub = await db.Set<BillingSubscription>()
+                                .FirstOrDefaultAsync(s => s.StripeCustomerId == invoice.CustomerId);
+                            if (sub is not null)
+                            {
+                                billingInvoice = new BillingInvoice { Id = Guid.NewGuid(), TenantId = sub.TenantId, StripeInvoiceId = invoice.Id, CreatedAt = DateTime.UtcNow };
+                                db.Set<BillingInvoice>().Add(billingInvoice);
+                            }
+                        }
+                        if (billingInvoice is not null)
+                        {
+                            billingInvoice.Number = invoice.Number ?? billingInvoice.Number;
+                            billingInvoice.AmountDue = invoice.AmountDue / 100m;
+                            billingInvoice.AmountPaid = invoice.AmountPaid / 100m;
+                            billingInvoice.Currency = invoice.Currency?.ToUpperInvariant() ?? billingInvoice.Currency;
+                            billingInvoice.Status = invoice.Status ?? billingInvoice.Status;
+                            billingInvoice.PdfUrl = invoice.InvoicePdf;
+                            billingInvoice.PeriodStart = invoice.PeriodStart;
+                            billingInvoice.PeriodEnd = invoice.PeriodEnd;
+                            if (stripeEvent.Type == "invoice.paid") billingInvoice.PaidAt = DateTime.UtcNow;
+                            await db.SaveChangesAsync();
+                        }
+                    }
+                    break;
+
+                default:
+                    logger.LogInformation("Unhandled Stripe webhook event type: {EventType}", stripeEvent.Type);
+                    break;
+            }
+
             return Results.Ok(new { Received = true });
         }).WithName("StripeWebhook").WithSummary("Stripe webhook endpoint").AllowAnonymous();
 

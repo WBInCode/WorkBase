@@ -123,6 +123,7 @@ services:
       Serilog__WriteTo__0__Args__serverUrl: "http://seq:5341"
       Cors__AllowedOrigins__0: "${FRONTEND_URL:-https://app.workbase.local}"
       Integration__EncryptionKey: "${INTEGRATION_ENCRYPTION_KEY:-}"
+      Stripe__WebhookSecret: "${STRIPE_WEBHOOK_SECRET:?Set STRIPE_WEBHOOK_SECRET}"
     depends_on:
       postgres:
         condition: service_healthy

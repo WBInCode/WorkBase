@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
   useFormDefinitions,
   useFormDefinition,
@@ -52,9 +52,9 @@ export function FormBuilderPage() {
   }, [selectedDef]);
 
   // Load when selectedDef changes
-  useState(() => {
+  useEffect(() => {
     if (selectedDef) loadDef();
-  });
+  }, [selectedDef, loadDef]);
 
   const addField = () => setFields((prev) => [...prev, emptyField(prev.length)]);
 

@@ -19,6 +19,11 @@ public static class ModuleDiscovery
         "WorkBase.Modules.Notification.Infrastructure",
         "WorkBase.Modules.Documents.Infrastructure",
         "WorkBase.Modules.Integration.Infrastructure",
+        "WorkBase.Modules.Cases.Infrastructure",
+        "WorkBase.Modules.Contacts.Infrastructure",
+        "WorkBase.Modules.Forms.Infrastructure",
+        "WorkBase.Modules.Sales.Infrastructure",
+        "WorkBase.Modules.AI.Infrastructure",
         "WorkBase.Modules.Identity.Api",
         "WorkBase.Modules.Organization.Api",
         "WorkBase.Modules.TimeTracking.Api",
@@ -28,7 +33,12 @@ public static class ModuleDiscovery
         "WorkBase.Modules.Dashboard.Api",
         "WorkBase.Modules.Notification.Api",
         "WorkBase.Modules.Documents.Api",
-        "WorkBase.Modules.Integration.Api"
+        "WorkBase.Modules.Integration.Api",
+        "WorkBase.Modules.Cases.Api",
+        "WorkBase.Modules.Contacts.Api",
+        "WorkBase.Modules.Forms.Api",
+        "WorkBase.Modules.Sales.Api",
+        "WorkBase.Modules.AI.Api"
     ];
 
     /// <summary>

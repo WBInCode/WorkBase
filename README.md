@@ -9,7 +9,7 @@
 | Warstwa | Technologie |
 |---|---|
 | Backend | .NET 9, ASP.NET Core, C#, EF Core 9, Dapper (read-side) |
-| Frontend | React 19, TypeScript, Vite, TanStack Query, Zustand, Tailwind CSS, Shadcn/ui |
+| Frontend | React 19, TypeScript, Vite, TanStack Query |
 | Baza danych | PostgreSQL 16+ |
 | Auth | Keycloak 24+ (OIDC, JWT, RBAC) |
 | Storage | MinIO (S3-compatible) |
@@ -22,7 +22,7 @@
 
 ## Architektura
 
-- **Modular monolith** — każdy moduł (Organization, Identity, TimeTracking, Leave, Tasks, Workflow, Dashboard, Notification, Documents) to oddzielny .NET project z Domain/Application/Infrastructure/Api
+- **Modular monolith** — każdy z 15 modułów (Organization, Identity, TimeTracking, Leave, Tasks, Workflow, Dashboard, Notification, Documents, Integration, Cases, Contacts, Forms, Sales, AI) to oddzielny .NET project z Domain/Application/Infrastructure/Api
 - **CQRS light** — commands i queries przez MediatR
 - **Domain Events** — komunikacja między modułami (in-process, MediatR notifications)
 - **Multi-tenancy** — shared DB + `tenant_id`, EF Core global query filter
@@ -46,22 +46,32 @@ WorkBase/
 │       ├── WorkBase.Modules.Workflow/
 │       ├── WorkBase.Modules.Dashboard/
 │       ├── WorkBase.Modules.Notification/
-│       └── WorkBase.Modules.Documents/
+│       ├── WorkBase.Modules.Documents/
+│       ├── WorkBase.Modules.Integration/      # premium: adaptery Google/MS/Slack/Teams
+│       ├── WorkBase.Modules.Cases/            # premium: case management
+│       ├── WorkBase.Modules.Contacts/         # premium: kontakty
+│       ├── WorkBase.Modules.Forms/            # premium: dynamic form builder
+│       ├── WorkBase.Modules.Sales/            # premium: CRM (lead → offer)
+│       └── WorkBase.Modules.AI/               # premium: OpenAI summarize/classify
 ├── tests/
 │   ├── WorkBase.Tests.Unit/
 │   ├── WorkBase.Tests.Integration/
 │   └── WorkBase.Tests.Architecture/
-├── workbase-web/                       # React frontend (Vite)
+├── frontend/                            # React frontend (Vite), npm package "workbase-web"
 │   └── src/
-│       ├── app/
+│       ├── api/           # klient HTTP + hooki TanStack Query + typy DTO
+│       ├── auth/          # OIDC/Keycloak
+│       ├── components/
+│       ├── pages/
 │       ├── shared/
-│       ├── modules/
-│       └── ui/
+│       └── theme/
 ├── docker/
 │   ├── Dockerfile
-│   ├── docker-compose.yml
+│   ├── Dockerfile.frontend
+│   ├── Dockerfile.keycloak
 │   ├── docker-compose.dev.yml
-│   └── keycloak/realm-config.json
+│   ├── docker-compose.staging.yml
+│   └── keycloak/workbase-realm.json
 └── docs/
 ```
 
@@ -105,7 +115,7 @@ Health: `https://localhost:5001/health`
 ### 4. Frontend
 
 ```bash
-cd workbase-web
+cd frontend
 npm ci
 npm run dev
 ```
@@ -135,7 +145,8 @@ Skopiuj `.env.example` do `.env` i uzupełnij wartości. Kluczowe zmienne:
 | `npm run dev` | Frontend dev server |
 | `npm run build` | Frontend production build |
 | `npm run lint` | ESLint |
-| `npm run typecheck` | TypeScript type check |
+| `npm run type-check` | TypeScript type check |
+| `npm test` | Testy frontendu (Vitest) |
 
 ## Branching strategy
 

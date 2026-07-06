@@ -104,8 +104,7 @@ try
     app.MapHangfireDashboard("/hangfire", new DashboardOptions
     {
         DashboardTitle = "WorkBase Jobs",
-        // TODO: Replace with proper auth filter after T-E02 (JWT + RBAC)
-        Authorization = [new HangfireLocalRequestOnlyFilter()]
+        Authorization = [new HangfireAdminAuthorizationFilter()]
     });
 
     app.MapGet("/", () => Results.Ok(new { Service = "WorkBase API", Status = "Running" }));

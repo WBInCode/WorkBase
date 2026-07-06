@@ -102,6 +102,7 @@ services:
       Serilog__WriteTo__0__Name: "Seq"
       Serilog__WriteTo__0__Args__serverUrl: "http://seq:5341"
       Hangfire__DashboardEnabled: "true"
+      Stripe__WebhookSecret: "${STRIPE_WEBHOOK_SECRET:-}"
     depends_on:
       postgres:
         condition: service_healthy
