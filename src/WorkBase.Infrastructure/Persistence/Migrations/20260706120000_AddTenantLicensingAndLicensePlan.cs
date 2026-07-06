@@ -1,5 +1,7 @@
 using System;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
+using WorkBase.Infrastructure.Persistence;
 
 #nullable disable
 
@@ -23,6 +25,7 @@ namespace WorkBase.Infrastructure.Persistence.Migrations
     /// those 6 modules can be used. Those modules' endpoints will 500 if called today; nothing
     /// at startup depends on their tables existing, so this does not block deployment.
     /// </remarks>
+    [DbContext(typeof(WorkBaseDbContext))]
     [Migration("20260706120000_AddTenantLicensingAndLicensePlan")]
     public partial class AddTenantLicensingAndLicensePlan : Migration
     {
