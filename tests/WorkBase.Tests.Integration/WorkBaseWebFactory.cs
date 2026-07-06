@@ -36,12 +36,17 @@ public class WorkBaseWebFactory : WebApplicationFactory<WorkBase.Host.Program>
                 options.UseInMemoryDatabase("WorkBase_Test_" + Guid.NewGuid().ToString("N"));
             });
 
-            // Remove Hangfire hosted services (BackgroundJobServer)
-            var hangfireDescriptors = services
-                .Where(d => d.ServiceType == typeof(IHostedService)
-                    && d.ImplementationType?.FullName?.Contains("Hangfire") == true)
+            // Remove all IHostedService registrations (Hangfire's BackgroundJobServer is the
+            // only one registered app-wide). Hangfire registers it via a factory delegate
+            // (AddHangfireServer), so ImplementationType is null and a Hangfire-name filter
+            // silently fails to match it — the real server then starts against Postgres in
+            // every test host and hangs for ~60s on shutdown when the host is disposed
+            // (e.g. via WithWebHostBuilder in per-test hosts). Removing all IHostedService
+            // descriptors is safe here since no other hosted service is registered.
+            var hostedServiceDescriptors = services
+                .Where(d => d.ServiceType == typeof(IHostedService))
                 .ToList();
-            foreach (var hd in hangfireDescriptors)
+            foreach (var hd in hostedServiceDescriptors)
                 services.Remove(hd);
 
             // Replace auth with test scheme

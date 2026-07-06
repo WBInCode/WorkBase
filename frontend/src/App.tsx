@@ -1,43 +1,55 @@
 import { BrowserRouter, HashRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from 'react-oidc-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
 import { oidcConfig, ProtectedRoute } from '@/auth';
 import { setTokenProvider } from '@/api/client';
 import { getRouterMode } from '@/shared';
 import { MainLayout } from '@/layouts/MainLayout';
 import { ErrorBoundary } from '@/components/ui';
 import { AuthCallbackPage } from '@/pages/AuthCallbackPage';
-import { OrgTreePage } from '@/pages/organization/OrgTreePage';
-import { EmployeeListPage } from '@/pages/organization/EmployeeListPage';
-import { CsvImportPage } from '@/pages/organization/CsvImportPage';
-import { EmployeeCardPage } from '@/pages/organization/EmployeeCardPage';
-import { RolesPage } from '@/pages/admin/RolesPage';
-import { PermissionsMatrixPage } from '@/pages/admin/PermissionsMatrixPage';
-import { FeatureFlagsPage } from '@/pages/admin/FeatureFlagsPage';
-import { LeaveTypesConfigPage } from '@/pages/admin/LeaveTypesConfigPage';
-import { TaskStatusConfigPage } from '@/pages/admin/TaskStatusConfigPage';
-import { BreakPoliciesConfigPage } from '@/pages/admin/BreakPoliciesConfigPage';
-import { PositionsConfigPage } from '@/pages/admin/PositionsConfigPage';
-import { UnitTypesConfigPage } from '@/pages/admin/UnitTypesConfigPage';
-import { TimesheetPage } from '@/pages/time/TimesheetPage';
-import { TeamAttendancePage } from '@/pages/time/TeamAttendancePage';
-import { SchedulePage } from '@/pages/time/SchedulePage';
-import { PayrollPage } from '@/pages/payroll/PayrollPage';
-import { LeaveRequestPage } from '@/pages/leave/LeaveRequestPage';
-import { LeaveCalendarPage } from '@/pages/leave/LeaveCalendarPage';
-import { PendingApprovalsPage } from '@/pages/leave/PendingApprovalsPage';
-import { TaskListPage } from '@/pages/tasks/TaskListPage';
-import { TaskCardPage } from '@/pages/tasks/TaskCardPage';
-import { MyTasksPage } from '@/pages/tasks/MyTasksPage';
-import { DashboardPage } from '@/pages/DashboardPage';
-import { WorkspacePage } from '@/pages/WorkspacePage';
-import { KioskPage } from '@/pages/KioskPage';
-import { DocumentListPage } from '@/pages/documents/DocumentListPage';
-import { DocumentCategoriesPage } from '@/pages/documents/DocumentCategoriesPage';
-import { WorkflowBuilderPage } from '@/pages/workflow/WorkflowBuilderPage';
-import { FormBuilderPage } from '@/pages/forms/FormBuilderPage';
 import { ToastProvider } from '@/components/Notifications';
+
+// Route-level code splitting: each page is loaded on demand instead of being
+// bundled into the initial chunk. Keeps the first paint fast for a large,
+// multi-module SPA (see docs/AUDIT-KNOWLEDGE-MAP.md, punkt 15).
+const OrgTreePage = lazy(() => import('@/pages/organization/OrgTreePage').then((m) => ({ default: m.OrgTreePage })));
+const EmployeeListPage = lazy(() => import('@/pages/organization/EmployeeListPage').then((m) => ({ default: m.EmployeeListPage })));
+const CsvImportPage = lazy(() => import('@/pages/organization/CsvImportPage').then((m) => ({ default: m.CsvImportPage })));
+const EmployeeCardPage = lazy(() => import('@/pages/organization/EmployeeCardPage').then((m) => ({ default: m.EmployeeCardPage })));
+const RolesPage = lazy(() => import('@/pages/admin/RolesPage').then((m) => ({ default: m.RolesPage })));
+const PermissionsMatrixPage = lazy(() => import('@/pages/admin/PermissionsMatrixPage').then((m) => ({ default: m.PermissionsMatrixPage })));
+const FeatureFlagsPage = lazy(() => import('@/pages/admin/FeatureFlagsPage').then((m) => ({ default: m.FeatureFlagsPage })));
+const LeaveTypesConfigPage = lazy(() => import('@/pages/admin/LeaveTypesConfigPage').then((m) => ({ default: m.LeaveTypesConfigPage })));
+const TaskStatusConfigPage = lazy(() => import('@/pages/admin/TaskStatusConfigPage').then((m) => ({ default: m.TaskStatusConfigPage })));
+const BreakPoliciesConfigPage = lazy(() => import('@/pages/admin/BreakPoliciesConfigPage').then((m) => ({ default: m.BreakPoliciesConfigPage })));
+const PositionsConfigPage = lazy(() => import('@/pages/admin/PositionsConfigPage').then((m) => ({ default: m.PositionsConfigPage })));
+const UnitTypesConfigPage = lazy(() => import('@/pages/admin/UnitTypesConfigPage').then((m) => ({ default: m.UnitTypesConfigPage })));
+const TimesheetPage = lazy(() => import('@/pages/time/TimesheetPage').then((m) => ({ default: m.TimesheetPage })));
+const TeamAttendancePage = lazy(() => import('@/pages/time/TeamAttendancePage').then((m) => ({ default: m.TeamAttendancePage })));
+const SchedulePage = lazy(() => import('@/pages/time/SchedulePage').then((m) => ({ default: m.SchedulePage })));
+const PayrollPage = lazy(() => import('@/pages/payroll/PayrollPage').then((m) => ({ default: m.PayrollPage })));
+const LeaveRequestPage = lazy(() => import('@/pages/leave/LeaveRequestPage').then((m) => ({ default: m.LeaveRequestPage })));
+const LeaveCalendarPage = lazy(() => import('@/pages/leave/LeaveCalendarPage').then((m) => ({ default: m.LeaveCalendarPage })));
+const PendingApprovalsPage = lazy(() => import('@/pages/leave/PendingApprovalsPage').then((m) => ({ default: m.PendingApprovalsPage })));
+const TaskListPage = lazy(() => import('@/pages/tasks/TaskListPage').then((m) => ({ default: m.TaskListPage })));
+const TaskCardPage = lazy(() => import('@/pages/tasks/TaskCardPage').then((m) => ({ default: m.TaskCardPage })));
+const MyTasksPage = lazy(() => import('@/pages/tasks/MyTasksPage').then((m) => ({ default: m.MyTasksPage })));
+const DashboardPage = lazy(() => import('@/pages/DashboardPage').then((m) => ({ default: m.DashboardPage })));
+const WorkspacePage = lazy(() => import('@/pages/WorkspacePage').then((m) => ({ default: m.WorkspacePage })));
+const KioskPage = lazy(() => import('@/pages/KioskPage').then((m) => ({ default: m.KioskPage })));
+const DocumentListPage = lazy(() => import('@/pages/documents/DocumentListPage').then((m) => ({ default: m.DocumentListPage })));
+const DocumentCategoriesPage = lazy(() => import('@/pages/documents/DocumentCategoriesPage').then((m) => ({ default: m.DocumentCategoriesPage })));
+const WorkflowBuilderPage = lazy(() => import('@/pages/workflow/WorkflowBuilderPage').then((m) => ({ default: m.WorkflowBuilderPage })));
+const FormBuilderPage = lazy(() => import('@/pages/forms/FormBuilderPage').then((m) => ({ default: m.FormBuilderPage })));
+
+function RouteLoadingFallback() {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px' }}>
+      <div style={{ fontSize: '14px', color: '#6b7280' }}>Ładowanie…</div>
+    </div>
+  );
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -72,6 +84,7 @@ function AppRoutes() {
   return (
     <MainLayout>
       <ErrorBoundary key={location.pathname}>
+      <Suspense fallback={<RouteLoadingFallback />}>
       <Routes>
         <Route path="/workspace" element={<WorkspacePage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
@@ -103,6 +116,7 @@ function AppRoutes() {
         <Route path="/admin/unit-types" element={isAdmin ? <UnitTypesConfigPage /> : <Navigate to="/workspace" replace />} />
         <Route path="*" element={<Navigate to="/workspace" replace />} />
       </Routes>
+      </Suspense>
       </ErrorBoundary>
     </MainLayout>
   );
@@ -121,6 +135,7 @@ function App() {
         <QueryClientProvider client={queryClient}>
           <ToastProvider>
           <AppRouter>
+            <Suspense fallback={<RouteLoadingFallback />}>
             <Routes>
               <Route path="/auth/callback" element={<AuthCallbackPage />} />
               <Route
@@ -140,6 +155,7 @@ function App() {
                 }
               />
             </Routes>
+            </Suspense>
           </AppRouter>
           </ToastProvider>
         </QueryClientProvider>

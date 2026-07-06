@@ -204,15 +204,15 @@ Pipeline CI uruchamia `npm test` (Vitest), ale brak plików testowych na froncie
 | 4 | Zsynchronizować README/docs ze stanem faktycznym | 🟠 Wysoki | Niski | Onboarding, zaufanie | ✅ Wykonane (README) |
 | 5 | Migracja inline styles → Tailwind/tokeny + white-label | 🟠 Wysoki | Średni | Utrzymywalność, sprzedaż | ⏳ Nierozpoczęte |
 | 6 | Fix `FormBuilderPage` (useEffect) + Error Boundaries | 🟠 Wysoki | Niski | Stabilność UI | ✅ Wykonane |
-| 7 | Testy frontendu (Vitest) dla krytycznych ścieżek | 🟠 Wysoki | Średni | Regresje | ⏳ Nierozpoczęte |
+| 7 | Testy frontendu (Vitest) dla krytycznych ścieżek | 🟠 Wysoki | Średni | Regresje | ✅ Wykonane (api client + ErrorBoundary) |
 | 8 | Rozszerzyć FluentValidation na wszystkie moduły | 🟡 Średni | Średni | Spójność, walidacja wejścia | ⏳ Nierozpoczęte |
 | 9 | Enumy zamiast magic strings (statusy) | 🟡 Średni | Średni | Typosafety | ⏳ Nierozpoczęte |
-| 10 | Testy: webhook, API key auth, data scope, walidatory | 🟡 Średni | Średni | Pokrycie bezpieczeństwa | ⏳ Nierozpoczęte |
+| 10 | Testy: webhook, API key auth, data scope, walidatory | 🟡 Średni | Średni | Pokrycie bezpieczeństwa | ✅ Częściowo (webhook — 4 testy; API key/data scope pozostają) |
 | 11 | Refactor `TaskListPage` (useReducer), reużywalna paginacja | 🟢 Niski | Średni | DX | ⏳ Nierozpoczęte |
 | 12 | Usunąć/wykorzystać nieużyte abstrakcje (StorageAdapter, NotificationAdapter, QrScanner) | 🟢 Niski | Niski | Czystość kodu | ✅ Zweryfikowane (patrz P14) |
 | 13 | Naprawić podatność `react-router-dom` (npm audit) | 🔴 Krytyczny | Niski | Zamknięcie RCE/CSRF/open-redirect | ✅ Wykonane |
 | 14 | Naprawić podatność `uuid` (przez `exceljs`, wymaga breaking downgrade) | 🟡 Średni | Niski | Domknięcie ostatniej luki npm audit | ⏳ Nierozpoczęte (decyzja biznesowa) |
-| 15 | Code-splitting bundla frontendu (`React.lazy`, `manualChunks`) | 🟢 Niski | Średni | Wydajność ładowania | ⏳ Nierozpoczęte |
+| 15 | Code-splitting bundla frontendu (`React.lazy`, `manualChunks`) | 🟢 Niski | Średni | Wydajność ładowania | ✅ Wykonane |
 
 ---
 
@@ -231,23 +231,26 @@ Pipeline CI uruchamia `npm test` (Vitest), ale brak plików testowych na froncie
 | Testy | 6/10 | Backend OK, frontend zero, luki w bezpieczeństwie |
 | Infrastruktura/CI-CD | 9/10 | Dojrzałe, gotowe do wdrożeń |
 
-**Werdykt:** Dojrzały technicznie, spójny modular monolith z bardzo szerokim, realnie zaimplementowanym zakresem funkcjonalnym i mocnym fundamentem pod SaaS. Wszystkie 3 problemy krytyczne oraz podatność w `react-router-dom` zostały **usunięte w ramach tego audytu**. Pozostałe punkty o wysokim/średnim priorytecie (inline styles, testy frontendu, FluentValidation, magic strings) są opisane w sekcji 6 i czekają na realizację.
+**Werdykt:** Dojrzały technicznie, spójny modular monolith z bardzo szerokim, realnie zaimplementowanym zakresem funkcjonalnym i mocnym fundamentem pod SaaS. Wszystkie 3 problemy krytyczne oraz podatność w `react-router-dom` zostały **usunięte w ramach tego audytu**. Pozostałe punkty o wysokim/średnim priorytecie (inline styles, FluentValidation, magic strings, dodatkowe testy bezpieczeństwa) są opisane w sekcji 6 i czekają na realizację.
 
 ---
 
 ## 8. Log wykonanych poprawek
 
-Wszystkie poniższe zmiany zweryfikowano: `dotnet build` (0 błędów/ostrzeżeń), `dotnet test tests/WorkBase.Tests.Architecture` (5/5 pass), `npm run type-check`, `npm run lint` (0 błędów, tylko istniejące wcześniej warningi), `npm run build` (sukces).
+Wszystkie poniższe zmiany zweryfikowano: `dotnet build` (0 błędów/ostrzeżeń), `dotnet test tests/WorkBase.Tests.Architecture` (5/5 pass), `dotnet test tests/WorkBase.Tests.Integration` (17/17 pass, powtórzone 2× dla stabilności), `npm run type-check`, `npm run lint` (0 błędów), `npm test` (10/10 pass), `npm run build` (sukces).
 
 | Poprawka | Pliki zmienione | Weryfikacja |
 |---|---|---|
 | **P1** — wpięcie 5 modułów | [ModuleDiscovery.cs](../src/WorkBase.Infrastructure/ModuleDiscovery.cs) | Build + testy architektury |
-| **P2** — Stripe webhook | [BrandingBillingEndpoints.cs](../src/WorkBase.Host/Endpoints/BrandingBillingEndpoints.cs), `WorkBase.Host.csproj` (+Stripe.net), `appsettings.json`, `.env.example`, `docker-compose.dev.yml`, `docker-compose.staging.yml`, `staging.env.example` | Build |
+| **P2** — Stripe webhook | [BrandingBillingEndpoints.cs](../src/WorkBase.Host/Endpoints/BrandingBillingEndpoints.cs), `WorkBase.Host.csproj` (+Stripe.net), `appsettings.json`, `.env.example`, `docker-compose.dev.yml`, `docker-compose.staging.yml`, `staging.env.example` | Build + [WebhookSecurityTests.cs](../tests/WorkBase.Tests.Integration/WebhookSecurityTests.cs) |
 | **P3** — Hangfire auth | [HangfireAdminAuthorizationFilter.cs](../src/WorkBase.Infrastructure/BackgroundJobs/HangfireAdminAuthorizationFilter.cs) (nowy), [Program.cs](../src/WorkBase.Host/Program.cs) | Build |
 | **P5** — README sync | [README.md](../README.md) | Manualna weryfikacja treści |
 | **P7** — FormBuilderPage fix | [FormBuilderPage.tsx](../frontend/src/pages/forms/FormBuilderPage.tsx) | type-check |
-| **P8** — Error Boundary | [ErrorBoundary.tsx](../frontend/src/components/ui/ErrorBoundary.tsx) (nowy), `components/ui/index.ts`, [App.tsx](../frontend/src/App.tsx) | type-check, build |
+| **P10 (część)** — testy webhooka | [WebhookTestFactory.cs](../tests/WorkBase.Tests.Integration/WebhookTestFactory.cs) (nowy), [WebhookSecurityTests.cs](../tests/WorkBase.Tests.Integration/WebhookSecurityTests.cs) (nowy) — 4 testy: fail-closed bez sekretu, odrzucenie sfałszowanego podpisu, akceptacja poprawnego podpisu, brak wymogu autoryzacji. Przy okazji naprawiono `EventUtility.ConstructEvent(..., throwOnApiVersionMismatch: false)` w [BrandingBillingEndpoints.cs](../src/WorkBase.Host/Endpoints/BrandingBillingEndpoints.cs) (bez tego każdy webhook o innej wersji API Stripe niż wersja skompilowana w Stripe.net kończył się fałszywym „nieprawidłowy podpis") oraz poprawiono usuwanie hosted services w [WorkBaseWebFactory.cs](../tests/WorkBase.Tests.Integration/WorkBaseWebFactory.cs) (Hangfire rejestruje się przez factory delegate, więc filtr po `ImplementationType` go nie usuwał — testy wisiały ~60s na dispose) | `dotnet test` 17/17, 2× powtórzone |
+| **P15** — code-splitting frontendu | [App.tsx](../frontend/src/App.tsx) (wszystkie strony przez `React.lazy` + `Suspense`), [TeamAttendancePage.tsx](../frontend/src/pages/time/TeamAttendancePage.tsx) (dynamiczny `import('exceljs')` zamiast statycznego) | Główny bundle: 1755 kB → 476 kB (gzip 483→144 kB); `exceljs` (940 kB) i pozostałe strony ładowane on-demand |
+| **P7 (frontend)** — testy Vitest | [vite.config.ts](../frontend/vite.config.ts) (blok `test`), [src/test/setup.ts](../frontend/src/test/setup.ts) (nowy), [client.test.ts](../frontend/src/api/client.test.ts) (nowy, 6 testów), [ErrorBoundary.test.tsx](../frontend/src/components/ui/ErrorBoundary.test.tsx) (nowy, 4 testy) + `@testing-library/react`, `@testing-library/jest-dom`, `@testing-library/user-event`, `jsdom` jako devDependencies | `npm test` 10/10 |
+| **P8** — Error Boundary | [ErrorBoundary.tsx](../frontend/src/components/ui/ErrorBoundary.tsx) (nowy), `components/ui/index.ts`, [App.tsx](../frontend/src/App.tsx) | type-check, build, testy komponentu |
 | **P14** — martwy kod | usunięto `frontend/src/shared/notification.ts` + eksport z `shared/index.ts`; `QrScanner`/`StorageAdapter` zweryfikowane jako używane (bez zmian) | type-check, build |
-| **P15** — `react-router-dom` CVE | `frontend/package-lock.json` (7.13.2 → 7.18.1 przez `npm audit fix`) | type-check, build |
+| **P15 (npm audit)** — `react-router-dom` CVE | `frontend/package-lock.json` (7.13.2 → 7.18.1 przez `npm audit fix`) | type-check, build |
 
-**Nie wykonane w tej turze** (wymagają większego nakładu lub decyzji biznesowej): P9 (refactor TaskListPage), P10 (FluentValidation we wszystkich modułach), P11 (enumy), P12 (testy bezpieczeństwa), P13 (rate limiting rejestracji), P16 (breaking downgrade `exceljs` dla `uuid` CVE), P17 (code-splitting bundle frontend), P4/P6 (migracja stylów + testy frontendu — duży nakład, do zaplanowania osobno).
+**Nie wykonane w tej turze** (wymagają większego nakładu lub decyzji biznesowej): P5 (migracja stylów na Tailwind), P8 (FluentValidation we wszystkich modułach), P9 (enumy), P10 pozostała część (testy API key auth, data scope), P11 (rate limiting rejestracji / refactor TaskListPage), P14 (breaking downgrade `exceljs` dla `uuid` CVE).
