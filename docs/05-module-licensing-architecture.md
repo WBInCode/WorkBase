@@ -251,7 +251,7 @@ To wymaga osobnej, dokładniejszej analizy bezpieczeństwa przed wdrożeniem —
 | 1 | `ModuleCatalog.cs` + refaktor `IamSeeder`/testów architektury do korzystania z niego | Niskie | brak | ✅ Wykonane |
 | 2 | Encja `Tenant` (rozszerzona) + `LicensePlan` + migracja EF Core | Niskie | Krok 1 | ✅ Kod wykonany — **migracja EF wymaga wygenerowania lokalnie** (brak SDK .NET w środowisku agenta), patrz commit `3a8695c` |
 | 3 | Egzekwowanie flag na backendzie (`TenantBehavior` + `ModuleResolver`) | Średnie (dotyka pipeline wszystkich requestów) | Krok 1, 2 | ✅ Zrobione (commit `fd33a49`) |
-| 4 | Endpoint "zastosuj plan do tenanta" (materializacja `LicensePlan` → `FeatureFlag`) | Niskie | Krok 2 | ⏳ Nierozpoczęte |
+| 4 | Endpoint "zastosuj plan do tenanta" (materializacja `LicensePlan` → `FeatureFlag`) | Niskie | Krok 2 | ✅ Zrobione (commit `701f98c`) — na razie tylko dla własnego tenanta (patrz krok 5) |
 | 5 | Panel operatora: lista firm → wybór planu/modułów (rozszerzenie `FeatureFlagsPage`) | Niskie (UI) | Krok 2, 4 | ⏳ Nierozpoczęte |
 | 6 | Multi-realm Keycloak: rozszerzenie `IKeycloakAdminService` + dynamiczna walidacja JWT | Wysokie (bezpieczeństwo, wymaga osobnego review) | Krok 2 | ⏳ Nierozpoczęte |
 
