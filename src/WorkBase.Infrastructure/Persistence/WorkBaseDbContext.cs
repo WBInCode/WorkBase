@@ -3,6 +3,7 @@ using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WorkBase.Shared.Domain;
+using WorkBase.Shared.Modules;
 
 namespace WorkBase.Infrastructure.Persistence;
 
@@ -98,18 +99,12 @@ public class WorkBaseDbContext : DbContext
 
     private static IEnumerable<Assembly> GetModuleInfrastructureAssemblies()
     {
-        var moduleNames = new[]
-        {
-            "WorkBase.Modules.Identity.Infrastructure",
-            "WorkBase.Modules.Organization.Infrastructure",
-            "WorkBase.Modules.TimeTracking.Infrastructure",
-            "WorkBase.Modules.Leave.Infrastructure",
-            "WorkBase.Modules.Tasks.Infrastructure",
-            "WorkBase.Modules.Workflow.Infrastructure",
-            "WorkBase.Modules.Dashboard.Infrastructure",
-            "WorkBase.Modules.Notification.Infrastructure",
-            "WorkBase.Modules.Documents.Infrastructure"
-        };
+        // Sourced from the single ModuleCatalog (src/WorkBase.Shared/Modules/ModuleCatalog.cs).
+        // Previously this list only covered 9/15 modules, meaning EF Core never applied entity
+        // configurations for Integration/Cases/Contacts/Forms/Sales/AI — their tables were never
+        // part of the model at all, regardless of migrations or feature flags.
+        var moduleNames = ModuleCatalog.All
+            .Select(m => $"WorkBase.Modules.{m.Namespace}.Infrastructure");
 
         foreach (var name in moduleNames)
         {

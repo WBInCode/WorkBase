@@ -27,7 +27,18 @@ public sealed class TenantConfiguration : IEntityTypeConfiguration<Tenant>
         builder.Property(t => t.Settings)
             .HasColumnType("jsonb");
 
+        builder.Property(t => t.KeycloakRealmName)
+            .HasMaxLength(128);
+
+        builder.Property(t => t.Status)
+            .IsRequired()
+            .HasConversion<int>()
+            .HasDefaultValue(TenantStatus.Active);
+
         builder.HasIndex(t => t.Slug)
+            .IsUnique();
+
+        builder.HasIndex(t => t.KeycloakRealmName)
             .IsUnique();
     }
 }
