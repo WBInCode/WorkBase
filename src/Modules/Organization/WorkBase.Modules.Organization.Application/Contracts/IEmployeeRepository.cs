@@ -10,6 +10,11 @@ public interface IEmployeeRepository
     Task<bool> EmailExistsInTenantAsync(Guid tenantId, string email, Guid? excludeId = null, CancellationToken cancellationToken = default);
     Task AddAsync(Employee employee, CancellationToken cancellationToken = default);
     void Update(Employee employee);
+
+    /// <summary>Explicit save for code running OUTSIDE the MediatR pipeline's UnitOfWorkBehavior
+    /// (e.g. domain-event handlers dispatched after SaveChanges) — their changes would
+    /// otherwise never be persisted.</summary>
+    Task SaveChangesAsync(CancellationToken cancellationToken = default);
     Task<(List<Employee> Items, int TotalCount)> GetPagedAsync(
         Guid tenantId,
         string? search,
