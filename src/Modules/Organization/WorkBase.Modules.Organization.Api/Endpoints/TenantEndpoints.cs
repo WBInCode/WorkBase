@@ -30,9 +30,9 @@ public static class TenantEndpoints
 
         group.MapPost("/", CreateTenant)
             .WithName("CreateTenant")
-            .WithSummary("Onboarduj now\u0105 firm\u0119 (tenant) \u2014 tworzy Tenant + zasiewa jej w\u0142asne role/uprawnienia")
+            .WithSummary("Onboarduj nową firmę (tenant) — tworzy Tenant + role/uprawnienia + konto admina firmy")
             .RequirePlatformOperator()
-            .Produces<Guid>(StatusCodes.Status201Created)
+            .Produces<CreateTenantResponse>(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status409Conflict);
 
         return endpoints;
@@ -47,10 +47,30 @@ public static class TenantEndpoints
     private static async Task<IResult> CreateTenant(
         CreateTenantRequest request, ITenantProvisioningService provisioningService, CancellationToken ct)
     {
+        if (string.IsNullOrWhiteSpace(request.Name) || string.IsNullOrWhiteSpace(request.Slug)
+            || string.IsNullOrWhiteSpace(request.AdminEmail))
+        {
+            return Results.Problem(
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "Bad Request",
+                detail: "Nazwa, slug i e-mail administratora są wymagane.");
+        }
+
         try
         {
-            var tenantId = await provisioningService.CreateTenantAsync(request.Name, request.Slug, ct);
-            return Results.Created($"/api/org/tenants/{tenantId}", tenantId);
+            var result = await provisioningService.CreateTenantAsync(
+                request.Name, request.Slug,
+                request.AdminEmail, request.AdminFirstName ?? "Admin", request.AdminLastName ?? request.Name,
+                ct);
+
+            var response = new CreateTenantResponse(
+                result.TenantId,
+                result.AdminEmail,
+                result.AdminTemporaryPassword,
+                KeycloakAccountCreated: result.AdminTemporaryPassword is not null,
+                result.KeycloakRealmName);
+
+            return Results.Created($"/api/org/tenants/{result.TenantId}", response);
         }
         catch (InvalidOperationException ex)
         {
@@ -62,5 +82,23 @@ public static class TenantEndpoints
     }
 }
 
-public sealed record CreateTenantRequest(string Name, string Slug);
+public sealed record CreateTenantRequest(
+    string Name,
+    string Slug,
+    string AdminEmail,
+    string? AdminFirstName,
+    string? AdminLastName);
+
+/// <summary>
+/// AdminTemporaryPassword is returned exactly once, straight from this response — it is never
+/// stored anywhere (Keycloak marks it temporary and forces a change at first login).
+/// KeycloakRealmName is non-null in multi-realm mode: the company's users must log in via
+/// this dedicated realm (frontend: /?realm={KeycloakRealmName}).
+/// </summary>
+public sealed record CreateTenantResponse(
+    Guid TenantId,
+    string AdminEmail,
+    string? AdminTemporaryPassword,
+    bool KeycloakAccountCreated,
+    string? KeycloakRealmName);
 

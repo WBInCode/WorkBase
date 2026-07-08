@@ -23,6 +23,20 @@ public interface IKeycloakAdminService
     /// </summary>
     Task<bool> CreateRealmAsync(string realmName, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Creates a COMPLETE, login-ready tenant realm in one import: security settings, realm
+    /// roles (workbase-admin/user/kiosk), the "workbase-scope" client scope with the
+    /// tenant_id/employee_id/roles/audience protocol mappers, and the "workbase-web" public
+    /// PKCE client with the given redirect URIs. Unlike <see cref="CreateRealmAsync"/> (bare
+    /// realm), tokens issued by a realm created this way pass the API's audience validation
+    /// and carry all claims the backend expects. Idempotent (409 = already exists).
+    /// </summary>
+    Task<bool> CreateTenantRealmAsync(
+        string realmName,
+        string displayName,
+        string[] redirectUris,
+        CancellationToken cancellationToken = default);
+
     /// <summary>Creates a client (application) within the given realm, or a no-op if it already exists.</summary>
     Task CreateClientAsync(
         string realmName,
@@ -33,5 +47,19 @@ public interface IKeycloakAdminService
 
     /// <summary>Creates realm-level roles (e.g. workbase-admin/user/kiosk), skipping ones that already exist.</summary>
     Task CreateRealmRolesAsync(string realmName, string[] roleNames, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Creates a user inside a SPECIFIC realm (multi-realm onboarding) and assigns the given
+    /// realm-level roles to it. Returns the Keycloak user id, or null on failure.
+    /// </summary>
+    Task<string?> CreateUserInRealmAsync(
+        string realmName,
+        string email,
+        string firstName,
+        string lastName,
+        string? temporaryPassword,
+        Dictionary<string, string>? attributes = null,
+        string[]? realmRoles = null,
+        CancellationToken cancellationToken = default);
 }
 

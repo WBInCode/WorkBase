@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { Building2, ToggleLeft, ToggleRight, RefreshCw, Package, Plus } from 'lucide-react';
+import { Building2, ToggleLeft, ToggleRight, RefreshCw, Package, Plus, KeyRound, Copy } from 'lucide-react';
 import {
   usePlatformTenants,
   usePlatformTenantFeatureFlags,
@@ -7,6 +7,7 @@ import {
   useApplyLicensePlanToPlatformTenant,
   useLicensePlans,
   useCreateTenant,
+  type CreateTenantResponse,
 } from '@/api/hooks/useIam';
 import { useIsMobile } from '@/shared';
 import { colors } from '@/theme/tokens';
@@ -46,6 +47,8 @@ export function PlatformTenantsPage() {
   const [selectedTenantId, setSelectedTenantId] = useState<string | null>(null);
   const [newName, setNewName] = useState('');
   const [newSlug, setNewSlug] = useState('');
+  const [newAdminEmail, setNewAdminEmail] = useState('');
+  const [createdCredentials, setCreatedCredentials] = useState<CreateTenantResponse | null>(null);
   const createTenantMutation = useCreateTenant();
 
   const { data: flags, isLoading: flagsLoading } = usePlatformTenantFeatureFlags(selectedTenantId);
@@ -64,18 +67,20 @@ export function PlatformTenantsPage() {
       .replace(/-+/g, '-');
 
   const handleCreateTenant = useCallback(() => {
-    if (!newName.trim()) return;
+    if (!newName.trim() || !newAdminEmail.trim()) return;
     const slug = newSlug.trim() || slugify(newName);
     createTenantMutation.mutate(
-      { name: newName.trim(), slug },
+      { name: newName.trim(), slug, adminEmail: newAdminEmail.trim() },
       {
-        onSuccess: () => {
+        onSuccess: (response) => {
+          setCreatedCredentials(response);
           setNewName('');
           setNewSlug('');
+          setNewAdminEmail('');
         },
       },
     );
-  }, [newName, newSlug, createTenantMutation]);
+  }, [newName, newSlug, newAdminEmail, createTenantMutation]);
 
   const selectedTenant = tenants?.find((t) => t.id === selectedTenantId) ?? null;
 
@@ -131,6 +136,16 @@ export function PlatformTenantsPage() {
               onChange={(e) => setNewSlug(e.target.value)}
               placeholder={newName ? slugify(newName) : 'slug (opcjonalnie)'}
               style={{
+                width: '100%', padding: '7px 10px', fontSize: '13px', marginBottom: '6px',
+                border: `1px solid ${colors.gray[300]}`, borderRadius: '6px', boxSizing: 'border-box',
+              }}
+            />
+            <input
+              value={newAdminEmail}
+              onChange={(e) => setNewAdminEmail(e.target.value)}
+              placeholder="E-mail administratora firmy"
+              type="email"
+              style={{
                 width: '100%', padding: '7px 10px', fontSize: '13px', marginBottom: '8px',
                 border: `1px solid ${colors.gray[300]}`, borderRadius: '6px', boxSizing: 'border-box',
               }}
@@ -142,20 +157,97 @@ export function PlatformTenantsPage() {
             )}
             <button
               onClick={handleCreateTenant}
-              disabled={!newName.trim() || createTenantMutation.isPending}
+              disabled={!newName.trim() || !newAdminEmail.trim() || createTenantMutation.isPending}
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: '6px', width: '100%',
                 justifyContent: 'center',
                 padding: '8px 12px', fontSize: '13px', fontWeight: 500, borderRadius: '6px',
                 border: 'none', backgroundColor: colors.primary[600], color: colors.white,
-                cursor: !newName.trim() || createTenantMutation.isPending ? 'not-allowed' : 'pointer',
-                opacity: !newName.trim() || createTenantMutation.isPending ? 0.6 : 1,
+                cursor: !newName.trim() || !newAdminEmail.trim() || createTenantMutation.isPending ? 'not-allowed' : 'pointer',
+                opacity: !newName.trim() || !newAdminEmail.trim() || createTenantMutation.isPending ? 0.6 : 1,
               }}
             >
               <Plus size={14} />
               {createTenantMutation.isPending ? 'Tworzenie...' : 'Utwórz firmę'}
             </button>
           </div>
+
+          {/* One-time admin credentials after successful creation */}
+          {createdCredentials && (
+            <div style={{
+              marginBottom: '14px', padding: '12px', borderRadius: '8px',
+              border: `1px solid ${colors.success[200]}`, backgroundColor: colors.success[50],
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 700, color: colors.success[800], marginBottom: '8px' }}>
+                <KeyRound size={14} />
+                Dane logowania admina — zapisz je TERAZ (nie zostaną ponownie wyświetlone)
+              </div>
+              <div style={{ fontSize: '13px', color: colors.gray[800], marginBottom: '4px' }}>
+                Login: <strong>{createdCredentials.adminEmail}</strong>
+              </div>
+              {createdCredentials.adminTemporaryPassword ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <code style={{
+                    fontSize: '13px', padding: '4px 8px', borderRadius: '4px',
+                    backgroundColor: colors.white, border: `1px solid ${colors.success[200]}`,
+                  }}>
+                    {createdCredentials.adminTemporaryPassword}
+                  </code>
+                  <button
+                    onClick={() => navigator.clipboard.writeText(createdCredentials.adminTemporaryPassword!)}
+                    title="Kopiuj hasło"
+                    style={{
+                      display: 'inline-flex', padding: '4px', border: 'none',
+                      backgroundColor: 'transparent', cursor: 'pointer', color: colors.success[700],
+                    }}
+                  >
+                    <Copy size={14} />
+                  </button>
+                </div>
+              ) : (
+                <div style={{ fontSize: '12px', color: colors.danger[700] }}>
+                  Konto Keycloak nie zostało utworzone automatycznie — utwórz je ręcznie w konsoli Keycloak.
+                </div>
+              )}
+              <div style={{ fontSize: '11px', color: colors.gray[500], marginTop: '6px' }}>
+                Hasło jest tymczasowe — admin zmieni je przy pierwszym logowaniu.
+              </div>
+              {createdCredentials.keycloakRealmName && (
+                <div style={{ marginTop: '8px', fontSize: '12px', color: colors.gray[800] }}>
+                  Link logowania firmy (dedykowany realm):
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                    <code style={{
+                      fontSize: '12px', padding: '4px 8px', borderRadius: '4px',
+                      backgroundColor: colors.white, border: `1px solid ${colors.success[200]}`,
+                      wordBreak: 'break-all',
+                    }}>
+                      {`${window.location.origin}/?realm=${createdCredentials.keycloakRealmName}`}
+                    </code>
+                    <button
+                      onClick={() => navigator.clipboard.writeText(`${window.location.origin}/?realm=${createdCredentials.keycloakRealmName}`)}
+                      title="Kopiuj link"
+                      style={{
+                        display: 'inline-flex', padding: '4px', border: 'none',
+                        backgroundColor: 'transparent', cursor: 'pointer', color: colors.success[700],
+                      }}
+                    >
+                      <Copy size={14} />
+                    </button>
+                  </div>
+                </div>
+              )}
+              <button
+                onClick={() => setCreatedCredentials(null)}
+                style={{
+                  marginTop: '8px', padding: '4px 10px', fontSize: '12px', borderRadius: '5px',
+                  border: `1px solid ${colors.success[200]}`, backgroundColor: colors.white,
+                  color: colors.success[800], cursor: 'pointer',
+                }}
+              >
+                Zapisałem — ukryj
+              </button>
+            </div>
+          )}
 
           {isLoading ? (
             <div style={{ color: colors.gray[500], fontSize: '14px' }}>Ładowanie...</div>
