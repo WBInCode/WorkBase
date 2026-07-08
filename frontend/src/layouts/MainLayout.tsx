@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from 'react-oidc-context';
 import { FolderTree, Users, FileUp, LogOut, Menu, X, Shield, Grid3X3, CalendarDays, UsersRound, CalendarClock, Palmtree, CalendarRange, ClipboardCheck, ListTodo, ClipboardList, LayoutDashboard, Briefcase, Clock, MoreHorizontal, FileArchive, FolderOpen, Flag, CircleDot, Coffee, Layers, Wallet, Building2, type LucideIcon } from 'lucide-react';
 import { mapUserClaims } from '@/auth';
+import { useFeatureFlags } from '@/api/hooks/useIam';
 import { ClockButton } from '@/components/TimeTracking';
 import { NotificationBell } from '@/components/Notifications';
 import { useIsMobile } from '@/shared';
@@ -31,6 +32,9 @@ interface NavItem {
 
 interface NavSection {
   title?: string;
+  /** ModuleCatalog key (src/WorkBase.Shared/Modules/ModuleCatalog.cs) gating this whole section.
+   * Undefined = always shown (e.g. workspace landing page, not a licensable module). */
+  module?: string;
   items: NavItem[];
 }
 
@@ -43,6 +47,7 @@ const navSections: NavSection[] = [
   },
   {
     title: 'Organizacja',
+    module: 'org',
     items: [
       { path: '/org/tree', label: 'Struktura', icon: FolderTree },
       { path: '/org/employees', label: 'Pracownicy', icon: Users, exact: true },
@@ -51,6 +56,7 @@ const navSections: NavSection[] = [
   },
   {
     title: 'Czas pracy',
+    module: 'time',
     items: [
       { path: '/time/timesheet', label: 'Karta czasu', icon: CalendarDays },
       { path: '/time/team-report', label: 'Raport zespołu', icon: UsersRound },
@@ -60,6 +66,7 @@ const navSections: NavSection[] = [
   },
   {
     title: 'Urlopy',
+    module: 'leave',
     items: [
       { path: '/leave/request', label: 'Wnioski', icon: Palmtree },
       { path: '/leave/approvals', label: 'Akceptacje', icon: ClipboardCheck },
@@ -68,6 +75,7 @@ const navSections: NavSection[] = [
   },
   {
     title: 'Zadania',
+    module: 'tasks',
     items: [
       { path: '/tasks', label: 'Wszystkie', icon: ListTodo, exact: true },
       { path: '/tasks/my', label: 'Moje zadania', icon: ClipboardList },
@@ -75,6 +83,7 @@ const navSections: NavSection[] = [
   },
   {
     title: 'Dokumenty',
+    module: 'documents',
     items: [
       { path: '/documents', label: 'Pliki', icon: FileArchive, exact: true },
       { path: '/documents/categories', label: 'Kategorie', icon: FolderOpen },
@@ -102,6 +111,20 @@ export function MainLayout({ children }: MainLayoutProps) {
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
   const now = useLiveClock();
+
+  // Feature flags for the current tenant — hides nav sections for modules the platform
+  // operator has disabled (see docs/05-module-licensing-architecture.md). Fail-open: a
+  // section stays visible unless we have a definite "disabled" answer (still loading, or no
+  // flag row at all = shown), matching the backend's TenantBehavior fail-open default.
+  const { data: featureFlags } = useFeatureFlags();
+  const isModuleEnabled = (moduleKey?: string) => {
+    if (!moduleKey) return true;
+    const flag = featureFlags?.find((f) => f.module === moduleKey);
+    return flag?.isEnabled !== false;
+  };
+  const visibleNavSections = navSections
+    .filter((section) => isModuleEnabled(section.module))
+    .filter((section) => section.items.length > 0);
 
   useEffect(() => {
     setSidebarOpen(!isMobile);
@@ -175,7 +198,7 @@ export function MainLayout({ children }: MainLayoutProps) {
           className="wb-nav-scroll"
           style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '4px 10px 12px' }}
         >
-          {navSections.map((section, si) => (
+          {visibleNavSections.map((section, si) => (
             <div key={si} style={{ marginBottom: 4 }}>
               {section.title && (
                 <div style={{
