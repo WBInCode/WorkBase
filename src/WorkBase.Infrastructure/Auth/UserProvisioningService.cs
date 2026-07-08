@@ -88,7 +88,19 @@ public sealed class UserProvisioningService
             _dbContext.Set<UserRole>().Add(userRole);
         }
 
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is Npgsql.PostgresException { SqlState: "23505" })
+        {
+            // Benign first-login race: OnTokenValidated runs for EVERY authenticated request,
+            // and a fresh SPA session fires several in parallel — each sees "no user yet" and
+            // tries to insert. One wins, the rest hit the unique index on keycloak_id. The
+            // user exists now, which is all we need.
+            _logger.LogDebug("User {KeycloakId} was provisioned concurrently by another request, skipping.", keycloakId);
+            return;
+        }
 
         _logger.LogInformation(
             "Provisioned new user {UserId} (Keycloak: {KeycloakId}, Tenant: {TenantId}) with default Admin role",
