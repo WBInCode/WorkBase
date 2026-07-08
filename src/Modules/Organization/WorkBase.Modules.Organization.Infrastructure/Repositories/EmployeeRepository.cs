@@ -46,6 +46,11 @@ public sealed class EmployeeRepository(WorkBaseDbContext dbContext) : IEmployeeR
         dbContext.Set<Employee>().Update(employee);
     }
 
+    public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
     public async Task<(List<Employee> Items, int TotalCount)> GetPagedAsync(
         Guid tenantId,
         string? search,

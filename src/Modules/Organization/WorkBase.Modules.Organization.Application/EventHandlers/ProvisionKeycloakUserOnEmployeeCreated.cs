@@ -72,6 +72,11 @@ public sealed class ProvisionKeycloakUserOnEmployeeCreated(
             employee.LinkUser(Guid.Parse(keycloakUserId));
             employeeRepository.Update(employee);
 
+            // This handler runs AFTER the command's transaction was committed (domain events
+            // are dispatched from SavedChangesAsync), so UnitOfWorkBehavior will not save for
+            // us — without this explicit save the UserId link is silently lost.
+            await employeeRepository.SaveChangesAsync(cancellationToken);
+
             logger.LogInformation(
                 "Auto-provisioned Keycloak user {KeycloakUserId} for employee {EmployeeId} ({Email})",
                 keycloakUserId, employee.Id, employee.Email);

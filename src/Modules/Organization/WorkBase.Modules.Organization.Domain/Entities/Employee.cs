@@ -30,6 +30,11 @@ public sealed class Employee : AuditableEntity<Guid>, ITenantScoped, IAuditable
     {
         var employee = new Employee
         {
+            // Id assigned HERE (not left to EF's on-add value generator) so the domain event
+            // below carries the real id. Previously EmployeeCreatedEvent was raised with
+            // Guid.Empty, making Keycloak auto-provisioning silently no-op on every create
+            // ("Employee 00000000-... not found for Keycloak provisioning").
+            Id = Guid.CreateVersion7(),
             TenantId = tenantId,
             UserId = userId,
             FirstName = Capitalize(firstName),
