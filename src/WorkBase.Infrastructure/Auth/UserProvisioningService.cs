@@ -48,11 +48,11 @@ public sealed class UserProvisioningService
 
             if (!hasAnyRole)
             {
-                var defaultRoleId = await GetDefaultRoleIdAsync(existingUser.TenantId, cancellationToken);
+                var existingUserRoleId = await GetDefaultRoleIdAsync(existingUser.TenantId, cancellationToken);
 
-                if (defaultRoleId is not null)
+                if (existingUserRoleId is not null)
                 {
-                    var userRole = UserRole.Create(existingUser.Id, defaultRoleId.Value, existingUser.TenantId, "system");
+                    var userRole = UserRole.Create(existingUser.Id, existingUserRoleId.Value, existingUser.TenantId, "system");
                     _dbContext.Set<UserRole>().Add(userRole);
                     _logger.LogInformation("Assigned default Admin role to existing user {UserId}", existingUser.Id);
                 }
