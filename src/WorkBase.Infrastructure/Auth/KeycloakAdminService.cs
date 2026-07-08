@@ -417,30 +417,11 @@ public sealed class KeycloakAdminService(
                     },
                 },
             },
-            clients = new object[]
-            {
-                new
-                {
-                    clientId = "workbase-web",
-                    name = "WorkBase Web SPA",
-                    enabled = true,
-                    publicClient = true,
-                    standardFlowEnabled = true,
-                    implicitFlowEnabled = false,
-                    directAccessGrantsEnabled = false,
-                    serviceAccountsEnabled = false,
-                    protocol = "openid-connect",
-                    redirectUris,
-                    webOrigins,
-                    attributes = new Dictionary<string, string>
-                    {
-                        ["pkce.code.challenge.method"] = "S256",
-                        ["post.logout.redirect.uris"] = string.Join("##", redirectUris),
-                    },
-                    defaultClientScopes = new[] { "openid", "profile", "email", "workbase-scope" },
-                    optionalClientScopes = new[] { "offline_access" },
-                },
-            },
+            // NOTE: deliberately NO "clients" here. Referencing built-in scopes (profile/email)
+            // by name inside the import payload does not resolve — those scopes are initialized
+            // AFTER the payload's clients, leaving the client without them and breaking login
+            // with "Invalid scopes: openid profile email". The client is created in a separate
+            // call below, where it inherits the realm's default scopes automatically.
         };
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"{baseUrl}/admin/realms");
@@ -462,8 +443,97 @@ public sealed class KeycloakAdminService(
             return false;
         }
 
+        // Create the SPA client SEPARATELY so it automatically inherits the realm's built-in
+        // default client scopes (profile, email, roles, web-origins...), then attach our
+        // custom workbase-scope on top. See the NOTE above the realm payload for why this
+        // cannot be done inline in the import.
+        var clientPayload = new
+        {
+            clientId = "workbase-web",
+            name = "WorkBase Web SPA",
+            enabled = true,
+            publicClient = true,
+            standardFlowEnabled = true,
+            implicitFlowEnabled = false,
+            directAccessGrantsEnabled = false,
+            serviceAccountsEnabled = false,
+            protocol = "openid-connect",
+            redirectUris,
+            webOrigins,
+            attributes = new Dictionary<string, string>
+            {
+                ["pkce.code.challenge.method"] = "S256",
+                ["post.logout.redirect.uris"] = string.Join("##", redirectUris),
+            },
+        };
+
+        var clientRequest = new HttpRequestMessage(HttpMethod.Post, $"{baseUrl}/admin/realms/{realmName}/clients");
+        clientRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        clientRequest.Content = JsonContent.Create(clientPayload, options: JsonOptions);
+
+        var clientResponse = await client.SendAsync(clientRequest, cancellationToken);
+        if (!clientResponse.IsSuccessStatusCode && clientResponse.StatusCode != System.Net.HttpStatusCode.Conflict)
+        {
+            var error = await clientResponse.Content.ReadAsStringAsync(cancellationToken);
+            logger.LogError("Failed to create workbase-web client in realm {Realm}: {Status} {Error}",
+                realmName, clientResponse.StatusCode, error);
+            return false;
+        }
+
+        await AttachDefaultClientScopeAsync(client, baseUrl, realmName, token, "workbase-web", "workbase-scope", cancellationToken);
+
         logger.LogInformation("Created login-ready tenant realm {Realm}", realmName);
         return true;
+    }
+
+    /// <summary>Attaches an existing client scope to a client as a DEFAULT scope (by resolving both ids).</summary>
+    private async Task AttachDefaultClientScopeAsync(
+        HttpClient client, string baseUrl, string realmName, string token,
+        string clientId, string scopeName, CancellationToken cancellationToken)
+    {
+        // Resolve the client's internal uuid.
+        var findClient = new HttpRequestMessage(HttpMethod.Get,
+            $"{baseUrl}/admin/realms/{realmName}/clients?clientId={Uri.EscapeDataString(clientId)}");
+        findClient.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var findClientResponse = await client.SendAsync(findClient, cancellationToken);
+        if (!findClientResponse.IsSuccessStatusCode) return;
+
+        var clients = await findClientResponse.Content.ReadFromJsonAsync<JsonElement[]>(cancellationToken);
+        var clientUuid = clients is { Length: > 0 } ? clients[0].GetProperty("id").GetString() : null;
+        if (clientUuid is null)
+        {
+            logger.LogWarning("Client {ClientId} not found in realm {Realm} while attaching scope {Scope}", clientId, realmName, scopeName);
+            return;
+        }
+
+        // Resolve the client scope's id by name.
+        var listScopes = new HttpRequestMessage(HttpMethod.Get, $"{baseUrl}/admin/realms/{realmName}/client-scopes");
+        listScopes.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var listScopesResponse = await client.SendAsync(listScopes, cancellationToken);
+        if (!listScopesResponse.IsSuccessStatusCode) return;
+
+        var scopes = await listScopesResponse.Content.ReadFromJsonAsync<JsonElement[]>(cancellationToken);
+        var scopeId = scopes?
+            .Where(s => s.GetProperty("name").GetString() == scopeName)
+            .Select(s => s.GetProperty("id").GetString())
+            .FirstOrDefault();
+        if (scopeId is null)
+        {
+            logger.LogWarning("Client scope {Scope} not found in realm {Realm}", scopeName, realmName);
+            return;
+        }
+
+        var attach = new HttpRequestMessage(HttpMethod.Put,
+            $"{baseUrl}/admin/realms/{realmName}/clients/{clientUuid}/default-client-scopes/{scopeId}");
+        attach.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var attachResponse = await client.SendAsync(attach, cancellationToken);
+        if (!attachResponse.IsSuccessStatusCode)
+        {
+            var error = await attachResponse.Content.ReadAsStringAsync(cancellationToken);
+            logger.LogError("Failed to attach scope {Scope} to client {ClientId} in realm {Realm}: {Status} {Error}",
+                scopeName, clientId, realmName, attachResponse.StatusCode, error);
+        }
     }
 
     private static object UserAttributeMapper(string attributeName) => new
