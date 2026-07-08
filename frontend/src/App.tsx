@@ -70,6 +70,8 @@ function AppRoutes() {
 
   const roles = (auth.user?.profile?.['roles'] as string[] | undefined) ?? [];
   const isAdmin = roles.some((r) => r === 'workbase-admin' || r === 'Admin' || r === 'Super Admin');
+  // Keep in sync with PlatformConstants.OperatorTenantId — operator panel is only for our own company.
+  const isOperator = (auth.user?.profile?.['tenant_id'] as string | undefined) === '00000000-0000-0000-0000-000000000001';
 
   // Auto-redirect kiosk accounts to /kiosk
   useEffect(() => {
@@ -110,7 +112,7 @@ function AppRoutes() {
         <Route path="/admin/roles" element={isAdmin ? <RolesPage /> : <Navigate to="/workspace" replace />} />
         <Route path="/admin/permissions" element={isAdmin ? <PermissionsMatrixPage /> : <Navigate to="/workspace" replace />} />
         <Route path="/admin/feature-flags" element={isAdmin ? <FeatureFlagsPage /> : <Navigate to="/workspace" replace />} />
-        <Route path="/admin/tenants" element={isAdmin ? <PlatformTenantsPage /> : <Navigate to="/workspace" replace />} />
+        <Route path="/admin/tenants" element={isAdmin && isOperator ? <PlatformTenantsPage /> : <Navigate to="/workspace" replace />} />
         <Route path="/admin/leave-types" element={isAdmin ? <LeaveTypesConfigPage /> : <Navigate to="/workspace" replace />} />
         <Route path="/admin/task-statuses" element={isAdmin ? <TaskStatusConfigPage /> : <Navigate to="/workspace" replace />} />
         <Route path="/admin/break-policies" element={isAdmin ? <BreakPoliciesConfigPage /> : <Navigate to="/workspace" replace />} />

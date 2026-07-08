@@ -91,11 +91,16 @@ const navSections: NavSection[] = [
   },
 ];
 
+// Tenant id of our own operator company — keep in sync with PlatformConstants.OperatorTenantId
+// (src/WorkBase.Shared/Auth/PlatformConstants.cs). Only users of THIS tenant see the operator
+// panel entry; the backend independently enforces the real authorization either way.
+const OPERATOR_TENANT_ID = '00000000-0000-0000-0000-000000000001';
+
 const adminNavItems = [
   { path: '/admin/roles', label: 'Role', icon: Shield },
   { path: '/admin/permissions', label: 'Matryca uprawnień', icon: Grid3X3 },
   { path: '/admin/feature-flags', label: 'Flagi funkcjonalności', icon: Flag },
-  { path: '/admin/tenants', label: 'Firmy (operator)', icon: Building2 },
+  { path: '/admin/tenants', label: 'Firmy (operator)', icon: Building2, operatorOnly: true },
   { path: '/admin/leave-types', label: 'Typy urlopów', icon: Palmtree },
   { path: '/admin/task-statuses', label: 'Statusy zadań', icon: CircleDot },
   { path: '/admin/break-policies', label: 'Polityki przerw', icon: Coffee },
@@ -108,6 +113,8 @@ export function MainLayout({ children }: MainLayoutProps) {
   const location = useLocation();
   const user = auth.user ? mapUserClaims(auth.user) : null;
   const isAdmin = !!user?.roles?.some((r) => r === 'workbase-admin' || r === 'Admin' || r === 'Super Admin');
+  const isOperator = user?.tenantId === OPERATOR_TENANT_ID;
+  const visibleAdminNavItems = adminNavItems.filter((item) => !item.operatorOnly || isOperator);
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
   const now = useLiveClock();
@@ -287,7 +294,7 @@ export function MainLayout({ children }: MainLayoutProps) {
             }}>
               Administracja
             </div>
-            {adminNavItems.map((item) => {
+            {visibleAdminNavItems.map((item) => {
               const isActive = location.pathname.startsWith(item.path);
               const Icon = item.icon;
               return (
