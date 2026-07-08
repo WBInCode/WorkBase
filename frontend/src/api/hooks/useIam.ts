@@ -139,10 +139,20 @@ export function usePlatformTenants() {
 export function useCreateTenant() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: { name: string; slug: string }) =>
-      api.post<string>('/api/org/tenants', data),
+    mutationFn: (data: { name: string; slug: string; adminEmail: string; adminFirstName?: string; adminLastName?: string }) =>
+      api.post<CreateTenantResponse>('/api/org/tenants', data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['platform', 'tenants'] }),
   });
+}
+
+export interface CreateTenantResponse {
+  tenantId: string;
+  adminEmail: string;
+  /** Returned exactly once, never stored — Keycloak forces a change at first login. */
+  adminTemporaryPassword: string | null;
+  keycloakAccountCreated: boolean;
+  /** Non-null in multi-realm mode: the company's dedicated realm (login via /?realm={name}). */
+  keycloakRealmName: string | null;
 }
 
 export function usePlatformTenantFeatureFlags(tenantId: string | null) {

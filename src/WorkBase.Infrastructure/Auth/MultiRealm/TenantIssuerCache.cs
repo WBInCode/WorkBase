@@ -41,6 +41,15 @@ public sealed class TenantIssuerCache(IConfiguration configuration)
 
     public string BuildIssuer(string realmName) => $"{KeycloakBaseUrl}/realms/{realmName}";
 
+    /// <summary>
+    /// Registers a single freshly provisioned tenant realm immediately, so its admin can log
+    /// in right away instead of waiting for the next background refresh cycle (up to 5 min).
+    /// The periodic refresh remains the source of truth and will re-include this entry from
+    /// the Tenant table on its next run.
+    /// </summary>
+    public void RegisterIssuer(string realmName, Guid tenantId) =>
+        _issuerToTenantId[BuildIssuer(realmName)] = tenantId;
+
     internal void ReplaceAll(IReadOnlyDictionary<string, Guid> issuerToTenantId)
     {
         _issuerToTenantId.Clear();

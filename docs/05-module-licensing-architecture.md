@@ -273,6 +273,10 @@ i zweryfikować wynik (`dotnet build`, `dotnet test`, przegląd wygenerowanego S
 
 **Zrobione i bezpieczne domyślnie:**
 - `IKeycloakAdminService.CreateRealmAsync/CreateClientAsync/CreateRealmRolesAsync` — czysto addytywne, idempotentne, nie dotykają istniejącego logowania. Bezpieczne do użycia od razu przy budowaniu automatycznego onboardingu nowej firmy.
+- `CreateTenantRealmAsync` — tworzy **kompletny, gotowy do logowania** realm tenanta jednym importem: ustawienia bezpieczeństwa, role realm (workbase-admin/user/kiosk), client scope `workbase-scope` z mapperami tenant_id/employee_id/roles + custom audience `workbase-api`, klient `workbase-web` (PKCE, redirect URIs z `Cors:AllowedOrigins`). Goły realm z `CreateRealmAsync` NIE wystarcza — tokeny nie miałyby claimów ani audience.
+- Onboarding firmy (`TenantProvisioningService`) przy `Keycloak:MultiRealmEnabled=true` automatycznie: tworzy realm `tenant-{slug}` → zapisuje `Tenant.KeycloakRealmName` → zakłada admina firmy w TYM realmie z rolą `workbase-admin` → rejestruje issuer w cache natychmiast (bez czekania na cykl odświeżania).
+- **Issuer autorytatywny**: dla dedykowanych realmów claim `tenant_id` jest nadpisywany z mapowania issuer→tenant (tabela `Tenant`), więc atrybut usera w realmie nie może wskazać cudzej firmy.
+- Frontend: `?realm=tenant-acme` w URL przypina realm w localStorage (walidowany wzorcem `[a-z0-9-]+`, podmienia tylko ostatni segment authority); panel operatora pokazuje gotowy link logowania nowej firmy.
 - Dynamiczna walidacja JWT (`TenantIssuerCache`, `DynamicIssuerValidation`) — kod gotowy, ale **domyślnie wyłączony** przez `Keycloak:MultiRealmEnabled=false`. Dopóki flaga jest wyłączona, cały istniejący, jednorealmowy przepływ logowania jest bit-w-bit niezmieniony.
 
 **Wymagane PRZED ustawieniem `Keycloak:MultiRealmEnabled=true` na produkcji:**

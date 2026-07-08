@@ -25,9 +25,13 @@ public static class AuthenticationExtensions
         // DynamicIssuerValidation's doc comment for what needs re-checking first).
         var multiRealmEnabled = configuration.GetValue<bool>("Keycloak:MultiRealmEnabled");
 
+        // The issuer cache is registered unconditionally: TenantProvisioningService injects it
+        // to register freshly created realms immediately. It stays empty (and unused by token
+        // validation) while multi-realm is disabled.
+        services.AddSingleton<TenantIssuerCache>();
+
         if (multiRealmEnabled)
         {
-            services.AddSingleton<TenantIssuerCache>();
             services.AddSingleton<DynamicIssuerValidation>();
             services.AddHostedService<TenantIssuerCacheRefreshService>();
         }
@@ -68,6 +72,7 @@ public static class AuthenticationExtensions
                         OnTokenValidated = async context =>
                         {
                             MapKeycloakClaims(context);
+                            OverrideTenantClaimFromIssuer(context);
 
                             if (context.Principal is not null)
                             {
@@ -133,6 +138,41 @@ public static class AuthenticationExtensions
         {
             identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, sub));
         }
+    }
+
+    /// <summary>
+    /// Multi-realm only: for tokens from a DEDICATED tenant realm, the realm itself (issuer)
+    /// is the authoritative source of tenant identity — the tenant_id user attribute becomes
+    /// merely informational. This replaces any tenant_id claim in the token with the value
+    /// mapped from the issuer (Tenant.KeycloakRealmName), so a mis-set or maliciously edited
+    /// user attribute inside one realm can never grant access to another company's data.
+    /// Shared-realm tokens (mapped to Guid.Empty in the cache) keep their attribute-based
+    /// claim, since one realm hosts many tenants there.
+    /// </summary>
+    private static void OverrideTenantClaimFromIssuer(TokenValidatedContext context)
+    {
+        var identity = context.Principal?.Identity as ClaimsIdentity;
+        if (identity is null)
+            return;
+
+        var issuer = context.SecurityToken switch
+        {
+            Microsoft.IdentityModel.JsonWebTokens.JsonWebToken jwt => jwt.Issuer,
+            System.IdentityModel.Tokens.Jwt.JwtSecurityToken jwt => jwt.Issuer,
+            _ => null
+        };
+        if (issuer is null)
+            return;
+
+        var cache = context.HttpContext.RequestServices.GetRequiredService<TenantIssuerCache>();
+        if (!cache.TryGetTenantId(issuer, out var tenantId) || tenantId == Guid.Empty)
+            return; // shared realm or unknown issuer — leave the attribute-based claim as-is
+
+        var existing = identity.FindFirst("tenant_id");
+        if (existing is not null)
+            identity.RemoveClaim(existing);
+
+        identity.AddClaim(new Claim("tenant_id", tenantId.ToString()));
     }
 }
 
