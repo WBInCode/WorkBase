@@ -21,9 +21,12 @@ public sealed class UserProvisioningService
     }
 
     /// <summary>
-    /// Admin role ID from IamSeeder — assigned by default to newly provisioned users.
+    /// Name of the role assigned by default to newly provisioned users. Resolved per-tenant
+    /// (via GetDefaultRoleIdAsync) rather than a single hardcoded RoleId, since Role rows are
+    /// tenant-scoped — every tenant seeded via IamSeeder.SeedTenantRbacAsync has its own
+    /// "Admin" role with a different Id.
     /// </summary>
-    private static readonly Guid DefaultRoleId = Guid.Parse("10000000-0000-0000-0000-000000000002");
+    private const string DefaultRoleName = "Admin";
 
     public async Task EnsureUserProvisionedAsync(ClaimsPrincipal principal, CancellationToken cancellationToken = default)
     {
@@ -45,12 +48,11 @@ public sealed class UserProvisioningService
 
             if (!hasAnyRole)
             {
-                var defaultRoleExists = await _dbContext.Set<Role>()
-                    .AnyAsync(r => r.Id == DefaultRoleId, cancellationToken);
+                var defaultRoleId = await GetDefaultRoleIdAsync(existingUser.TenantId, cancellationToken);
 
-                if (defaultRoleExists)
+                if (defaultRoleId is not null)
                 {
-                    var userRole = UserRole.Create(existingUser.Id, DefaultRoleId, existingUser.TenantId, "system");
+                    var userRole = UserRole.Create(existingUser.Id, defaultRoleId.Value, existingUser.TenantId, "system");
                     _dbContext.Set<UserRole>().Add(userRole);
                     _logger.LogInformation("Assigned default Admin role to existing user {UserId}", existingUser.Id);
                 }
@@ -77,13 +79,12 @@ public sealed class UserProvisioningService
 
         _dbContext.Set<User>().Add(user);
 
-        // Assign default Admin role if it exists
-        var roleExists = await _dbContext.Set<Role>()
-            .AnyAsync(r => r.Id == DefaultRoleId, cancellationToken);
+        // Assign default Admin role if it exists for this tenant
+        var defaultRoleId = await GetDefaultRoleIdAsync(tenantId, cancellationToken);
 
-        if (roleExists)
+        if (defaultRoleId is not null)
         {
-            var userRole = UserRole.Create(user.Id, DefaultRoleId, tenantId, "system");
+            var userRole = UserRole.Create(user.Id, defaultRoleId.Value, tenantId, "system");
             _dbContext.Set<UserRole>().Add(userRole);
         }
 
@@ -92,6 +93,14 @@ public sealed class UserProvisioningService
         _logger.LogInformation(
             "Provisioned new user {UserId} (Keycloak: {KeycloakId}, Tenant: {TenantId}) with default Admin role",
             user.Id, keycloakId, tenantId);
+    }
+
+    private async Task<Guid?> GetDefaultRoleIdAsync(Guid tenantId, CancellationToken cancellationToken)
+    {
+        return await _dbContext.Set<Role>()
+            .Where(r => r.TenantId == tenantId && r.Name == DefaultRoleName)
+            .Select(r => (Guid?)r.Id)
+            .FirstOrDefaultAsync(cancellationToken);
     }
 
     public static async Task OnTokenValidatedAsync(IServiceProvider serviceProvider, ClaimsPrincipal principal)

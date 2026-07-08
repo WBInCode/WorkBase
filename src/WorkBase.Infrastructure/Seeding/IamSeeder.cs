@@ -51,6 +51,47 @@ public static class IamSeeder
         public const string Import = "import";
     }
 
+    // Permission-code sets per non-admin role, shared between the initial bootstrap seeding
+    // (SeedAsync, deterministic IDs for the default tenant) and on-demand tenant onboarding
+    // (SeedTenantRbacAsync, random IDs for a newly created tenant) so both paths grant
+    // identical baseline access.
+    private static readonly HashSet<string> KierownikPermissionCodes =
+    [
+        "org.view", "org.export",
+        "time.view", "time.create", "time.view-team", "time.approve", "time.export",
+        "leave.view", "leave.create", "leave.view-team", "leave.approve", "leave.export",
+        "tasks.view", "tasks.create", "tasks.edit", "tasks.delete", "tasks.assign", "tasks.export",
+        "workflow.view", "workflow.approve",
+        "dashboard.view",
+        "notification.view",
+        "documents.view", "documents.create", "documents.export",
+    ];
+
+    private static readonly HashSet<string> PracownikPermissionCodes =
+    [
+        "org.view",
+        "time.view", "time.create",
+        "leave.view", "leave.create",
+        "tasks.view", "tasks.edit",
+        "workflow.view",
+        "dashboard.view",
+        "notification.view",
+        "documents.view", "documents.create",
+    ];
+
+    private static readonly HashSet<string> HrPermissionCodes =
+    [
+        "org.view", "org.create", "org.edit", "org.delete", "org.import", "org.export", "org.manage",
+        "identity.view", "identity.assign-roles",
+        "time.view", "time.create", "time.edit", "time.view-team", "time.manage", "time.approve", "time.export",
+        "leave.view", "leave.create", "leave.edit", "leave.delete", "leave.view-team", "leave.approve", "leave.manage", "leave.export",
+        "tasks.view", "tasks.create", "tasks.export",
+        "workflow.view", "workflow.approve",
+        "dashboard.view", "dashboard.export",
+        "notification.view",
+        "documents.view", "documents.create", "documents.export", "documents.import",
+    ];
+
     public static async Task SeedAsync(WorkBaseDbContext dbContext, ILogger logger)
     {
         if (await dbContext.Set<Permission>().AnyAsync())
@@ -85,6 +126,81 @@ public static class IamSeeder
 
         logger.LogInformation("IAM seeding completed: {PermCount} permissions, {RoleCount} roles, {RpCount} role-permissions, {DsCount} data scopes, {FfCount} feature flags.",
             permissions.Count, roles.Count, rolePermissions.Count, dataScopes.Count, featureFlags.Count);
+    }
+
+    /// <summary>
+    /// Seeds the standard role set (Super Admin, Admin, Kierownik, Pracownik, HR) + their
+    /// permission grants + data scopes for a NEWLY onboarded tenant. Unlike <see cref="SeedAsync"/>
+    /// (which bootstraps the single default tenant once, with deterministic GUIDs), this can be
+    /// called on-demand for any tenant and uses fresh random GUIDs — Role/RolePermission/DataScope
+    /// are all tenant-scoped, so every tenant needs its own set of rows (permissions themselves
+    /// stay global/shared, see CreatePermissions).
+    ///
+    /// Idempotent: no-ops if the tenant already has any Role rows.
+    /// </summary>
+    public static async Task SeedTenantRbacAsync(WorkBaseDbContext dbContext, Guid tenantId, ILogger logger)
+    {
+        if (await dbContext.Set<Role>().AnyAsync(r => r.TenantId == tenantId))
+        {
+            logger.LogInformation("Tenant {TenantId} already has roles seeded, skipping.", tenantId);
+            return;
+        }
+
+        var permissions = await dbContext.Set<Permission>().ToListAsync();
+        if (permissions.Count == 0)
+        {
+            logger.LogWarning("No global IAM permissions found yet — cannot seed roles for tenant {TenantId}.", tenantId);
+            return;
+        }
+
+        var superAdminRoleId = Guid.NewGuid();
+        var adminRoleId = Guid.NewGuid();
+        var kierownikRoleId = Guid.NewGuid();
+        var pracownikRoleId = Guid.NewGuid();
+        var hrRoleId = Guid.NewGuid();
+
+        var roles = new List<Role>
+        {
+            SetId(Role.Create(tenantId, "Super Admin", RoleType.System, level: 0,
+                description: "Pełny dostęp do wszystkich modułów i funkcji systemu"), superAdminRoleId),
+            SetId(Role.Create(tenantId, "Admin", RoleType.System, level: 1,
+                description: "Zarządzanie organizacją, użytkownikami i konfiguracją"), adminRoleId),
+            SetId(Role.Create(tenantId, "Kierownik", RoleType.Organizational, level: 10,
+                description: "Kierownik zespołu — podgląd i akceptacja dla podległych pracowników"), kierownikRoleId),
+            SetId(Role.Create(tenantId, "Pracownik", RoleType.Organizational, level: 100,
+                description: "Pracownik — podstawowy dostęp do własnych danych"), pracownikRoleId),
+            SetId(Role.Create(tenantId, "HR", RoleType.Organizational, level: 5,
+                description: "Dział HR — zarządzanie pracownikami, urlopami i czasem pracy"), hrRoleId),
+        };
+        dbContext.Set<Role>().AddRange(roles);
+        await dbContext.SaveChangesAsync();
+
+        var rolePermissions = new List<RolePermission>();
+
+        // Super Admin — all permissions. Admin — all except platform.manage-tenants (reserved
+        // for Super Admin of our own operator tenant, see PlatformConstants).
+        rolePermissions.AddRange(permissions.Select(p => RolePermission.Create(superAdminRoleId, p.Id)));
+        rolePermissions.AddRange(permissions
+            .Where(p => p.FullCode != PlatformConstants.ManageTenantsPermission)
+            .Select(p => RolePermission.Create(adminRoleId, p.Id)));
+        rolePermissions.AddRange(permissions.Where(p => KierownikPermissionCodes.Contains(p.FullCode)).Select(p => RolePermission.Create(kierownikRoleId, p.Id)));
+        rolePermissions.AddRange(permissions.Where(p => PracownikPermissionCodes.Contains(p.FullCode)).Select(p => RolePermission.Create(pracownikRoleId, p.Id)));
+        rolePermissions.AddRange(permissions.Where(p => HrPermissionCodes.Contains(p.FullCode)).Select(p => RolePermission.Create(hrRoleId, p.Id)));
+        dbContext.Set<RolePermission>().AddRange(rolePermissions);
+
+        var dataScopes = new List<DataScope>();
+        dataScopes.AddRange(Modules.All.Select(module => DataScope.Create(tenantId, superAdminRoleId, module, DataScopeLevel.Organization)));
+        dataScopes.AddRange(Modules.All.Select(module => DataScope.Create(tenantId, adminRoleId, module, DataScopeLevel.Organization)));
+        dataScopes.AddRange(Modules.All.Select(module => DataScope.Create(tenantId, kierownikRoleId, module, DataScopeLevel.Department)));
+        dataScopes.AddRange(Modules.All.Select(module => DataScope.Create(tenantId, pracownikRoleId, module, DataScopeLevel.Own)));
+        dataScopes.AddRange(Modules.All.Select(module => DataScope.Create(tenantId, hrRoleId, module, DataScopeLevel.Organization)));
+        dbContext.Set<DataScope>().AddRange(dataScopes);
+
+        await dbContext.SaveChangesAsync();
+
+        logger.LogInformation(
+            "Seeded RBAC for tenant {TenantId}: {RoleCount} roles, {RpCount} role-permissions, {DsCount} data scopes.",
+            tenantId, roles.Count, rolePermissions.Count, dataScopes.Count);
     }
 
     private static List<Permission> CreatePermissions()
@@ -202,18 +318,7 @@ public static class IamSeeder
         }
 
         // Kierownik — team management permissions
-        var kierownikPermissions = new HashSet<string>
-        {
-            "org.view", "org.export",
-            "time.view", "time.create", "time.view-team", "time.approve", "time.export",
-            "leave.view", "leave.create", "leave.view-team", "leave.approve", "leave.export",
-            "tasks.view", "tasks.create", "tasks.edit", "tasks.delete", "tasks.assign", "tasks.export",
-            "workflow.view", "workflow.approve",
-            "dashboard.view",
-            "notification.view",
-            "documents.view", "documents.create", "documents.export",
-        };
-        foreach (var permission in permissions.Where(p => kierownikPermissions.Contains(p.FullCode)))
+        foreach (var permission in permissions.Where(p => KierownikPermissionCodes.Contains(p.FullCode)))
         {
             rolePermissions.Add(SetId(
                 RolePermission.Create(KierownikRoleId, permission.Id),
@@ -221,18 +326,7 @@ public static class IamSeeder
         }
 
         // Pracownik — own data only
-        var pracownikPermissions = new HashSet<string>
-        {
-            "org.view",
-            "time.view", "time.create",
-            "leave.view", "leave.create",
-            "tasks.view", "tasks.edit",
-            "workflow.view",
-            "dashboard.view",
-            "notification.view",
-            "documents.view", "documents.create",
-        };
-        foreach (var permission in permissions.Where(p => pracownikPermissions.Contains(p.FullCode)))
+        foreach (var permission in permissions.Where(p => PracownikPermissionCodes.Contains(p.FullCode)))
         {
             rolePermissions.Add(SetId(
                 RolePermission.Create(PracownikRoleId, permission.Id),
@@ -240,19 +334,7 @@ public static class IamSeeder
         }
 
         // HR — broad employee/leave/time management
-        var hrPermissions = new HashSet<string>
-        {
-            "org.view", "org.create", "org.edit", "org.delete", "org.import", "org.export", "org.manage",
-            "identity.view", "identity.assign-roles",
-            "time.view", "time.create", "time.edit", "time.view-team", "time.manage", "time.approve", "time.export",
-            "leave.view", "leave.create", "leave.edit", "leave.delete", "leave.view-team", "leave.approve", "leave.manage", "leave.export",
-            "tasks.view", "tasks.create", "tasks.export",
-            "workflow.view", "workflow.approve",
-            "dashboard.view", "dashboard.export",
-            "notification.view",
-            "documents.view", "documents.create", "documents.export", "documents.import",
-        };
-        foreach (var permission in permissions.Where(p => hrPermissions.Contains(p.FullCode)))
+        foreach (var permission in permissions.Where(p => HrPermissionCodes.Contains(p.FullCode)))
         {
             rolePermissions.Add(SetId(
                 RolePermission.Create(HrRoleId, permission.Id),
