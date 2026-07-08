@@ -136,6 +136,15 @@ export function usePlatformTenants() {
   });
 }
 
+export function useCreateTenant() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { name: string; slug: string }) =>
+      api.post<string>('/api/org/tenants', data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['platform', 'tenants'] }),
+  });
+}
+
 export function usePlatformTenantFeatureFlags(tenantId: string | null) {
   return useQuery({
     queryKey: ['platform', 'tenants', tenantId, 'feature-flags'],

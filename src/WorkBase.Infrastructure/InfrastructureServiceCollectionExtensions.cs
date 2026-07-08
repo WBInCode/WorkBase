@@ -50,6 +50,7 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<ICurrentTenantService, HttpContextTenantService>();
         services.AddScoped<IDataScopeService, DataScopeService>();
         services.AddScoped<ITenantConfigService, Services.TenantConfigService>();
+        services.AddScoped<ITenantProvisioningService, Services.TenantProvisioningService>();
         services.AddScoped<IEmailSender, SmtpEmailSender>();
 
         var moduleApplicationAssemblies = GetModuleApplicationAssemblies().ToArray();

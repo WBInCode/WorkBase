@@ -1,11 +1,12 @@
 import { useCallback, useState } from 'react';
-import { Building2, ToggleLeft, ToggleRight, RefreshCw, Package } from 'lucide-react';
+import { Building2, ToggleLeft, ToggleRight, RefreshCw, Package, Plus } from 'lucide-react';
 import {
   usePlatformTenants,
   usePlatformTenantFeatureFlags,
   useTogglePlatformTenantFeatureFlag,
   useApplyLicensePlanToPlatformTenant,
   useLicensePlans,
+  useCreateTenant,
 } from '@/api/hooks/useIam';
 import { useIsMobile } from '@/shared';
 import { colors } from '@/theme/tokens';
@@ -43,6 +44,9 @@ export function PlatformTenantsPage() {
   const { data: tenants, isLoading, error, refetch, isFetching } = usePlatformTenants();
   const { data: plans } = useLicensePlans();
   const [selectedTenantId, setSelectedTenantId] = useState<string | null>(null);
+  const [newName, setNewName] = useState('');
+  const [newSlug, setNewSlug] = useState('');
+  const createTenantMutation = useCreateTenant();
 
   const { data: flags, isLoading: flagsLoading } = usePlatformTenantFeatureFlags(selectedTenantId);
   const toggleMutation = useTogglePlatformTenantFeatureFlag(selectedTenantId);
@@ -52,6 +56,26 @@ export function PlatformTenantsPage() {
     (module: string) => toggleMutation.mutate(module),
     [toggleMutation],
   );
+
+  const slugify = (value: string) =>
+    value.toLowerCase().trim()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-');
+
+  const handleCreateTenant = useCallback(() => {
+    if (!newName.trim()) return;
+    const slug = newSlug.trim() || slugify(newName);
+    createTenantMutation.mutate(
+      { name: newName.trim(), slug },
+      {
+        onSuccess: () => {
+          setNewName('');
+          setNewSlug('');
+        },
+      },
+    );
+  }, [newName, newSlug, createTenantMutation]);
 
   const selectedTenant = tenants?.find((t) => t.id === selectedTenantId) ?? null;
 
@@ -85,6 +109,54 @@ export function PlatformTenantsPage() {
       <div style={{ display: 'flex', gap: '20px', flexDirection: mobile ? 'column' : 'row' }}>
         {/* Tenant list */}
         <div style={{ flex: '0 0 320px' }}>
+          {/* Create new tenant */}
+          <div style={{
+            marginBottom: '14px', padding: '12px', borderRadius: '8px',
+            border: `1px solid ${colors.gray[200]}`, backgroundColor: colors.white,
+          }}>
+            <div style={{ fontSize: '12px', fontWeight: 600, color: colors.gray[700], marginBottom: '8px' }}>
+              Nowa firma
+            </div>
+            <input
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              placeholder="Nazwa firmy"
+              style={{
+                width: '100%', padding: '7px 10px', fontSize: '13px', marginBottom: '6px',
+                border: `1px solid ${colors.gray[300]}`, borderRadius: '6px', boxSizing: 'border-box',
+              }}
+            />
+            <input
+              value={newSlug}
+              onChange={(e) => setNewSlug(e.target.value)}
+              placeholder={newName ? slugify(newName) : 'slug (opcjonalnie)'}
+              style={{
+                width: '100%', padding: '7px 10px', fontSize: '13px', marginBottom: '8px',
+                border: `1px solid ${colors.gray[300]}`, borderRadius: '6px', boxSizing: 'border-box',
+              }}
+            />
+            {createTenantMutation.isError && (
+              <div style={{ fontSize: '12px', color: colors.danger[700], marginBottom: '6px' }}>
+                Nie udało się utworzyć firmy (slug może już istnieć).
+              </div>
+            )}
+            <button
+              onClick={handleCreateTenant}
+              disabled={!newName.trim() || createTenantMutation.isPending}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '6px', width: '100%',
+                justifyContent: 'center',
+                padding: '8px 12px', fontSize: '13px', fontWeight: 500, borderRadius: '6px',
+                border: 'none', backgroundColor: colors.primary[600], color: colors.white,
+                cursor: !newName.trim() || createTenantMutation.isPending ? 'not-allowed' : 'pointer',
+                opacity: !newName.trim() || createTenantMutation.isPending ? 0.6 : 1,
+              }}
+            >
+              <Plus size={14} />
+              {createTenantMutation.isPending ? 'Tworzenie...' : 'Utwórz firmę'}
+            </button>
+          </div>
+
           {isLoading ? (
             <div style={{ color: colors.gray[500], fontSize: '14px' }}>Ładowanie...</div>
           ) : (
