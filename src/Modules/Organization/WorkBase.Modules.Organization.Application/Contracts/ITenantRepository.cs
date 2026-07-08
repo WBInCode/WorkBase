@@ -9,4 +9,6 @@ public interface ITenantRepository
     /// step 5) — callers must be gated separately (see PlatformOperatorEndpointFilter), this
     /// repository itself performs no tenant-scoping/authorization.</summary>
     Task<List<Tenant>> GetAllAsync(CancellationToken cancellationToken = default);
+
+    Task<Tenant?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
 }

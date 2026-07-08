@@ -8,6 +8,7 @@ namespace WorkBase.Modules.Organization.Application.EventHandlers;
 
 public sealed class ProvisionKeycloakUserOnEmployeeCreated(
     IEmployeeRepository employeeRepository,
+    ITenantRepository tenantRepository,
     IKeycloakAdminService keycloakAdmin,
     ILogger<ProvisionKeycloakUserOnEmployeeCreated> logger)
     : INotificationHandler<EmployeeCreatedEvent>
@@ -36,13 +37,30 @@ public sealed class ProvisionKeycloakUserOnEmployeeCreated(
                 ["employee_id"] = employee.Id.ToString()
             };
 
-            var keycloakUserId = await keycloakAdmin.CreateUserAsync(
-                employee.Email,
-                employee.FirstName,
-                employee.LastName,
-                temporaryPassword: null,
-                attributes,
-                cancellationToken);
+            // Multi-realm: employees of a tenant with a dedicated Keycloak realm must be
+            // created IN that realm (with the standard user role) — the shared-realm
+            // CreateUserAsync would put them where they can never log in from the tenant's
+            // login link. Tenants without a dedicated realm keep the shared-realm path.
+            var tenant = await tenantRepository.GetByIdAsync(notification.TenantId, cancellationToken);
+            var realmName = tenant?.KeycloakRealmName;
+
+            var keycloakUserId = realmName is not null
+                ? await keycloakAdmin.CreateUserInRealmAsync(
+                    realmName,
+                    employee.Email,
+                    employee.FirstName,
+                    employee.LastName,
+                    temporaryPassword: null,
+                    attributes,
+                    realmRoles: ["workbase-user"],
+                    cancellationToken)
+                : await keycloakAdmin.CreateUserAsync(
+                    employee.Email,
+                    employee.FirstName,
+                    employee.LastName,
+                    temporaryPassword: null,
+                    attributes,
+                    cancellationToken);
 
             if (keycloakUserId is null)
             {
