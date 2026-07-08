@@ -332,11 +332,12 @@ public sealed class KeycloakAdminService(
             .Distinct()
             .ToArray();
 
-        // Full realm import in a single POST — mirrors docker/keycloak/workbase-realm.json
-        // (keep in sync). A bare realm without the "workbase-scope" client scope would issue
-        // tokens with NO tenant_id/roles claims and NO workbase-api audience, failing the
-        // API's token validation — this is why CreateRealmAsync alone is not enough for
-        // tenant onboarding.
+        // Realm created deliberately BARE (settings + roles only). Including a "clientScopes"
+        // array in the import payload makes Keycloak treat it as the COMPLETE list and skip
+        // initializing the built-in scopes (profile/email/roles/...) entirely — logins then
+        // fail with "Invalid scopes: openid profile email" and the scopes cannot even be added
+        // in the console (they don't exist in the realm). The custom workbase-scope is created
+        // in a separate call below instead, after built-ins are in place.
         var realmPayload = new
         {
             realm = realmName,
@@ -365,63 +366,56 @@ public sealed class KeycloakAdminService(
                     new { name = "workbase-kiosk", description = "WorkBase kiosk terminal account" },
                 },
             },
-            clientScopes = new object[]
+        };
+
+        var scopePayload = new
+        {
+            name = "workbase-scope",
+            description = "WorkBase custom claims (tenant_id, employee_id)",
+            protocol = "openid-connect",
+            attributes = new Dictionary<string, string>
             {
+                ["include.in.token.scope"] = "true",
+                ["display.on.consent.screen"] = "false",
+            },
+            protocolMappers = new object[]
+            {
+                UserAttributeMapper("tenant_id"),
+                UserAttributeMapper("employee_id"),
+                UserAttributeMapper("kiosk_location"),
                 new
                 {
-                    name = "workbase-scope",
-                    description = "WorkBase custom claims (tenant_id, employee_id)",
+                    name = "realm-roles",
                     protocol = "openid-connect",
-                    attributes = new Dictionary<string, string>
+                    protocolMapper = "oidc-usermodel-realm-role-mapper",
+                    consentRequired = false,
+                    config = new Dictionary<string, string>
                     {
-                        ["include.in.token.scope"] = "true",
-                        ["display.on.consent.screen"] = "false",
+                        ["userinfo.token.claim"] = "true",
+                        ["id.token.claim"] = "true",
+                        ["access.token.claim"] = "true",
+                        ["claim.name"] = "roles",
+                        ["multivalued"] = "true",
+                        ["jsonType.label"] = "String",
                     },
-                    protocolMappers = new object[]
+                },
+                new
+                {
+                    name = "audience-workbase-api",
+                    protocol = "openid-connect",
+                    protocolMapper = "oidc-audience-mapper",
+                    consentRequired = false,
+                    config = new Dictionary<string, string>
                     {
-                        UserAttributeMapper("tenant_id"),
-                        UserAttributeMapper("employee_id"),
-                        UserAttributeMapper("kiosk_location"),
-                        new
-                        {
-                            name = "realm-roles",
-                            protocol = "openid-connect",
-                            protocolMapper = "oidc-usermodel-realm-role-mapper",
-                            consentRequired = false,
-                            config = new Dictionary<string, string>
-                            {
-                                ["userinfo.token.claim"] = "true",
-                                ["id.token.claim"] = "true",
-                                ["access.token.claim"] = "true",
-                                ["claim.name"] = "roles",
-                                ["multivalued"] = "true",
-                                ["jsonType.label"] = "String",
-                            },
-                        },
-                        new
-                        {
-                            name = "audience-workbase-api",
-                            protocol = "openid-connect",
-                            protocolMapper = "oidc-audience-mapper",
-                            consentRequired = false,
-                            config = new Dictionary<string, string>
-                            {
-                                // Custom (string) audience — no workbase-api client needs to
-                                // exist in the tenant realm for this to work, unlike
-                                // included.client.audience.
-                                ["included.custom.audience"] = "workbase-api",
-                                ["id.token.claim"] = "false",
-                                ["access.token.claim"] = "true",
-                            },
-                        },
+                        // Custom (string) audience — no workbase-api client needs to
+                        // exist in the tenant realm for this to work, unlike
+                        // included.client.audience.
+                        ["included.custom.audience"] = "workbase-api",
+                        ["id.token.claim"] = "false",
+                        ["access.token.claim"] = "true",
                     },
                 },
             },
-            // NOTE: deliberately NO "clients" here. Referencing built-in scopes (profile/email)
-            // by name inside the import payload does not resolve — those scopes are initialized
-            // AFTER the payload's clients, leaving the client without them and breaking login
-            // with "Invalid scopes: openid profile email". The client is created in a separate
-            // call below, where it inherits the realm's default scopes automatically.
         };
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"{baseUrl}/admin/realms");
@@ -440,6 +434,20 @@ public sealed class KeycloakAdminService(
         {
             var error = await response.Content.ReadAsStringAsync(cancellationToken);
             logger.LogError("Failed to create tenant realm {Realm}: {Status} {Error}", realmName, response.StatusCode, error);
+            return false;
+        }
+
+        // Now that the realm exists WITH its built-in scopes, add our custom scope alongside them.
+        var scopeRequest = new HttpRequestMessage(HttpMethod.Post, $"{baseUrl}/admin/realms/{realmName}/client-scopes");
+        scopeRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        scopeRequest.Content = JsonContent.Create(scopePayload, options: JsonOptions);
+
+        var scopeResponse = await client.SendAsync(scopeRequest, cancellationToken);
+        if (!scopeResponse.IsSuccessStatusCode && scopeResponse.StatusCode != System.Net.HttpStatusCode.Conflict)
+        {
+            var error = await scopeResponse.Content.ReadAsStringAsync(cancellationToken);
+            logger.LogError("Failed to create workbase-scope in realm {Realm}: {Status} {Error}",
+                realmName, scopeResponse.StatusCode, error);
             return false;
         }
 
