@@ -7,6 +7,9 @@ import type {
   WorkflowInstanceDto,
   WorkflowStepDto,
   WorkflowBranchDto,
+  EscalationRuleDto,
+  CreateEscalationRuleRequest,
+  UpdateEscalationRuleRequest,
 } from '@/api/types/workflow';
 
 export function useWorkflowDefinitions() {
@@ -47,6 +50,40 @@ export function useDeleteWorkflowDefinition() {
   return useMutation({
     mutationFn: (id: string) => api.delete<void>(`/api/workflow/definitions/${id}`),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['workflow', 'definitions'] }),
+  });
+}
+
+export function useEscalationRules(definitionId?: string) {
+  return useQuery({
+    queryKey: ['workflow', 'escalations', definitionId ?? null],
+    queryFn: () =>
+      api.get<EscalationRuleDto[]>(`/api/workflow/escalations${definitionId ? `?definitionId=${definitionId}` : ''}`),
+  });
+}
+
+export function useCreateEscalationRule() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: CreateEscalationRuleRequest) =>
+      api.post<string>('/api/workflow/escalations', data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['workflow', 'escalations'] }),
+  });
+}
+
+export function useUpdateEscalationRule() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...data }: UpdateEscalationRuleRequest & { id: string }) =>
+      api.put<void>(`/api/workflow/escalations/${id}`, data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['workflow', 'escalations'] }),
+  });
+}
+
+export function useDeleteEscalationRule() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.delete<void>(`/api/workflow/escalations/${id}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['workflow', 'escalations'] }),
   });
 }
 

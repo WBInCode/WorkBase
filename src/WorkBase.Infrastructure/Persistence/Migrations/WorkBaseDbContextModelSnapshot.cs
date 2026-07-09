@@ -696,11 +696,6 @@ namespace WorkBase.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(128)")
                         .HasColumnName("app_name");
 
-                    b.Property<string>("CustomCss")
-                        .HasMaxLength(8192)
-                        .HasColumnType("character varying(8192)")
-                        .HasColumnName("custom_css");
-
                     b.Property<string>("CustomDomain")
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)")
@@ -710,9 +705,10 @@ namespace WorkBase.Infrastructure.Persistence.Migrations
                         .HasColumnType("text")
                         .HasColumnName("favicon_url");
 
-                    b.Property<string>("FooterHtml")
-                        .HasColumnType("text")
-                        .HasColumnName("footer_html");
+                    b.Property<string>("FontFamily")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("font_family");
 
                     b.Property<string>("LoginBackgroundUrl")
                         .HasColumnType("text")

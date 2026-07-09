@@ -379,7 +379,7 @@ export function CsvImportPage() {
                     style={{
                       padding: '12px 16px',
                       backgroundColor: colors.success[50],
-                      border: '1px solid #bbf7d0',
+                      border: `1px solid ${colors.success[200]}`,
                       borderRadius: '8px',
                       color: colors.success[800],
                       fontSize: '14px',

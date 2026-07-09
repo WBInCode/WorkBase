@@ -7,6 +7,7 @@ import { useTeamLeaveRequests } from '@/api/hooks/useLeave';
 import { usePayrollSettings, useUpdatePayrollSettings } from '@/api/hooks/usePayrollSettings';
 import type { ScheduleDto } from '@/api/types/time';
 import type { LeaveRequestDto } from '@/api/types/leave';
+import { colors } from '@/theme/tokens';
 
 const DEFAULT_OVERTIME_MULTIPLIER = 1.5;
 
@@ -275,7 +276,7 @@ export function PayrollPage() {
         <div />
         <Stat label="Norma" value={fmtH(totals.normaH)} />
         <Stat label="Czas pracy" value={fmtH(totals.workedH)} accent="#0f766e" />
-        <Stat label="Razem brutto" value={fmtPLN(totals.totalPay)} accent="#1d4ed8" big />
+        <Stat label="Razem brutto" value={fmtPLN(totals.totalPay)} accent={colors.primary[700]} big />
       </div>
 
       {isLoading ? (
@@ -324,7 +325,7 @@ export function PayrollPage() {
                         {r.hasRate ? (
                           r.rate.toFixed(2)
                         ) : (
-                          <span style={{ color: '#dc2626', fontStyle: 'italic' }}>brak</span>
+                          <span style={{ color: colors.danger[600], fontStyle: 'italic' }}>brak</span>
                         )}
                       </td>
                       <td style={{ ...td, textAlign: 'right' }}>{fmtH(r.normaH)}</td>
@@ -428,7 +429,7 @@ function DetailGrid({ row, from, to, overtimeMultiplier }: { row: Row; from: Dat
         <DetailLine
           label="Całkowite brutto"
           value={row.hasRate ? fmtPLN(row.totalPay) : '—'}
-          accent="#1d4ed8"
+          accent={colors.primary[700]}
           bold
         />
       </DetailCard>
@@ -481,7 +482,7 @@ function DetailLine({
       <span style={{ color: '#64748b' }}>{label}</span>
       <span
         style={{
-          color: accent ?? '#0f172a',
+          color: accent ?? colors.slate[900],
           fontWeight: bold ? 700 : 500,
           textAlign: 'right',
         }}
@@ -512,7 +513,7 @@ function Stat({
         style={{
           fontSize: big ? 22 : 16,
           fontWeight: 700,
-          color: accent ?? '#0f172a',
+          color: accent ?? colors.slate[900],
         }}
       >
         {value}
@@ -708,7 +709,7 @@ function PayrollSettingsButton() {
                 disabled={update.isPending}
                 style={{
                   padding: '8px 14px',
-                  background: '#1d4ed8',
+                  background: colors.primary[700],
                   color: '#fff',
                   border: 'none',
                   borderRadius: 6,

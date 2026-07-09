@@ -8,6 +8,30 @@ export interface WorkflowDefinitionDto {
   createdAt: string;
 }
 
+export interface EscalationRuleDto {
+  id: string;
+  definitionId: string;
+  stepName: string;
+  timeoutMinutes: number;
+  actionType: string;
+  actionPayloadJson: string | null;
+}
+
+export interface CreateEscalationRuleRequest {
+  definitionId: string;
+  stepName: string;
+  timeoutMinutes: number;
+  actionType: string;
+  actionPayloadJson?: string;
+}
+
+export interface UpdateEscalationRuleRequest {
+  timeoutMinutes: number;
+  actionType: string;
+  actionPayloadJson?: string;
+}
+
+
 export interface WorkflowInstanceDto {
   id: string;
   definitionId: string;

@@ -215,7 +215,7 @@ export function ClockButton({ employeeId }: ClockButtonProps) {
               label="Przerwa"
               color={colors.warning[600]}
               bg={colors.warning[100]}
-              hoverBg="#fde68a"
+              hoverBg={colors.warning[200]}
             />
             <ActionButton
               onClick={handleClockOut}

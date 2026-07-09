@@ -121,6 +121,10 @@ try
     app.MapBillingEndpoints();
     app.MapSyncEndpoints();
     app.MapPayrollSettingsEndpoints();
+    app.MapTerminologyEndpoints();
+    app.MapTimeTrackingSettingsEndpoints();
+    app.MapDocumentSettingsEndpoints();
+    app.MapTaskSettingsEndpoints();
     app.MapHub<NotificationHub>("/hubs/notifications");
 
     if (!app.Environment.IsEnvironment("Testing"))

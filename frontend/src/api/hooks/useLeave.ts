@@ -9,6 +9,9 @@ import type {
   LeaveCalendarRequest,
   CreateLeaveTypeRequest,
   UpdateLeaveTypeRequest,
+  LeavePolicyDto,
+  CreateLeavePolicyRequest,
+  UpdateLeavePolicyRequest,
 } from '@/api/types/leave';
 
 export function useLeaveTypes() {
@@ -102,5 +105,39 @@ export function useDeleteLeaveType() {
     mutationFn: (id: string) =>
       api.delete<void>(`/api/leave/types/${id}`),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['leave', 'types'] }),
+  });
+}
+
+export function useLeavePolicies() {
+  return useQuery({
+    queryKey: ['leave', 'policies'],
+    queryFn: () => api.get<LeavePolicyDto[]>('/api/leave/policies'),
+  });
+}
+
+export function useCreateLeavePolicy() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: CreateLeavePolicyRequest) =>
+      api.post<string>('/api/leave/policies', data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['leave', 'policies'] }),
+  });
+}
+
+export function useUpdateLeavePolicy() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...data }: UpdateLeavePolicyRequest & { id: string }) =>
+      api.put<void>(`/api/leave/policies/${id}`, data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['leave', 'policies'] }),
+  });
+}
+
+export function useDeleteLeavePolicy() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) =>
+      api.delete<void>(`/api/leave/policies/${id}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['leave', 'policies'] }),
   });
 }

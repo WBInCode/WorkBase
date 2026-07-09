@@ -285,7 +285,7 @@ export function SchedulePage() {
           Inna / brak typu
         </span>
         <span style={{ marginLeft: '16px', borderLeft: `1px solid ${colors.gray[200]}`, paddingLeft: '16px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 3, border: '1px dashed #93c5fd', opacity: 0.75 }} />
+          <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 3, border: `1px dashed ${colors.primary[300]}`, opacity: 0.75 }} />
           Z grafiku jednostki
         </span>
         <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
