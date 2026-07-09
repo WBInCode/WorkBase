@@ -9,6 +9,25 @@ export interface RoleDto {
   userCount: number;
 }
 
+/**
+ * Response of GET /api/auth/me. `isAdmin` and `permissions` are derived from the app's own
+ * Role/Permission data (the same source RequirePermission checks against) — use these instead
+ * of parsing the Keycloak `roles` claim for UI gating, which can drift out of sync with the
+ * in-app Roles screen (see docs/AUDIT-KNOWLEDGE-MAP.md — role system consistency).
+ */
+export interface CurrentUserDto {
+  userId: string;
+  email: string;
+  name: string;
+  tenantId: string;
+  employeeId: string;
+  roles: string[];
+  permissions: string[];
+  isAdmin: boolean;
+  orgUnitIds: string[];
+  scopeLevel: string;
+}
+
 export interface PermissionDto {
   id: string;
   module: string;

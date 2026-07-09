@@ -10,6 +10,7 @@ import { ErrorBoundary } from '@/components/ui';
 import { AuthCallbackPage } from '@/pages/AuthCallbackPage';
 import { ToastProvider } from '@/components/Notifications';
 import { colors } from '@/theme/tokens';
+import { useCurrentUser } from '@/api/hooks/useIam';
 
 // Route-level code splitting: each page is loaded on demand instead of being
 // bundled into the initial chunk. Keeps the first paint fast for a large,
@@ -78,7 +79,12 @@ function AppRoutes() {
   setTokenProvider(() => auth.user?.access_token);
 
   const roles = (auth.user?.profile?.['roles'] as string[] | undefined) ?? [];
-  const isAdmin = roles.some((r) => r === 'workbase-admin' || r === 'Admin' || r === 'Super Admin');
+  // isAdmin is sourced from the app's own Role/Permission data (GET /api/auth/me), NOT the
+  // Keycloak "roles" claim — assigning an admin role via the in-app Roles screen has no effect
+  // on Keycloak, so gating on the Keycloak claim could show a broken admin panel to a real
+  // admin (see docs/AUDIT-KNOWLEDGE-MAP.md — role system consistency).
+  const { data: currentUser } = useCurrentUser();
+  const isAdmin = !!currentUser?.isAdmin;
   // Keep in sync with PlatformConstants.OperatorTenantId — operator panel is only for our own company.
   const isOperator = (auth.user?.profile?.['tenant_id'] as string | undefined) === '00000000-0000-0000-0000-000000000001';
 

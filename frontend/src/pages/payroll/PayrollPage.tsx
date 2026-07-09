@@ -1,6 +1,7 @@
 import { useMemo, useState, Fragment, useEffect } from 'react';
 import { ChevronDown, ChevronRight, Settings } from 'lucide-react';
 import { useAuth } from 'react-oidc-context';
+import { useCurrentUser } from '@/api/hooks/useIam';
 import { useEmployees } from '@/api/hooks/useOrganization';
 import { useTeamTimesheets, useTeamSchedulesByEmployee } from '@/api/hooks/useTimeTracking';
 import { useTeamLeaveRequests } from '@/api/hooks/useLeave';
@@ -109,9 +110,15 @@ export function PayrollPage() {
 
   const auth = useAuth();
   const roles = (auth.user?.profile?.['roles'] as string[] | undefined) ?? [];
-  const isAdmin = roles.some(
-    (r) => r === 'workbase-admin' || r === 'Admin' || r === 'Super Admin',
-  );
+  // isAdmin is sourced from the app's own Role/Permission data, not the Keycloak "roles" claim
+  // — see docs/AUDIT-KNOWLEDGE-MAP.md (role system consistency).
+  const { data: currentUser } = useCurrentUser();
+  const isAdmin = !!currentUser?.isAdmin;
+  // NOTE: isHr/isManager still key off the Keycloak claim — there is no backend DataScope
+  // concept for Payroll yet to derive these from app permissions (unlike isAdmin above).
+  // 'workbase-manager' is also never actually provisioned in Keycloak (see
+  // KeycloakAdminService.CreateRealmRolesAsync), so this check is effectively dead for any
+  // tenant that hasn't manually created that realm role — flagged as a follow-up.
   const isHr = roles.some((r) => r === 'workbase-hr' || r === 'HR' || r === 'Hr');
   const isManager = roles.some(
     (r) => r === 'workbase-manager' || r === 'Kierownik' || r === 'Manager',

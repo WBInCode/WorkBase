@@ -3,6 +3,7 @@ import { Plus } from 'lucide-react';
 import { useAuth } from 'react-oidc-context';
 import { mapUserClaims } from '@/auth';
 import { useLeaveTypes, useLeaveBalances, useLeaveRequests, useSubmitLeaveRequest } from '@/api/hooks/useLeave';
+import { useEmployeeDetail } from '@/api/hooks/useOrganization';
 import { LeaveBalanceCard, LeaveRequestForm } from '@/components/Leave';
 import type { LeaveRequestStatus } from '@/api/types/leave';
 import { useIsMobile } from '@/shared';
@@ -28,6 +29,8 @@ export function LeaveRequestPage() {
   const { data: leaveTypes = [] } = useLeaveTypes();
   const { data: balances = [], isLoading: balancesLoading } = useLeaveBalances(employeeId, year);
   const { data: requests = [], isLoading: requestsLoading } = useLeaveRequests(employeeId, year);
+  const { data: employeeDetail } = useEmployeeDetail(employeeId);
+  const hasNoSupervisor = !!employeeDetail && !employeeDetail.supervisor;
   const submitMutation = useSubmitLeaveRequest();
   const mobile = useIsMobile();
 
@@ -95,6 +98,8 @@ export function LeaveRequestPage() {
 
           <button
             onClick={() => setShowForm(true)}
+            disabled={hasNoSupervisor}
+            title={hasNoSupervisor ? 'Nie masz przypisanego przełożonego — wniosek nie będzie mógł zostać zaakceptowany. Skontaktuj się z administratorem.' : undefined}
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -106,7 +111,8 @@ export function LeaveRequestPage() {
               backgroundColor: colors.primary[600],
               border: 'none',
               borderRadius: '6px',
-              cursor: 'pointer',
+              cursor: hasNoSupervisor ? 'not-allowed' : 'pointer',
+              opacity: hasNoSupervisor ? 0.6 : 1,
             }}
           >
             <Plus size={16} />
@@ -114,6 +120,16 @@ export function LeaveRequestPage() {
           </button>
         </div>
       </div>
+
+      {hasNoSupervisor && (
+        <div style={{
+          padding: '12px 16px', marginBottom: '20px', borderRadius: '8px',
+          backgroundColor: colors.warning[100], border: `1px solid ${colors.warning[200]}`,
+          color: colors.warning[800], fontSize: '13px',
+        }}>
+          Nie masz przypisanego przełożonego, więc wnioski urlopowe nie będą mogły zostać zaakceptowane. Poinformuj administratora, aby ustawił Ci przełożonego w kartotece pracownika.
+        </div>
+      )}
 
       {/* Balance cards */}
       <div style={{ marginBottom: '28px' }}>

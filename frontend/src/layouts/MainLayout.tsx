@@ -4,7 +4,7 @@ import { useAuth } from 'react-oidc-context';
 import { useTranslation } from 'react-i18next';
 import { FolderTree, Users, FileUp, LogOut, Menu, X, Shield, Grid3X3, CalendarDays, UsersRound, CalendarClock, Palmtree, CalendarRange, ClipboardCheck, ListTodo, ClipboardList, LayoutDashboard, Briefcase, Clock, MoreHorizontal, FileArchive, FolderOpen, Flag, CircleDot, Coffee, Layers, Wallet, Building2, Palette, Type, Bell, AlarmClockCheck, type LucideIcon } from 'lucide-react';
 import { mapUserClaims } from '@/auth';
-import { useFeatureFlags } from '@/api/hooks/useIam';
+import { useFeatureFlags, useCurrentUser } from '@/api/hooks/useIam';
 import { useBranding } from '@/api/hooks/useBranding';
 import { ClockButton } from '@/components/TimeTracking';
 import { NotificationBell } from '@/components/Notifications';
@@ -125,7 +125,10 @@ export function MainLayout({ children }: MainLayoutProps) {
   const location = useLocation();
   const { t } = useTranslation();
   const user = auth.user ? mapUserClaims(auth.user) : null;
-  const isAdmin = !!user?.roles?.some((r) => r === 'workbase-admin' || r === 'Admin' || r === 'Super Admin');
+  // isAdmin is sourced from the app's own Role/Permission data (GET /api/auth/me), NOT the
+  // Keycloak "roles" claim — see docs/AUDIT-KNOWLEDGE-MAP.md (role system consistency).
+  const { data: currentUser } = useCurrentUser();
+  const isAdmin = !!currentUser?.isAdmin;
   const isOperator = user?.tenantId === OPERATOR_TENANT_ID;
   const visibleAdminNavItems = adminNavItems.filter((item) => !item.operatorOnly || isOperator);
   const isMobile = useIsMobile();
