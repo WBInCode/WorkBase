@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Logging;
 using WorkBase.Shared.Auth;
 
 namespace WorkBase.Modules.Identity.Api.Endpoints;
@@ -24,29 +25,51 @@ public static class AuthEndpoints
     }
 
     private static async Task<IResult> GetCurrentUser(
-        ClaimsPrincipal user, IPermissionService permissionService, IRoleManagementService roleService)
+        ClaimsPrincipal user, IPermissionService permissionService, IRoleManagementService roleService,
+        ILogger<AuthEndpoints> logger)
     {
         if (user.Identity?.IsAuthenticated != true)
             return Results.Unauthorized();
 
         var sub = user.FindFirstValue("sub") ?? "";
         var tenantIdClaim = user.FindFirstValue("tenant_id") ?? "";
+        var keycloakRoles = user.FindAll("roles").Select(c => c.Value).ToArray();
 
         string[] permissions = [];
-        // "Admin" for UI purposes is derived from the app's own Role/UserRole data (the same
-        // source of truth RequirePermission checks against) — NOT the Keycloak "roles" claim.
-        // Assigning a System-type role via the in-app Roles screen has zero effect on Keycloak,
-        // so gating admin UI on the Keycloak claim (as several pages previously did) could show
-        // an empty/broken admin panel to a real admin, or a full one to someone whose app
-        // permissions were later revoked. See docs/AUDIT-KNOWLEDGE-MAP.md.
+        // "Admin" for UI purposes is primarily derived from the app's own Role/UserRole data
+        // (the same source of truth RequirePermission checks against), NOT the Keycloak
+        // "roles" claim — assigning a System-type role via the in-app Roles screen has zero
+        // effect on Keycloak. BUT: some accounts (e.g. pre-existing ones provisioned before
+        // this consistency fix, or created directly in Keycloak without a matching UserRole
+        // row) may have a Keycloak admin role with no corresponding DB UserRole — without a
+        // fallback those users would suddenly lose all admin UI access. So: DB System-role
+        // check first (authoritative), falling back to the legacy Keycloak claim check only
+        // if that finds nothing. See docs/AUDIT-KNOWLEDGE-MAP.md (role system consistency).
         var isAdmin = false;
         if (Guid.TryParse(sub, out var userId) && Guid.TryParse(tenantIdClaim, out var tenantId))
         {
-            var userPermissions = await permissionService.GetUserPermissionsAsync(userId, tenantId);
-            permissions = [.. userPermissions];
+            try
+            {
+                var userPermissions = await permissionService.GetUserPermissionsAsync(userId, tenantId);
+                permissions = [.. userPermissions];
 
-            var userRoles = await roleService.GetUserRolesAsync(userId, tenantId);
-            isAdmin = userRoles.Any(r => r.RoleType == "System");
+                var userRoles = await roleService.GetUserRolesAsync(userId, tenantId);
+                isAdmin = userRoles.Any(r => r.RoleType == "System");
+            }
+            catch (Exception ex)
+            {
+                // Never let a DB/permission lookup failure 500 this endpoint — it underpins
+                // basic navigation for every authenticated user. Falls through to the
+                // Keycloak-claim fallback below.
+                logger.LogWarning(ex,
+                    "Failed to load app-level roles/permissions for user {UserId} in tenant {TenantId}; falling back to Keycloak claim for admin check.",
+                    userId, tenantId);
+            }
+        }
+
+        if (!isAdmin)
+        {
+            isAdmin = keycloakRoles.Any(r => r is "workbase-admin" or "Admin" or "Super Admin");
         }
 
         var response = new CurrentUserResponse
@@ -58,7 +81,7 @@ public static class AuthEndpoints
                 ?? "",
             TenantId = tenantIdClaim,
             EmployeeId = user.FindFirstValue("employee_id") ?? "",
-            Roles = user.FindAll("roles").Select(c => c.Value).ToArray(),
+            Roles = keycloakRoles,
             Permissions = permissions,
             IsAdmin = isAdmin,
             OrgUnitIds = [],
