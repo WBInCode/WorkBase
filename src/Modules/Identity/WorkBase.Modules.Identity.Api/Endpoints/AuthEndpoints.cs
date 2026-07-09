@@ -26,7 +26,7 @@ public static class AuthEndpoints
 
     private static async Task<IResult> GetCurrentUser(
         ClaimsPrincipal user, IPermissionService permissionService, IRoleManagementService roleService,
-        ILogger<AuthEndpoints> logger)
+        ILogger<CurrentUserResponse> logger)
     {
         if (user.Identity?.IsAuthenticated != true)
             return Results.Unauthorized();
