@@ -1,6 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/api/client';
-import type { NotificationDto } from '@/api/types/notification';
+import type {
+  NotificationDto,
+  NotificationTemplateDto,
+  CreateNotificationTemplateRequest,
+  UpdateNotificationTemplateRequest,
+} from '@/api/types/notification';
 
 export function useNotifications(recipientUserId: string | null, unreadOnly = false) {
   const params = new URLSearchParams();
@@ -34,5 +39,38 @@ export function useMarkNotificationRead() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['notifications'] });
     },
+  });
+}
+
+export function useNotificationTemplates() {
+  return useQuery({
+    queryKey: ['notifications', 'templates'],
+    queryFn: () => api.get<NotificationTemplateDto[]>('/api/notifications/templates'),
+  });
+}
+
+export function useCreateNotificationTemplate() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: CreateNotificationTemplateRequest) =>
+      api.post<string>('/api/notifications/templates', data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['notifications', 'templates'] }),
+  });
+}
+
+export function useUpdateNotificationTemplate() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...data }: UpdateNotificationTemplateRequest & { id: string }) =>
+      api.put<void>(`/api/notifications/templates/${id}`, data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['notifications', 'templates'] }),
+  });
+}
+
+export function useDeleteNotificationTemplate() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.delete<void>(`/api/notifications/templates/${id}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['notifications', 'templates'] }),
   });
 }

@@ -47,16 +47,19 @@ public static class NotificationEndpoints
         group.MapPost("/templates", CreateTemplate)
             .WithName("CreateNotificationTemplate")
             .WithSummary("Utwórz szablon powiadomienia")
-            .Produces<Guid>(StatusCodes.Status201Created);
+            .Produces<Guid>(StatusCodes.Status201Created)
+            .RequirePermission("config.manage");
 
         group.MapPut("/templates/{id:guid}", UpdateTemplate)
             .WithName("UpdateNotificationTemplate")
-            .WithSummary("Zaktualizuj szablon powiadomienia");
+            .WithSummary("Zaktualizuj szablon powiadomienia")
+            .RequirePermission("config.manage");
 
         group.MapDelete("/templates/{id:guid}", DeleteTemplate)
             .WithName("DeleteNotificationTemplate")
             .WithSummary("Usuń szablon powiadomienia")
-            .Produces(StatusCodes.Status204NoContent);
+            .Produces(StatusCodes.Status204NoContent)
+            .RequirePermission("config.manage");
 
         // --- Preferences ---
         group.MapGet("/preferences", GetPreferences)

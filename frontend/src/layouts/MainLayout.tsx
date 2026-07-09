@@ -1,13 +1,17 @@
 import { useState, useEffect, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from 'react-oidc-context';
-import { FolderTree, Users, FileUp, LogOut, Menu, X, Shield, Grid3X3, CalendarDays, UsersRound, CalendarClock, Palmtree, CalendarRange, ClipboardCheck, ListTodo, ClipboardList, LayoutDashboard, Briefcase, Clock, MoreHorizontal, FileArchive, FolderOpen, Flag, CircleDot, Coffee, Layers, Wallet, Building2, type LucideIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { FolderTree, Users, FileUp, LogOut, Menu, X, Shield, Grid3X3, CalendarDays, UsersRound, CalendarClock, Palmtree, CalendarRange, ClipboardCheck, ListTodo, ClipboardList, LayoutDashboard, Briefcase, Clock, MoreHorizontal, FileArchive, FolderOpen, Flag, CircleDot, Coffee, Layers, Wallet, Building2, Palette, Type, Bell, AlarmClockCheck, type LucideIcon } from 'lucide-react';
 import { mapUserClaims } from '@/auth';
 import { useFeatureFlags } from '@/api/hooks/useIam';
+import { useBranding } from '@/api/hooks/useBranding';
 import { ClockButton } from '@/components/TimeTracking';
 import { NotificationBell } from '@/components/Notifications';
 import { useIsMobile } from '@/shared';
 import { colors } from '@/theme/tokens';
+import { BRAND_CSS_VARS } from '@/theme/applyBranding';
+import { useTenantThemeBootstrap } from '@/theme/useTenantThemeBootstrap';
 
 function useLiveClock() {
   const [now, setNow] = useState(new Date());
@@ -24,14 +28,14 @@ interface MainLayoutProps {
 
 interface NavItem {
   path: string;
-  label: string;
+  labelKey: string;
   icon: LucideIcon;
   exact?: boolean;
   adminOnly?: boolean;
 }
 
 interface NavSection {
-  title?: string;
+  titleKey?: string;
   /** ModuleCatalog key (src/WorkBase.Shared/Modules/ModuleCatalog.cs) gating this whole section.
    * Undefined = always shown (e.g. workspace landing page, not a licensable module). */
   module?: string;
@@ -41,52 +45,52 @@ interface NavSection {
 const navSections: NavSection[] = [
   {
     items: [
-      { path: '/workspace', label: 'Mój dzień', icon: Briefcase },
-      { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+      { path: '/workspace', labelKey: 'nav.myDay', icon: Briefcase },
+      { path: '/dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard },
     ],
   },
   {
-    title: 'Organizacja',
+    titleKey: 'nav.organization',
     module: 'org',
     items: [
-      { path: '/org/tree', label: 'Struktura', icon: FolderTree },
-      { path: '/org/employees', label: 'Pracownicy', icon: Users, exact: true },
-      { path: '/org/employees/import', label: 'Import CSV', icon: FileUp },
+      { path: '/org/tree', labelKey: 'nav.structure', icon: FolderTree },
+      { path: '/org/employees', labelKey: 'nav.employees', icon: Users, exact: true },
+      { path: '/org/employees/import', labelKey: 'nav.csvImport', icon: FileUp },
     ],
   },
   {
-    title: 'Czas pracy',
+    titleKey: 'nav.timeTracking',
     module: 'time',
     items: [
-      { path: '/time/timesheet', label: 'Karta czasu', icon: CalendarDays },
-      { path: '/time/team-report', label: 'Raport zespołu', icon: UsersRound },
-      { path: '/time/schedule', label: 'Grafik pracy', icon: CalendarClock },
-      { path: '/payroll', label: 'Wynagrodzenia', icon: Wallet },
+      { path: '/time/timesheet', labelKey: 'nav.timesheet', icon: CalendarDays },
+      { path: '/time/team-report', labelKey: 'nav.teamReport', icon: UsersRound },
+      { path: '/time/schedule', labelKey: 'nav.schedule', icon: CalendarClock },
+      { path: '/payroll', labelKey: 'nav.payroll', icon: Wallet },
     ],
   },
   {
-    title: 'Urlopy',
+    titleKey: 'nav.leave',
     module: 'leave',
     items: [
-      { path: '/leave/request', label: 'Wnioski', icon: Palmtree },
-      { path: '/leave/approvals', label: 'Akceptacje', icon: ClipboardCheck },
-      { path: '/leave/calendar', label: 'Kalendarz', icon: CalendarRange },
+      { path: '/leave/request', labelKey: 'nav.requests', icon: Palmtree },
+      { path: '/leave/approvals', labelKey: 'nav.approvals', icon: ClipboardCheck },
+      { path: '/leave/calendar', labelKey: 'nav.calendar', icon: CalendarRange },
     ],
   },
   {
-    title: 'Zadania',
+    titleKey: 'nav.tasks',
     module: 'tasks',
     items: [
-      { path: '/tasks', label: 'Wszystkie', icon: ListTodo, exact: true },
-      { path: '/tasks/my', label: 'Moje zadania', icon: ClipboardList },
+      { path: '/tasks', labelKey: 'nav.allTasks', icon: ListTodo, exact: true },
+      { path: '/tasks/my', labelKey: 'nav.myTasks', icon: ClipboardList },
     ],
   },
   {
-    title: 'Dokumenty',
+    titleKey: 'nav.documents',
     module: 'documents',
     items: [
-      { path: '/documents', label: 'Pliki', icon: FileArchive, exact: true },
-      { path: '/documents/categories', label: 'Kategorie', icon: FolderOpen },
+      { path: '/documents', labelKey: 'nav.files', icon: FileArchive, exact: true },
+      { path: '/documents/categories', labelKey: 'nav.categories', icon: FolderOpen },
     ],
   },
 ];
@@ -97,20 +101,29 @@ const navSections: NavSection[] = [
 const OPERATOR_TENANT_ID = '00000000-0000-0000-0000-000000000001';
 
 const adminNavItems = [
-  { path: '/admin/roles', label: 'Role', icon: Shield },
-  { path: '/admin/permissions', label: 'Matryca uprawnień', icon: Grid3X3 },
-  { path: '/admin/feature-flags', label: 'Flagi funkcjonalności', icon: Flag },
-  { path: '/admin/tenants', label: 'Firmy (operator)', icon: Building2, operatorOnly: true },
-  { path: '/admin/leave-types', label: 'Typy urlopów', icon: Palmtree },
-  { path: '/admin/task-statuses', label: 'Statusy zadań', icon: CircleDot },
-  { path: '/admin/break-policies', label: 'Polityki przerw', icon: Coffee },
-  { path: '/admin/positions', label: 'Stanowiska', icon: Briefcase },
-  { path: '/admin/unit-types', label: 'Typy jednostek', icon: Layers },
+  { path: '/admin/roles', labelKey: 'nav.roles', icon: Shield },
+  { path: '/admin/permissions', labelKey: 'nav.permissions', icon: Grid3X3 },
+  { path: '/admin/feature-flags', labelKey: 'nav.featureFlags', icon: Flag },
+  { path: '/admin/branding', labelKey: 'nav.branding', icon: Palette },
+  { path: '/admin/terminology', labelKey: 'nav.terminology', icon: Type },
+  { path: '/admin/tenants', labelKey: 'nav.tenantsOperator', icon: Building2, operatorOnly: true },
+  { path: '/admin/leave-types', labelKey: 'nav.leaveTypes', icon: Palmtree },
+  { path: '/admin/leave-policies', labelKey: 'nav.leavePolicies', icon: Palmtree },
+  { path: '/admin/task-statuses', labelKey: 'nav.taskStatuses', icon: CircleDot },
+  { path: '/admin/break-policies', labelKey: 'nav.breakPolicies', icon: Coffee },
+  { path: '/admin/positions', labelKey: 'nav.positions', icon: Briefcase },
+  { path: '/admin/unit-types', labelKey: 'nav.unitTypes', icon: Layers },
+  { path: '/admin/time-tracking-settings', labelKey: 'nav.timeTrackingSettings', icon: CalendarClock },
+  { path: '/admin/notification-templates', labelKey: 'nav.notificationTemplates', icon: Bell },
+  { path: '/admin/escalation-rules', labelKey: 'nav.escalationRules', icon: AlarmClockCheck },
+  { path: '/admin/document-settings', labelKey: 'nav.documentSettings', icon: FileArchive },
+  { path: '/admin/task-settings', labelKey: 'nav.taskSettings', icon: ListTodo },
 ];
 
 export function MainLayout({ children }: MainLayoutProps) {
   const auth = useAuth();
   const location = useLocation();
+  const { t } = useTranslation();
   const user = auth.user ? mapUserClaims(auth.user) : null;
   const isAdmin = !!user?.roles?.some((r) => r === 'workbase-admin' || r === 'Admin' || r === 'Super Admin');
   const isOperator = user?.tenantId === OPERATOR_TENANT_ID;
@@ -118,6 +131,11 @@ export function MainLayout({ children }: MainLayoutProps) {
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
   const now = useLiveClock();
+
+  // Applies tenant branding (colors/font) as CSS vars and merges terminology overrides into
+  // i18next — see docs/AUDIT-KNOWLEDGE-MAP.md (module/branding/terminology configuration).
+  useTenantThemeBootstrap();
+  const { data: branding } = useBranding();
 
   // Feature flags for the current tenant — hides nav sections for modules the platform
   // operator has disabled (see docs/05-module-licensing-architecture.md). Fail-open: a
@@ -143,7 +161,7 @@ export function MainLayout({ children }: MainLayoutProps) {
   }, [location.pathname, isMobile]);
 
   return (
-    <div style={{ display: 'flex', height: '100vh', fontFamily: 'system-ui, -apple-system, sans-serif', background: colors.slate[900] }}>
+    <div style={{ display: 'flex', height: '100vh', fontFamily: BRAND_CSS_VARS.font, background: colors.slate[900] }}>
       {/* Mobile backdrop */}
       {isMobile && sidebarOpen && (
         <div
@@ -180,23 +198,31 @@ export function MainLayout({ children }: MainLayoutProps) {
             gap: '10px',
           }}
         >
-          <div style={{
-            width: 32,
-            height: 32,
-            borderRadius: 8,
-            background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: 16,
-            fontWeight: 800,
-            color: colors.white,
-            flexShrink: 0,
-          }}>
-            W
-          </div>
+          {branding?.logoUrl ? (
+            <img
+              src={branding.logoUrl}
+              alt={branding.appName ?? 'Logo'}
+              style={{ width: 32, height: 32, borderRadius: 8, objectFit: 'contain', flexShrink: 0 }}
+            />
+          ) : (
+            <div style={{
+              width: 32,
+              height: 32,
+              borderRadius: 8,
+              background: `linear-gradient(135deg, ${BRAND_CSS_VARS.primary}, ${BRAND_CSS_VARS.primaryHover})`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 16,
+              fontWeight: 800,
+              color: colors.white,
+              flexShrink: 0,
+            }}>
+              {(branding?.appName ?? 'WorkBase').charAt(0).toUpperCase()}
+            </div>
+          )}
           <span style={{ fontSize: 18, fontWeight: 700, color: '#f8fafc', whiteSpace: 'nowrap', letterSpacing: '-0.02em' }}>
-            WorkBase
+            {branding?.appName ?? 'WorkBase'}
           </span>
         </div>
 
@@ -207,7 +233,7 @@ export function MainLayout({ children }: MainLayoutProps) {
         >
           {visibleNavSections.map((section, si) => (
             <div key={si} style={{ marginBottom: 4 }}>
-              {section.title && (
+              {section.titleKey && (
                 <div style={{
                   padding: '12px 10px 6px',
                   fontSize: 10,
@@ -217,7 +243,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                   letterSpacing: '0.08em',
                   whiteSpace: 'nowrap',
                 }}>
-                  {section.title}
+                  {t(section.titleKey)}
                 </div>
               )}
               {section.items.map((item) => {
@@ -265,11 +291,11 @@ export function MainLayout({ children }: MainLayoutProps) {
                         bottom: '20%',
                         width: 3,
                         borderRadius: 3,
-                        background: 'linear-gradient(180deg, #6366f1, #8b5cf6)',
+                        background: `linear-gradient(180deg, ${BRAND_CSS_VARS.primary}, ${BRAND_CSS_VARS.primaryHover})`,
                       }} />
                     )}
                     <Icon size={17} style={{ opacity: isActive ? 1 : 0.7, flexShrink: 0 }} />
-                    {item.label}
+                    {t(item.labelKey)}
                   </Link>
                 );
               })}
@@ -292,7 +318,7 @@ export function MainLayout({ children }: MainLayoutProps) {
               letterSpacing: '0.08em',
               whiteSpace: 'nowrap',
             }}>
-              Administracja
+              {t('nav.admin')}
             </div>
             {visibleAdminNavItems.map((item) => {
               const isActive = location.pathname.startsWith(item.path);
@@ -336,11 +362,11 @@ export function MainLayout({ children }: MainLayoutProps) {
                       bottom: '20%',
                       width: 3,
                       borderRadius: 3,
-                      background: 'linear-gradient(180deg, #6366f1, #8b5cf6)',
+                      background: `linear-gradient(180deg, ${BRAND_CSS_VARS.primary}, ${BRAND_CSS_VARS.primaryHover})`,
                     }} />
                   )}
                   <Icon size={17} style={{ opacity: isActive ? 1 : 0.7, flexShrink: 0 }} />
-                  {item.label}
+                  {t(item.labelKey)}
                 </Link>
               );
             })}
@@ -360,7 +386,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                 width: 34,
                 height: 34,
                 borderRadius: '50%',
-                background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                background: `linear-gradient(135deg, ${BRAND_CSS_VARS.primary}, ${BRAND_CSS_VARS.primaryHover})`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',

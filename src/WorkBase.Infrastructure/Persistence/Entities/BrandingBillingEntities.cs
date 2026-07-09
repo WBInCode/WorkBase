@@ -17,9 +17,8 @@ public sealed class TenantBranding : ITenantScoped
     public string? AccentColor { get; set; }
     public string? AppName { get; set; }
     public string? CustomDomain { get; set; }
-    public string? CustomCss { get; set; }
+    public string? FontFamily { get; set; }
     public string? LoginBackgroundUrl { get; set; }
-    public string? FooterHtml { get; set; }
     public DateTime UpdatedAt { get; set; }
 }
 

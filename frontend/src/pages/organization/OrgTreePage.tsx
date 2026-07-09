@@ -4,6 +4,7 @@ import { useOrgUnitTree, useUnitTypes, useCreateOrgUnit, useUpdateOrgUnit, useDe
 import { OrgTree } from '@/components/OrgTree';
 import type { OrganizationUnitTreeNode } from '@/api/types/organization';
 import { useIsMobile } from '@/shared';
+import { colors } from '@/theme/tokens';
 
 export function OrgTreePage() {
   const { data: tree, isLoading, error, refetch } = useOrgUnitTree();
@@ -57,12 +58,12 @@ export function OrgTreePage() {
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: mobile ? '12px 16px' : '16px 24px',
-          borderBottom: '1px solid #e5e7eb',
+          borderBottom: `1px solid ${colors.gray[200]}`,
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <FolderTree size={24} style={{ color: '#3b82f6' }} />
-          <h1 style={{ fontSize: '20px', fontWeight: 600, margin: 0, color: '#111827' }}>
+          <FolderTree size={24} style={{ color: colors.primary[500] }} />
+          <h1 style={{ fontSize: '20px', fontWeight: 600, margin: 0, color: colors.gray[900] }}>
             Struktura organizacyjna
           </h1>
         </div>
@@ -78,9 +79,9 @@ export function OrgTreePage() {
               padding: '8px 16px',
               fontSize: '14px',
               fontWeight: 500,
-              color: '#374151',
-              backgroundColor: '#ffffff',
-              border: '1px solid #d1d5db',
+              color: colors.gray[700],
+              backgroundColor: colors.white,
+              border: `1px solid ${colors.gray[300]}`,
               borderRadius: '6px',
               cursor: isLoading ? 'not-allowed' : 'pointer',
               opacity: isLoading ? 0.6 : 1,
@@ -98,8 +99,8 @@ export function OrgTreePage() {
               padding: '8px 16px',
               fontSize: '14px',
               fontWeight: 500,
-              color: '#ffffff',
-              backgroundColor: '#3b82f6',
+              color: colors.white,
+              backgroundColor: colors.primary[500],
               border: 'none',
               borderRadius: '6px',
               cursor: 'pointer',
@@ -122,7 +123,7 @@ export function OrgTreePage() {
           }}
         >
           {isLoading && (
-            <div style={{ padding: '32px', textAlign: 'center', color: '#6b7280' }}>
+            <div style={{ padding: '32px', textAlign: 'center', color: colors.gray[500] }}>
               Ładowanie struktury...
             </div>
           )}
@@ -132,10 +133,10 @@ export function OrgTreePage() {
               style={{
                 padding: '16px',
                 margin: '12px',
-                backgroundColor: '#fef2f2',
-                border: '1px solid #fecaca',
+                backgroundColor: colors.danger[50],
+                border: `1px solid ${colors.danger[200]}`,
                 borderRadius: '8px',
-                color: '#991b1b',
+                color: colors.danger[800],
               }}
             >
               <p style={{ fontWeight: 600, marginBottom: '4px' }}>Błąd ładowania</p>
@@ -146,8 +147,8 @@ export function OrgTreePage() {
                   marginTop: '8px',
                   padding: '6px 12px',
                   fontSize: '13px',
-                  backgroundColor: '#ffffff',
-                  border: '1px solid #d1d5db',
+                  backgroundColor: colors.white,
+                  border: `1px solid ${colors.gray[300]}`,
                   borderRadius: '4px',
                   cursor: 'pointer',
                 }}
@@ -171,8 +172,8 @@ export function OrgTreePage() {
           <div
             style={{
               flex: mobile ? 'none' : '0 0 50%',
-              borderLeft: mobile ? 'none' : '1px solid #e5e7eb',
-              borderTop: mobile ? '1px solid #e5e7eb' : 'none',
+              borderLeft: mobile ? 'none' : `1px solid ${colors.gray[200]}`,
+              borderTop: mobile ? `1px solid ${colors.gray[200]}` : 'none',
               overflowY: 'auto',
               padding: mobile ? '16px' : '24px',
               backgroundColor: '#fafafa',
@@ -225,8 +226,8 @@ function UnitDetailPanel({
     <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <Building2 size={22} style={{ color: '#3b82f6' }} />
-          <h2 style={{ fontSize: '18px', fontWeight: 600, margin: 0, color: '#111827' }}>
+          <Building2 size={22} style={{ color: colors.primary[500] }} />
+          <h2 style={{ fontSize: '18px', fontWeight: 600, margin: 0, color: colors.gray[900] }}>
             {node.name}
           </h2>
         </div>
@@ -237,7 +238,7 @@ function UnitDetailPanel({
             style={{
               display: 'inline-flex', alignItems: 'center', gap: '4px',
               padding: '6px 12px', fontSize: '13px', fontWeight: 500,
-              color: '#fff', backgroundColor: '#3b82f6', border: 'none',
+              color: colors.white, backgroundColor: colors.primary[500], border: 'none',
               borderRadius: '4px', cursor: 'pointer',
             }}
           >
@@ -247,8 +248,8 @@ function UnitDetailPanel({
             onClick={() => onEdit(node)}
             title="Edytuj"
             style={{
-              padding: '6px 8px', background: 'none', border: '1px solid #d1d5db',
-              borderRadius: '4px', cursor: 'pointer', color: '#374151',
+              padding: '6px 8px', background: 'none', border: `1px solid ${colors.gray[300]}`,
+              borderRadius: '4px', cursor: 'pointer', color: colors.gray[700],
             }}
           >
             <Edit2 size={14} />
@@ -257,8 +258,8 @@ function UnitDetailPanel({
             onClick={() => onDelete(node)}
             title="Usuń"
             style={{
-              padding: '6px 8px', background: 'none', border: '1px solid #fecaca',
-              borderRadius: '4px', cursor: 'pointer', color: '#dc2626',
+              padding: '6px 8px', background: 'none', border: `1px solid ${colors.danger[200]}`,
+              borderRadius: '4px', cursor: 'pointer', color: colors.danger[600],
             }}
           >
             <Trash2 size={14} />
@@ -267,7 +268,7 @@ function UnitDetailPanel({
             onClick={onClose}
             style={{
               padding: '4px 10px', fontSize: '18px', background: 'none',
-              border: 'none', cursor: 'pointer', color: '#6b7280', borderRadius: '4px',
+              border: 'none', cursor: 'pointer', color: colors.gray[500], borderRadius: '4px',
             }}
             aria-label="Zamknij panel"
           >
@@ -278,8 +279,8 @@ function UnitDetailPanel({
 
       <div
         style={{
-          backgroundColor: '#ffffff',
-          border: '1px solid #e5e7eb',
+          backgroundColor: colors.white,
+          border: `1px solid ${colors.gray[200]}`,
           borderRadius: '8px',
           overflow: 'hidden',
         }}
@@ -291,20 +292,20 @@ function UnitDetailPanel({
         <DetailRow
           label="Status"
           value={node.isActive ? 'Aktywna' : 'Nieaktywna'}
-          valueColor={node.isActive ? '#059669' : '#dc2626'}
+          valueColor={node.isActive ? colors.emerald[600] : colors.danger[600]}
         />
         <DetailRow label="Podjednostki" value={String(node.children.length)} />
       </div>
 
       {node.children.length > 0 && (
         <div style={{ marginTop: '20px' }}>
-          <h3 style={{ fontSize: '14px', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>
+          <h3 style={{ fontSize: '14px', fontWeight: 600, color: colors.gray[700], marginBottom: '8px' }}>
             Podjednostki ({node.children.length})
           </h3>
           <div
             style={{
-              backgroundColor: '#ffffff',
-              border: '1px solid #e5e7eb',
+              backgroundColor: colors.white,
+              border: `1px solid ${colors.gray[200]}`,
               borderRadius: '8px',
               overflow: 'hidden',
             }}
@@ -321,8 +322,8 @@ function UnitDetailPanel({
                   fontSize: '14px',
                 }}
               >
-                <span style={{ color: '#111827' }}>{child.name}</span>
-                <span style={{ color: '#9ca3af', fontSize: '12px' }}>{child.typeName}</span>
+                <span style={{ color: colors.gray[900] }}>{child.name}</span>
+                <span style={{ color: colors.gray[400], fontSize: '12px' }}>{child.typeName}</span>
               </div>
             ))}
           </div>
@@ -350,10 +351,10 @@ function DetailRow({
         fontSize: '14px',
       }}
     >
-      <span style={{ width: '120px', flexShrink: 0, color: '#6b7280', fontWeight: 500 }}>
+      <span style={{ width: '120px', flexShrink: 0, color: colors.gray[500], fontWeight: 500 }}>
         {label}
       </span>
-      <span style={{ color: valueColor ?? '#111827', wordBreak: 'break-all' }}>{value}</span>
+      <span style={{ color: valueColor ?? colors.gray[900], wordBreak: 'break-all' }}>{value}</span>
     </div>
   );
 }
@@ -414,13 +415,13 @@ function OrgUnitFormModal({
           <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 600 }}>
             {isEditing ? 'Edytuj jednostkę' : parentId ? 'Dodaj podjednostkę' : 'Nowa jednostka'}
           </h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280' }}>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: colors.gray[500] }}>
             <X size={20} />
           </button>
         </div>
 
         {error && (
-          <div style={{ padding: '10px 14px', marginBottom: '12px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '6px', color: '#dc2626', fontSize: '13px' }}>
+          <div style={{ padding: '10px 14px', marginBottom: '12px', backgroundColor: colors.danger[50], border: `1px solid ${colors.danger[200]}`, borderRadius: '6px', color: colors.danger[600], fontSize: '13px' }}>
             {error.message}
           </div>
         )}
@@ -454,7 +455,7 @@ function OrgUnitFormModal({
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '20px' }}>
-            <button type="button" onClick={onClose} style={{ padding: '8px 16px', fontSize: '14px', border: '1px solid #d1d5db', borderRadius: '6px', backgroundColor: '#fff', cursor: 'pointer' }}>
+            <button type="button" onClick={onClose} style={{ padding: '8px 16px', fontSize: '14px', border: `1px solid ${colors.gray[300]}`, borderRadius: '6px', backgroundColor: colors.white, cursor: 'pointer' }}>
               Anuluj
             </button>
             <button
@@ -462,7 +463,7 @@ function OrgUnitFormModal({
               disabled={isPending || !name || !typeId}
               style={{
                 padding: '8px 20px', fontSize: '14px', fontWeight: 500,
-                color: '#fff', backgroundColor: '#3b82f6', border: 'none',
+                color: colors.white, backgroundColor: colors.primary[500], border: 'none',
                 borderRadius: '6px', cursor: isPending ? 'not-allowed' : 'pointer',
                 opacity: isPending ? 0.7 : 1,
               }}
@@ -477,10 +478,10 @@ function OrgUnitFormModal({
 }
 
 const labelStyle: React.CSSProperties = {
-  display: 'block', marginBottom: '4px', fontSize: '13px', fontWeight: 500, color: '#374151',
+  display: 'block', marginBottom: '4px', fontSize: '13px', fontWeight: 500, color: colors.gray[700],
 };
 
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '8px 12px', fontSize: '14px',
-  border: '1px solid #d1d5db', borderRadius: '6px', boxSizing: 'border-box',
+  border: `1px solid ${colors.gray[300]}`, borderRadius: '6px', boxSizing: 'border-box',
 };

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using System.Text.RegularExpressions;
 using Stripe;
 using WorkBase.Infrastructure.Persistence;
 using WorkBase.Infrastructure.Persistence.Entities;
@@ -14,6 +15,15 @@ namespace WorkBase.Host.Endpoints;
 
 public static class BrandingEndpoints
 {
+    // Closed set — avoids arbitrary font-family strings reaching CSS (e.g. url()/expression()
+    // injection) and keeps the self-hosted font bundle predictable.
+    private static readonly string[] AllowedFonts =
+    [
+        "Inter", "Roboto", "Open Sans", "Lato", "Poppins", "Nunito Sans",
+    ];
+
+    private static readonly Regex HexColorRegex = new("^#[0-9a-fA-F]{6}$", RegexOptions.Compiled);
+
     public static IEndpointRouteBuilder MapBrandingEndpoints(this IEndpointRouteBuilder endpoints)
     {
         var group = endpoints.MapGroup("/api/config/branding").WithTags("Branding").RequireAuthorization();
@@ -23,13 +33,23 @@ public static class BrandingEndpoints
             var tenantId = http.User.GetTenantId();
             if (tenantId is null) return Results.Forbid();
             var branding = await db.Set<TenantBranding>().FirstOrDefaultAsync(b => b.TenantId == tenantId.Value);
-            return branding is not null ? Results.Ok(branding) : Results.Ok(new { PrimaryColor = "#3b82f6", SecondaryColor = "#1e40af" });
+            return branding is not null ? Results.Ok(branding) : Results.Ok(new { PrimaryColor = "#3b82f6", SecondaryColor = "#1e40af", FontFamily = (string?)null });
         }).WithName("GetBranding").WithSummary("Pobierz branding tenanta");
 
         group.MapPut("/", async (UpdateBrandingRequest req, WorkBaseDbContext db, HttpContext http) =>
         {
             var tenantId = http.User.GetTenantId();
             if (tenantId is null) return Results.Forbid();
+
+            if (!HexColorRegex.IsMatch(req.PrimaryColor))
+                return Results.BadRequest(new { message = "Nieprawidłowy format koloru głównego (oczekiwano #RRGGBB)." });
+            if (!HexColorRegex.IsMatch(req.SecondaryColor))
+                return Results.BadRequest(new { message = "Nieprawidłowy format koloru drugorzędnego (oczekiwano #RRGGBB)." });
+            if (req.AccentColor is not null && !HexColorRegex.IsMatch(req.AccentColor))
+                return Results.BadRequest(new { message = "Nieprawidłowy format koloru akcentu (oczekiwano #RRGGBB)." });
+            if (req.FontFamily is not null && !AllowedFonts.Contains(req.FontFamily))
+                return Results.BadRequest(new { message = "Niedozwolona czcionka." });
+
             var branding = await db.Set<TenantBranding>().FirstOrDefaultAsync(b => b.TenantId == tenantId.Value);
             if (branding is null)
             {
@@ -43,9 +63,8 @@ public static class BrandingEndpoints
             branding.AccentColor = req.AccentColor;
             branding.AppName = req.AppName;
             branding.CustomDomain = req.CustomDomain;
-            branding.CustomCss = req.CustomCss;
+            branding.FontFamily = req.FontFamily;
             branding.LoginBackgroundUrl = req.LoginBackgroundUrl;
-            branding.FooterHtml = req.FooterHtml;
             branding.UpdatedAt = DateTime.UtcNow;
             await db.SaveChangesAsync();
             return Results.Ok(branding);
@@ -218,5 +237,5 @@ public static class BillingEndpoints
 }
 
 public sealed record UpdateBrandingRequest(string? LogoUrl, string? FaviconUrl, string PrimaryColor, string SecondaryColor,
-    string? AccentColor, string? AppName, string? CustomDomain, string? CustomCss, string? LoginBackgroundUrl, string? FooterHtml);
+    string? AccentColor, string? AppName, string? CustomDomain, string? FontFamily, string? LoginBackgroundUrl);
 public sealed record RegisterTenantRequest(string CompanyName, string AdminEmail, string AdminFullName, string? Phone, string PlanId);

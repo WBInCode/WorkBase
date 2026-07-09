@@ -16,7 +16,7 @@ public sealed class TenantBrandingConfiguration : IEntityTypeConfiguration<Tenan
         builder.Property(e => e.AccentColor).HasMaxLength(16);
         builder.Property(e => e.AppName).HasMaxLength(128);
         builder.Property(e => e.CustomDomain).HasMaxLength(256);
-        builder.Property(e => e.CustomCss).HasMaxLength(8192);
+        builder.Property(e => e.FontFamily).HasMaxLength(64);
         builder.HasIndex(e => e.TenantId).IsUnique();
         builder.HasIndex(e => e.CustomDomain).IsUnique().HasFilter("custom_domain IS NOT NULL");
     }

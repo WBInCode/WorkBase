@@ -21,6 +21,13 @@ public sealed class TenantConfigService(WorkBaseDbContext db) : ITenantConfigSer
         return value is not null ? JsonSerializer.Deserialize<T>(value) : null;
     }
 
+    public async Task<Dictionary<string, string>> GetAllAsync(Guid tenantId, string keyPrefix, CancellationToken cancellationToken = default)
+    {
+        return await db.Set<TenantConfig>()
+            .Where(c => c.TenantId == tenantId && c.Key.StartsWith(keyPrefix))
+            .ToDictionaryAsync(c => c.Key, c => c.Value, cancellationToken);
+    }
+
     public async Task SetAsync(Guid tenantId, string key, string value, CancellationToken cancellationToken = default)
     {
         var config = await db.Set<TenantConfig>()

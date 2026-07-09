@@ -87,3 +87,34 @@ export interface UpdateLeaveTypeRequest {
   color?: string;
   sortOrder: number;
 }
+
+export interface LeavePolicyDto {
+  id: string;
+  leaveTypeId: string;
+  name: string;
+  daysPerYear: number;
+  allowCarryOver: boolean;
+  maxCarryOverDays: number;
+  maxConsecutiveDays: number | null;
+  minNoticeDays: number | null;
+  isActive: boolean;
+}
+
+export interface CreateLeavePolicyRequest {
+  leaveTypeId: string;
+  name: string;
+  daysPerYear: number;
+  allowCarryOver: boolean;
+  maxCarryOverDays: number;
+  maxConsecutiveDays: number | null;
+  minNoticeDays: number;
+}
+
+export interface UpdateLeavePolicyRequest {
+  name: string;
+  daysPerYear: number;
+  allowCarryOver: boolean;
+  maxCarryOverDays: number;
+  maxConsecutiveDays: number | null;
+  minNoticeDays: number;
+}

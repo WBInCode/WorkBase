@@ -9,3 +9,28 @@ export interface NotificationDto {
   referenceType: string | null;
   referenceId: string | null;
 }
+
+export interface NotificationTemplateDto {
+  id: string;
+  code: string;
+  name: string;
+  titleTemplate: string;
+  bodyTemplate: string;
+  category: string;
+  isActive: boolean;
+}
+
+export interface CreateNotificationTemplateRequest {
+  code: string;
+  name: string;
+  titleTemplate: string;
+  bodyTemplate: string;
+  category: string;
+}
+
+export interface UpdateNotificationTemplateRequest {
+  name: string;
+  titleTemplate: string;
+  bodyTemplate: string;
+  category: string;
+}
