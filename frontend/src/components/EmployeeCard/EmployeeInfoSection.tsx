@@ -1,8 +1,8 @@
 import type { EmployeeDetailDto, EmployeeStatus } from '@/api/types/organization';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { useAuth } from 'react-oidc-context';
 import { useSetEmployeeHourlyRate, useDeactivateEmployee } from '@/api/hooks/useOrganization';
+import { useCurrentUser } from '@/api/hooks/useIam';
 import { UserMinus } from 'lucide-react';
 import { colors } from '@/theme/tokens';
 
@@ -24,9 +24,10 @@ interface Props {
 
 export function EmployeeInfoSection({ employee }: Props) {
   const navigate = useNavigate();
-  const auth = useAuth();
-  const roles = (auth.user?.profile?.['roles'] as string[] | undefined) ?? [];
-  const isAdmin = roles.some((r) => r === 'workbase-admin' || r === 'Admin' || r === 'Super Admin');
+  // isAdmin is sourced from the app's own Role/Permission data, not the Keycloak "roles" claim
+  // — see docs/AUDIT-KNOWLEDGE-MAP.md (role system consistency).
+  const { data: currentUser } = useCurrentUser();
+  const isAdmin = !!currentUser?.isAdmin;
   const setRate = useSetEmployeeHourlyRate();
   const deactivate = useDeactivateEmployee();
   const [editingRate, setEditingRate] = useState(false);
@@ -76,13 +77,19 @@ export function EmployeeInfoSection({ employee }: Props) {
         {employee.terminationDate && (
           <Field label="Data zakończenia" value={formatDate(employee.terminationDate)} />
         )}
-        {employee.supervisor && (
+        {employee.supervisor ? (
           <Field label="Przełożony">
             <span
               style={{ color: colors.primary[600], cursor: 'pointer', textDecoration: 'underline' }}
               onClick={() => navigate(`/org/employees/${employee.supervisor!.employeeId}`)}
             >
               {employee.supervisor.firstName} {employee.supervisor.lastName}
+            </span>
+          </Field>
+        ) : (
+          <Field label="Przełożony">
+            <span style={{ color: colors.warning[700], fontSize: '13px' }} title="Bez przełożonego pracownik nie będzie mógł składać wniosków wymagających akceptacji (np. urlopowych).">
+              Brak — wnioski o akceptację się nie powiodą
             </span>
           </Field>
         )}

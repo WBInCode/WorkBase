@@ -11,7 +11,21 @@ import type {
   FeatureFlagDto,
   LicensePlanSummaryDto,
   TenantSummaryDto,
+  CurrentUserDto,
 } from '@/api/types/iam';
+
+/**
+ * Current authenticated user's app-level context (permissions + isAdmin), sourced from the
+ * DB Role/Permission system — the single source of truth for admin UI gating. Prefer this
+ * over reading the Keycloak `roles` claim directly (see CurrentUserDto doc comment).
+ */
+export function useCurrentUser() {
+  return useQuery({
+    queryKey: ['auth', 'me'],
+    queryFn: () => api.get<CurrentUserDto>('/api/auth/me'),
+    staleTime: 5 * 60_000,
+  });
+}
 
 export function useRoles() {
   return useQuery({

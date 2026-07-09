@@ -1,6 +1,5 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from 'react-oidc-context';
 import { Search, Plus, RefreshCw, ChevronLeft, ChevronRight, User, X, ExternalLink, UserMinus } from 'lucide-react';
 import {
   useEmployees,
@@ -23,6 +22,7 @@ import { EmployeeForm } from '@/components/Employees/EmployeeForm';
 import { ApiError } from '@/api/client';
 import { useIsMobile } from '@/shared';
 import { colors } from '@/theme/tokens';
+import { useCurrentUser } from '@/api/hooks/useIam';
 
 const PAGE_SIZE = 20;
 
@@ -388,9 +388,10 @@ function EmployeeDetailPanel({
   const [showDeactivateConfirm, setShowDeactivateConfirm] = useState(false);
   const deactivate = useDeactivateEmployee();
   const mobile = useIsMobile();
-  const auth = useAuth();
-  const roles = (auth.user?.profile?.['roles'] as string[] | undefined) ?? [];
-  const isAdmin = roles.some((r) => r === 'workbase-admin' || r === 'Admin' || r === 'Super Admin');
+  // isAdmin is sourced from the app's own Role/Permission data, not the Keycloak "roles" claim
+  // — see docs/AUDIT-KNOWLEDGE-MAP.md (role system consistency).
+  const { data: currentUser } = useCurrentUser();
+  const isAdmin = !!currentUser?.isAdmin;
   return (
     <aside
       style={{
@@ -475,9 +476,15 @@ function EmployeeDetailPanel({
           )}
 
           {/* Supervisor */}
-          {detail.supervisor && (
+          {detail.supervisor ? (
             <DetailField label="Przełożony">
               {detail.supervisor.firstName} {detail.supervisor.lastName}
+            </DetailField>
+          ) : (
+            <DetailField label="Przełożony">
+              <span style={{ color: colors.warning[700], fontSize: '13px' }} title="Bez przełożonego pracownik nie będzie mógł składać wniosków wymagających akceptacji.">
+                Brak
+              </span>
             </DetailField>
           )}
 

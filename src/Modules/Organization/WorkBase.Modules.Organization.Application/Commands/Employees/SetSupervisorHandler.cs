@@ -25,6 +25,23 @@ public sealed class SetSupervisorHandler(
         if (!await employeeRepository.ExistsAsync(request.SupervisorEmployeeId, cancellationToken))
             return Result.Failure(Error.NotFound("Supervisor.NotFound", "Supervisor employee not found."));
 
+        // Walk up the proposed supervisor's own chain of supervisors: if it ever reaches back
+        // to the employee being assigned, setting this supervisor would create a cycle
+        // (e.g. A supervises B supervises A), which would break any code that walks the chain
+        // (org chart rendering, future multi-level escalation) — see
+        // docs/AUDIT-KNOWLEDGE-MAP.md (team/role/employee consistency).
+        var currentId = request.SupervisorEmployeeId;
+        for (var depth = 0; depth < 50; depth++)
+        {
+            if (currentId == request.EmployeeId)
+                return Result.Failure(Error.Validation("Supervisor.CircularReference",
+                    "Ta zmiana utworzyłaby cykl w hierarchii przełożonych."));
+
+            var ancestorRelation = await supervisorRepository.GetActiveBySubordinateAsync(currentId, cancellationToken);
+            if (ancestorRelation is null) break;
+            currentId = ancestorRelation.SupervisorEmployeeId;
+        }
+
         var currentRelation = await supervisorRepository.GetActiveBySubordinateAsync(request.EmployeeId, cancellationToken);
         if (currentRelation is not null)
         {
