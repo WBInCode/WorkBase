@@ -48,7 +48,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             gap: '12px',
             padding: '32px',
             margin: '16px',
-            borderRadius: '8px',
+            borderRadius: '12px',
             backgroundColor: colors.danger[50],
             border: `1px solid ${colors.danger[200]}`,
             textAlign: 'center',
@@ -73,7 +73,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               color: colors.white,
               backgroundColor: colors.danger[600],
               border: 'none',
-              borderRadius: '6px',
+              borderRadius: '10px',
               cursor: 'pointer',
             }}
           >

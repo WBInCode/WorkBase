@@ -54,9 +54,9 @@ export function KioskQrDisplay({ locationId, ttlSeconds = 25 }: KioskQrDisplayPr
           onClick={refresh}
           style={{
             padding: '10px 24px',
-            borderRadius: '8px',
+            borderRadius: '12px',
             border: 'none',
-            backgroundColor: '#6366f1',
+            backgroundColor: '#3d6df2',
             color: colors.white,
             fontSize: '14px',
             cursor: 'pointer',
@@ -80,7 +80,7 @@ export function KioskQrDisplay({ locationId, ttlSeconds = 25 }: KioskQrDisplayPr
         padding: '20px',
         backgroundColor: colors.white,
         borderRadius: '20px',
-        boxShadow: '0 4px 24px rgba(99,102,241,0.15)',
+        boxShadow: '0 4px 24px rgba(61,109,242,0.15)',
         position: 'relative',
       }}>
         <QRCodeSVG
@@ -101,7 +101,7 @@ export function KioskQrDisplay({ locationId, ttlSeconds = 25 }: KioskQrDisplayPr
           <circle
             cx="20" cy="20" r="16"
             fill="none"
-            stroke={progress > 0.3 ? '#6366f1' : colors.danger[500]}
+            stroke={progress > 0.3 ? '#3d6df2' : colors.danger[500]}
             strokeWidth="3"
             strokeDasharray={`${progress * 100.5} 100.5`}
             strokeLinecap="round"

@@ -10,7 +10,7 @@ const DEFAULT_COLORS: Record<string, string> = {
   ANNUAL: colors.primary[500],
   ON_DEMAND: colors.warning[500],
   SICK: colors.danger[500],
-  CHILDCARE: '#8b5cf6',
+  CHILDCARE: '#2b55d4',
 };
 
 function getColor(balance: LeaveBalanceDto): string {

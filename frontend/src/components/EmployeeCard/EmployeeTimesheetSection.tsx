@@ -392,8 +392,8 @@ export function EmployeeTimesheetSection({ timeStatus, timesheet, isLoading, emp
         >
           <div
             style={{
-              backgroundColor: colors.white, borderRadius: '12px', padding: '24px',
-              width: '400px', maxWidth: '90vw', boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
+              backgroundColor: colors.white, borderRadius: '16px', padding: '24px',
+              width: '400px', maxWidth: '90vw', boxShadow: '0 24px 64px -12px rgba(20,25,43,0.28), 0 0 0 1px rgba(20,25,43,0.04)',
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -465,7 +465,7 @@ export function EmployeeTimesheetSection({ timeStatus, timesheet, isLoading, emp
             </div>
 
             {(createEntry.error || updateEntry.error) && (
-              <div style={{ marginTop: '12px', padding: '8px 12px', backgroundColor: colors.danger[50], border: `1px solid ${colors.danger[200]}`, borderRadius: '6px', color: colors.danger[600], fontSize: '13px' }}>
+              <div style={{ marginTop: '12px', padding: '8px 12px', backgroundColor: colors.danger[50], border: `1px solid ${colors.danger[200]}`, borderRadius: '10px', color: colors.danger[600], fontSize: '13px' }}>
                 {(createEntry.error as Error)?.message || (updateEntry.error as Error)?.message || 'Wystąpił błąd'}
               </div>
             )}
@@ -476,7 +476,7 @@ export function EmployeeTimesheetSection({ timeStatus, timesheet, isLoading, emp
                 style={{
                   padding: '8px 16px', fontSize: '13px', fontWeight: typography.fontWeight.medium,
                   color: colors.gray[700], backgroundColor: colors.white,
-                  border: `1px solid ${colors.gray[300]}`, borderRadius: '8px', cursor: 'pointer',
+                  border: `1px solid ${colors.gray[300]}`, borderRadius: '12px', cursor: 'pointer',
                 }}
               >
                 Anuluj
@@ -487,7 +487,7 @@ export function EmployeeTimesheetSection({ timeStatus, timesheet, isLoading, emp
                 style={{
                   padding: '8px 16px', fontSize: '13px', fontWeight: typography.fontWeight.semibold,
                   color: colors.white, backgroundColor: colors.primary[500],
-                  border: 'none', borderRadius: '8px', cursor: 'pointer',
+                  border: 'none', borderRadius: '12px', cursor: 'pointer',
                   opacity: (createEntry.isPending || updateEntry.isPending) ? 0.6 : 1,
                 }}
               >
@@ -503,7 +503,7 @@ export function EmployeeTimesheetSection({ timeStatus, timesheet, isLoading, emp
 
 function StatBox({ label, value }: { label: string; value: string }) {
   return (
-    <div style={{ padding: '10px 12px', backgroundColor: colors.gray[50], borderRadius: '8px', textAlign: 'center' }}>
+    <div style={{ padding: '10px 12px', backgroundColor: colors.gray[50], borderRadius: '12px', textAlign: 'center' }}>
       <div style={{ fontSize: typography.fontSize.sm, color: colors.gray[400], marginBottom: '2px' }}>{label}</div>
       <div style={{ fontSize: typography.fontSize.md, fontWeight: typography.fontWeight.bold, color: colors.gray[900] }}>{value}</div>
     </div>
@@ -517,7 +517,7 @@ function formatDate(iso: string): string {
 const cardStyle: React.CSSProperties = {
   padding: '20px',
   border: `1px solid ${colors.gray[200]}`,
-  borderRadius: '12px',
+  borderRadius: '16px',
   backgroundColor: colors.white,
 };
 
@@ -543,7 +543,7 @@ const tdStyle: React.CSSProperties = {
 const iconBtnStyle: React.CSSProperties = {
   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
   width: '28px', height: '28px', border: `1px solid ${colors.gray[200]}`,
-  borderRadius: '6px', backgroundColor: colors.white, cursor: 'pointer', color: colors.primary[500],
+  borderRadius: '10px', backgroundColor: colors.white, cursor: 'pointer', color: colors.primary[500],
 };
 
 const iconBtnSmStyle: React.CSSProperties = {
@@ -559,7 +559,7 @@ const labelStyle: React.CSSProperties = {
 
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '8px 12px', fontSize: typography.fontSize.base,
-  border: `1px solid ${colors.gray[300]}`, borderRadius: '8px',
+  border: `1px solid ${colors.gray[300]}`, borderRadius: '12px',
   color: colors.gray[900], backgroundColor: colors.white,
   boxSizing: 'border-box',
 };
@@ -567,19 +567,19 @@ const inputStyle: React.CSSProperties = {
 const navBtnStyle: React.CSSProperties = {
   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
   width: '32px', height: '32px', border: `1px solid ${colors.gray[300]}`,
-  borderRadius: '6px', backgroundColor: colors.white, cursor: 'pointer', color: colors.gray[700],
+  borderRadius: '10px', backgroundColor: colors.white, cursor: 'pointer', color: colors.gray[700],
   padding: 0, flexShrink: 0,
 };
 
 const dateInputStyle: React.CSSProperties = {
   padding: '6px 10px', fontSize: '13px',
-  border: `1px solid ${colors.gray[300]}`, borderRadius: '6px',
+  border: `1px solid ${colors.gray[300]}`, borderRadius: '10px',
   color: colors.gray[900], backgroundColor: colors.white,
 };
 
 const presetBtnStyle: React.CSSProperties = {
   padding: '6px 12px', fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium,
   color: colors.primary[500], backgroundColor: colors.primary[50],
-  border: `1px solid ${colors.primary[200]}`, borderRadius: '6px', cursor: 'pointer',
+  border: `1px solid ${colors.primary[200]}`, borderRadius: '10px', cursor: 'pointer',
   whiteSpace: 'nowrap',
 };

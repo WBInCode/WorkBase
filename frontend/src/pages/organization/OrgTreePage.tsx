@@ -61,9 +61,14 @@ export function OrgTreePage() {
           borderBottom: `1px solid ${colors.gray[200]}`,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <FolderTree size={24} style={{ color: colors.primary[500] }} />
-          <h1 style={{ fontSize: '20px', fontWeight: 600, margin: 0, color: colors.gray[900] }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <span style={{
+            width: 40, height: 40, borderRadius: 12, backgroundColor: colors.primary[100], color: colors.primary[600],
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+          }}>
+            <FolderTree size={19} />
+          </span>
+          <h1 style={{ fontSize: '20px', fontWeight: 800, letterSpacing: '-0.02em', margin: 0, color: colors.gray[900] }}>
             Struktura organizacyjna
           </h1>
         </div>
@@ -77,17 +82,18 @@ export function OrgTreePage() {
               alignItems: 'center',
               gap: '6px',
               padding: '8px 16px',
-              fontSize: '14px',
-              fontWeight: 500,
+              fontSize: '13px',
+              fontWeight: 600,
+              fontFamily: 'inherit',
               color: colors.gray[700],
               backgroundColor: colors.white,
               border: `1px solid ${colors.gray[300]}`,
-              borderRadius: '6px',
+              borderRadius: '999px',
               cursor: isLoading ? 'not-allowed' : 'pointer',
               opacity: isLoading ? 0.6 : 1,
             }}
           >
-            <RefreshCw size={16} style={{ animation: isLoading ? 'spin 1s linear infinite' : 'none' }} />
+            <RefreshCw size={15} style={{ animation: isLoading ? 'spin 1s linear infinite' : 'none' }} />
             Odśwież
           </button>
           <button
@@ -96,17 +102,19 @@ export function OrgTreePage() {
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
-              padding: '8px 16px',
-              fontSize: '14px',
-              fontWeight: 500,
+              padding: '8px 18px',
+              fontSize: '13px',
+              fontWeight: 700,
+              fontFamily: 'inherit',
               color: colors.white,
               backgroundColor: colors.primary[500],
               border: 'none',
-              borderRadius: '6px',
+              borderRadius: '999px',
               cursor: 'pointer',
+              boxShadow: '0 6px 14px -4px rgba(61,109,242,0.45)',
             }}
           >
-            <Plus size={16} /> Dodaj jednostkę
+            <Plus size={15} /> Dodaj jednostkę
           </button>
         </div>
       </div>
@@ -135,7 +143,7 @@ export function OrgTreePage() {
                 margin: '12px',
                 backgroundColor: colors.danger[50],
                 border: `1px solid ${colors.danger[200]}`,
-                borderRadius: '8px',
+                borderRadius: '12px',
                 color: colors.danger[800],
               }}
             >
@@ -198,13 +206,6 @@ export function OrgTreePage() {
           onClose={handleFormClose}
         />
       )}
-
-      <style>{`
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
     </div>
   );
 }
@@ -281,7 +282,7 @@ function UnitDetailPanel({
         style={{
           backgroundColor: colors.white,
           border: `1px solid ${colors.gray[200]}`,
-          borderRadius: '8px',
+          borderRadius: '12px',
           overflow: 'hidden',
         }}
       >
@@ -306,7 +307,7 @@ function UnitDetailPanel({
             style={{
               backgroundColor: colors.white,
               border: `1px solid ${colors.gray[200]}`,
-              borderRadius: '8px',
+              borderRadius: '12px',
               overflow: 'hidden',
             }}
           >
@@ -400,15 +401,15 @@ function OrgUnitFormModal({
   return (
     <div
       style={{
-        position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)',
+        position: 'fixed', inset: 0, backgroundColor: 'rgba(20,25,43,0.45)', backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)', animation: 'wb-backdrop-in 0.18s ease both',
         display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
       }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
         style={{
-          backgroundColor: '#fff', borderRadius: '12px', padding: '24px',
-          width: '100%', maxWidth: '480px', boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
+          backgroundColor: 'var(--wb-panel, #fff)', borderRadius: '16px', padding: '24px',
+          width: '100%', maxWidth: '480px', boxShadow: '0 24px 64px -12px rgba(20,25,43,0.28), 0 0 0 1px rgba(20,25,43,0.04)',
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
@@ -421,7 +422,7 @@ function OrgUnitFormModal({
         </div>
 
         {error && (
-          <div style={{ padding: '10px 14px', marginBottom: '12px', backgroundColor: colors.danger[50], border: `1px solid ${colors.danger[200]}`, borderRadius: '6px', color: colors.danger[600], fontSize: '13px' }}>
+          <div style={{ padding: '10px 14px', marginBottom: '12px', backgroundColor: colors.danger[50], border: `1px solid ${colors.danger[200]}`, borderRadius: '10px', color: colors.danger[600], fontSize: '13px' }}>
             {error.message}
           </div>
         )}
@@ -455,7 +456,7 @@ function OrgUnitFormModal({
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '20px' }}>
-            <button type="button" onClick={onClose} style={{ padding: '8px 16px', fontSize: '14px', border: `1px solid ${colors.gray[300]}`, borderRadius: '6px', backgroundColor: colors.white, cursor: 'pointer' }}>
+            <button type="button" onClick={onClose} style={{ padding: '8px 16px', fontSize: '14px', border: `1px solid ${colors.gray[300]}`, borderRadius: '10px', backgroundColor: colors.white, cursor: 'pointer' }}>
               Anuluj
             </button>
             <button
@@ -464,7 +465,7 @@ function OrgUnitFormModal({
               style={{
                 padding: '8px 20px', fontSize: '14px', fontWeight: 500,
                 color: colors.white, backgroundColor: colors.primary[500], border: 'none',
-                borderRadius: '6px', cursor: isPending ? 'not-allowed' : 'pointer',
+                borderRadius: '10px', cursor: isPending ? 'not-allowed' : 'pointer',
                 opacity: isPending ? 0.7 : 1,
               }}
             >
@@ -483,5 +484,5 @@ const labelStyle: React.CSSProperties = {
 
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '8px 12px', fontSize: '14px',
-  border: `1px solid ${colors.gray[300]}`, borderRadius: '6px', boxSizing: 'border-box',
+  border: `1px solid ${colors.gray[300]}`, borderRadius: '10px', boxSizing: 'border-box',
 };

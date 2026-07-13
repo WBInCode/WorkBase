@@ -47,6 +47,10 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddHttpClient();
         services.AddScoped<IKeycloakAdminService, KeycloakAdminService>();
 
+        // Integracja z Hubem ekosystemu (wb-platform) — opcjonalna (Hub:Enabled).
+        // Singleton: bezstanowy, sam tworzy scope na DbContext przy synchronizacji.
+        services.AddSingleton<HubPlatform.HubEntitlementsSyncService>();
+
         services.AddScoped<ICurrentTenantService, HttpContextTenantService>();
         services.AddScoped<IDataScopeService, DataScopeService>();
         services.AddScoped<ITenantConfigService, Services.TenantConfigService>();

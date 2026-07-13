@@ -84,15 +84,23 @@ export function TaskCardPage() {
   };
 
   return (
-    <div style={{ padding: mobile ? '16px' : '24px', maxWidth: '900px' }}>
+    <div style={{ padding: mobile ? '14px' : '24px 28px', maxWidth: '1000px', margin: '0 auto' }}>
       {/* Back */}
       <button onClick={() => navigate(-1)} style={backBtnStyle}>
         <ArrowLeft size={16} /> Powrót
       </button>
 
-      {/* Header */}
-      <div style={{ marginTop: '16px', marginBottom: '24px' }}>
-        <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 700, color: colors.gray[900] }}>
+      {/* ── Karta dowodzenia: tytuł zadania ── */}
+      <div style={{
+        marginTop: '14px',
+        marginBottom: '18px',
+        backgroundColor: colors.white,
+        border: `1px solid ${colors.gray[200]}`,
+        borderRadius: '20px',
+        boxShadow: '0 1px 2px rgba(20,25,43,0.04), 0 10px 30px -12px rgba(20,25,43,0.10), inset 0 1px 0 var(--wb-card-hl, rgba(255,255,255,0.9))',
+        padding: mobile ? '16px' : '18px 22px',
+      }}>
+        <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, letterSpacing: '-0.02em', color: colors.gray[900] }}>
           {task.title}
         </h1>
         {task.description && (
@@ -181,7 +189,7 @@ export function TaskCardPage() {
               display: 'inline-flex', alignItems: 'center', gap: '6px',
               padding: '6px 12px', fontSize: '13px', fontWeight: 500,
               color: colors.primary[600], backgroundColor: colors.primary[50], border: `1px solid ${colors.primary[200]}`,
-              borderRadius: '6px', cursor: 'pointer',
+              borderRadius: '10px', cursor: 'pointer',
             }}
           >
             <Upload size={14} />
@@ -202,7 +210,7 @@ export function TaskCardPage() {
         {attachments.length === 0 ? (
           <div style={{
             padding: '20px', textAlign: 'center', color: colors.gray[400], fontSize: '14px',
-            backgroundColor: colors.gray[50], borderRadius: '8px', border: `1px dashed ${colors.gray[300]}`,
+            backgroundColor: colors.gray[50], borderRadius: '12px', border: `1px dashed ${colors.gray[300]}`,
           }}>
             Brak załączników.
           </div>
@@ -211,7 +219,7 @@ export function TaskCardPage() {
             {attachments.map((a) => (
               <div key={a.id} style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '10px 14px', backgroundColor: colors.gray[50], borderRadius: '8px',
+                padding: '10px 14px', backgroundColor: colors.gray[50], borderRadius: '12px',
                 border: `1px solid ${colors.gray[200]}`,
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
@@ -248,7 +256,7 @@ export function TaskCardPage() {
         {comments.length === 0 ? (
           <div style={{
             padding: '20px', textAlign: 'center', color: colors.gray[400], fontSize: '14px',
-            backgroundColor: colors.gray[50], borderRadius: '8px', border: `1px dashed ${colors.gray[300]}`,
+            backgroundColor: colors.gray[50], borderRadius: '12px', border: `1px dashed ${colors.gray[300]}`,
             marginBottom: '12px',
           }}>
             Brak komentarzy.
@@ -257,7 +265,7 @@ export function TaskCardPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '12px' }}>
             {comments.map((c) => (
               <div key={c.id} style={{
-                padding: '12px 16px', backgroundColor: colors.gray[50], borderRadius: '8px',
+                padding: '12px 16px', backgroundColor: colors.gray[50], borderRadius: '12px',
                 border: `1px solid ${colors.gray[200]}`,
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
@@ -285,7 +293,7 @@ export function TaskCardPage() {
             onKeyDown={(e) => { if (e.key === 'Enter') handleAddComment(); }}
             style={{
               flex: 1, padding: '8px 12px', fontSize: '14px',
-              border: `1px solid ${colors.gray[300]}`, borderRadius: '6px',
+              border: `1px solid ${colors.gray[300]}`, borderRadius: '10px',
             }}
           />
           <button
@@ -295,7 +303,7 @@ export function TaskCardPage() {
               display: 'inline-flex', alignItems: 'center', gap: '6px',
               padding: '8px 16px', fontSize: '14px', fontWeight: 500,
               color: colors.white, backgroundColor: colors.primary[600], border: 'none',
-              borderRadius: '6px', cursor: 'pointer',
+              borderRadius: '999px', cursor: 'pointer', boxShadow: '0 6px 14px -4px rgba(61,109,242,0.45)',
             }}
           >
             <Send size={14} />
@@ -309,7 +317,7 @@ export function TaskCardPage() {
 function InfoCard({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div style={{
-      padding: '12px 16px', backgroundColor: colors.gray[50], borderRadius: '8px',
+      padding: '12px 16px', backgroundColor: colors.gray[50], borderRadius: '12px',
       border: `1px solid ${colors.gray[200]}`,
     }}>
       <div style={{ fontSize: '11px', fontWeight: 600, color: colors.gray[400], textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
@@ -335,19 +343,19 @@ const backBtnStyle: React.CSSProperties = {
   display: 'inline-flex', alignItems: 'center', gap: '6px',
   padding: '6px 12px', fontSize: '14px', color: colors.gray[700],
   backgroundColor: 'transparent', border: `1px solid ${colors.gray[300]}`,
-  borderRadius: '6px', cursor: 'pointer',
+  borderRadius: '10px', cursor: 'pointer',
 };
 const selectStyle: React.CSSProperties = {
   padding: '7px 12px', fontSize: '14px', border: `1px solid ${colors.gray[300]}`,
-  borderRadius: '6px', backgroundColor: colors.white, cursor: 'pointer', flex: 1,
+  borderRadius: '10px', backgroundColor: colors.white, cursor: 'pointer', flex: 1,
 };
 const actionCardStyle: React.CSSProperties = {
   flex: '1 1 200px', padding: '12px 16px', backgroundColor: colors.white,
-  borderRadius: '8px', border: `1px solid ${colors.gray[200]}`,
+  borderRadius: '12px', border: `1px solid ${colors.gray[200]}`,
 };
 const actionBtnStyle: React.CSSProperties = {
   padding: '7px 14px', fontSize: '14px', fontWeight: 500, color: colors.white,
-  backgroundColor: colors.primary[600], border: 'none', borderRadius: '6px', cursor: 'pointer',
+  backgroundColor: colors.primary[600], border: 'none', borderRadius: '10px', cursor: 'pointer',
 };
 const errorStyle: React.CSSProperties = {
   marginTop: '6px', fontSize: '12px', color: colors.danger[600],

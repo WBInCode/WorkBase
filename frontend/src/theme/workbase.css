@@ -1,0 +1,558 @@
+/* ═══════════════════════════════════════════════════════════
+   WorkBase Design System — light claymorphism
+   Canvas pastelowy + białe "gliniane" karty + iris blue.
+   Kolory komponentów płyną z theme/tokens.ts (inline styles);
+   ten plik daje: fundament typograficzny, scrollbary, focus,
+   keyframes oraz klasy layoutu (rail / topbar / nav / tabbar).
+   ═══════════════════════════════════════════════════════════ */
+
+:root {
+  --wb-canvas: #eef1f8;
+  --wb-panel: #ffffff;
+  --wb-ink: #14192b;
+  --wb-ink-2: #6b7490;
+  --wb-line: #e3e7f1;
+  --wb-iris: #3d6df2;
+  --wb-iris-2: #2b55d4;
+  --wb-iris-soft: #e5ecfe;
+  --wb-card-hl: rgba(255, 255, 255, 0.9);
+  --wb-shadow-clay:
+    0 1px 2px rgba(20, 25, 43, 0.04),
+    0 10px 30px -12px rgba(20, 25, 43, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --wb-shadow-pop:
+    0 12px 32px -8px rgba(20, 25, 43, 0.18),
+    0 0 0 1px rgba(20, 25, 43, 0.04);
+  --wb-font: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --wb-mono: 'Spline Sans Mono', ui-monospace, 'Cascadia Code', Consolas, monospace;
+  --wb-bg-grad-1: rgba(61, 109, 242, 0.07);
+  --wb-bg-grad-2: rgba(139, 92, 246, 0.05);
+  color-scheme: light;
+}
+
+/* ═══ CIEMNY MOTYW ═══════════════════════════════════════════
+   Nadpisuje zmienne konsumowane przez tokens.ts (inline styles
+   w komponentach rozwiązują var() dynamicznie — zero zmian w TSX).
+   Skala szarości ODWRÓCONA: g-900 (tekst główny) = najjaśniejszy. */
+
+html[data-theme='dark'] {
+  --wb-canvas: #0e1220;
+  --wb-panel: #1a2033;
+  --wb-ink: #f0f3fa;
+  --wb-ink-2: #96a0bd;
+  --wb-line: #2a3149;
+  --wb-iris: #5b82f5;
+  --wb-iris-2: #7d9bf8;
+  --wb-iris-soft: #232c4d;
+  --wb-card-hl: rgba(255, 255, 255, 0.05);
+  --wb-shadow-clay:
+    0 1px 2px rgba(0, 0, 0, 0.25),
+    0 10px 30px -12px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --wb-shadow-pop:
+    0 12px 32px -8px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.06);
+  --wb-bg-grad-1: rgba(61, 109, 242, 0.09);
+  --wb-bg-grad-2: rgba(139, 92, 246, 0.06);
+  --wb-ico-bg: rgba(255, 255, 255, 0.06);
+  --wb-topbar-bg: rgba(26, 32, 51, 0.78);
+  color-scheme: dark;
+
+  /* Powierzchnia (colors.white w tokens) */
+  --wb-surface: #1a2033;
+
+  /* Szarości — odwrócona skala */
+  --wb-g-50: #1e2437;
+  --wb-g-100: #232941;
+  --wb-g-200: #2b324c;
+  --wb-g-300: #3a4260;
+  --wb-g-400: #7d87a6;
+  --wb-g-500: #96a0bd;
+  --wb-g-600: #b4bdd6;
+  --wb-g-700: #cfd6e8;
+  --wb-g-800: #e2e7f3;
+  --wb-g-900: #f0f3fa;
+
+  /* Iris — tonalne tła ciemne, teksty jaśniejsze, przyciski zostają mocne */
+  --wb-p-50: #1d2542;
+  --wb-p-100: #232c4d;
+  --wb-p-200: #2d3960;
+  --wb-p-300: #3d4f86;
+  --wb-p-400: #5b82f5;
+  --wb-p-500: #4a75f3;
+  --wb-p-600: #3d6df2;
+  --wb-p-700: #8aa5f8;
+  --wb-p-800: #aec1fa;
+  --wb-p-900: #c9d6fc;
+
+  /* Semantyczne — tonalne tła ciemne, akcenty rozjaśnione */
+  --wb-suc-50: #12271c;
+  --wb-suc-100: #173323;
+  --wb-suc-200: #1e4530;
+  --wb-suc-500: #34d17a;
+  --wb-suc-600: #3fd985;
+  --wb-suc-700: #6ee7a8;
+  --wb-suc-800: #a3f0c8;
+
+  --wb-war-50: #2b2312;
+  --wb-war-100: #372c14;
+  --wb-war-200: #4a3b1a;
+  --wb-war-500: #f6ad2f;
+  --wb-war-600: #f8ba4e;
+  --wb-war-700: #fbcd7c;
+  --wb-war-800: #fde0ab;
+
+  --wb-dan-50: #2e1717;
+  --wb-dan-100: #3b1c1c;
+  --wb-dan-200: #512525;
+  --wb-dan-400: #f87171;
+  --wb-dan-500: #f16060;
+  --wb-dan-600: #f47777;
+  --wb-dan-700: #f89b9b;
+  --wb-dan-800: #fbbcbc;
+
+  --wb-inf-50: #16233c;
+  --wb-inf-100: #1b2c4c;
+  --wb-inf-500: #5ea0f8;
+  --wb-inf-600: #79b0f9;
+
+  --wb-eme-600: #2dd4a0;
+}
+
+/* ── Fundament ─────────────────────────────────────────── */
+
+html {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  background:
+    radial-gradient(1100px 500px at 85% -10%, var(--wb-bg-grad-1), transparent 60%),
+    radial-gradient(900px 480px at -10% 100%, var(--wb-bg-grad-2), transparent 55%),
+    var(--wb-canvas);
+  color: var(--wb-ink);
+  font-family: var(--wb-font, system-ui, sans-serif);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  transition: background 0.25s ease, color 0.25s ease;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+input,
+select,
+textarea,
+button {
+  font-family: inherit;
+}
+
+::selection {
+  background: var(--wb-iris-soft);
+  color: var(--wb-iris-2);
+}
+
+:focus-visible {
+  outline: 2px solid var(--wb-iris);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Tabular numbers dla danych czasowych */
+.wb-tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Scrollbary ────────────────────────────────────────── */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(107, 116, 144, 0.28) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(107, 116, 144, 0.28);
+  border-radius: 8px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 116, 144, 0.5);
+}
+
+.wb-nav-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(61, 109, 242, 0.25) transparent;
+}
+
+.wb-nav-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.wb-nav-scroll::-webkit-scrollbar-thumb {
+  background: rgba(61, 109, 242, 0.25);
+}
+
+/* ── Keyframes (globalne — komponenty używają tych nazw) ── */
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes wb-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+@keyframes wb-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.35); }
+  70% { box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+@keyframes wb-fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(24px) scale(0.98); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+@keyframes wb-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes wb-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Wejście modala: delikatny scale + rise */
+@keyframes wb-modal-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Wejście backdropu */
+@keyframes wb-backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Pasek postępu toasta (skala X 1→0 przez czas trwania) */
+@keyframes wb-toast-run {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}
+
+/* Podniesienie treści strony przy wejściu */
+.wb-page-enter {
+  animation: wb-rise 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wb-page-enter,
+  .wb-rail,
+  .wb-nav-item,
+  .wb-tab {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ── Spinner ───────────────────────────────────────────── */
+
+.wb-spinner {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2.5px solid var(--wb-iris-soft);
+  border-top-color: var(--wb-iris);
+  animation: spin 0.7s linear infinite;
+}
+
+/* ── Layout: pływający rail (sidebar) ──────────────────── */
+
+.wb-shell {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.wb-rail {
+  display: flex;
+  flex-direction: column;
+  background: var(--wb-panel);
+  border-radius: 20px;
+  box-shadow: var(--wb-shadow-clay);
+  border: 1px solid var(--wb-line);
+  overflow: hidden;
+  flex-shrink: 0;
+  transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1), margin 0.28s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease, background 0.25s ease;
+}
+
+.wb-rail-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 16px 12px;
+}
+
+.wb-rail-foot {
+  padding: 12px;
+  border-top: 1px solid var(--wb-line);
+  background: linear-gradient(180deg, transparent, var(--wb-canvas));
+}
+
+/* ── Nawigacja ─────────────────────────────────────────── */
+
+.wb-nav-sec {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 10px 6px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--wb-ink-2);
+  white-space: nowrap;
+  border-radius: 8px;
+  transition: color 0.15s ease;
+}
+
+.wb-nav-sec:hover {
+  color: var(--wb-iris);
+}
+
+.wb-nav-sec .wb-sec-chev {
+  transition: transform 0.2s ease;
+  opacity: 0.7;
+}
+
+.wb-nav-sec.is-closed .wb-sec-chev {
+  transform: rotate(-90deg);
+}
+
+.wb-nav-group {
+  overflow: hidden;
+}
+
+.wb-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 9px;
+  border-radius: 10px;
+  color: var(--wb-g-600, #4c5570);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  position: relative;
+  margin-bottom: 2px;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+.wb-nav-item:hover {
+  background: rgba(61, 109, 242, 0.07);
+  color: var(--wb-ink);
+}
+
+.wb-nav-item:active {
+  transform: scale(0.985);
+}
+
+.wb-nav-item.is-active {
+  background: var(--wb-iris-soft);
+  color: var(--wb-iris-2);
+  font-weight: 700;
+}
+
+.wb-nav-ico {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: var(--wb-ico-bg, rgba(20, 25, 43, 0.04));
+  color: var(--wb-ink-2);
+  flex-shrink: 0;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.wb-nav-item:hover .wb-nav-ico {
+  color: var(--wb-iris);
+}
+
+.wb-nav-item.is-active .wb-nav-ico {
+  background: var(--wb-iris);
+  color: #fff;
+  box-shadow: 0 4px 10px -3px rgba(61, 109, 242, 0.55);
+}
+
+/* ── Topbar ────────────────────────────────────────────── */
+
+.wb-topbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 16px 0;
+  padding: 8px 12px;
+  background: var(--wb-topbar-bg, rgba(255, 255, 255, 0.78));
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--wb-line);
+  border-radius: 16px;
+  box-shadow: 0 1px 2px rgba(20, 25, 43, 0.03), 0 8px 24px -16px rgba(20, 25, 43, 0.12);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 30;
+  transition: background 0.25s ease;
+}
+
+.wb-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: var(--wb-ink-2);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+}
+
+.wb-icon-btn:hover {
+  background: rgba(61, 109, 242, 0.08);
+  color: var(--wb-iris-2);
+}
+
+.wb-icon-btn:active {
+  transform: scale(0.94);
+}
+
+.wb-topbar-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--wb-ink);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wb-clock-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--wb-ico-bg, rgba(20, 25, 43, 0.04));
+  color: var(--wb-g-600, #4c5570);
+  font-size: 12.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ── Mobile tabbar ─────────────────────────────────────── */
+
+.wb-tabbar {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  height: 60px;
+  background: var(--wb-topbar-bg, rgba(255, 255, 255, 0.9));
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--wb-line);
+  border-radius: 18px;
+  box-shadow: var(--wb-shadow-pop);
+  display: flex;
+  align-items: stretch;
+  justify-content: space-around;
+  z-index: 50;
+  padding: 0 4px;
+}
+
+.wb-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  flex: 1;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--wb-ink-2);
+  font-size: 10.5px;
+  font-weight: 600;
+  font-family: inherit;
+  border-radius: 14px;
+  margin: 6px 2px;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.wb-tab.is-active {
+  color: var(--wb-iris-2);
+  background: var(--wb-iris-soft);
+}
+
+/* ── Backdrop (mobile drawer) ──────────────────────────── */
+
+.wb-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 25, 43, 0.4);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  z-index: 40;
+  animation: wb-fadeIn 0.2s ease both;
+}
+
+/* ── Skeleton shimmer ──────────────────────────────────── */
+
+.wb-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--wb-g-100, #eff1f8) 25%,
+    var(--wb-g-200, #e3e7f1) 37%,
+    var(--wb-g-100, #eff1f8) 63%
+  );
+  background-size: 200% 100%;
+  animation: wb-shimmer 1.4s ease-in-out infinite;
+}

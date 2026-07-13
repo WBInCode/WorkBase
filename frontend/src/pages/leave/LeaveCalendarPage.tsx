@@ -36,7 +36,7 @@ const DEFAULT_COLORS: Record<string, string> = {
   ANNUAL: colors.primary[500],
   ON_DEMAND: colors.warning[500],
   SICK: colors.danger[500],
-  CHILDCARE: '#8b5cf6',
+  CHILDCARE: '#2b55d4',
 };
 
 export function LeaveCalendarPage() {
@@ -111,43 +111,54 @@ export function LeaveCalendarPage() {
   });
 
   return (
-    <div style={{ padding: mobile ? '16px' : '24px' }}>
-      {/* Header */}
+    <div style={{ padding: mobile ? '14px' : '24px 28px', maxWidth: '1400px', margin: '0 auto' }}>
+      {/* ── Karta dowodzenia ── */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          marginBottom: '20px',
+          gap: '12px',
+          flexWrap: 'wrap',
+          marginBottom: '18px',
+          backgroundColor: colors.white,
+          border: `1px solid ${colors.gray[200]}`,
+          borderRadius: '20px',
+          boxShadow: '0 1px 2px rgba(20,25,43,0.04), 0 10px 30px -12px rgba(20,25,43,0.10), inset 0 1px 0 var(--wb-card-hl, rgba(255,255,255,0.9))',
+          padding: mobile ? '16px' : '18px 22px',
         }}
       >
         <div>
-          <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 700, color: colors.gray[900] }}>
+          <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, letterSpacing: '-0.02em', color: colors.gray[900] }}>
             Kalendarz nieobecności
           </h1>
-          <p style={{ margin: '4px 0 0', fontSize: '14px', color: colors.gray[500] }}>
-            Przegląd nieobecności zespołu
+          <p style={{ margin: '3px 0 0', fontSize: '13.5px', fontWeight: 600, color: colors.primary[600], textTransform: 'capitalize' }}>
+            {monthLabel}
           </p>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <button onClick={prevMonth} style={navBtnStyle} aria-label="Poprzedni miesiąc">
-            <ChevronLeft size={18} />
+            <ChevronLeft size={17} />
           </button>
-          <span
+          <button
+            onClick={goToday}
             style={{
-              minWidth: '160px',
-              textAlign: 'center',
-              fontSize: '15px',
-              fontWeight: 600,
-              color: colors.gray[900],
-              textTransform: 'capitalize',
+              padding: '7px 14px',
+              fontSize: '12px',
+              fontWeight: 700,
+              fontFamily: 'inherit',
+              color: colors.primary[600],
+              backgroundColor: colors.primary[100],
+              border: 'none',
+              borderRadius: '999px',
+              cursor: 'pointer',
             }}
           >
-            {monthLabel}
-          </span>
+            Dziś
+          </button>
           <button onClick={nextMonth} style={navBtnStyle} aria-label="Następny miesiąc">
-            <ChevronRight size={18} />
+            <ChevronRight size={17} />
           </button>
           <button
             onClick={goToday}
@@ -158,7 +169,7 @@ export function LeaveCalendarPage() {
               color: colors.gray[700],
               backgroundColor: colors.white,
               border: `1px solid ${colors.gray[300]}`,
-              borderRadius: '6px',
+              borderRadius: '10px',
               cursor: 'pointer',
               marginLeft: '4px',
             }}
@@ -350,7 +361,7 @@ const navBtnStyle: React.CSSProperties = {
   justifyContent: 'center',
   width: '32px',
   height: '32px',
-  borderRadius: '6px',
+  borderRadius: '10px',
   border: `1px solid ${colors.gray[300]}`,
   backgroundColor: colors.white,
   cursor: 'pointer',

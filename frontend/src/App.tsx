@@ -56,8 +56,9 @@ const TaskSettingsConfigPage = lazy(() => import('@/pages/tasks/TaskSettingsConf
 
 function RouteLoadingFallback() {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px' }}>
-      <div style={{ fontSize: '14px', color: colors.gray[500] }}>Ładowanie…</div>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '14px', padding: '64px' }}>
+      <div className="wb-spinner" />
+      <div style={{ fontSize: '13px', fontWeight: 600, color: colors.gray[400] }}>Ładowanie…</div>
     </div>
   );
 }

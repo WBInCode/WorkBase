@@ -171,7 +171,7 @@ export function FormBuilderPage() {
                 padding: 12,
                 marginBottom: 8,
                 border: '1px solid #ddd',
-                borderRadius: 6,
+                borderRadius: 10,
                 background: '#fafafa',
               }}
             >
@@ -270,8 +270,8 @@ export function FormBuilderPage() {
   );
 }
 
-const btnStyle: React.CSSProperties = { padding: '6px 14px', borderRadius: 4, border: '1px solid #ccc', background: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: 13 };
-const tinyBtn: React.CSSProperties = { padding: '2px 8px', borderRadius: 3, border: '1px solid #ccc', background: '#fff', cursor: 'pointer', fontSize: 12 };
+const btnStyle: React.CSSProperties = { padding: '6px 14px', borderRadius: 4, border: '1px solid #ccc', background: 'var(--wb-panel, #fff)', cursor: 'pointer', fontWeight: 600, fontSize: 13 };
+const tinyBtn: React.CSSProperties = { padding: '2px 8px', borderRadius: 3, border: '1px solid #ccc', background: 'var(--wb-panel, #fff)', cursor: 'pointer', fontSize: 12 };
 const inputStyle: React.CSSProperties = { padding: '6px 10px', borderRadius: 4, border: '1px solid #ccc', fontSize: 13, width: '100%', boxSizing: 'border-box' as const, marginBottom: 4 };
 const selectStyle: React.CSSProperties = { padding: '6px 10px', borderRadius: 4, border: '1px solid #ccc', fontSize: 13 };
 const labelStyle: React.CSSProperties = { fontWeight: 600, fontSize: 12, marginBottom: 4, display: 'block' };

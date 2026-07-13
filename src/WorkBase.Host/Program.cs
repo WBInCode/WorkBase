@@ -125,6 +125,7 @@ try
     app.MapTimeTrackingSettingsEndpoints();
     app.MapDocumentSettingsEndpoints();
     app.MapTaskSettingsEndpoints();
+    app.MapHubIntegrationEndpoints();
     app.MapHub<NotificationHub>("/hubs/notifications");
 
     if (!app.Environment.IsEnvironment("Testing"))
@@ -177,6 +178,11 @@ try
     if (!app.Environment.IsEnvironment("Testing"))
     {
         await DatabaseSeeder.SeedAsync(app.Services);
+
+        // Hub ekosystemu: pierwsza synchronizacja modułów po starcie (fail-soft —
+        // bez Huba WorkBase działa na lokalnych feature flags jak dotychczas).
+        var hubSync = app.Services.GetRequiredService<WorkBase.Infrastructure.HubPlatform.HubEntitlementsSyncService>();
+        _ = hubSync.SyncAsync();
     }
 
     app.Run();

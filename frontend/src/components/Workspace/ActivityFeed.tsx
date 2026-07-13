@@ -47,7 +47,7 @@ export function ActivityFeed({ tasks, leaveRequests }: ActivityFeedProps) {
   const feed = items.slice(0, 8);
 
   return (
-    <div style={{ border: `1px solid ${colors.gray[200]}`, borderRadius: '8px', backgroundColor: colors.white }}>
+    <div style={{ border: `1px solid ${colors.gray[200]}`, borderRadius: '12px', backgroundColor: colors.white }}>
       <div style={{ padding: '14px 16px', borderBottom: `1px solid ${colors.gray[200]}`, display: 'flex', alignItems: 'center', gap: '8px' }}>
         <Clock size={16} color={colors.gray[500]} />
         <span style={{ fontWeight: 600, fontSize: '14px', color: colors.gray[900] }}>Ostatnia aktywność</span>
@@ -74,7 +74,7 @@ export function ActivityFeed({ tasks, leaveRequests }: ActivityFeedProps) {
                 style={{
                   width: '28px',
                   height: '28px',
-                  borderRadius: '6px',
+                  borderRadius: '10px',
                   backgroundColor: item.iconBg,
                   display: 'flex',
                   alignItems: 'center',

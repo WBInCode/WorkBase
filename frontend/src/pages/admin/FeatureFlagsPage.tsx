@@ -40,14 +40,14 @@ export function FeatureFlagsPage() {
     <div style={{ padding: mobile ? '16px' : '24px 32px', maxWidth: '800px' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-        <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 600, color: colors.gray[900] }}>Flagi funkcjonalności</h1>
+        <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, letterSpacing: '-0.02em', color: colors.gray[900] }}>Flagi funkcjonalności</h1>
         <button
           onClick={() => refetch()}
           style={{
             display: 'inline-flex', alignItems: 'center', gap: '6px',
             padding: '7px 12px', fontSize: '13px', fontWeight: 500,
             color: colors.gray[700], backgroundColor: colors.white,
-            border: `1px solid ${colors.gray[300]}`, borderRadius: '6px', cursor: 'pointer',
+            border: `1px solid ${colors.gray[300]}`, borderRadius: '10px', cursor: 'pointer',
           }}
           title="Odśwież"
         >
@@ -58,7 +58,7 @@ export function FeatureFlagsPage() {
       {/* Error */}
       {error && (
         <div style={{
-          padding: '12px 16px', marginBottom: '16px', borderRadius: '8px',
+          padding: '12px 16px', marginBottom: '16px', borderRadius: '12px',
           backgroundColor: colors.danger[50], border: `1px solid ${colors.danger[200]}`, color: colors.danger[800], fontSize: '13px',
         }}>
           Błąd ładowania flag.
@@ -86,7 +86,7 @@ export function FeatureFlagsPage() {
               key={flag.module}
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '16px 20px', borderRadius: '8px',
+                padding: '16px 20px', borderRadius: '12px',
                 border: `1px solid ${colors.gray[200]}`, backgroundColor: colors.white,
               }}
             >
@@ -109,7 +109,7 @@ export function FeatureFlagsPage() {
                 disabled={toggleMutation.isPending}
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: '6px',
-                  padding: '6px 14px', fontSize: '13px', fontWeight: 500, borderRadius: '6px',
+                  padding: '6px 14px', fontSize: '13px', fontWeight: 500, borderRadius: '10px',
                   border: 'none', cursor: toggleMutation.isPending ? 'wait' : 'pointer',
                   backgroundColor: flag.isEnabled ? colors.success[100] : colors.gray[100],
                   color: flag.isEnabled ? colors.success[800] : colors.gray[500],

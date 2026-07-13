@@ -70,10 +70,10 @@ function WidgetSkeleton({ title }: { title: string }) {
 
 const cardStyle: React.CSSProperties = {
   backgroundColor: colors.white,
-  borderRadius: '12px',
+  borderRadius: '16px',
   border: `1px solid ${colors.gray[200]}`,
   padding: '20px',
-  boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+  boxShadow: '0 1px 2px rgba(20,25,43,0.04), 0 10px 30px -12px rgba(20,25,43,0.10), inset 0 1px 0 var(--wb-card-hl, rgba(255,255,255,0.9))',
 };
 
 const headerStyle: React.CSSProperties = {

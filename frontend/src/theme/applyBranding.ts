@@ -10,13 +10,13 @@ const CSS_VAR_FONT = '--wb-brand-font';
 
 const HEX_COLOR_RE = /^#[0-9a-fA-F]{6}$/;
 
-const DEFAULT_FONT_STACK = "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
+const DEFAULT_FONT_STACK = "'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
 
 /** Use these in styles instead of hardcoded hex/font values to make them tenant-brandable. */
 export const BRAND_CSS_VARS = {
-  primary: `var(${CSS_VAR_PRIMARY}, #6366f1)`,
-  primaryHover: `var(${CSS_VAR_PRIMARY_HOVER}, #8b5cf6)`,
-  accent: `var(${CSS_VAR_ACCENT}, #6366f1)`,
+  primary: `var(${CSS_VAR_PRIMARY}, #3d6df2)`,
+  primaryHover: `var(${CSS_VAR_PRIMARY_HOVER}, #2b55d4)`,
+  accent: `var(${CSS_VAR_ACCENT}, #3d6df2)`,
   font: `var(${CSS_VAR_FONT}, ${DEFAULT_FONT_STACK})`,
 } as const;
 

@@ -26,7 +26,7 @@ export function TaskSettingsConfigPage() {
   return (
     <div style={{ padding: mobile ? '16px' : '24px 32px', maxWidth: '600px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-        <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 600, color: colors.gray[900], display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, letterSpacing: '-0.02em', color: colors.gray[900], display: 'flex', alignItems: 'center', gap: '8px' }}>
           <ListChecks size={22} /> Ustawienia zadań
         </h1>
         <button
@@ -35,7 +35,7 @@ export function TaskSettingsConfigPage() {
             display: 'inline-flex', alignItems: 'center', gap: '6px',
             padding: '7px 12px', fontSize: '13px', fontWeight: 500,
             color: colors.gray[700], backgroundColor: colors.white,
-            border: `1px solid ${colors.gray[300]}`, borderRadius: '6px', cursor: 'pointer',
+            border: `1px solid ${colors.gray[300]}`, borderRadius: '10px', cursor: 'pointer',
           }}
           title="Odśwież"
         >
@@ -48,17 +48,17 @@ export function TaskSettingsConfigPage() {
       </p>
 
       {error && (
-        <div style={{ padding: '12px 16px', marginBottom: '16px', borderRadius: '8px', backgroundColor: colors.danger[50], border: `1px solid ${colors.danger[200]}`, color: colors.danger[800], fontSize: '13px' }}>
+        <div style={{ padding: '12px 16px', marginBottom: '16px', borderRadius: '12px', backgroundColor: colors.danger[50], border: `1px solid ${colors.danger[200]}`, color: colors.danger[800], fontSize: '13px' }}>
           Błąd ładowania ustawień.
         </div>
       )}
       {updateMutation.isError && (
-        <div style={{ padding: '12px 16px', marginBottom: '16px', borderRadius: '8px', backgroundColor: colors.danger[50], border: `1px solid ${colors.danger[200]}`, color: colors.danger[800], fontSize: '13px' }}>
+        <div style={{ padding: '12px 16px', marginBottom: '16px', borderRadius: '12px', backgroundColor: colors.danger[50], border: `1px solid ${colors.danger[200]}`, color: colors.danger[800], fontSize: '13px' }}>
           {updateMutation.error instanceof Error ? updateMutation.error.message : 'Błąd zapisu ustawień.'}
         </div>
       )}
       {updateMutation.isSuccess && (
-        <div style={{ padding: '10px 16px', marginBottom: '16px', borderRadius: '8px', backgroundColor: colors.success[100], border: `1px solid ${colors.success[200]}`, color: colors.success[800], fontSize: '13px' }}>
+        <div style={{ padding: '10px 16px', marginBottom: '16px', borderRadius: '12px', backgroundColor: colors.success[100], border: `1px solid ${colors.success[200]}`, color: colors.success[800], fontSize: '13px' }}>
           Zapisano.
         </div>
       )}
@@ -93,7 +93,7 @@ export function TaskSettingsConfigPage() {
               style={{
                 padding: '9px 22px', fontSize: '14px', fontWeight: 500,
                 color: colors.white, backgroundColor: colors.primary[600], border: 'none',
-                borderRadius: '6px', cursor: updateMutation.isPending ? 'not-allowed' : 'pointer',
+                borderRadius: '999px', cursor: updateMutation.isPending ? 'not-allowed' : 'pointer',
                 opacity: updateMutation.isPending ? 0.6 : 1,
               }}
             >
@@ -111,5 +111,5 @@ const labelStyle: React.CSSProperties = {
 };
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '8px 12px', fontSize: '14px',
-  border: `1px solid ${colors.gray[300]}`, borderRadius: '6px', boxSizing: 'border-box',
+  border: `1px solid ${colors.gray[300]}`, borderRadius: '10px', boxSizing: 'border-box',
 };

@@ -87,14 +87,14 @@ export function PlatformTenantsPage() {
   return (
     <div style={{ padding: mobile ? '16px' : '24px 32px', maxWidth: '1000px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-        <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 600, color: colors.gray[900] }}>Firmy (panel operatora)</h1>
+        <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, letterSpacing: '-0.02em', color: colors.gray[900] }}>Firmy (panel operatora)</h1>
         <button
           onClick={() => refetch()}
           style={{
             display: 'inline-flex', alignItems: 'center', gap: '6px',
             padding: '7px 12px', fontSize: '13px', fontWeight: 500,
             color: colors.gray[700], backgroundColor: colors.white,
-            border: `1px solid ${colors.gray[300]}`, borderRadius: '6px', cursor: 'pointer',
+            border: `1px solid ${colors.gray[300]}`, borderRadius: '10px', cursor: 'pointer',
           }}
           title="Odśwież"
         >
@@ -104,7 +104,7 @@ export function PlatformTenantsPage() {
 
       {error && (
         <div style={{
-          padding: '12px 16px', marginBottom: '16px', borderRadius: '8px',
+          padding: '12px 16px', marginBottom: '16px', borderRadius: '12px',
           backgroundColor: colors.danger[50], border: `1px solid ${colors.danger[200]}`, color: colors.danger[800], fontSize: '13px',
         }}>
           Błąd ładowania firm — brak uprawnień operatora platformy lub błąd sieci.
@@ -116,7 +116,7 @@ export function PlatformTenantsPage() {
         <div style={{ flex: '0 0 320px' }}>
           {/* Create new tenant */}
           <div style={{
-            marginBottom: '14px', padding: '12px', borderRadius: '8px',
+            marginBottom: '14px', padding: '12px', borderRadius: '12px',
             border: `1px solid ${colors.gray[200]}`, backgroundColor: colors.white,
           }}>
             <div style={{ fontSize: '12px', fontWeight: 600, color: colors.gray[700], marginBottom: '8px' }}>
@@ -128,7 +128,7 @@ export function PlatformTenantsPage() {
               placeholder="Nazwa firmy"
               style={{
                 width: '100%', padding: '7px 10px', fontSize: '13px', marginBottom: '6px',
-                border: `1px solid ${colors.gray[300]}`, borderRadius: '6px', boxSizing: 'border-box',
+                border: `1px solid ${colors.gray[300]}`, borderRadius: '10px', boxSizing: 'border-box',
               }}
             />
             <input
@@ -137,7 +137,7 @@ export function PlatformTenantsPage() {
               placeholder={newName ? slugify(newName) : 'slug (opcjonalnie)'}
               style={{
                 width: '100%', padding: '7px 10px', fontSize: '13px', marginBottom: '6px',
-                border: `1px solid ${colors.gray[300]}`, borderRadius: '6px', boxSizing: 'border-box',
+                border: `1px solid ${colors.gray[300]}`, borderRadius: '10px', boxSizing: 'border-box',
               }}
             />
             <input
@@ -147,7 +147,7 @@ export function PlatformTenantsPage() {
               type="email"
               style={{
                 width: '100%', padding: '7px 10px', fontSize: '13px', marginBottom: '8px',
-                border: `1px solid ${colors.gray[300]}`, borderRadius: '6px', boxSizing: 'border-box',
+                border: `1px solid ${colors.gray[300]}`, borderRadius: '10px', boxSizing: 'border-box',
               }}
             />
             {createTenantMutation.isError && (
@@ -161,7 +161,7 @@ export function PlatformTenantsPage() {
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: '6px', width: '100%',
                 justifyContent: 'center',
-                padding: '8px 12px', fontSize: '13px', fontWeight: 500, borderRadius: '6px',
+                padding: '8px 12px', fontSize: '13px', fontWeight: 500, borderRadius: '10px',
                 border: 'none', backgroundColor: colors.primary[600], color: colors.white,
                 cursor: !newName.trim() || !newAdminEmail.trim() || createTenantMutation.isPending ? 'not-allowed' : 'pointer',
                 opacity: !newName.trim() || !newAdminEmail.trim() || createTenantMutation.isPending ? 0.6 : 1,
@@ -175,7 +175,7 @@ export function PlatformTenantsPage() {
           {/* One-time admin credentials after successful creation */}
           {createdCredentials && (
             <div style={{
-              marginBottom: '14px', padding: '12px', borderRadius: '8px',
+              marginBottom: '14px', padding: '12px', borderRadius: '12px',
               border: `1px solid ${colors.success[200]}`, backgroundColor: colors.success[50],
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 700, color: colors.success[800], marginBottom: '8px' }}>
@@ -259,7 +259,7 @@ export function PlatformTenantsPage() {
                   onClick={() => setSelectedTenantId(tenant.id)}
                   style={{
                     display: 'flex', alignItems: 'center', gap: '10px', textAlign: 'left',
-                    padding: '12px 14px', borderRadius: '8px', cursor: 'pointer',
+                    padding: '12px 14px', borderRadius: '12px', cursor: 'pointer',
                     border: `1px solid ${tenant.id === selectedTenantId ? colors.primary[400] : colors.gray[200]}`,
                     backgroundColor: tenant.id === selectedTenantId ? colors.primary[50] : colors.white,
                   }}
@@ -297,7 +297,7 @@ export function PlatformTenantsPage() {
                         disabled={applyPlanMutation.isPending}
                         style={{
                           display: 'inline-flex', alignItems: 'center', gap: '6px',
-                          padding: '8px 14px', fontSize: '13px', fontWeight: 500, borderRadius: '6px',
+                          padding: '8px 14px', fontSize: '13px', fontWeight: 500, borderRadius: '10px',
                           border: `1px solid ${colors.primary[300]}`, backgroundColor: colors.primary[50],
                           color: colors.primary[700], cursor: applyPlanMutation.isPending ? 'wait' : 'pointer',
                         }}
@@ -320,7 +320,7 @@ export function PlatformTenantsPage() {
                       key={flag.module}
                       style={{
                         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                        padding: '14px 18px', borderRadius: '8px',
+                        padding: '14px 18px', borderRadius: '12px',
                         border: `1px solid ${colors.gray[200]}`, backgroundColor: colors.white,
                       }}
                     >
@@ -332,7 +332,7 @@ export function PlatformTenantsPage() {
                         disabled={toggleMutation.isPending}
                         style={{
                           display: 'inline-flex', alignItems: 'center', gap: '6px',
-                          padding: '6px 14px', fontSize: '13px', fontWeight: 500, borderRadius: '6px',
+                          padding: '6px 14px', fontSize: '13px', fontWeight: 500, borderRadius: '10px',
                           border: 'none', cursor: toggleMutation.isPending ? 'wait' : 'pointer',
                           backgroundColor: flag.isEnabled ? colors.success[100] : colors.gray[100],
                           color: flag.isEnabled ? colors.success[800] : colors.gray[500],

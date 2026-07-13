@@ -80,22 +80,32 @@ export function PendingApprovalsPage() {
   const pendingApprovals = approvals.filter((a) => !decidedIds.has(a.id));
 
   return (
-    <div style={{ padding: mobile ? '16px' : '24px', maxWidth: '960px' }}>
-      {/* Header */}
+    <div style={{ padding: mobile ? '14px' : '24px 28px', maxWidth: '1100px', margin: '0 auto' }}>
+      {/* ── Karta dowodzenia ── */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '12px',
-          marginBottom: '24px',
+          gap: '14px',
+          marginBottom: '18px',
+          backgroundColor: colors.white,
+          border: `1px solid ${colors.gray[200]}`,
+          borderRadius: '20px',
+          boxShadow: '0 1px 2px rgba(20,25,43,0.04), 0 10px 30px -12px rgba(20,25,43,0.10), inset 0 1px 0 var(--wb-card-hl, rgba(255,255,255,0.9))',
+          padding: mobile ? '16px' : '18px 22px',
         }}
       >
-        <ClipboardCheck size={24} style={{ color: colors.primary[600] }} />
+        <span style={{
+          width: 42, height: 42, borderRadius: 13, backgroundColor: colors.warning[100], color: colors.warning[700],
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+        }}>
+          <ClipboardCheck size={20} />
+        </span>
         <div>
-          <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 700, color: colors.gray[900] }}>
+          <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, letterSpacing: '-0.02em', color: colors.gray[900] }}>
             Oczekujące akceptacje
           </h1>
-          <p style={{ margin: '4px 0 0', fontSize: '14px', color: colors.gray[500] }}>
+          <p style={{ margin: '3px 0 0', fontSize: '13px', color: colors.gray[500] }}>
             Wnioski oczekujące na Twoją decyzję
           </p>
         </div>
@@ -106,12 +116,12 @@ export function PendingApprovalsPage() {
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
-              minWidth: '28px',
-              height: '28px',
-              padding: '0 8px',
-              borderRadius: '14px',
-              fontSize: '13px',
-              fontWeight: 600,
+              minWidth: '30px',
+              height: '30px',
+              padding: '0 10px',
+              borderRadius: '999px',
+              fontSize: '13.5px',
+              fontWeight: 800,
               backgroundColor: colors.warning[100],
               color: colors.warning[800],
             }}
@@ -131,7 +141,7 @@ export function PendingApprovalsPage() {
           style={{
             padding: '16px',
             backgroundColor: colors.danger[50],
-            borderRadius: '8px',
+            borderRadius: '12px',
             color: colors.danger[600],
             fontSize: '14px',
           }}
@@ -247,7 +257,7 @@ export function PendingApprovalsPage() {
                             color: colors.primary[600],
                             backgroundColor: colors.primary[50],
                             border: `1px solid ${colors.primary[200]}`,
-                            borderRadius: '6px',
+                            borderRadius: '10px',
                             cursor: 'pointer',
                           }}
                         >
@@ -270,7 +280,7 @@ export function PendingApprovalsPage() {
             marginTop: '16px',
             padding: '12px 16px',
             backgroundColor: colors.danger[50],
-            borderRadius: '8px',
+            borderRadius: '12px',
             color: colors.danger[600],
             fontSize: '14px',
           }}

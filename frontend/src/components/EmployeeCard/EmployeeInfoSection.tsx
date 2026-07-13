@@ -140,12 +140,12 @@ export function EmployeeInfoSection({ employee }: Props) {
           </h4>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
             {employee.assignments.map((a) => (
-              <div key={a.id} style={{ padding: '8px 12px', borderRadius: '8px', backgroundColor: colors.gray[50], border: `1px solid ${colors.gray[200]}`, fontSize: '13px' }}>
+              <div key={a.id} style={{ padding: '8px 12px', borderRadius: '12px', backgroundColor: colors.gray[50], border: `1px solid ${colors.gray[200]}`, fontSize: '13px' }}>
                 <div style={{ fontWeight: 600, color: colors.gray[900] }}>{a.organizationUnitName}</div>
                 <div style={{ color: colors.gray[500], marginTop: '2px' }}>
                   {a.positionName}
                   {a.isPrimary && (
-                    <span style={{ marginLeft: '6px', padding: '1px 6px', borderRadius: '4px', fontSize: '11px', backgroundColor: colors.primary[100], color: colors.primary[700] }}>
+                    <span style={{ marginLeft: '6px', padding: '1px 8px', borderRadius: '999px', fontSize: '11px', backgroundColor: colors.primary[100], color: colors.primary[700] }}>
                       główne
                     </span>
                   )}
@@ -169,7 +169,7 @@ export function EmployeeInfoSection({ employee }: Props) {
                 display: 'inline-flex', alignItems: 'center', gap: '8px',
                 padding: '10px 20px', fontSize: '13px', fontWeight: 600,
                 color: colors.danger[600], backgroundColor: colors.danger[50],
-                border: `1px solid ${colors.danger[200]}`, borderRadius: '8px',
+                border: `1px solid ${colors.danger[200]}`, borderRadius: '12px',
                 cursor: 'pointer',
               }}
             >
@@ -177,7 +177,7 @@ export function EmployeeInfoSection({ employee }: Props) {
               Dezaktywuj pracownika
             </button>
           ) : (
-            <div style={{ padding: '16px', backgroundColor: colors.danger[50], borderRadius: '8px', border: `1px solid ${colors.danger[200]}` }}>
+            <div style={{ padding: '16px', backgroundColor: colors.danger[50], borderRadius: '12px', border: `1px solid ${colors.danger[200]}` }}>
               <p style={{ margin: '0 0 12px', fontSize: '14px', color: colors.danger[800], fontWeight: 500 }}>
                 Czy na pewno chcesz dezaktywować pracownika <strong>{employee.firstName} {employee.lastName}</strong>?
               </p>
@@ -191,7 +191,7 @@ export function EmployeeInfoSection({ employee }: Props) {
                   style={{
                     padding: '8px 20px', fontSize: '13px', fontWeight: 600,
                     color: colors.white, backgroundColor: colors.danger[600],
-                    border: 'none', borderRadius: '6px', cursor: 'pointer',
+                    border: 'none', borderRadius: '10px', cursor: 'pointer',
                     opacity: deactivate.isPending ? 0.6 : 1,
                   }}
                 >
@@ -202,7 +202,7 @@ export function EmployeeInfoSection({ employee }: Props) {
                   style={{
                     padding: '8px 20px', fontSize: '13px', fontWeight: 500,
                     color: colors.gray[700], backgroundColor: colors.white,
-                    border: `1px solid ${colors.gray[300]}`, borderRadius: '6px', cursor: 'pointer',
+                    border: `1px solid ${colors.gray[300]}`, borderRadius: '10px', cursor: 'pointer',
                   }}
                 >
                   Anuluj
@@ -235,22 +235,24 @@ function formatDate(iso: string): string {
 }
 
 const cardStyle: React.CSSProperties = {
-  padding: '20px',
+  padding: '22px 24px',
   border: `1px solid ${colors.gray[200]}`,
-  borderRadius: '12px',
+  borderRadius: '20px',
   backgroundColor: colors.white,
+  boxShadow: '0 1px 2px rgba(20,25,43,0.04), 0 10px 30px -12px rgba(20,25,43,0.10), inset 0 1px 0 var(--wb-card-hl, rgba(255,255,255,0.9))',
 };
 
 const avatarStyle: React.CSSProperties = {
-  width: '56px',
-  height: '56px',
+  width: '58px',
+  height: '58px',
   borderRadius: '50%',
-  backgroundColor: '#e0e7ff',
+  background: 'linear-gradient(135deg, #3d6df2, #2b55d4)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  color: '#4338ca',
-  fontWeight: 700,
-  fontSize: '18px',
+  color: '#fff',
+  fontWeight: 800,
+  fontSize: '19px',
   flexShrink: 0,
+  boxShadow: '0 8px 18px -6px rgba(61,109,242,0.55)',
 };

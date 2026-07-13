@@ -61,7 +61,7 @@ export function ApprovalActionBar({ onDecide, isPending }: ApprovalActionBarProp
             padding: '8px 12px',
             fontSize: '14px',
             border: `1px solid ${colors.gray[300]}`,
-            borderRadius: '6px',
+            borderRadius: '10px',
             resize: 'vertical',
             fontFamily: 'inherit',
           }}
@@ -85,7 +85,7 @@ export function ApprovalActionBar({ onDecide, isPending }: ApprovalActionBarProp
               color: colors.white,
               backgroundColor: bg,
               border: 'none',
-              borderRadius: '6px',
+              borderRadius: '10px',
               cursor: isPending ? 'not-allowed' : 'pointer',
               opacity: isPending && activeDecision !== decision ? 0.5 : 1,
             }}

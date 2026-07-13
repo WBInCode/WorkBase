@@ -63,7 +63,7 @@ export function EmployeeCardPage() {
   if (error || !employee) {
     return (
       <div style={{ padding: pad, maxWidth: '1000px' }}>
-        <div style={{ padding: '16px', backgroundColor: colors.danger[50], border: `1px solid ${colors.danger[200]}`, borderRadius: '8px', color: colors.danger[600], fontSize: '14px' }}>
+        <div style={{ padding: '16px', backgroundColor: colors.danger[50], border: `1px solid ${colors.danger[200]}`, borderRadius: '12px', color: colors.danger[600], fontSize: '14px' }}>
           Nie udało się załadować danych pracownika.
           <button
             onClick={() => navigate('/org/employees')}
@@ -77,7 +77,7 @@ export function EmployeeCardPage() {
   }
 
   return (
-    <div style={{ padding: pad, maxWidth: '1000px' }}>
+    <div style={{ padding: pad, maxWidth: '1240px', margin: '0 auto' }}>
       {/* Back button */}
       <button
         onClick={() => navigate('/org/employees')}
@@ -85,57 +85,72 @@ export function EmployeeCardPage() {
           display: 'inline-flex',
           alignItems: 'center',
           gap: '6px',
-          padding: '6px 12px',
+          padding: '7px 14px',
           fontSize: '13px',
-          fontWeight: 500,
-          color: colors.gray[500],
-          backgroundColor: 'transparent',
+          fontWeight: 600,
+          fontFamily: 'inherit',
+          color: colors.gray[600],
+          backgroundColor: colors.white,
           border: `1px solid ${colors.gray[200]}`,
-          borderRadius: '6px',
+          borderRadius: '999px',
           cursor: 'pointer',
           marginBottom: '16px',
+          boxShadow: '0 1px 2px rgba(20,25,43,0.05)',
         }}
       >
         <ArrowLeft size={14} />
         Pracownicy
       </button>
 
-      {/* Sections stacked vertically */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        <EmployeeInfoSection employee={employee} />
+      {/* Hero: dane pracownika na pełnej szerokości */}
+      <EmployeeInfoSection employee={employee} />
 
-        <EmployeeTeamSection
-          employeeId={employee.id}
-          primaryUnitId={employee.assignments.find(a => a.isPrimary)?.organizationUnitId ?? employee.assignments[0]?.organizationUnitId ?? null}
-          primaryUnitName={employee.assignments.find(a => a.isPrimary)?.organizationUnitName ?? employee.assignments[0]?.organizationUnitName ?? null}
-        />
+      {/* Strefy: operacyjna (8) / kontekstowa (4) */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: mobile ? '1fr' : 'minmax(0, 8fr) minmax(300px, 4fr)',
+          gap: '18px',
+          marginTop: '18px',
+          alignItems: 'start',
+        }}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', minWidth: 0 }}>
+          <EmployeeTimesheetSection
+            timeStatus={timeStatus}
+            timesheet={timesheet}
+            isLoading={timeStatusLoading || timesheetLoading}
+            employeeId={employee.id}
+            from={dateRange.from}
+            to={dateRange.to}
+            onDateRangeChange={(from, to) => setDateRange({ from, to })}
+          />
 
-        <EmployeeTimesheetSection
-          timeStatus={timeStatus}
-          timesheet={timesheet}
-          isLoading={timeStatusLoading || timesheetLoading}
-          employeeId={employee.id}
-          from={dateRange.from}
-          to={dateRange.to}
-          onDateRangeChange={(from, to) => setDateRange({ from, to })}
-        />
+          <EmployeeTasksSection
+            tasks={tasks}
+            isLoading={tasksLoading}
+          />
 
-        <EmployeeLeaveSection
-          balances={balances}
-          requests={leaveRequests}
-          isLoading={balancesLoading || leaveLoading}
-        />
+          <EmployeeActivityTimeline
+            tasks={tasks}
+            leaveRequests={leaveRequests}
+            isLoading={tasksLoading || leaveLoading}
+          />
+        </div>
 
-        <EmployeeTasksSection
-          tasks={tasks}
-          isLoading={tasksLoading}
-        />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', minWidth: 0 }}>
+          <EmployeeTeamSection
+            employeeId={employee.id}
+            primaryUnitId={employee.assignments.find(a => a.isPrimary)?.organizationUnitId ?? employee.assignments[0]?.organizationUnitId ?? null}
+            primaryUnitName={employee.assignments.find(a => a.isPrimary)?.organizationUnitName ?? employee.assignments[0]?.organizationUnitName ?? null}
+          />
 
-        <EmployeeActivityTimeline
-          tasks={tasks}
-          leaveRequests={leaveRequests}
-          isLoading={tasksLoading || leaveLoading}
-        />
+          <EmployeeLeaveSection
+            balances={balances}
+            requests={leaveRequests}
+            isLoading={balancesLoading || leaveLoading}
+          />
+        </div>
       </div>
     </div>
   );

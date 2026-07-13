@@ -57,7 +57,7 @@ export function BrandingConfigPage() {
   return (
     <div style={{ padding: mobile ? '16px' : '24px 32px', maxWidth: '640px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-        <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 600, color: colors.gray[900], display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, letterSpacing: '-0.02em', color: colors.gray[900], display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Palette size={22} /> Branding
         </h1>
         <button
@@ -66,7 +66,7 @@ export function BrandingConfigPage() {
             display: 'inline-flex', alignItems: 'center', gap: '6px',
             padding: '7px 12px', fontSize: '13px', fontWeight: 500,
             color: colors.gray[700], backgroundColor: colors.white,
-            border: `1px solid ${colors.gray[300]}`, borderRadius: '6px', cursor: 'pointer',
+            border: `1px solid ${colors.gray[300]}`, borderRadius: '10px', cursor: 'pointer',
           }}
           title="Odśwież"
         >
@@ -80,7 +80,7 @@ export function BrandingConfigPage() {
 
       {error && (
         <div style={{
-          padding: '12px 16px', marginBottom: '16px', borderRadius: '8px',
+          padding: '12px 16px', marginBottom: '16px', borderRadius: '12px',
           backgroundColor: colors.danger[50], border: `1px solid ${colors.danger[200]}`, color: colors.danger[800], fontSize: '13px',
         }}>
           Błąd ładowania brandingu.
@@ -89,7 +89,7 @@ export function BrandingConfigPage() {
 
       {updateMutation.isError && (
         <div style={{
-          padding: '12px 16px', marginBottom: '16px', borderRadius: '8px',
+          padding: '12px 16px', marginBottom: '16px', borderRadius: '12px',
           backgroundColor: colors.danger[50], border: `1px solid ${colors.danger[200]}`, color: colors.danger[800], fontSize: '13px',
         }}>
           {updateMutation.error instanceof Error ? updateMutation.error.message : 'Błąd zapisu brandingu.'}
@@ -98,7 +98,7 @@ export function BrandingConfigPage() {
 
       {updateMutation.isSuccess && (
         <div style={{
-          padding: '10px 16px', marginBottom: '16px', borderRadius: '8px',
+          padding: '10px 16px', marginBottom: '16px', borderRadius: '12px',
           backgroundColor: colors.success[100], border: `1px solid ${colors.success[200]}`, color: colors.success[800], fontSize: '13px',
         }}>
           Zapisano.
@@ -178,7 +178,7 @@ export function BrandingConfigPage() {
               style={{
                 padding: '9px 22px', fontSize: '14px', fontWeight: 500,
                 color: colors.white, backgroundColor: colors.primary[600], border: 'none',
-                borderRadius: '6px', cursor: canSave && !updateMutation.isPending ? 'pointer' : 'not-allowed',
+                borderRadius: '999px', cursor: canSave && !updateMutation.isPending ? 'pointer' : 'not-allowed',
                 opacity: !canSave || updateMutation.isPending ? 0.6 : 1,
               }}
             >
@@ -197,5 +197,5 @@ const labelStyle: React.CSSProperties = {
 
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '8px 12px', fontSize: '14px',
-  border: `1px solid ${colors.gray[300]}`, borderRadius: '6px', boxSizing: 'border-box',
+  border: `1px solid ${colors.gray[300]}`, borderRadius: '10px', boxSizing: 'border-box',
 };

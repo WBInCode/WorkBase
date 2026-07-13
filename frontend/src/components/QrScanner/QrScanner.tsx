@@ -104,7 +104,7 @@ export function QrScanner({ onScan, onClose, facingMode = 'environment' }: QrSca
 
         {/* Error */}
         {error && (
-          <div style={{ padding: '12px', borderRadius: '8px', backgroundColor: 'rgba(239,68,68,0.15)', color: '#fca5a5', fontSize: '13px', marginBottom: '12px' }}>
+          <div style={{ padding: '12px', borderRadius: '12px', backgroundColor: 'rgba(239,68,68,0.15)', color: '#fca5a5', fontSize: '13px', marginBottom: '12px' }}>
             {error}
             <button onClick={startCamera} style={{ marginLeft: '8px', color: colors.primary[300], background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', fontSize: '13px' }}>
               <RefreshCw size={12} style={{ verticalAlign: 'middle', marginRight: '4px' }} />
@@ -114,7 +114,7 @@ export function QrScanner({ onScan, onClose, facingMode = 'environment' }: QrSca
         )}
 
         {/* Video */}
-        <div style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', backgroundColor: '#000', aspectRatio: '4/3' }}>
+        <div style={{ position: 'relative', borderRadius: '16px', overflow: 'hidden', backgroundColor: '#000', aspectRatio: '4/3' }}>
           <video
             ref={videoRef}
             style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
@@ -129,7 +129,7 @@ export function QrScanner({ onScan, onClose, facingMode = 'environment' }: QrSca
           }}>
             <div style={{
               width: 'min(200px, 60vw)', height: 'min(200px, 60vw)',
-              border: '3px solid rgba(99,102,241,0.7)',
+              border: '3px solid rgba(61,109,242,0.7)',
               borderRadius: '16px',
               boxShadow: '0 0 0 9999px rgba(0,0,0,0.4)',
             }} />

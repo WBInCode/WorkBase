@@ -28,12 +28,37 @@ export function MyTasksPage() {
   }, [tasks]);
 
   return (
-    <div style={{ padding: mobile ? '16px' : '24px', maxWidth: '960px' }}>
-      <div style={{ marginBottom: '20px' }}>
-        <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 700, color: colors.gray[900] }}>Moje zadania</h1>
-        <p style={{ margin: '4px 0 0', fontSize: '14px', color: colors.gray[500] }}>
-          Zadania przypisane do Ciebie
-        </p>
+    <div style={{ padding: mobile ? '14px' : '24px 28px', maxWidth: '1100px', margin: '0 auto' }}>
+      {/* ── Karta dowodzenia ── */}
+      <div style={{
+        marginBottom: '18px',
+        backgroundColor: colors.white,
+        border: `1px solid ${colors.gray[200]}`,
+        borderRadius: '20px',
+        boxShadow: '0 1px 2px rgba(20,25,43,0.04), 0 10px 30px -12px rgba(20,25,43,0.10), inset 0 1px 0 var(--wb-card-hl, rgba(255,255,255,0.9))',
+        padding: mobile ? '16px' : '18px 22px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: '12px',
+        flexWrap: 'wrap',
+      }}>
+        <div>
+          <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, letterSpacing: '-0.02em', color: colors.gray[900] }}>Moje zadania</h1>
+          <p style={{ margin: '3px 0 0', fontSize: '13px', color: colors.gray[500] }}>
+            Zadania przypisane do Ciebie
+          </p>
+        </div>
+        {!isLoading && (
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <span style={{ padding: '6px 14px', borderRadius: '999px', fontSize: '12.5px', fontWeight: 700, backgroundColor: colors.primary[100], color: colors.primary[700] }}>
+              {open.length} otwartych
+            </span>
+            <span style={{ padding: '6px 14px', borderRadius: '999px', fontSize: '12.5px', fontWeight: 700, backgroundColor: colors.success[100], color: colors.success[800] }}>
+              {completed.length} ukończonych
+            </span>
+          </div>
+        )}
       </div>
 
       {isLoading ? (
@@ -62,7 +87,7 @@ export function MyTasksPage() {
                       onClick={() => navigate(`/tasks/${t.id}`)}
                       style={{
                         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                        padding: '12px 16px', backgroundColor: colors.white, borderRadius: '8px',
+                        padding: '12px 16px', backgroundColor: colors.white, borderRadius: '12px',
                         border: isOverdue ? '1px solid #fca5a5' : `1px solid ${colors.gray[200]}`,
                         cursor: 'pointer', transition: 'box-shadow 0.15s',
                       }}
@@ -112,7 +137,7 @@ export function MyTasksPage() {
                     onClick={() => navigate(`/tasks/${t.id}`)}
                     style={{
                       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                      padding: '12px 16px', backgroundColor: colors.gray[50], borderRadius: '8px',
+                      padding: '12px 16px', backgroundColor: colors.gray[50], borderRadius: '12px',
                       border: `1px solid ${colors.gray[200]}`, cursor: 'pointer', opacity: 0.7,
                     }}
                   >
@@ -136,7 +161,7 @@ export function MyTasksPage() {
 function Badge({ label, color }: { label: string; color: string }) {
   return (
     <span style={{
-      display: 'inline-block', padding: '2px 8px', borderRadius: '4px',
+      display: 'inline-block', padding: '2px 10px', borderRadius: '999px',
       fontSize: '11px', fontWeight: 500, backgroundColor: color + '20', color,
     }}>
       {label}

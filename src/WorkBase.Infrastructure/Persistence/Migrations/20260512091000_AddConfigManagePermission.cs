@@ -18,19 +18,23 @@ namespace WorkBase.Infrastructure.Persistence.Migrations
                 ON CONFLICT (id) DO NOTHING;
                 """);
 
-            // Assign to Super Admin role
+            // Assign to Super Admin role (only if that fixed-id role exists — on a fresh DB the
+            // roles are created by IamSeeder with random GUIDs AFTER migrations run, so guard the
+            // insert to avoid an FK violation; the seeder grants config.manage to the real roles).
             var superAdminRoleId = "10000000-0000-0000-0000-000000000001";
             migrationBuilder.Sql($"""
                 INSERT INTO iam_role_permissions (id, role_id, permission_id)
-                VALUES ('30000000-0000-0000-0000-000000000901', '{superAdminRoleId}', '{permissionId}')
+                SELECT '30000000-0000-0000-0000-000000000901', '{superAdminRoleId}', '{permissionId}'
+                WHERE EXISTS (SELECT 1 FROM iam_roles WHERE id = '{superAdminRoleId}')
                 ON CONFLICT (id) DO NOTHING;
                 """);
 
-            // Assign to Admin role
+            // Assign to Admin role (same guard as above)
             var adminRoleId = "10000000-0000-0000-0000-000000000002";
             migrationBuilder.Sql($"""
                 INSERT INTO iam_role_permissions (id, role_id, permission_id)
-                VALUES ('30000000-0000-0000-0000-000000000902', '{adminRoleId}', '{permissionId}')
+                SELECT '30000000-0000-0000-0000-000000000902', '{adminRoleId}', '{permissionId}'
+                WHERE EXISTS (SELECT 1 FROM iam_roles WHERE id = '{adminRoleId}')
                 ON CONFLICT (id) DO NOTHING;
                 """);
         }

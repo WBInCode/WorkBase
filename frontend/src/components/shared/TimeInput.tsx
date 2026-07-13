@@ -149,7 +149,7 @@ export default function TimeInput({ value, onChange, style, disabled }: TimeInpu
             overflowY: 'auto',
             background: colors.white,
             border: `1px solid ${colors.gray[200]}`,
-            borderRadius: '8px',
+            borderRadius: '12px',
             boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
             marginTop: '4px',
           }}

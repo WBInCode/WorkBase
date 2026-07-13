@@ -9,15 +9,14 @@ interface SkeletonProps {
   borderRadius?: string;
 }
 
-export function Skeleton({ width = '100%', height = '16px', borderRadius = '4px' }: SkeletonProps) {
+export function Skeleton({ width = '100%', height = '16px', borderRadius = '6px' }: SkeletonProps) {
   return (
     <div
+      className="wb-skeleton"
       style={{
         width,
         height,
         borderRadius,
-        backgroundColor: colors.gray[200],
-        animation: 'pulse 1.5s ease-in-out infinite',
       }}
     />
   );
@@ -27,9 +26,10 @@ export function CardSkeleton({ lines = 3 }: { lines?: number }) {
   return (
     <div style={{
       padding: '20px',
-      borderRadius: '12px',
+      borderRadius: '16px',
       border: `1px solid ${colors.gray[200]}`,
       backgroundColor: colors.white,
+      boxShadow: '0 1px 2px rgba(20,25,43,0.04), 0 10px 30px -12px rgba(20,25,43,0.08)',
     }}>
       <Skeleton width="40%" height="14px" />
       <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -43,7 +43,7 @@ export function CardSkeleton({ lines = 3 }: { lines?: number }) {
 
 export function TableSkeleton({ rows = 5, cols = 4 }: { rows?: number; cols?: number }) {
   return (
-    <div style={{ borderRadius: '8px', border: `1px solid ${colors.gray[200]}`, overflow: 'hidden' }}>
+    <div style={{ borderRadius: '12px', border: `1px solid ${colors.gray[200]}`, overflow: 'hidden' }}>
       {/* Header */}
       <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: '12px', padding: '12px 16px', backgroundColor: colors.gray[50] }}>
         {Array.from({ length: cols }, (_, i) => (
@@ -83,7 +83,7 @@ export function EmptyState({
       justifyContent: 'center',
       padding: '40px 24px',
       textAlign: 'center',
-      borderRadius: '8px',
+      borderRadius: '12px',
       border: `1px dashed ${colors.gray[300]}`,
       backgroundColor: colors.gray[50],
     }}>
@@ -105,7 +105,7 @@ export function EmptyState({
             color: colors.primary[600],
             backgroundColor: colors.primary[50],
             border: `1px solid ${colors.primary[200]}`,
-            borderRadius: '6px',
+            borderRadius: '10px',
             cursor: 'pointer',
           }}
         >
@@ -133,7 +133,7 @@ export function ErrorState({
       alignItems: 'center',
       gap: '12px',
       padding: '16px',
-      borderRadius: '8px',
+      borderRadius: '12px',
       backgroundColor: colors.danger[50],
       border: `1px solid ${colors.danger[200]}`,
     }}>
@@ -154,7 +154,7 @@ export function ErrorState({
             color: colors.danger[600],
             backgroundColor: colors.white,
             border: `1px solid ${colors.danger[200]}`,
-            borderRadius: '6px',
+            borderRadius: '10px',
             cursor: 'pointer',
             flexShrink: 0,
           }}
@@ -167,17 +167,5 @@ export function ErrorState({
   );
 }
 
-// ─── CSS keyframes injection ────────────────────────────────
+// Keyframes (pulse/shimmer) są zdefiniowane globalnie w theme/workbase.css.
 
-const styleId = 'workbase-skeleton-styles';
-if (typeof document !== 'undefined' && !document.getElementById(styleId)) {
-  const style = document.createElement('style');
-  style.id = styleId;
-  style.textContent = `
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
-  `;
-  document.head.appendChild(style);
-}

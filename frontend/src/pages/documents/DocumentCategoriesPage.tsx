@@ -59,26 +59,42 @@ export function DocumentCategoriesPage() {
   }
 
   return (
-    <div style={{ padding: mobile ? 16 : 24 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>Kategorie dokumentów</h1>
+    <div style={{ padding: mobile ? 14 : '24px 28px', maxWidth: 1100, margin: '0 auto' }}>
+      {/* ── Karta dowodzenia ── */}
+      <div style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap',
+        marginBottom: 18,
+        backgroundColor: colors.white,
+        border: `1px solid ${colors.gray[200]}`,
+        borderRadius: 20,
+        boxShadow: '0 1px 2px rgba(20,25,43,0.04), 0 10px 30px -12px rgba(20,25,43,0.10), inset 0 1px 0 var(--wb-card-hl, rgba(255,255,255,0.9))',
+        padding: mobile ? 16 : '18px 22px',
+      }}>
+        <div>
+          <h1 style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.02em', margin: 0, color: colors.gray[900] }}>Kategorie dokumentów</h1>
+          <p style={{ margin: '3px 0 0', fontSize: 13, color: colors.gray[500] }}>
+            Porządkowanie plików firmowych
+          </p>
+        </div>
         <button
           onClick={() => setShowCreate(true)}
           style={{
             display: 'inline-flex',
             alignItems: 'center',
             gap: 8,
-            padding: '8px 16px',
+            padding: '9px 18px',
             background: colors.primary[600],
             color: colors.white,
             border: 'none',
-            borderRadius: 8,
+            borderRadius: 999,
             cursor: 'pointer',
-            fontWeight: 600,
-            fontSize: 14,
+            fontWeight: 700,
+            fontSize: 13.5,
+            fontFamily: 'inherit',
+            boxShadow: '0 6px 14px -4px rgba(61,109,242,0.45)',
           }}
         >
-          <Plus size={16} />
+          <Plus size={15} />
           Nowa kategoria
         </button>
       </div>
@@ -87,9 +103,9 @@ export function DocumentCategoriesPage() {
       {showCreate && (
         <div
           style={{
-            background: '#f8fafc',
-            border: '1px solid #e2e8f0',
-            borderRadius: 12,
+            background: 'var(--wb-g-50, #f8fafc)',
+            border: '1px solid var(--wb-line, #e2e8f0)',
+            borderRadius: 16,
             padding: 20,
             marginBottom: 16,
           }}
@@ -105,8 +121,8 @@ export function DocumentCategoriesPage() {
                 flex: 1,
                 minWidth: 200,
                 padding: '8px 12px',
-                border: '1px solid #e2e8f0',
-                borderRadius: 8,
+                border: '1px solid var(--wb-line, #e2e8f0)',
+                borderRadius: 12,
                 fontSize: 14,
                 outline: 'none',
               }}
@@ -120,8 +136,8 @@ export function DocumentCategoriesPage() {
                 flex: 1,
                 minWidth: 200,
                 padding: '8px 12px',
-                border: '1px solid #e2e8f0',
-                borderRadius: 8,
+                border: '1px solid var(--wb-line, #e2e8f0)',
+                borderRadius: 12,
                 fontSize: 14,
                 outline: 'none',
               }}
@@ -136,7 +152,7 @@ export function DocumentCategoriesPage() {
                 background: colors.primary[600],
                 color: colors.white,
                 border: 'none',
-                borderRadius: 8,
+                borderRadius: 12,
                 cursor: 'pointer',
                 fontWeight: 600,
                 fontSize: 14,
@@ -153,9 +169,9 @@ export function DocumentCategoriesPage() {
               }}
               style={{
                 padding: '8px 20px',
-                background: '#f1f5f9',
-                border: '1px solid #e2e8f0',
-                borderRadius: 8,
+                background: 'var(--wb-g-100, #f1f5f9)',
+                border: '1px solid var(--wb-line, #e2e8f0)',
+                borderRadius: 12,
                 cursor: 'pointer',
                 fontSize: 14,
               }}
@@ -185,7 +201,7 @@ export function DocumentCategoriesPage() {
                 gap: 12,
                 padding: 16,
                 background: colors.white,
-                border: '1px solid #e2e8f0',
+                border: '1px solid var(--wb-line, #e2e8f0)',
                 borderRadius: 10,
               }}
             >
@@ -198,7 +214,7 @@ export function DocumentCategoriesPage() {
                       flex: 1,
                       padding: '6px 10px',
                       border: '1px solid #cbd5e1',
-                      borderRadius: 6,
+                      borderRadius: 10,
                       fontSize: 14,
                       outline: 'none',
                     }}
@@ -211,7 +227,7 @@ export function DocumentCategoriesPage() {
                       flex: 1,
                       padding: '6px 10px',
                       border: '1px solid #cbd5e1',
-                      borderRadius: 6,
+                      borderRadius: 10,
                       fontSize: 14,
                       outline: 'none',
                     }}
@@ -224,7 +240,7 @@ export function DocumentCategoriesPage() {
                       padding: 6,
                       background: colors.success[500],
                       border: 'none',
-                      borderRadius: 6,
+                      borderRadius: 10,
                       cursor: 'pointer',
                       display: 'flex',
                       color: colors.white,
@@ -237,9 +253,9 @@ export function DocumentCategoriesPage() {
                     title="Anuluj"
                     style={{
                       padding: 6,
-                      background: '#f1f5f9',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: 6,
+                      background: 'var(--wb-g-100, #f1f5f9)',
+                      border: '1px solid var(--wb-line, #e2e8f0)',
+                      borderRadius: 10,
                       cursor: 'pointer',
                       display: 'flex',
                     }}
@@ -264,8 +280,8 @@ export function DocumentCategoriesPage() {
                     style={{
                       padding: 6,
                       background: 'none',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: 6,
+                      border: '1px solid var(--wb-line, #e2e8f0)',
+                      borderRadius: 10,
                       cursor: 'pointer',
                       display: 'flex',
                     }}
@@ -278,8 +294,8 @@ export function DocumentCategoriesPage() {
                     style={{
                       padding: 6,
                       background: 'none',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: 6,
+                      border: '1px solid var(--wb-line, #e2e8f0)',
+                      borderRadius: 10,
                       cursor: 'pointer',
                       display: 'flex',
                     }}

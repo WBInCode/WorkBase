@@ -56,21 +56,28 @@ export function LeaveRequestPage() {
   };
 
   return (
-    <div style={{ padding: mobile ? '16px' : '24px', maxWidth: '960px' }}>
-      {/* Header */}
+    <div style={{ padding: mobile ? '14px' : '24px 28px', maxWidth: '1100px', margin: '0 auto' }}>
+      {/* ── Karta dowodzenia ── */}
       <div
         style={{
+          backgroundColor: colors.white,
+          border: `1px solid ${colors.gray[200]}`,
+          borderRadius: '20px',
+          boxShadow: '0 1px 2px rgba(20,25,43,0.04), 0 10px 30px -12px rgba(20,25,43,0.10), inset 0 1px 0 var(--wb-card-hl, rgba(255,255,255,0.9))',
+          padding: mobile ? '16px' : '18px 22px',
+          marginBottom: '18px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          marginBottom: '24px',
+          gap: '12px',
+          flexWrap: 'wrap',
         }}
       >
         <div>
-          <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 700, color: colors.gray[900] }}>
+          <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, letterSpacing: '-0.02em', color: colors.gray[900] }}>
             Urlopy
           </h1>
-          <p style={{ margin: '4px 0 0', fontSize: '14px', color: colors.gray[500] }}>
+          <p style={{ margin: '3px 0 0', fontSize: '13px', color: colors.gray[500] }}>
             Twoje saldo i wnioski urlopowe
           </p>
         </div>
@@ -81,11 +88,12 @@ export function LeaveRequestPage() {
             value={year}
             onChange={(e) => setYear(Number(e.target.value))}
             style={{
-              padding: '7px 12px',
-              fontSize: '14px',
+              padding: '8px 14px',
+              fontSize: '13.5px',
+              fontFamily: 'inherit',
               border: `1px solid ${colors.gray[300]}`,
-              borderRadius: '6px',
-              backgroundColor: colors.white,
+              borderRadius: '999px',
+              backgroundColor: colors.gray[50],
               cursor: 'pointer',
             }}
           >
@@ -104,18 +112,20 @@ export function LeaveRequestPage() {
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
-              padding: '8px 16px',
-              fontSize: '14px',
-              fontWeight: 500,
+              padding: '9px 18px',
+              fontSize: '13.5px',
+              fontWeight: 700,
+              fontFamily: 'inherit',
               color: colors.white,
               backgroundColor: colors.primary[600],
               border: 'none',
-              borderRadius: '6px',
+              borderRadius: '999px',
               cursor: hasNoSupervisor ? 'not-allowed' : 'pointer',
               opacity: hasNoSupervisor ? 0.6 : 1,
+              boxShadow: hasNoSupervisor ? 'none' : '0 6px 14px -4px rgba(61,109,242,0.45)',
             }}
           >
-            <Plus size={16} />
+            <Plus size={15} />
             Nowy wniosek
           </button>
         </div>
@@ -123,7 +133,7 @@ export function LeaveRequestPage() {
 
       {hasNoSupervisor && (
         <div style={{
-          padding: '12px 16px', marginBottom: '20px', borderRadius: '8px',
+          padding: '12px 16px', marginBottom: '20px', borderRadius: '12px',
           backgroundColor: colors.warning[100], border: `1px solid ${colors.warning[200]}`,
           color: colors.warning[800], fontSize: '13px',
         }}>
@@ -181,9 +191,10 @@ export function LeaveRequestPage() {
           <div
             style={{
               backgroundColor: colors.white,
-              borderRadius: '10px',
+              borderRadius: '16px',
               border: `1px solid ${colors.gray[200]}`,
               overflowX: 'auto',
+              boxShadow: '0 1px 2px rgba(20,25,43,0.04), 0 10px 30px -12px rgba(20,25,43,0.08)',
             }}
           >
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
@@ -234,9 +245,9 @@ export function LeaveRequestPage() {
                           style={{
                             display: 'inline-block',
                             padding: '2px 10px',
-                            borderRadius: '4px',
+                            borderRadius: '999px',
                             fontSize: '12px',
-                            fontWeight: 500,
+                            fontWeight: 600,
                             backgroundColor: cfg.bg,
                             color: cfg.color,
                           }}

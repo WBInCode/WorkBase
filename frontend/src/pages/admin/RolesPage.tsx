@@ -54,7 +54,7 @@ export function RolesPage() {
     <div style={{ padding: mobile ? '16px' : '24px 32px', maxWidth: '1000px' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-        <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 600, color: colors.gray[900] }}>Role</h1>
+        <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, letterSpacing: '-0.02em', color: colors.gray[900] }}>Role</h1>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button
             onClick={() => refetch()}
@@ -96,7 +96,7 @@ export function RolesPage() {
           </div>
         </div>
       ) : (
-        <div style={{ border: `1px solid ${colors.gray[200]}`, borderRadius: '8px', overflowX: 'auto' }}>
+        <div style={{ border: `1px solid ${colors.gray[200]}`, borderRadius: '16px', overflowX: 'auto', backgroundColor: colors.white, boxShadow: '0 1px 2px rgba(20,25,43,0.04), 0 10px 30px -12px rgba(20,25,43,0.08)' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
             <thead>
               <tr style={{ backgroundColor: colors.gray[50] }}>
@@ -333,7 +333,7 @@ const iconBtnStyle: React.CSSProperties = {
   width: '32px',
   height: '32px',
   border: `1px solid ${colors.gray[300]}`,
-  borderRadius: '6px',
+  borderRadius: '10px',
   backgroundColor: colors.white,
   cursor: 'pointer',
   color: colors.gray[700],
@@ -349,7 +349,7 @@ const primaryBtnStyle: React.CSSProperties = {
   color: colors.white,
   backgroundColor: colors.primary[600],
   border: 'none',
-  borderRadius: '6px',
+  borderRadius: '10px',
   cursor: 'pointer',
 };
 
@@ -363,7 +363,7 @@ const secondaryBtnStyle: React.CSSProperties = {
   color: colors.gray[700],
   backgroundColor: colors.white,
   border: `1px solid ${colors.gray[300]}`,
-  borderRadius: '6px',
+  borderRadius: '10px',
   cursor: 'pointer',
 };
 
@@ -371,7 +371,7 @@ const errorBoxStyle: React.CSSProperties = {
   padding: '12px 16px',
   backgroundColor: colors.danger[50],
   border: `1px solid ${colors.danger[200]}`,
-  borderRadius: '8px',
+  borderRadius: '12px',
   color: colors.danger[600],
   fontSize: '14px',
 };
@@ -389,7 +389,7 @@ const retryLinkStyle: React.CSSProperties = {
 const overlayStyle: React.CSSProperties = {
   position: 'fixed',
   inset: 0,
-  backgroundColor: 'rgba(0,0,0,0.4)',
+  backgroundColor: 'rgba(20,25,43,0.45)', backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)', animation: 'wb-backdrop-in 0.18s ease both',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -398,11 +398,11 @@ const overlayStyle: React.CSSProperties = {
 
 const modalStyle: React.CSSProperties = {
   backgroundColor: colors.white,
-  borderRadius: '12px',
+  borderRadius: '16px',
   padding: '24px',
   width: '100%',
   maxWidth: '480px',
-  boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
+  boxShadow: '0 24px 64px -12px rgba(20,25,43,0.28), 0 0 0 1px rgba(20,25,43,0.04)',
 };
 
 const labelStyle: React.CSSProperties = {
@@ -418,7 +418,7 @@ const inputStyle: React.CSSProperties = {
   padding: '8px 12px',
   fontSize: '14px',
   border: `1px solid ${colors.gray[300]}`,
-  borderRadius: '6px',
+  borderRadius: '10px',
   outline: 'none',
   boxSizing: 'border-box',
 };

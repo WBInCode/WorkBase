@@ -30,7 +30,7 @@ export function EmployeeTeamSection({ employeeId, primaryUnitId, primaryUnitName
       {isLoading ? (
         <div style={{ color: colors.gray[400], fontSize: '13px', padding: '12px 0' }}>Ładowanie...</div>
       ) : teammates.length === 0 ? (
-        <div style={{ color: colors.gray[400], fontSize: '13px', padding: '12px 0', textAlign: 'center', border: `1px dashed ${colors.gray[200]}`, borderRadius: '6px' }}>
+        <div style={{ color: colors.gray[400], fontSize: '13px', padding: '12px 0', textAlign: 'center', border: `1px dashed ${colors.gray[200]}`, borderRadius: '10px' }}>
           Brak innych członków zespołu
         </div>
       ) : (
@@ -44,7 +44,7 @@ export function EmployeeTeamSection({ employeeId, primaryUnitId, primaryUnitName
                 alignItems: 'center',
                 gap: '10px',
                 padding: '10px 12px',
-                borderRadius: '8px',
+                borderRadius: '12px',
                 border: `1px solid ${colors.gray[200]}`,
                 textDecoration: 'none',
                 color: colors.gray[700],
@@ -79,7 +79,7 @@ export function EmployeeTeamSection({ employeeId, primaryUnitId, primaryUnitName
 
 const cardStyle: React.CSSProperties = {
   backgroundColor: colors.white,
-  borderRadius: '12px',
+  borderRadius: '16px',
   border: `1px solid ${colors.gray[200]}`,
   padding: '20px',
 };

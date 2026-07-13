@@ -126,7 +126,7 @@ function Header({ count, completedToday }: { count: number; completedToday: numb
 function Badge({ label, color }: { label: string; color: string }) {
   return (
     <span style={{
-      display: 'inline-block', padding: '1px 7px', borderRadius: '4px',
+      display: 'inline-block', padding: '1px 9px', borderRadius: '999px',
       fontSize: '11px', fontWeight: 500, backgroundColor: color + '20', color,
     }}>
       {label}
@@ -135,15 +135,15 @@ function Badge({ label, color }: { label: string; color: string }) {
 }
 
 const cardStyle: React.CSSProperties = {
-  backgroundColor: colors.white, borderRadius: '12px', border: `1px solid ${colors.gray[200]}`,
-  padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+  backgroundColor: colors.white, borderRadius: '16px', border: `1px solid ${colors.gray[200]}`,
+  padding: '20px', boxShadow: '0 1px 2px rgba(20,25,43,0.04), 0 10px 30px -12px rgba(20,25,43,0.10), inset 0 1px 0 var(--wb-card-hl, rgba(255,255,255,0.9))',
 };
 const rowStyle: React.CSSProperties = {
   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-  padding: '10px 12px', borderRadius: '8px', cursor: 'pointer',
+  padding: '10px 12px', borderRadius: '12px', cursor: 'pointer',
   backgroundColor: colors.gray[50], transition: 'background-color 0.15s',
 };
 const emptyStyle: React.CSSProperties = {
   padding: '20px', textAlign: 'center', color: colors.gray[500], fontSize: '14px',
-  backgroundColor: colors.gray[50], borderRadius: '8px', border: `1px dashed ${colors.gray[300]}`,
+  backgroundColor: colors.gray[50], borderRadius: '12px', border: `1px dashed ${colors.gray[300]}`,
 };

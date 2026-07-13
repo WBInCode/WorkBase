@@ -151,8 +151,8 @@ export function ClockButton({ employeeId }: ClockButtonProps) {
         display: 'flex',
         alignItems: 'center',
         gap: '8px',
-        padding: '4px 8px',
-        borderRadius: '8px',
+        padding: '4px 8px 4px 12px',
+        borderRadius: '999px',
         backgroundColor: config.bg,
         border: `1px solid ${config.color}22`,
         position: 'relative',
@@ -359,7 +359,7 @@ export function ClockButton({ employeeId }: ClockButtonProps) {
                       display: 'block',
                       width: '100%',
                       textAlign: 'left',
-                      borderRadius: '8px',
+                      borderRadius: '12px',
                       border: `1px solid ${opt.available ? color + '33' : colors.gray[300]}`,
                       backgroundColor: opt.available ? bg : disabledBg,
                       padding: '10px 12px',
@@ -419,7 +419,7 @@ export function ClockButton({ employeeId }: ClockButtonProps) {
             top: 'calc(100% + 6px)',
             right: 0,
             padding: '6px 12px',
-            borderRadius: '6px',
+            borderRadius: '10px',
             fontSize: '12px',
             fontWeight: 500,
             whiteSpace: 'nowrap',
@@ -452,10 +452,10 @@ export function ClockButton({ employeeId }: ClockButtonProps) {
           display: inline-flex;
           align-items: center;
           gap: 4px;
-          padding: 4px 10px;
+          padding: 5px 12px;
           font-size: 12px;
           font-weight: 600;
-          border-radius: 6px;
+          border-radius: 999px;
           white-space: nowrap;
           cursor: pointer;
           transition: background-color 0.15s, transform 0.1s, box-shadow 0.15s;
@@ -470,7 +470,7 @@ export function ClockButton({ employeeId }: ClockButtonProps) {
           box-shadow: none;
         }
         .wb-action-btn:focus-visible {
-          box-shadow: 0 0 0 2px rgba(99,102,241,0.5);
+          box-shadow: 0 0 0 2px rgba(61,109,242,0.5);
         }
         .wb-action-btn:disabled {
           cursor: not-allowed;

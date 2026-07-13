@@ -163,20 +163,30 @@ export function CsvImportPage() {
 
   /* ── Render ── */
   return (
-    <div style={{ padding: mobile ? '16px' : '24px 32px', maxWidth: '960px' }}>
-      <h1 style={{ margin: '0 0 8px', fontSize: '22px', fontWeight: 600, color: colors.gray[900] }}>
-        Import pracowników z CSV
-      </h1>
-      <p style={{ margin: '0 0 24px', fontSize: '14px', color: colors.gray[500] }}>
-        {step === 'upload' && 'Wybierz plik CSV z danymi pracowników.'}
-        {step === 'mapping' && 'Przypisz kolumny CSV do pól pracownika.'}
-        {step === 'preview' && 'Sprawdź podgląd danych przed importem.'}
-        {step === 'importing' && 'Importowanie w toku...'}
-        {step === 'results' && 'Import zakończony.'}
-      </p>
+    <div style={{ padding: mobile ? '14px' : '24px 28px', maxWidth: '1100px', margin: '0 auto' }}>
+      {/* ── Karta dowodzenia ── */}
+      <div style={{
+        backgroundColor: colors.white,
+        border: `1px solid ${colors.gray[200]}`,
+        borderRadius: '20px',
+        boxShadow: '0 1px 2px rgba(20,25,43,0.04), 0 10px 30px -12px rgba(20,25,43,0.10), inset 0 1px 0 var(--wb-card-hl, rgba(255,255,255,0.9))',
+        padding: mobile ? '16px' : '18px 22px',
+        marginBottom: '18px',
+      }}>
+        <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, letterSpacing: '-0.02em', color: colors.gray[900] }}>
+          Import pracowników z CSV
+        </h1>
+        <p style={{ margin: '3px 0 14px', fontSize: '13px', color: colors.gray[500] }}>
+          {step === 'upload' && 'Wybierz plik CSV z danymi pracowników.'}
+          {step === 'mapping' && 'Przypisz kolumny CSV do pól pracownika.'}
+          {step === 'preview' && 'Sprawdź podgląd danych przed importem.'}
+          {step === 'importing' && 'Importowanie w toku...'}
+          {step === 'results' && 'Import zakończony.'}
+        </p>
 
-      {/* Step indicator */}
-      <StepIndicator current={step} />
+        {/* Step indicator */}
+        <StepIndicator current={step} />
+      </div>
 
       {/* ── UPLOAD ── */}
       {step === 'upload' && (
@@ -190,7 +200,7 @@ export function CsvImportPage() {
             Plik: <strong>{fileName}</strong> — {csv.rows.length} wierszy, {csv.headers.length} kolumn
           </div>
 
-          <div style={{ border: `1px solid ${colors.gray[200]}`, borderRadius: '8px', overflowX: 'auto' }}>
+          <div style={{ border: `1px solid ${colors.gray[200]}`, borderRadius: '16px', overflowX: 'auto', backgroundColor: colors.white, boxShadow: '0 1px 2px rgba(20,25,43,0.04), 0 10px 30px -12px rgba(20,25,43,0.08)' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
               <thead>
                 <tr style={{ backgroundColor: colors.gray[50] }}>
@@ -261,7 +271,7 @@ export function CsvImportPage() {
           </div>
 
           {/* Preview table (first 50 rows) */}
-          <div style={{ border: `1px solid ${colors.gray[200]}`, borderRadius: '8px', overflow: 'auto', maxHeight: '400px' }}>
+          <div style={{ border: `1px solid ${colors.gray[200]}`, borderRadius: '16px', overflow: 'auto', maxHeight: '400px', backgroundColor: colors.white }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
               <thead>
                 <tr style={{ backgroundColor: colors.gray[50], position: 'sticky', top: 0 }}>
@@ -380,7 +390,7 @@ export function CsvImportPage() {
                       padding: '12px 16px',
                       backgroundColor: colors.success[50],
                       border: `1px solid ${colors.success[200]}`,
-                      borderRadius: '8px',
+                      borderRadius: '12px',
                       color: colors.success[800],
                       fontSize: '14px',
                       marginBottom: '12px',
@@ -396,7 +406,7 @@ export function CsvImportPage() {
 
                 {/* Error rows */}
                 {failed > 0 && (
-                  <div style={{ border: `1px solid ${colors.danger[200]}`, borderRadius: '8px', overflow: 'auto', maxHeight: '300px' }}>
+                  <div style={{ border: `1px solid ${colors.danger[200]}`, borderRadius: '16px', overflow: 'auto', maxHeight: '300px', backgroundColor: colors.white }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                       <thead>
                         <tr style={{ backgroundColor: colors.danger[50] }}>
@@ -466,7 +476,7 @@ function DropZone({ onFile }: { onFile: (file: File) => void }) {
       onClick={() => inputRef.current?.click()}
       style={{
         border: `2px dashed ${dragOver ? colors.primary[600] : colors.gray[300]}`,
-        borderRadius: '12px',
+        borderRadius: '16px',
         padding: '48px 32px',
         textAlign: 'center',
         cursor: 'pointer',
@@ -555,7 +565,7 @@ function StatBadge({ label, value, color }: { label: string; value: number; colo
     <div
       style={{
         padding: '10px 16px',
-        borderRadius: '8px',
+        borderRadius: '12px',
         backgroundColor: colors.gray[50],
         border: `1px solid ${colors.gray[200]}`,
       }}
@@ -586,7 +596,7 @@ const selectStyle: React.CSSProperties = {
   padding: '6px 10px',
   fontSize: '13px',
   border: `1px solid ${colors.gray[300]}`,
-  borderRadius: '6px',
+  borderRadius: '10px',
   outline: 'none',
   backgroundColor: colors.white,
   color: colors.gray[700],
@@ -603,7 +613,7 @@ const secondaryBtnStyle: React.CSSProperties = {
   color: colors.gray[700],
   backgroundColor: colors.white,
   border: `1px solid ${colors.gray[300]}`,
-  borderRadius: '6px',
+  borderRadius: '10px',
   cursor: 'pointer',
 };
 
@@ -618,7 +628,7 @@ function primaryBtnStyle(disabled: boolean): React.CSSProperties {
     color: colors.white,
     backgroundColor: disabled ? colors.primary[300] : colors.primary[600],
     border: 'none',
-    borderRadius: '6px',
+    borderRadius: '10px',
     cursor: disabled ? 'not-allowed' : 'pointer',
   };
 }

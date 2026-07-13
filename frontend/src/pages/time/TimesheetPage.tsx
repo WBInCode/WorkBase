@@ -151,65 +151,78 @@ export function TimesheetPage() {
   }
 
   return (
-    <div style={{ padding: mobile ? '16px' : '24px 32px', maxWidth: '1100px' }}>
-      {/* Header */}
-      <h1 style={{ fontSize: '22px', fontWeight: 700, color: colors.gray[900], margin: '0 0 20px' }}>
-        Karta czasu pracy
-      </h1>
+    <div style={{ padding: mobile ? '14px' : '24px 28px', maxWidth: '1240px', margin: '0 auto' }}>
+      {/* ── Karta dowodzenia: tytuł + przełącznik okresu + nawigacja ── */}
+      <div
+        style={{
+          backgroundColor: colors.white,
+          border: `1px solid ${colors.gray[200]}`,
+          borderRadius: '20px',
+          boxShadow: '0 1px 2px rgba(20,25,43,0.04), 0 10px 30px -12px rgba(20,25,43,0.10), inset 0 1px 0 var(--wb-card-hl, rgba(255,255,255,0.9))',
+          padding: mobile ? '16px' : '18px 22px',
+          marginBottom: '18px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '14px',
+          flexWrap: 'wrap',
+        }}
+      >
+        <div>
+          <h1 style={{ fontSize: '22px', fontWeight: 800, letterSpacing: '-0.02em', color: colors.gray[900], margin: 0 }}>
+            Karta czasu pracy
+          </h1>
+          <p style={{ margin: '3px 0 0', fontSize: '13.5px', fontWeight: 600, color: colors.primary[600], textTransform: 'capitalize' }}>
+            {periodLabel}
+          </p>
+        </div>
 
-      {/* Controls bar */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px',
-        flexWrap: 'wrap',
-      }}>
-        {/* Period switcher */}
-        <div style={{ display: 'flex', borderRadius: '8px', border: `1px solid ${colors.gray[200]}`, overflow: 'hidden' }}>
-          {(['day', 'week', 'month'] as PeriodType[]).map((p) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          {/* Period switcher — segmentowana pigułka */}
+          <div style={{ display: 'flex', borderRadius: '999px', border: `1px solid ${colors.gray[200]}`, backgroundColor: colors.gray[50], padding: '3px', gap: '2px' }}>
+            {(['day', 'week', 'month'] as PeriodType[]).map((p) => (
+              <button
+                key={p}
+                onClick={() => setPeriod(p)}
+                style={{
+                  padding: '6px 16px', fontSize: '12.5px', fontWeight: 700, fontFamily: 'inherit',
+                  color: period === p ? colors.white : colors.gray[600],
+                  backgroundColor: period === p ? colors.primary[500] : 'transparent',
+                  border: 'none', cursor: 'pointer', borderRadius: '999px',
+                  boxShadow: period === p ? '0 4px 10px -3px rgba(61,109,242,0.5)' : 'none',
+                  transition: 'background 0.15s ease, color 0.15s ease',
+                }}
+              >
+                {{ day: 'Dzień', week: 'Tydzień', month: 'Miesiąc' }[p]}
+              </button>
+            ))}
+          </div>
+
+          {/* Navigation */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <NavButton onClick={() => navigate(-1)} icon={<ChevronLeft size={17} />} />
             <button
-              key={p}
-              onClick={() => setPeriod(p)}
+              onClick={goToToday}
               style={{
-                padding: '6px 16px', fontSize: '13px', fontWeight: period === p ? 600 : 400,
-                color: period === p ? colors.white : colors.gray[700],
-                backgroundColor: period === p ? colors.primary[500] : colors.white,
-                border: 'none', cursor: 'pointer',
-                borderRight: p !== 'month' ? `1px solid ${colors.gray[200]}` : undefined,
+                padding: '7px 14px', fontSize: '12px', fontWeight: 700, fontFamily: 'inherit',
+                color: colors.primary[600], backgroundColor: colors.primary[100],
+                border: 'none', borderRadius: '999px', cursor: 'pointer',
               }}
             >
-              {{ day: 'Dzień', week: 'Tydzień', month: 'Miesiąc' }[p]}
+              Dziś
             </button>
-          ))}
+            <NavButton onClick={() => navigate(1)} icon={<ChevronRight size={17} />} />
+          </div>
         </div>
-
-        {/* Navigation */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <NavButton onClick={() => navigate(-1)} icon={<ChevronLeft size={18} />} />
-          <button
-            onClick={goToToday}
-            style={{
-              padding: '6px 12px', fontSize: '12px', fontWeight: 500,
-              color: colors.primary[500], backgroundColor: colors.primary[50],
-              border: `1px solid ${colors.primary[200]}`, borderRadius: '6px', cursor: 'pointer',
-            }}
-          >
-            Dziś
-          </button>
-          <NavButton onClick={() => navigate(1)} icon={<ChevronRight size={18} />} />
-        </div>
-
-        {/* Period label */}
-        <span style={{ fontSize: '15px', fontWeight: 600, color: colors.gray[700], textTransform: 'capitalize' }}>
-          {periodLabel}
-        </span>
       </div>
 
       {/* Summary cards */}
       {data && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px', marginBottom: '24px' }}>
-          <SummaryCard icon={<Briefcase size={18} />} label="Czas pracy" value={formatDuration(data.totalWorked)} color={colors.primary[500]} />
-          <SummaryCard icon={<Coffee size={18} />} label="Przerwy" value={formatDuration(data.totalBreaks)} color={colors.warning[500]} />
-          <SummaryCard icon={<Clock size={18} />} label="Netto" value={formatDuration(data.netWorked)} color={colors.emerald[600]} />
-          <SummaryCard icon={<AlertCircle size={18} />} label="Dni" value={`${data.daysWorked} / ${data.daysWorked + data.daysIncomplete}`} color="#6366f1" />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '12px', marginBottom: '18px' }}>
+          <SummaryCard icon={<Briefcase size={17} />} label="Czas pracy" value={formatDuration(data.totalWorked)} fg={colors.primary[600]} bg={colors.primary[100]} />
+          <SummaryCard icon={<Coffee size={17} />} label="Przerwy" value={formatDuration(data.totalBreaks)} fg={colors.warning[700]} bg={colors.warning[100]} />
+          <SummaryCard icon={<Clock size={17} />} label="Netto" value={formatDuration(data.netWorked)} fg="#047857" bg="#d1fae5" />
+          <SummaryCard icon={<AlertCircle size={17} />} label="Dni przepracowane" value={`${data.daysWorked} / ${data.daysWorked + data.daysIncomplete}`} fg={colors.primary[600]} bg={colors.primary[100]} />
         </div>
       )}
 
@@ -221,7 +234,7 @@ export function TimesheetPage() {
       )}
 
       {error && (
-        <div style={{ padding: '16px', backgroundColor: colors.danger[50], border: `1px solid ${colors.danger[200]}`, borderRadius: '8px', color: colors.danger[600], fontSize: '14px' }}>
+        <div style={{ padding: '16px', backgroundColor: colors.danger[50], border: `1px solid ${colors.danger[200]}`, borderRadius: '12px', color: colors.danger[600], fontSize: '14px' }}>
           Błąd ładowania danych: {error.message}
         </div>
       )}
@@ -240,18 +253,23 @@ export function TimesheetPage() {
 
 /* === Sub-components === */
 
-function SummaryCard({ icon, label, value, color }: { icon: React.ReactNode; label: string; value: string; color: string }) {
+function SummaryCard({ icon, label, value, fg, bg }: { icon: React.ReactNode; label: string; value: string; fg: string; bg: string }) {
   return (
     <div style={{
-      padding: '14px 16px', borderRadius: '10px', border: `1px solid ${colors.gray[200]}`,
+      padding: '15px 17px', borderRadius: '18px', border: `1px solid ${colors.gray[200]}`,
       backgroundColor: colors.white,
+      boxShadow: '0 1px 2px rgba(20,25,43,0.04), 0 10px 26px -14px rgba(20,25,43,0.12)',
+      display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0,
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-        <span style={{ color }}>{icon}</span>
-        <span style={{ fontSize: '12px', color: colors.gray[500], fontWeight: 500 }}>{label}</span>
-      </div>
-      <span style={{ fontSize: '20px', fontWeight: 700, color: colors.gray[900], fontVariantNumeric: 'tabular-nums' }}>
-        {value}
+      <span style={{
+        width: 38, height: 38, borderRadius: 12, backgroundColor: bg, color: fg,
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+      }}>{icon}</span>
+      <span style={{ minWidth: 0 }}>
+        <span className="wb-tnum" style={{ display: 'block', fontSize: '21px', fontWeight: 800, color: colors.gray[900], letterSpacing: '-0.02em', lineHeight: 1.2 }}>
+          {value}
+        </span>
+        <span style={{ display: 'block', fontSize: '11.5px', color: colors.gray[500], fontWeight: 600 }}>{label}</span>
       </span>
     </div>
   );
@@ -263,8 +281,8 @@ function NavButton({ onClick, icon }: { onClick: () => void; icon: React.ReactNo
       onClick={onClick}
       style={{
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-        width: '32px', height: '32px', border: `1px solid ${colors.gray[200]}`,
-        borderRadius: '6px', backgroundColor: colors.white, cursor: 'pointer', color: colors.gray[700],
+        width: '34px', height: '34px', border: `1px solid ${colors.gray[200]}`,
+        borderRadius: '999px', backgroundColor: colors.white, cursor: 'pointer', color: colors.gray[700],
       }}
     >
       {icon}
@@ -277,7 +295,7 @@ function StatusBadge({ status }: { status: string }) {
   if (!s) return null;
   return (
     <span style={{
-      display: 'inline-block', padding: '2px 8px', borderRadius: '10px',
+      display: 'inline-block', padding: '2px 10px', borderRadius: '999px',
       fontSize: '11px', fontWeight: 600, backgroundColor: s.bg, color: s.text,
     }}>
       {s.label}
@@ -289,14 +307,14 @@ function StatusBadge({ status }: { status: string }) {
 function DayView({ day }: { day?: TimeSheetDayDto }) {
   if (!day) {
     return (
-      <div style={{ padding: '40px', textAlign: 'center', color: colors.gray[400], border: `1px solid ${colors.gray[200]}`, borderRadius: '10px' }}>
+      <div style={{ padding: '40px', textAlign: 'center', color: colors.gray[400], border: `1px solid ${colors.gray[200]}`, borderRadius: '16px', backgroundColor: colors.white }}>
         Brak danych za wybrany dzień.
       </div>
     );
   }
 
   return (
-    <div style={{ border: `1px solid ${colors.gray[200]}`, borderRadius: '10px', overflow: 'hidden' }}>
+    <div style={{ border: `1px solid ${colors.gray[200]}`, borderRadius: '16px', overflow: 'hidden', boxShadow: '0 1px 2px rgba(20,25,43,0.04), 0 10px 30px -12px rgba(20,25,43,0.08)' }}>
       <div style={{
         padding: '16px 20px', backgroundColor: colors.gray[50], borderBottom: `1px solid ${colors.gray[200]}`,
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -336,7 +354,7 @@ function DetailRow({ label, value, color }: { label: string; value: string; colo
   return (
     <div>
       <div style={{ fontSize: '12px', color: colors.gray[500], marginBottom: '4px' }}>{label}</div>
-      <div style={{ fontSize: '22px', fontWeight: 700, color, fontVariantNumeric: 'tabular-nums' }}>{value}</div>
+      <div style={{ fontSize: '22px', fontWeight: 800, letterSpacing: '-0.02em', color, fontVariantNumeric: 'tabular-nums' }}>{value}</div>
     </div>
   );
 }
@@ -347,14 +365,14 @@ function WeekView({ days }: { days: TimeSheetDayDto[] }) {
 
   if (days.length === 0) {
     return (
-      <div style={{ padding: '40px', textAlign: 'center', color: colors.gray[400], border: `1px solid ${colors.gray[200]}`, borderRadius: '10px' }}>
+      <div style={{ padding: '40px', textAlign: 'center', color: colors.gray[400], border: `1px solid ${colors.gray[200]}`, borderRadius: '16px', backgroundColor: colors.white }}>
         Brak danych za wybrany tydzień.
       </div>
     );
   }
 
   return (
-    <div style={{ border: `1px solid ${colors.gray[200]}`, borderRadius: '10px', overflowX: 'auto' }}>
+    <div style={{ border: `1px solid ${colors.gray[200]}`, borderRadius: '16px', overflowX: 'auto', backgroundColor: colors.white, boxShadow: '0 1px 2px rgba(20,25,43,0.04), 0 10px 30px -12px rgba(20,25,43,0.08)' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
         <thead>
           <tr style={{ backgroundColor: colors.gray[50] }}>
@@ -423,14 +441,14 @@ function WeekView({ days }: { days: TimeSheetDayDto[] }) {
 function MonthView({ days }: { days: TimeSheetDayDto[] }) {
   if (days.length === 0) {
     return (
-      <div style={{ padding: '40px', textAlign: 'center', color: colors.gray[400], border: `1px solid ${colors.gray[200]}`, borderRadius: '10px' }}>
+      <div style={{ padding: '40px', textAlign: 'center', color: colors.gray[400], border: `1px solid ${colors.gray[200]}`, borderRadius: '16px', backgroundColor: colors.white }}>
         Brak danych za wybrany miesiąc.
       </div>
     );
   }
 
   return (
-    <div style={{ border: `1px solid ${colors.gray[200]}`, borderRadius: '10px', overflowX: 'auto' }}>
+    <div style={{ border: `1px solid ${colors.gray[200]}`, borderRadius: '16px', overflowX: 'auto', backgroundColor: colors.white, boxShadow: '0 1px 2px rgba(20,25,43,0.04), 0 10px 30px -12px rgba(20,25,43,0.08)' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
         <thead>
           <tr style={{ backgroundColor: colors.gray[50] }}>

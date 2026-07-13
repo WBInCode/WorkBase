@@ -1,25 +1,48 @@
-import { useState, useEffect, type ReactNode } from 'react';
+import { useState, useEffect, useMemo, useCallback, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from 'react-oidc-context';
 import { useTranslation } from 'react-i18next';
-import { FolderTree, Users, FileUp, LogOut, Menu, X, Shield, Grid3X3, CalendarDays, UsersRound, CalendarClock, Palmtree, CalendarRange, ClipboardCheck, ListTodo, ClipboardList, LayoutDashboard, Briefcase, Clock, MoreHorizontal, FileArchive, FolderOpen, Flag, CircleDot, Coffee, Layers, Wallet, Building2, Palette, Type, Bell, AlarmClockCheck, type LucideIcon } from 'lucide-react';
+import { FolderTree, Users, FileUp, LogOut, Menu, X, Shield, Grid3X3, CalendarDays, UsersRound, CalendarClock, Palmtree, CalendarRange, ClipboardCheck, ListTodo, ClipboardList, LayoutDashboard, Briefcase, Clock, MoreHorizontal, FileArchive, FolderOpen, Flag, CircleDot, Coffee, Layers, Wallet, Building2, Palette, Type, Bell, AlarmClockCheck, ChevronDown, Sun, Moon, type LucideIcon } from 'lucide-react';
 import { mapUserClaims } from '@/auth';
 import { useFeatureFlags, useCurrentUser } from '@/api/hooks/useIam';
 import { useBranding } from '@/api/hooks/useBranding';
 import { ClockButton } from '@/components/TimeTracking';
 import { NotificationBell } from '@/components/Notifications';
-import { useIsMobile } from '@/shared';
-import { colors } from '@/theme/tokens';
+import { useIsMobile, appStorage } from '@/shared';
 import { BRAND_CSS_VARS } from '@/theme/applyBranding';
 import { useTenantThemeBootstrap } from '@/theme/useTenantThemeBootstrap';
+import { useTheme } from '@/theme/themeMode';
 
-function useLiveClock() {
+// ─── Live clock (isolated!) ──────────────────────────────────
+// Poprzednio useLiveClock() siedział w MainLayout i re-renderował CAŁE drzewo
+// aplikacji co sekundę. Teraz tyka tylko ten mały chip.
+function LiveClockChip() {
   const [now, setNow] = useState(new Date());
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(id);
   }, []);
-  return now;
+  return (
+    <div className="wb-clock-chip">
+      <Clock size={13} />
+      <span>{now.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+    </div>
+  );
+}
+
+// Przełącznik jasny/ciemny — w topbarze
+function ThemeToggle() {
+  const { theme, toggle } = useTheme();
+  return (
+    <button
+      className="wb-icon-btn"
+      onClick={toggle}
+      aria-label={theme === 'dark' ? 'Przełącz na jasny motyw' : 'Przełącz na ciemny motyw'}
+      title={theme === 'dark' ? 'Jasny motyw' : 'Ciemny motyw'}
+    >
+      {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
+    </button>
+  );
 }
 
 interface MainLayoutProps {
@@ -32,6 +55,7 @@ interface NavItem {
   icon: LucideIcon;
   exact?: boolean;
   adminOnly?: boolean;
+  operatorOnly?: boolean;
 }
 
 interface NavSection {
@@ -100,7 +124,7 @@ const navSections: NavSection[] = [
 // panel entry; the backend independently enforces the real authorization either way.
 const OPERATOR_TENANT_ID = '00000000-0000-0000-0000-000000000001';
 
-const adminNavItems = [
+const adminNavItems: NavItem[] = [
   { path: '/admin/roles', labelKey: 'nav.roles', icon: Shield },
   { path: '/admin/permissions', labelKey: 'nav.permissions', icon: Grid3X3 },
   { path: '/admin/feature-flags', labelKey: 'nav.featureFlags', icon: Flag },
@@ -120,6 +144,32 @@ const adminNavItems = [
   { path: '/admin/task-settings', labelKey: 'nav.taskSettings', icon: ListTodo },
 ];
 
+// ─── Collapsible section state (persisted) ──────────────────
+
+const COLLAPSE_STORE_KEY = 'wb.nav.collapsed';
+
+function readCollapsed(): Record<string, boolean> {
+  try {
+    return JSON.parse(appStorage.local.get(COLLAPSE_STORE_KEY) ?? '{}') as Record<string, boolean>;
+  } catch {
+    return {};
+  }
+}
+
+// ─── Nav item ────────────────────────────────────────────────
+
+function NavLinkItem({ item, isActive, label }: { item: NavItem; isActive: boolean; label: string }) {
+  const Icon = item.icon;
+  return (
+    <Link to={item.path} className={`wb-nav-item${isActive ? ' is-active' : ''}`}>
+      <span className="wb-nav-ico">
+        <Icon size={15} />
+      </span>
+      {label}
+    </Link>
+  );
+}
+
 export function MainLayout({ children }: MainLayoutProps) {
   const auth = useAuth();
   const location = useLocation();
@@ -133,7 +183,23 @@ export function MainLayout({ children }: MainLayoutProps) {
   const visibleAdminNavItems = adminNavItems.filter((item) => !item.operatorOnly || isOperator);
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
-  const now = useLiveClock();
+
+  // Zwijane sekcje nawigacji — stan trzymany lokalnie, sekcja z aktywną trasą
+  // zawsze otwarta. Sekcja admina (17 pozycji) domyślnie zwinięta.
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>(() => ({
+    'nav.admin': !location.pathname.startsWith('/admin'),
+    ...readCollapsed(),
+  }));
+
+  const toggleSection = useCallback((key: string) => {
+    setCollapsed((prev) => {
+      const next = { ...prev, [key]: !prev[key] };
+      try {
+        appStorage.local.set(COLLAPSE_STORE_KEY, JSON.stringify(next));
+      } catch { /* private mode etc. */ }
+      return next;
+    });
+  }, []);
 
   // Applies tenant branding (colors/font) as CSS vars and merges terminology overrides into
   // i18next — see docs/AUDIT-KNOWLEDGE-MAP.md (module/branding/terminology configuration).
@@ -163,248 +229,167 @@ export function MainLayout({ children }: MainLayoutProps) {
     if (isMobile) setSidebarOpen(false);
   }, [location.pathname, isMobile]);
 
+  // Tytuł bieżącej strony do topbara (z aktywnej pozycji nawigacji)
+  const pageTitle = useMemo(() => {
+    const all: NavItem[] = [...navSections.flatMap((s) => s.items), ...adminNavItems];
+    const match = all
+      .filter((i) => (i.exact ? location.pathname === i.path : location.pathname.startsWith(i.path)))
+      .sort((a, b) => b.path.length - a.path.length)[0];
+    return match ? t(match.labelKey) : '';
+  }, [location.pathname, t]);
+
+  const isSectionActive = (section: NavSection) =>
+    section.items.some((i) => (i.exact ? location.pathname === i.path : location.pathname.startsWith(i.path)));
+  const isAdminActive = location.pathname.startsWith('/admin');
+
+  const appName = branding?.appName ?? 'WorkBase';
+
   return (
-    <div style={{ display: 'flex', height: '100vh', fontFamily: BRAND_CSS_VARS.font, background: colors.slate[900] }}>
+    <div className="wb-shell" style={{ fontFamily: BRAND_CSS_VARS.font }}>
       {/* Mobile backdrop */}
       {isMobile && sidebarOpen && (
-        <div
-          onClick={() => setSidebarOpen(false)}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(0,0,0,0.4)',
-            zIndex: 40,
-          }}
-        />
+        <div className="wb-backdrop" onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar — pływająca karta */}
       <aside
+        className="wb-rail"
         style={{
-          width: sidebarOpen ? '250px' : '0px',
-          overflow: 'hidden',
-          background: `linear-gradient(180deg, ${colors.slate[900]} 0%, ${colors.slate[800]} 100%)`,
-          color: '#e2e8f0',
-          display: 'flex',
-          flexDirection: 'column',
-          transition: 'width 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-          flexShrink: 0,
-          ...(isMobile ? { position: 'fixed', top: 0, left: 0, bottom: 0, zIndex: 50 } : {}),
+          width: sidebarOpen ? 248 : 0,
+          margin: sidebarOpen ? '12px 0 12px 12px' : '12px 0',
+          opacity: sidebarOpen ? 1 : 0,
+          border: sidebarOpen ? undefined : 'none',
+          ...(isMobile
+            ? { position: 'fixed', top: 0, left: 0, bottom: 0, zIndex: 50, margin: sidebarOpen ? 10 : 0 }
+            : {}),
         }}
       >
         {/* Logo */}
-        <div
-          style={{
-            padding: '20px 20px 16px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-          }}
-        >
+        <div className="wb-rail-head">
           {branding?.logoUrl ? (
             <img
               src={branding.logoUrl}
-              alt={branding.appName ?? 'Logo'}
-              style={{ width: 32, height: 32, borderRadius: 8, objectFit: 'contain', flexShrink: 0 }}
+              alt={appName}
+              style={{ width: 34, height: 34, borderRadius: 10, objectFit: 'contain', flexShrink: 0 }}
             />
           ) : (
-            <div style={{
-              width: 32,
-              height: 32,
-              borderRadius: 8,
-              background: `linear-gradient(135deg, ${BRAND_CSS_VARS.primary}, ${BRAND_CSS_VARS.primaryHover})`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 16,
-              fontWeight: 800,
-              color: colors.white,
-              flexShrink: 0,
-            }}>
-              {(branding?.appName ?? 'WorkBase').charAt(0).toUpperCase()}
+            <div
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: 10,
+                background: `linear-gradient(135deg, ${BRAND_CSS_VARS.primary}, ${BRAND_CSS_VARS.primaryHover})`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 16,
+                fontWeight: 800,
+                color: '#fff',
+                flexShrink: 0,
+                boxShadow: '0 6px 14px -4px rgba(61,109,242,0.5)',
+              }}
+            >
+              {appName.charAt(0).toUpperCase()}
             </div>
           )}
-          <span style={{ fontSize: 18, fontWeight: 700, color: '#f8fafc', whiteSpace: 'nowrap', letterSpacing: '-0.02em' }}>
-            {branding?.appName ?? 'WorkBase'}
-          </span>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: 15.5, fontWeight: 800, color: 'var(--wb-ink)', whiteSpace: 'nowrap', letterSpacing: '-0.02em' }}>
+              {appName}
+            </div>
+            <div style={{ fontSize: 10, fontWeight: 600, color: '#9aa3bc', letterSpacing: '0.06em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+              Platforma HR
+            </div>
+          </div>
         </div>
 
         {/* Nav */}
-        <nav
-          className="wb-nav-scroll"
-          style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '4px 10px 12px' }}
-        >
-          {visibleNavSections.map((section, si) => (
-            <div key={si} style={{ marginBottom: 4 }}>
-              {section.titleKey && (
-                <div style={{
-                  padding: '12px 10px 6px',
-                  fontSize: 10,
-                  fontWeight: 700,
-                  color: '#64748b',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.08em',
-                  whiteSpace: 'nowrap',
-                }}>
-                  {t(section.titleKey)}
-                </div>
-              )}
-              {section.items.map((item) => {
-                if (item.adminOnly && !isAdmin) return null;
-                const isActive = item.exact
-                  ? location.pathname === item.path
-                  : location.pathname.startsWith(item.path);
-                const Icon = item.icon;
-                return (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 10,
-                      padding: '8px 10px',
-                      borderRadius: 8,
-                  color: isActive ? '#f8fafc' : colors.slate[400],
-                      background: isActive
-                        ? 'linear-gradient(90deg, rgba(99,102,241,0.2), rgba(99,102,241,0.05))'
-                        : 'transparent',
-                      textDecoration: 'none',
-                      fontSize: 13,
-                      fontWeight: isActive ? 600 : 400,
-                      whiteSpace: 'nowrap',
-                      transition: 'all 0.15s ease',
-                      position: 'relative',
-                      marginBottom: 1,
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!isActive) e.currentTarget.style.background = 'rgba(99,102,241,0.08)';
-                      if (!isActive) e.currentTarget.style.color = '#cbd5e1';
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isActive) e.currentTarget.style.background = 'transparent';
-                      if (!isActive) e.currentTarget.style.color = colors.slate[400];
-                    }}
+        <nav className="wb-nav-scroll" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '2px 10px 12px' }}>
+          {visibleNavSections.map((section, si) => {
+            const key = section.titleKey ?? `sec-${si}`;
+            const isClosed = !!section.titleKey && !!collapsed[key] && !isSectionActive(section);
+            return (
+              <div key={key} style={{ marginBottom: 2 }}>
+                {section.titleKey && (
+                  <button
+                    type="button"
+                    className={`wb-nav-sec${isClosed ? ' is-closed' : ''}`}
+                    onClick={() => toggleSection(key)}
+                    aria-expanded={!isClosed}
                   >
-                    {isActive && (
-                      <div style={{
-                        position: 'absolute',
-                        left: 0,
-                        top: '20%',
-                        bottom: '20%',
-                        width: 3,
-                        borderRadius: 3,
-                        background: `linear-gradient(180deg, ${BRAND_CSS_VARS.primary}, ${BRAND_CSS_VARS.primaryHover})`,
-                      }} />
-                    )}
-                    <Icon size={17} style={{ opacity: isActive ? 1 : 0.7, flexShrink: 0 }} />
-                    {t(item.labelKey)}
-                  </Link>
-                );
-              })}
-            </div>
-          ))}
+                    {t(section.titleKey)}
+                    <ChevronDown size={12} className="wb-sec-chev" />
+                  </button>
+                )}
+                {!isClosed && (
+                  <div className="wb-nav-group">
+                    {section.items.map((item) => {
+                      if (item.adminOnly && !isAdmin) return null;
+                      const isActive = item.exact
+                        ? location.pathname === item.path
+                        : location.pathname.startsWith(item.path);
+                      return <NavLinkItem key={item.path} item={item} isActive={isActive} label={t(item.labelKey)} />;
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
 
           {/* Admin section */}
           {isAdmin && (
-          <div style={{
-            marginTop: 8,
-            paddingTop: 8,
-            borderTop: '1px solid rgba(100,116,139,0.2)',
-          }}>
-            <div style={{
-              padding: '4px 10px 6px',
-              fontSize: 10,
-              fontWeight: 700,
-              color: '#64748b',
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
-              whiteSpace: 'nowrap',
-            }}>
-              {t('nav.admin')}
+            <div style={{ marginTop: 6, paddingTop: 6, borderTop: '1px solid var(--wb-line)' }}>
+              <button
+                type="button"
+                className={`wb-nav-sec${collapsed['nav.admin'] && !isAdminActive ? ' is-closed' : ''}`}
+                onClick={() => toggleSection('nav.admin')}
+                aria-expanded={!(collapsed['nav.admin'] && !isAdminActive)}
+              >
+                {t('nav.admin')}
+                <ChevronDown size={12} className="wb-sec-chev" />
+              </button>
+              {!(collapsed['nav.admin'] && !isAdminActive) && (
+                <div className="wb-nav-group">
+                  {visibleAdminNavItems.map((item) => (
+                    <NavLinkItem
+                      key={item.path}
+                      item={item}
+                      isActive={location.pathname.startsWith(item.path)}
+                      label={t(item.labelKey)}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
-            {visibleAdminNavItems.map((item) => {
-              const isActive = location.pathname.startsWith(item.path);
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 10,
-                    padding: '8px 10px',
-                    borderRadius: 8,
-                  color: isActive ? '#f8fafc' : colors.slate[400],
-                    background: isActive
-                      ? 'linear-gradient(90deg, rgba(99,102,241,0.2), rgba(99,102,241,0.05))'
-                      : 'transparent',
-                    textDecoration: 'none',
-                    fontSize: 13,
-                    fontWeight: isActive ? 600 : 400,
-                    whiteSpace: 'nowrap',
-                    transition: 'all 0.15s ease',
-                    position: 'relative',
-                    marginBottom: 1,
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isActive) e.currentTarget.style.background = 'rgba(99,102,241,0.08)';
-                    if (!isActive) e.currentTarget.style.color = '#cbd5e1';
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isActive) e.currentTarget.style.background = 'transparent';
-                    if (!isActive) e.currentTarget.style.color = colors.slate[400];
-                  }}
-                >
-                  {isActive && (
-                    <div style={{
-                      position: 'absolute',
-                      left: 0,
-                      top: '20%',
-                      bottom: '20%',
-                      width: 3,
-                      borderRadius: 3,
-                      background: `linear-gradient(180deg, ${BRAND_CSS_VARS.primary}, ${BRAND_CSS_VARS.primaryHover})`,
-                    }} />
-                  )}
-                  <Icon size={17} style={{ opacity: isActive ? 1 : 0.7, flexShrink: 0 }} />
-                  {t(item.labelKey)}
-                </Link>
-              );
-            })}
-          </div>
           )}
         </nav>
 
         {/* User */}
         {user && (
-          <div style={{
-            padding: '14px 16px',
-            borderTop: '1px solid rgba(100,116,139,0.2)',
-            background: 'rgba(15,23,42,0.5)',
-          }}>
+          <div className="wb-rail-foot">
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-              <div style={{
-                width: 34,
-                height: 34,
-                borderRadius: '50%',
-                background: `linear-gradient(135deg, ${BRAND_CSS_VARS.primary}, ${BRAND_CSS_VARS.primaryHover})`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 13,
-                fontWeight: 700,
-                color: colors.white,
-                flexShrink: 0,
-              }}>
+              <div
+                style={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: '50%',
+                  background: `linear-gradient(135deg, ${BRAND_CSS_VARS.primary}, ${BRAND_CSS_VARS.primaryHover})`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: '#fff',
+                  flexShrink: 0,
+                  boxShadow: '0 4px 10px -3px rgba(61,109,242,0.45)',
+                }}
+              >
                 {(user.name ?? 'U').charAt(0).toUpperCase()}
               </div>
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: '#f1f5f9', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--wb-ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {user.name}
                 </div>
-                <div style={{ fontSize: 11, color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <div style={{ fontSize: 11, color: '#9aa3bc', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {user.email}
                 </div>
               </div>
@@ -417,27 +402,29 @@ export function MainLayout({ children }: MainLayoutProps) {
                 justifyContent: 'center',
                 gap: 6,
                 width: '100%',
-                padding: '7px 8px',
+                padding: '8px 10px',
                 fontSize: 12,
-                fontWeight: 500,
-                color: colors.slate[400],
-                backgroundColor: 'rgba(51,65,85,0.4)',
-                border: '1px solid rgba(100,116,139,0.25)',
-                borderRadius: 6,
+                fontWeight: 600,
+                fontFamily: 'inherit',
+                color: 'var(--wb-ink-2)',
+                backgroundColor: 'var(--wb-panel)',
+                border: '1px solid var(--wb-line)',
+                borderRadius: 999,
                 cursor: 'pointer',
                 whiteSpace: 'nowrap',
                 transition: 'all 0.15s ease',
+                boxShadow: '0 1px 2px rgba(20,25,43,0.05)',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(51,65,85,0.7)';
-                e.currentTarget.style.color = '#cbd5e1';
+                e.currentTarget.style.borderColor = 'var(--wb-dan-400, #f1c2c2)';
+                e.currentTarget.style.color = 'var(--wb-dan-500, #c0392b)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(51,65,85,0.4)';
-                e.currentTarget.style.color = colors.slate[400];
+                e.currentTarget.style.borderColor = 'var(--wb-line)';
+                e.currentTarget.style.color = 'var(--wb-ink-2)';
               }}
             >
-              <LogOut size={14} />
+              <LogOut size={13} />
               Wyloguj
             </button>
           </div>
@@ -445,72 +432,43 @@ export function MainLayout({ children }: MainLayoutProps) {
       </aside>
 
       {/* Main content */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        {/* Topbar */}
-        <header
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            padding: '0 20px',
-            height: '52px',
-            borderBottom: `1px solid ${colors.gray[200]}`,
-            backgroundColor: colors.white,
-            flexShrink: 0,
-            boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-          }}
-        >
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
+        {/* Topbar — szklana pigułka */}
+        <header className="wb-topbar">
           <button
+            className="wb-icon-btn"
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: colors.gray[500],
-              padding: '4px',
-              display: 'inline-flex',
-            }}
             aria-label={sidebarOpen ? 'Zwiń sidebar' : 'Rozwiń sidebar'}
           >
-            {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
+            {sidebarOpen && isMobile ? <X size={18} /> : <Menu size={18} />}
           </button>
+
+          {pageTitle && <div className="wb-topbar-title">{pageTitle}</div>}
 
           <div style={{ flex: 1 }} />
 
-          {!isMobile && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: colors.gray[500], fontSize: '13px', marginRight: '12px' }}>
-              <Clock size={14} />
-              <span style={{ fontVariantNumeric: 'tabular-nums' }}>
-                {now.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-              </span>
-            </div>
-          )}
+          {!isMobile && <LiveClockChip />}
 
-          {user?.sub && (
-            <NotificationBell userId={user.sub} />
-          )}
+          <ThemeToggle />
 
-          {user?.employeeId && (
-            <ClockButton employeeId={user.employeeId} />
-          )}
+          {user?.sub && <NotificationBell userId={user.sub} />}
+
+          {/* Na "/workspace" akcje RCP są w hero — unikamy duplikacji w topbarze */}
+          {user?.employeeId && location.pathname !== '/workspace' && <ClockButton employeeId={user.employeeId} />}
         </header>
 
         {/* Page content */}
-        <main style={{ flex: 1, overflow: 'auto', backgroundColor: colors.gray[50], paddingBottom: isMobile ? '60px' : undefined }}>
+        <main
+          key={location.pathname}
+          className="wb-page-enter"
+          style={{ flex: 1, overflow: 'auto', paddingBottom: isMobile ? 84 : undefined }}
+        >
           {children}
         </main>
 
-        {/* Mobile bottom tabs */}
+        {/* Mobile bottom tabs — pływający dock */}
         {isMobile && (
-          <nav style={{
-            position: 'fixed', bottom: 0, left: 0, right: 0,
-            height: '56px',
-            backgroundColor: colors.white,
-            borderTop: `1px solid ${colors.gray[200]}`,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-around',
-            zIndex: 50,
-          }}>
+          <nav className="wb-tabbar">
             <BottomTab icon={Briefcase} label="Mój dzień" path="/workspace" currentPath={location.pathname} />
             <BottomTab icon={ListTodo} label="Zadania" path="/tasks" currentPath={location.pathname} />
             <BottomTab icon={Palmtree} label="Wnioski" path="/leave/request" currentPath={location.pathname} />
@@ -523,24 +481,15 @@ export function MainLayout({ children }: MainLayoutProps) {
 }
 
 function BottomTab({ icon: Icon, label, path, currentPath }: {
-  icon: React.ComponentType<{ size?: number; color?: string }>;
+  icon: LucideIcon;
   label: string;
   path: string;
   currentPath: string;
 }) {
   const isActive = currentPath.startsWith(path);
   return (
-    <Link
-      to={path}
-      style={{
-        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
-        textDecoration: 'none',
-        color: isActive ? colors.primary[600] : colors.gray[400],
-        fontSize: '11px', fontWeight: isActive ? 600 : 400,
-        padding: '4px 12px',
-      }}
-    >
-      <Icon size={20} color={isActive ? colors.primary[600] : colors.gray[400]} />
+    <Link to={path} className={`wb-tab${isActive ? ' is-active' : ''}`}>
+      <Icon size={19} />
       {label}
     </Link>
   );
@@ -548,15 +497,8 @@ function BottomTab({ icon: Icon, label, path, currentPath }: {
 
 function BottomTabMore({ onClick }: { onClick: () => void }) {
   return (
-    <button
-      onClick={onClick}
-      style={{
-        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
-        background: 'none', border: 'none', cursor: 'pointer',
-        color: colors.gray[400], fontSize: '11px', padding: '4px 12px',
-      }}
-    >
-      <MoreHorizontal size={20} color={colors.gray[400]} />
+    <button onClick={onClick} className="wb-tab">
+      <MoreHorizontal size={19} />
       Więcej
     </button>
   );

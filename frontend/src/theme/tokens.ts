@@ -1,39 +1,44 @@
 // ─── Design System Tokens ───────────────────────────────────
 // Single source of truth for colors, typography, spacing, radii.
 // All components should import from here instead of hardcoding values.
+//
+// MOTYWY: każdy kolor to `var(--wb-*, <hex light>)` — jasny motyw działa bez
+// żadnego CSS (fallback), ciemny nadpisuje zmienne w html[data-theme="dark"]
+// (theme/workbase.css). Dzięki temu inline styles w 139 plikach przełączają
+// się automatycznie bez zmian w komponentach.
 
 // ─── Color Palette ──────────────────────────────────────────
 
 export const colors = {
-  // ── Primary (Blue) ──
+  // ── Primary (Iris Blue) ──
   primary: {
-    50: '#eff6ff',
-    100: '#dbeafe',
-    200: '#bfdbfe',
-    300: '#93c5fd',
-    400: '#60a5fa',
-    500: '#3b82f6',
-    600: '#2563eb',
-    700: '#1d4ed8',
-    800: '#1e40af',
-    900: '#1e3a8a',
+    50: 'var(--wb-p-50, #eef3fe)',
+    100: 'var(--wb-p-100, #e5ecfe)',
+    200: 'var(--wb-p-200, #c9d8fc)',
+    300: 'var(--wb-p-300, #a3bcf9)',
+    400: 'var(--wb-p-400, #6f93f6)',
+    500: 'var(--wb-p-500, #3d6df2)',
+    600: 'var(--wb-p-600, #2b55d4)',
+    700: 'var(--wb-p-700, #2346af)',
+    800: 'var(--wb-p-800, #1e3a8e)',
+    900: 'var(--wb-p-900, #1b3272)',
   },
 
-  // ── Gray (Neutral) ──
+  // ── Gray (Ink-tinted cool neutral; w dark: odwrócona skala jasności) ──
   gray: {
-    50: '#f9fafb',
-    100: '#f3f4f6',
-    200: '#e5e7eb',
-    300: '#d1d5db',
-    400: '#9ca3af',
-    500: '#6b7280',
-    600: '#4b5563',
-    700: '#374151',
-    800: '#1f2937',
-    900: '#111827',
+    50: 'var(--wb-g-50, #f6f8fc)',
+    100: 'var(--wb-g-100, #eef1f8)',
+    200: 'var(--wb-g-200, #e3e7f1)',
+    300: 'var(--wb-g-300, #cdd3e4)',
+    400: 'var(--wb-g-400, #9aa3bc)',
+    500: 'var(--wb-g-500, #6b7490)',
+    600: 'var(--wb-g-600, #4c5570)',
+    700: 'var(--wb-g-700, #353d56)',
+    800: 'var(--wb-g-800, #232941)',
+    900: 'var(--wb-g-900, #14192b)',
   },
 
-  // ── Slate (Sidebar / Dark surfaces) ──
+  // ── Slate (kiosk / celowo ciemne powierzchnie — statyczne) ──
   slate: {
     400: '#94a3b8',
     700: '#334155',
@@ -43,45 +48,45 @@ export const colors = {
 
   // ── Semantic ──
   success: {
-    50: '#f0fdf4',
-    100: '#dcfce7',
-    200: '#bbf7d0',
-    500: '#22c55e',
-    600: '#16a34a',
-    700: '#15803d',
-    800: '#166534',
+    50: 'var(--wb-suc-50, #f0fdf4)',
+    100: 'var(--wb-suc-100, #dcfce7)',
+    200: 'var(--wb-suc-200, #bbf7d0)',
+    500: 'var(--wb-suc-500, #22c55e)',
+    600: 'var(--wb-suc-600, #16a34a)',
+    700: 'var(--wb-suc-700, #15803d)',
+    800: 'var(--wb-suc-800, #166534)',
   },
   warning: {
-    50: '#fffbeb',
-    100: '#fef3c7',
-    200: '#fde68a',
-    500: '#f59e0b',
-    600: '#d97706',
-    700: '#b45309',
-    800: '#92400e',
+    50: 'var(--wb-war-50, #fffbeb)',
+    100: 'var(--wb-war-100, #fef3c7)',
+    200: 'var(--wb-war-200, #fde68a)',
+    500: 'var(--wb-war-500, #f59e0b)',
+    600: 'var(--wb-war-600, #d97706)',
+    700: 'var(--wb-war-700, #b45309)',
+    800: 'var(--wb-war-800, #92400e)',
   },
   danger: {
-    50: '#fef2f2',
-    100: '#fee2e2',
-    200: '#fecaca',
-    400: '#f87171',
-    500: '#ef4444',
-    600: '#dc2626',
-    700: '#b91c1c',
-    800: '#991b1b',
+    50: 'var(--wb-dan-50, #fef2f2)',
+    100: 'var(--wb-dan-100, #fee2e2)',
+    200: 'var(--wb-dan-200, #fecaca)',
+    400: 'var(--wb-dan-400, #f87171)',
+    500: 'var(--wb-dan-500, #ef4444)',
+    600: 'var(--wb-dan-600, #dc2626)',
+    700: 'var(--wb-dan-700, #b91c1c)',
+    800: 'var(--wb-dan-800, #991b1b)',
   },
   info: {
-    50: '#eff6ff',
-    100: '#dbeafe',
-    500: '#3b82f6',
-    600: '#2563eb',
+    50: 'var(--wb-inf-50, #eff6ff)',
+    100: 'var(--wb-inf-100, #dbeafe)',
+    500: 'var(--wb-inf-500, #3b82f6)',
+    600: 'var(--wb-inf-600, #2563eb)',
   },
   emerald: {
-    600: '#059669',
+    600: 'var(--wb-eme-600, #059669)',
   },
 
   // ── Base ──
-  white: '#ffffff',
+  white: 'var(--wb-surface, #ffffff)',
   black: '#000000',
   transparent: 'transparent',
 } as const;
@@ -98,13 +103,13 @@ export const semantic = {
   textLink: colors.primary[600],
 
   // Backgrounds
-  bgPage: colors.white,
+  bgPage: 'var(--wb-canvas, #eef1f8)',
   bgSurface: colors.white,
   bgSubtle: colors.gray[50],
   bgMuted: colors.gray[100],
-  bgSidebar: colors.slate[800],
+  bgSidebar: colors.white,
   bgHover: colors.gray[50],
-  bgSelected: colors.primary[50],
+  bgSelected: colors.primary[100],
 
   // Borders
   border: colors.gray[200],
@@ -165,7 +170,7 @@ export const statusColors = {
 // ─── Typography ─────────────────────────────────────────────
 
 export const typography = {
-  fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif",
+  fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
 
   fontSize: {
     xs: '11px',
@@ -213,20 +218,20 @@ export const spacing = {
 
 export const radii = {
   none: '0',
-  sm: '4px',
-  md: '6px',
-  lg: '8px',
-  xl: '12px',
+  sm: '6px',
+  md: '8px',
+  lg: '12px',
+  xl: '16px',
   full: '9999px',
 } as const;
 
 // ─── Shadows ────────────────────────────────────────────────
 
 export const shadows = {
-  sm: '0 1px 2px rgba(0,0,0,0.05)',
-  md: '0 4px 6px rgba(0,0,0,0.07)',
-  lg: '0 10px 15px rgba(0,0,0,0.1)',
-  dropdown: '0 4px 12px rgba(0,0,0,0.15)',
+  sm: '0 1px 2px rgba(20,25,43,0.04), inset 0 1px 0 var(--wb-card-hl, rgba(255,255,255,0.85))',
+  md: '0 1px 2px rgba(20,25,43,0.04), 0 10px 30px -12px rgba(20,25,43,0.12), inset 0 1px 0 var(--wb-card-hl, rgba(255,255,255,0.9))',
+  lg: '0 12px 28px -8px rgba(20,25,43,0.14), inset 0 1px 0 var(--wb-card-hl, rgba(255,255,255,0.9))',
+  dropdown: 'var(--wb-shadow-pop, 0 12px 32px -8px rgba(20,25,43,0.18))',
 } as const;
 
 // ─── Transitions ────────────────────────────────────────────

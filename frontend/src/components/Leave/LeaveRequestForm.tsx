@@ -74,7 +74,7 @@ export function LeaveRequestForm({
       style={{
         position: 'fixed',
         inset: 0,
-        backgroundColor: 'rgba(0,0,0,0.4)',
+        backgroundColor: 'rgba(20,25,43,0.45)', backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)', animation: 'wb-backdrop-in 0.18s ease both',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -90,10 +90,11 @@ export function LeaveRequestForm({
       <div
         style={{
           backgroundColor: colors.white,
-          borderRadius: '12px',
+          borderRadius: '20px',
+          animation: 'wb-modal-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both',
           width: '100%',
           maxWidth: '480px',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
+          boxShadow: '0 24px 64px -12px rgba(20,25,43,0.28), 0 0 0 1px rgba(20,25,43,0.04)',
         }}
       >
         {/* Header */}
@@ -134,7 +135,7 @@ export function LeaveRequestForm({
                 padding: '10px 14px',
                 backgroundColor: colors.danger[50],
                 border: `1px solid ${colors.danger[200]}`,
-                borderRadius: '6px',
+                borderRadius: '10px',
                 color: colors.danger[600],
                 fontSize: '13px',
                 marginBottom: '16px',
@@ -199,7 +200,7 @@ export function LeaveRequestForm({
                   padding: '10px 14px',
                   backgroundColor: '#f0f9ff',
                   border: '1px solid #bae6fd',
-                  borderRadius: '6px',
+                  borderRadius: '10px',
                   fontSize: '13px',
                   color: '#0369a1',
                 }}
@@ -270,7 +271,7 @@ export function LeaveRequestForm({
                 color: colors.gray[700],
                 backgroundColor: colors.white,
                 border: `1px solid ${colors.gray[300]}`,
-                borderRadius: '6px',
+                borderRadius: '10px',
                 cursor: 'pointer',
               }}
             >
@@ -286,7 +287,7 @@ export function LeaveRequestForm({
                 color: colors.white,
                 backgroundColor: !isValid || isSubmitting ? colors.primary[300] : colors.primary[600],
                 border: 'none',
-                borderRadius: '6px',
+                borderRadius: '10px',
                 cursor: !isValid || isSubmitting ? 'not-allowed' : 'pointer',
               }}
             >
@@ -332,7 +333,7 @@ const inputStyle: React.CSSProperties = {
   padding: '8px 12px',
   fontSize: '14px',
   border: `1px solid ${colors.gray[300]}`,
-  borderRadius: '6px',
+  borderRadius: '10px',
   outline: 'none',
   boxSizing: 'border-box',
 };

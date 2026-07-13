@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, Download, AlertTriangle, Users } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download, AlertTriangle } from 'lucide-react';
 import { useTeamTimesheets, useAnomalies } from '@/api/hooks/useTimeTracking';
 import { useEmployees, useOrgUnitTree } from '@/api/hooks/useOrganization';
 import type { TimeSheetPeriodDto, TimeAnomalyDto } from '@/api/types/time';
@@ -309,86 +309,99 @@ export function TeamAttendancePage() {
   }, [employees, dates, tsMap, dateRange]);
 
   return (
-    <div style={{ padding: mobile ? '16px' : '24px 32px' }}>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-        <h1 style={{ fontSize: '22px', fontWeight: 700, color: colors.gray[900], margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Users size={22} />
-          Raport czasu pracy zespołu
-        </h1>
-        <button
-          onClick={exportExcel}
-          disabled={!timesheets || employees.length === 0}
-          style={{
-            display: 'flex', alignItems: 'center', gap: '6px',
-            padding: '8px 16px', fontSize: '13px', fontWeight: 600,
-            color: colors.white, backgroundColor: colors.emerald[600],
-            border: 'none', borderRadius: '8px', cursor: 'pointer',
-            opacity: (!timesheets || employees.length === 0) ? 0.5 : 1,
-          }}
-        >
-          <Download size={16} /> Eksport Excel
-        </button>
-      </div>
-
-      {/* Controls */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
-        {/* View mode */}
-        <div style={{ display: 'flex', borderRadius: '8px', border: `1px solid ${colors.gray[200]}`, overflow: 'hidden' }}>
-          {(['week', 'month'] as const).map((m) => (
-            <button
-              key={m}
-              onClick={() => setViewMode(m)}
-              style={{
-                padding: '6px 16px', fontSize: '13px', fontWeight: viewMode === m ? 600 : 400,
-                color: viewMode === m ? colors.white : colors.gray[700],
-                backgroundColor: viewMode === m ? colors.primary[500] : colors.white,
-                border: 'none', cursor: 'pointer',
-                borderRight: m === 'week' ? `1px solid ${colors.gray[200]}` : undefined,
-              }}
-            >
-              {{ week: 'Tydzień', month: 'Miesiąc' }[m]}
-            </button>
-          ))}
-        </div>
-
-        {/* Nav */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <NavBtn onClick={() => navigate(-1)}><ChevronLeft size={18} /></NavBtn>
+    <div style={{ padding: mobile ? '14px' : '24px 28px', maxWidth: '1400px', margin: '0 auto' }}>
+      {/* ── Karta dowodzenia: tytuł + eksport + kontrolki ── */}
+      <div
+        style={{
+          backgroundColor: colors.white,
+          border: `1px solid ${colors.gray[200]}`,
+          borderRadius: '20px',
+          boxShadow: '0 1px 2px rgba(20,25,43,0.04), 0 10px 30px -12px rgba(20,25,43,0.10), inset 0 1px 0 var(--wb-card-hl, rgba(255,255,255,0.9))',
+          padding: mobile ? '16px' : '18px 22px',
+          marginBottom: '18px',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+          <div>
+            <h1 style={{ fontSize: '22px', fontWeight: 800, letterSpacing: '-0.02em', color: colors.gray[900], margin: 0 }}>
+              Raport czasu pracy zespołu
+            </h1>
+            <p style={{ margin: '3px 0 0', fontSize: '13.5px', fontWeight: 600, color: colors.primary[600], textTransform: 'capitalize' }}>
+              {periodLabel}
+            </p>
+          </div>
           <button
-            onClick={() => setCurrentDate(new Date())}
+            onClick={exportExcel}
+            disabled={!timesheets || employees.length === 0}
             style={{
-              padding: '6px 12px', fontSize: '12px', fontWeight: 500,
-              color: colors.primary[500], backgroundColor: colors.primary[50],
-              border: `1px solid ${colors.primary[200]}`, borderRadius: '6px', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: '6px',
+              padding: '9px 18px', fontSize: '13px', fontWeight: 700, fontFamily: 'inherit',
+              color: colors.white, backgroundColor: colors.emerald[600],
+              border: 'none', borderRadius: '999px', cursor: 'pointer',
+              opacity: (!timesheets || employees.length === 0) ? 0.5 : 1,
+              boxShadow: (!timesheets || employees.length === 0) ? 'none' : '0 6px 14px -4px rgba(5,150,105,0.45)',
             }}
           >
-            Dziś
+            <Download size={15} /> Eksport Excel
           </button>
-          <NavBtn onClick={() => navigate(1)}><ChevronRight size={18} /></NavBtn>
         </div>
 
-        <span style={{ fontSize: '15px', fontWeight: 600, color: colors.gray[700], textTransform: 'capitalize' }}>
-          {periodLabel}
-        </span>
+        {/* Kontrolki */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '14px', flexWrap: 'wrap' }}>
+          {/* View mode — segmentowana pigułka */}
+          <div style={{ display: 'flex', borderRadius: '999px', border: `1px solid ${colors.gray[200]}`, backgroundColor: colors.gray[50], padding: '3px', gap: '2px' }}>
+            {(['week', 'month'] as const).map((m) => (
+              <button
+                key={m}
+                onClick={() => setViewMode(m)}
+                style={{
+                  padding: '6px 16px', fontSize: '12.5px', fontWeight: 700, fontFamily: 'inherit',
+                  color: viewMode === m ? colors.white : colors.gray[600],
+                  backgroundColor: viewMode === m ? colors.primary[500] : 'transparent',
+                  border: 'none', cursor: 'pointer', borderRadius: '999px',
+                  boxShadow: viewMode === m ? '0 4px 10px -3px rgba(61,109,242,0.5)' : 'none',
+                  transition: 'background 0.15s ease, color 0.15s ease',
+                }}
+              >
+                {{ week: 'Tydzień', month: 'Miesiąc' }[m]}
+              </button>
+            ))}
+          </div>
 
-        {/* Unit filter */}
-        <select
-          value={unitId}
-          onChange={(e) => setUnitId(e.target.value)}
-          style={{
-            marginLeft: 'auto', padding: '6px 10px', fontSize: '13px',
-            border: `1px solid ${colors.gray[200]}`, borderRadius: '6px', color: colors.gray[700],
-            backgroundColor: colors.white, minWidth: '200px',
-          }}
-        >
-          <option value="">Wszystkie jednostki</option>
-          {flatUnits.map((u) => (
-            <option key={u.id} value={u.id}>
-              {'  '.repeat(u.depth)}{u.name}
-            </option>
-          ))}
-        </select>
+          {/* Nav */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <NavBtn onClick={() => navigate(-1)}><ChevronLeft size={17} /></NavBtn>
+            <button
+              onClick={() => setCurrentDate(new Date())}
+              style={{
+                padding: '7px 14px', fontSize: '12px', fontWeight: 700, fontFamily: 'inherit',
+                color: colors.primary[600], backgroundColor: colors.primary[100],
+                border: 'none', borderRadius: '999px', cursor: 'pointer',
+              }}
+            >
+              Dziś
+            </button>
+            <NavBtn onClick={() => navigate(1)}><ChevronRight size={17} /></NavBtn>
+          </div>
+
+          {/* Unit filter */}
+          <select
+            value={unitId}
+            onChange={(e) => setUnitId(e.target.value)}
+            style={{
+              marginLeft: 'auto', padding: '8px 14px', fontSize: '13px', fontFamily: 'inherit',
+              border: `1px solid ${colors.gray[300]}`, borderRadius: '999px', color: colors.gray[700],
+              backgroundColor: colors.gray[50], minWidth: '200px', cursor: 'pointer',
+            }}
+          >
+            <option value="">Wszystkie jednostki</option>
+            {flatUnits.map((u) => (
+              <option key={u.id} value={u.id}>
+                {'  '.repeat(u.depth)}{u.name}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {/* Legend */}
@@ -539,7 +552,7 @@ function NavBtn({ onClick, children }: { onClick: () => void; children: React.Re
       style={{
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
         width: '32px', height: '32px', border: `1px solid ${colors.gray[200]}`,
-        borderRadius: '6px', backgroundColor: colors.white, cursor: 'pointer', color: colors.gray[700],
+        borderRadius: '10px', backgroundColor: colors.white, cursor: 'pointer', color: colors.gray[700],
       }}
     >
       {children}

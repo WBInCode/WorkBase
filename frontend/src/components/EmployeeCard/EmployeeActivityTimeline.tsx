@@ -133,7 +133,7 @@ function statusLabel(status: string): string {
 const cardStyle: React.CSSProperties = {
   padding: '20px',
   border: `1px solid ${colors.gray[200]}`,
-  borderRadius: '12px',
+  borderRadius: '16px',
   backgroundColor: colors.white,
 };
 

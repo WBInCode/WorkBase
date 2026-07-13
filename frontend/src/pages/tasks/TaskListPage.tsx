@@ -136,75 +136,55 @@ export function TaskListPage() {
   };
 
   return (
-    <div style={{ padding: mobile ? '16px' : '24px', maxWidth: '1100px' }}>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-        <div>
-          <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 700, color: colors.gray[900] }}>Zadania</h1>
-          <p style={{ margin: '4px 0 0', fontSize: '14px', color: colors.gray[500] }}>
-            Wszystkie zadania w organizacji
-          </p>
-        </div>
-        <button
-          onClick={() => setShowForm(true)}
-          style={{
-            display: 'inline-flex', alignItems: 'center', gap: '6px',
-            padding: '8px 16px', fontSize: '14px', fontWeight: 500,
-            color: colors.white, backgroundColor: colors.primary[600], border: 'none',
-            borderRadius: '6px', cursor: 'pointer',
-          }}
-        >
-          <Plus size={16} /> Nowe zadanie
-        </button>
-      </div>
-
-      {/* Bulk action bar */}
-      {selected.size > 0 && (
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 16px',
-          marginBottom: '12px', backgroundColor: colors.primary[50], borderRadius: '8px',
-          border: `1px solid ${colors.primary[200]}`, fontSize: '14px', color: colors.primary[800],
-        }}>
-          <span style={{ fontWeight: 500 }}>Zaznaczono: {selected.size}</span>
+    <div style={{ padding: mobile ? '14px' : '24px 28px', maxWidth: '1240px', margin: '0 auto' }}>
+      {/* ── Karta dowodzenia: tytuł + akcja + filtry ── */}
+      <div
+        style={{
+          backgroundColor: colors.white,
+          border: `1px solid ${colors.gray[200]}`,
+          borderRadius: '20px',
+          boxShadow: '0 1px 2px rgba(20,25,43,0.04), 0 10px 30px -12px rgba(20,25,43,0.10), inset 0 1px 0 var(--wb-card-hl, rgba(255,255,255,0.9))',
+          padding: mobile ? '16px' : '18px 22px',
+          marginBottom: '18px',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+          <div>
+            <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, letterSpacing: '-0.02em', color: colors.gray[900] }}>Zadania</h1>
+            <p style={{ margin: '3px 0 0', fontSize: '13px', color: colors.gray[500] }}>
+              Wszystkie zadania w organizacji
+            </p>
+          </div>
           <button
-            onClick={handleDeleteSelected}
-            disabled={deleteMutation.isPending}
+            onClick={() => setShowForm(true)}
             style={{
-              display: 'inline-flex', alignItems: 'center', gap: '4px',
-              padding: '6px 12px', fontSize: '13px', fontWeight: 500,
-              color: colors.white, backgroundColor: colors.danger[600], border: 'none',
-              borderRadius: '6px', cursor: 'pointer',
+              display: 'inline-flex', alignItems: 'center', gap: '6px',
+              padding: '9px 18px', fontSize: '13.5px', fontWeight: 700, fontFamily: 'inherit',
+              color: colors.white, backgroundColor: colors.primary[600], border: 'none',
+              borderRadius: '999px', cursor: 'pointer',
+              boxShadow: '0 6px 14px -4px rgba(61,109,242,0.45)',
             }}
           >
-            <Trash2 size={14} /> {deleteMutation.isPending ? 'Usuwanie...' : 'Usuń zaznaczone'}
-          </button>
-          <button
-            onClick={() => setSelected(new Set())}
-            style={{
-              padding: '6px 12px', fontSize: '13px', color: colors.primary[800],
-              backgroundColor: 'transparent', border: `1px solid ${colors.primary[300]}`,
-              borderRadius: '6px', cursor: 'pointer',
-            }}
-          >
-            Odznacz wszystko
+            <Plus size={15} /> Nowe zadanie
           </button>
         </div>
-      )}
 
-      {/* Filters */}
-      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '16px' }}>
-        <div style={{ position: 'relative', flex: '1 1 200px' }}>
-          <Search size={16} style={{ position: 'absolute', left: '10px', top: '9px', color: colors.gray[400] }} />
+        {/* Filters */}
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '16px', alignItems: 'center' }}>
+        <div style={{ position: 'relative', flex: '1 1 200px', maxWidth: '320px' }}>
+          <Search size={15} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: colors.gray[400] }} />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Szukaj po tytule..."
+            placeholder="Szukaj po tytule…"
             style={{
-              width: '100%', padding: '8px 12px 8px 32px', fontSize: '14px',
-              border: `1px solid ${colors.gray[300]}`, borderRadius: '6px', boxSizing: 'border-box',
+              width: '100%', padding: '9px 12px 9px 34px', fontSize: '13.5px', fontFamily: 'inherit',
+              border: `1px solid ${colors.gray[300]}`, borderRadius: '999px', boxSizing: 'border-box',
+              backgroundColor: colors.gray[50], outline: 'none',
             }}
           />
         </div>
+
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
@@ -225,7 +205,7 @@ export function TaskListPage() {
             <option key={p.id} value={p.id}>{p.name}</option>
           ))}
         </select>
-        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', color: colors.gray[700], cursor: 'pointer' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 600, color: colors.gray[700], cursor: 'pointer' }}>
           <input
             type="checkbox"
             checked={overdueOnly}
@@ -234,7 +214,42 @@ export function TaskListPage() {
           <AlertTriangle size={14} color={colors.danger[600]} />
           Tylko zaległe
         </label>
+        </div>
       </div>
+
+      {/* Bulk action bar */}
+      {selected.size > 0 && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 16px',
+          marginBottom: '12px', backgroundColor: colors.primary[50], borderRadius: '16px',
+          border: `1px solid ${colors.primary[200]}`, fontSize: '14px', color: colors.primary[800],
+          animation: 'wb-fadeIn 0.2s ease both',
+        }}>
+          <span style={{ fontWeight: 600 }}>Zaznaczono: {selected.size}</span>
+          <button
+            onClick={handleDeleteSelected}
+            disabled={deleteMutation.isPending}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '4px',
+              padding: '6px 14px', fontSize: '13px', fontWeight: 600, fontFamily: 'inherit',
+              color: colors.white, backgroundColor: colors.danger[600], border: 'none',
+              borderRadius: '999px', cursor: 'pointer',
+            }}
+          >
+            <Trash2 size={14} /> {deleteMutation.isPending ? 'Usuwanie...' : 'Usuń zaznaczone'}
+          </button>
+          <button
+            onClick={() => setSelected(new Set())}
+            style={{
+              padding: '6px 14px', fontSize: '13px', fontWeight: 600, fontFamily: 'inherit', color: colors.primary[800],
+              backgroundColor: 'transparent', border: `1px solid ${colors.primary[300]}`,
+              borderRadius: '999px', cursor: 'pointer',
+            }}
+          >
+            Odznacz wszystko
+          </button>
+        </div>
+      )}
 
       {/* Table */}
       {isLoading ? (
@@ -247,7 +262,7 @@ export function TaskListPage() {
           Brak zadań spełniających kryteria.
         </div>
       ) : (
-        <div style={{ backgroundColor: colors.white, borderRadius: '10px', border: `1px solid ${colors.gray[200]}`, overflowX: 'auto' }}>
+        <div style={{ backgroundColor: colors.white, borderRadius: '16px', border: `1px solid ${colors.gray[200]}`, overflowX: 'auto', boxShadow: '0 1px 2px rgba(20,25,43,0.04), 0 10px 30px -12px rgba(20,25,43,0.08)' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
             <thead>
               <tr style={{ backgroundColor: colors.gray[50], borderBottom: `1px solid ${colors.gray[200]}` }}>
@@ -375,7 +390,7 @@ export function TaskListPage() {
                       <button
                         type="button"
                         onClick={() => setFormAdditionalAssignees(formAdditionalAssignees.filter((_, i) => i !== idx))}
-                        style={{ padding: '8px 10px', fontSize: '13px', color: colors.danger[600], backgroundColor: colors.white, border: `1px solid ${colors.danger[200]}`, borderRadius: '6px', cursor: 'pointer' }}
+                        style={{ padding: '8px 10px', fontSize: '13px', color: colors.danger[600], backgroundColor: colors.white, border: `1px solid ${colors.danger[200]}`, borderRadius: '10px', cursor: 'pointer' }}
                       >
                         Usuń
                       </button>
@@ -391,7 +406,7 @@ export function TaskListPage() {
                     padding: '6px 12px', fontSize: '13px', fontWeight: 500,
                     color: formAssignee ? colors.primary[600] : colors.gray[400],
                     backgroundColor: colors.primary[50], border: `1px solid ${colors.primary[200]}`,
-                    borderRadius: '6px', cursor: formAssignee ? 'pointer' : 'not-allowed',
+                    borderRadius: '10px', cursor: formAssignee ? 'pointer' : 'not-allowed',
                   }}
                 >
                   + Dodaj kolejną osobę
@@ -403,7 +418,7 @@ export function TaskListPage() {
               </label>
             </div>
             {(formError || createMutation.error) && (
-              <div style={{ marginTop: '12px', padding: '8px 12px', backgroundColor: colors.danger[50], color: colors.danger[600], fontSize: '13px', borderRadius: '6px' }}>
+              <div style={{ marginTop: '12px', padding: '8px 12px', backgroundColor: colors.danger[50], color: colors.danger[600], fontSize: '13px', borderRadius: '10px' }}>
                 {formError ?? createMutation.error?.message}
               </div>
             )}
@@ -438,23 +453,23 @@ const thStyle: React.CSSProperties = {
 const tdStyle: React.CSSProperties = { padding: '10px 14px', color: colors.gray[700] };
 const selectStyle: React.CSSProperties = {
   padding: '8px 12px', fontSize: '14px', border: `1px solid ${colors.gray[300]}`,
-  borderRadius: '6px', backgroundColor: colors.white, cursor: 'pointer',
+  borderRadius: '10px', backgroundColor: colors.white, cursor: 'pointer',
 };
 const overlayStyle: React.CSSProperties = {
-  position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)',
+  position: 'fixed', inset: 0, backgroundColor: 'rgba(20,25,43,0.45)', backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)', animation: 'wb-backdrop-in 0.18s ease both',
   display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50,
 };
 const modalStyle: React.CSSProperties = {
-  backgroundColor: colors.white, borderRadius: '12px', padding: '24px',
+  backgroundColor: colors.white, borderRadius: '16px', padding: '24px',
   width: '100%', maxWidth: '480px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
 };
 const labelStyle: React.CSSProperties = { display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px', fontWeight: 500, color: colors.gray[700] };
-const inputStyle: React.CSSProperties = { padding: '8px 12px', fontSize: '14px', border: `1px solid ${colors.gray[300]}`, borderRadius: '6px' };
+const inputStyle: React.CSSProperties = { padding: '8px 12px', fontSize: '14px', border: `1px solid ${colors.gray[300]}`, borderRadius: '10px' };
 const cancelBtnStyle: React.CSSProperties = {
   padding: '8px 16px', fontSize: '14px', border: `1px solid ${colors.gray[300]}`,
-  borderRadius: '6px', backgroundColor: colors.white, cursor: 'pointer',
+  borderRadius: '10px', backgroundColor: colors.white, cursor: 'pointer',
 };
 const submitBtnStyle: React.CSSProperties = {
   padding: '8px 16px', fontSize: '14px', fontWeight: 500, color: colors.white,
-  backgroundColor: colors.primary[600], border: 'none', borderRadius: '6px', cursor: 'pointer',
+  backgroundColor: colors.primary[600], border: 'none', borderRadius: '10px', cursor: 'pointer',
 };

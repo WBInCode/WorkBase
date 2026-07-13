@@ -240,60 +240,72 @@ export function PayrollPage() {
   };
 
   return (
-    <div style={{ padding: 24 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4, gap: 12 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 700, margin: 0 }}>Wynagrodzenia</h1>
-        {isAdmin && <PayrollSettingsButton />}
-      </div>
-      <p style={{ color: '#64748b', marginBottom: 20, fontSize: 13 }}>
-        Ewidencja czasu pracy + rozliczenie wynagrodzeń (norma z grafiku, czas pracy z kart, nadgodziny ×{overtimeMultiplier}).
-      </p>
-
+    <div style={{ padding: '24px 28px', maxWidth: '1400px', margin: '0 auto' }}>
+      {/* ── Karta dowodzenia: tytuł + ustawienia + zakres + statystyki ── */}
       <div
         style={{
-          display: 'grid',
-          gridTemplateColumns: 'auto auto 1fr repeat(3, auto)',
-          gap: 16,
-          alignItems: 'end',
-          marginBottom: 20,
-          padding: 16,
-          background: '#f8fafc',
-          borderRadius: 8,
-          border: '1px solid #e2e8f0',
+          backgroundColor: 'var(--wb-panel, #fff)',
+          border: '1px solid var(--wb-line, #e3e7f1)',
+          borderRadius: 20,
+          boxShadow: '0 1px 2px rgba(20,25,43,0.04), 0 10px 30px -12px rgba(20,25,43,0.10), inset 0 1px 0 var(--wb-card-hl, rgba(255,255,255,0.9))',
+          padding: '18px 22px',
+          marginBottom: 18,
         }}
       >
-        <div>
-          <label style={lblStyle}>Od</label>
-          <input
-            type="date"
-            value={from}
-            onChange={(e) => setFrom(e.target.value)}
-            style={inputStyle}
-          />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+          <div>
+            <h1 style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.02em', margin: 0, color: colors.gray[900] }}>Wynagrodzenia</h1>
+            <p style={{ color: 'var(--wb-ink-2, #6b7490)', margin: '3px 0 0', fontSize: 13 }}>
+              Ewidencja czasu pracy + rozliczenie wynagrodzeń (norma z grafiku, czas pracy z kart, nadgodziny ×{overtimeMultiplier}).
+            </p>
+          </div>
+          {isAdmin && <PayrollSettingsButton />}
         </div>
-        <div>
-          <label style={lblStyle}>Do</label>
-          <input
-            type="date"
-            value={to}
-            onChange={(e) => setTo(e.target.value)}
-            style={inputStyle}
-          />
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'auto auto 1fr repeat(3, auto)',
+            gap: 16,
+            alignItems: 'end',
+            marginTop: 16,
+          }}
+        >
+          <div>
+            <label style={lblStyle}>Od</label>
+            <input
+              type="date"
+              value={from}
+              onChange={(e) => setFrom(e.target.value)}
+              style={inputStyle}
+            />
+          </div>
+          <div>
+            <label style={lblStyle}>Do</label>
+            <input
+              type="date"
+              value={to}
+              onChange={(e) => setTo(e.target.value)}
+              style={inputStyle}
+            />
+          </div>
+          <div />
+          <Stat label="Norma" value={fmtH(totals.normaH)} />
+          <Stat label="Czas pracy" value={fmtH(totals.workedH)} accent="#0f766e" />
+          <Stat label="Razem brutto" value={fmtPLN(totals.totalPay)} accent={colors.primary[700]} big />
         </div>
-        <div />
-        <Stat label="Norma" value={fmtH(totals.normaH)} />
-        <Stat label="Czas pracy" value={fmtH(totals.workedH)} accent="#0f766e" />
-        <Stat label="Razem brutto" value={fmtPLN(totals.totalPay)} accent={colors.primary[700]} big />
       </div>
 
       {isLoading ? (
-        <div>Ładowanie…</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#9aa3bc', fontSize: 14 }}>
+          <div className="wb-spinner" /> Ładowanie…
+        </div>
       ) : rows.length === 0 ? (
         <div style={{ color: '#64748b' }}>Brak aktywnych pracowników.</div>
       ) : (
-        <div style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: 8 }}>
+        <div style={{ overflowX: 'auto', border: '1px solid var(--wb-line, #e3e7f1)', borderRadius: 16, backgroundColor: 'var(--wb-panel, #fff)', boxShadow: '0 1px 2px rgba(20,25,43,0.04), 0 10px 30px -12px rgba(20,25,43,0.08)' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-            <thead style={{ background: '#f1f5f9' }}>
+            <thead style={{ background: 'var(--wb-g-100, #f1f5f9)' }}>
               <tr>
                 <th style={{ ...th, width: 28 }}></th>
                 <th style={th}>Pracownik</th>
@@ -367,7 +379,7 @@ export function PayrollPage() {
                       </td>
                     </tr>
                     {isOpen && (
-                      <tr style={{ background: '#f8fafc' }}>
+                      <tr style={{ background: 'var(--wb-g-50, #f8fafc)' }}>
                         <td colSpan={11} style={{ padding: '12px 20px 18px' }}>
                           <DetailGrid row={r} from={fromDate} to={toDate} overtimeMultiplier={overtimeMultiplier} />
                         </td>
@@ -448,9 +460,9 @@ function DetailCard({ title, children }: { title: string; children: React.ReactN
   return (
     <div
       style={{
-        background: '#fff',
-        border: '1px solid #e2e8f0',
-        borderRadius: 6,
+        background: 'var(--wb-panel, #fff)',
+        border: '1px solid var(--wb-line, #e2e8f0)',
+        borderRadius: 10,
         padding: 12,
       }}
     >
@@ -489,7 +501,7 @@ function DetailLine({
       <span style={{ color: '#64748b' }}>{label}</span>
       <span
         style={{
-          color: accent ?? colors.slate[900],
+          color: accent ?? colors.gray[900],
           fontWeight: bold ? 700 : 500,
           textAlign: 'right',
         }}
@@ -520,7 +532,7 @@ function Stat({
         style={{
           fontSize: big ? 22 : 16,
           fontWeight: 700,
-          color: accent ?? colors.slate[900],
+          color: accent ?? colors.gray[900],
         }}
       >
         {value}
@@ -558,7 +570,7 @@ const lblStyle: React.CSSProperties = {
 const inputStyle: React.CSSProperties = {
   padding: '6px 10px',
   border: '1px solid #cbd5e1',
-  borderRadius: 6,
+  borderRadius: 10,
   fontSize: 13,
 };
 
@@ -610,9 +622,9 @@ function PayrollSettingsButton() {
           alignItems: 'center',
           gap: 6,
           padding: '8px 14px',
-          background: '#fff',
+          background: 'var(--wb-panel, #fff)',
           border: '1px solid #cbd5e1',
-          borderRadius: 6,
+          borderRadius: 10,
           fontSize: 13,
           fontWeight: 600,
           color: '#334155',
@@ -629,7 +641,7 @@ function PayrollSettingsButton() {
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(15, 23, 42, 0.45)',
+            background: 'rgba(20,25,43,0.45)', backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)', animation: 'wb-backdrop-in 0.18s ease both',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -639,7 +651,7 @@ function PayrollSettingsButton() {
           <div
             onClick={(e) => e.stopPropagation()}
             style={{
-              background: '#fff',
+              background: 'var(--wb-panel, #fff)',
               borderRadius: 10,
               padding: 24,
               width: 460,
@@ -687,7 +699,7 @@ function PayrollSettingsButton() {
                   background: '#fef2f2',
                   color: '#b91c1c',
                   border: '1px solid #fecaca',
-                  borderRadius: 6,
+                  borderRadius: 10,
                   fontSize: 12,
                 }}
               >
@@ -701,9 +713,9 @@ function PayrollSettingsButton() {
                 onClick={() => setOpen(false)}
                 style={{
                   padding: '8px 14px',
-                  background: '#fff',
+                  background: 'var(--wb-panel, #fff)',
                   border: '1px solid #cbd5e1',
-                  borderRadius: 6,
+                  borderRadius: 10,
                   fontSize: 13,
                   cursor: 'pointer',
                 }}
@@ -719,7 +731,7 @@ function PayrollSettingsButton() {
                   background: colors.primary[700],
                   color: '#fff',
                   border: 'none',
-                  borderRadius: 6,
+                  borderRadius: 10,
                   fontSize: 13,
                   fontWeight: 600,
                   cursor: 'pointer',
@@ -763,7 +775,7 @@ function SettingField({
           width: '100%',
           padding: '8px 10px',
           border: '1px solid #cbd5e1',
-          borderRadius: 6,
+          borderRadius: 10,
           fontSize: 14,
           boxSizing: 'border-box',
         }}

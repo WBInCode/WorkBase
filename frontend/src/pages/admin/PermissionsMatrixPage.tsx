@@ -124,7 +124,7 @@ export function PermissionsMatrixPage() {
     <div style={{ padding: mobile ? '16px' : '24px 32px', maxWidth: '1200px' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-        <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 600, color: colors.gray[900] }}>
+        <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, letterSpacing: '-0.02em', color: colors.gray[900] }}>
           Matryca uprawnień
         </h1>
         <div style={{ display: 'flex', gap: '8px' }}>
@@ -179,7 +179,7 @@ export function PermissionsMatrixPage() {
 
       {/* Saved confirmation */}
       {updateMutation.isSuccess && !dirty && (
-        <div style={{ padding: '10px 16px', backgroundColor: colors.success[100], border: `1px solid ${colors.success[200]}`, borderRadius: '8px', color: colors.success[800], fontSize: '14px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <div style={{ padding: '10px 16px', backgroundColor: colors.success[100], border: `1px solid ${colors.success[200]}`, borderRadius: '12px', color: colors.success[800], fontSize: '14px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
           <Check size={16} />
           Uprawnienia zostały zapisane.
         </div>
@@ -202,7 +202,7 @@ export function PermissionsMatrixPage() {
           Wybierz rolę, aby zobaczyć matrycę uprawnień.
         </div>
       ) : (
-        <div style={{ border: `1px solid ${colors.gray[200]}`, borderRadius: '8px', overflowX: 'auto' }}>
+        <div style={{ border: `1px solid ${colors.gray[200]}`, borderRadius: '16px', overflowX: 'auto', backgroundColor: colors.white, boxShadow: '0 1px 2px rgba(20,25,43,0.04), 0 10px 30px -12px rgba(20,25,43,0.08)' }}>
           {moduleGroups.map((group) => (
             <ModuleSection
               key={group.module}
@@ -348,7 +348,7 @@ const iconBtnStyle: React.CSSProperties = {
   width: '32px',
   height: '32px',
   border: `1px solid ${colors.gray[300]}`,
-  borderRadius: '6px',
+  borderRadius: '10px',
   backgroundColor: colors.white,
   cursor: 'pointer',
   color: colors.gray[700],
@@ -364,7 +364,7 @@ const primaryBtnStyle: React.CSSProperties = {
   color: colors.white,
   backgroundColor: colors.primary[600],
   border: 'none',
-  borderRadius: '6px',
+  borderRadius: '10px',
   cursor: 'pointer',
 };
 
@@ -372,7 +372,7 @@ const selectStyle: React.CSSProperties = {
   padding: '8px 12px',
   fontSize: '14px',
   border: `1px solid ${colors.gray[300]}`,
-  borderRadius: '6px',
+  borderRadius: '10px',
   outline: 'none',
   minWidth: '260px',
   backgroundColor: colors.white,
@@ -382,7 +382,7 @@ const errorBoxStyle: React.CSSProperties = {
   padding: '12px 16px',
   backgroundColor: colors.danger[50],
   border: `1px solid ${colors.danger[200]}`,
-  borderRadius: '8px',
+  borderRadius: '12px',
   color: colors.danger[600],
   fontSize: '14px',
   marginBottom: '12px',

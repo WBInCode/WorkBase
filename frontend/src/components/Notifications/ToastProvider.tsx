@@ -74,42 +74,56 @@ function ToastContainer({ toasts, onRemove }: { toasts: Toast[]; onRemove: (id: 
 // ─── Single Toast ───────────────────────────────────────────
 
 function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) => void }) {
+  const [paused, setPaused] = useState(false);
+  const duration = toast.duration ?? 5000;
+
+  // Autodismiss z pauzą na hover (timer restartuje po zjechaniu myszą)
   useEffect(() => {
-    const duration = toast.duration ?? 5000;
+    if (paused) return;
     const timer = setTimeout(() => onRemove(toast.id), duration);
     return () => clearTimeout(timer);
-  }, [toast.id, toast.duration, onRemove]);
+  }, [toast.id, duration, onRemove, paused]);
 
   const config = toastStyles[toast.type];
 
   return (
     <div
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
       style={{
+        position: 'relative',
+        overflow: 'hidden',
         display: 'flex',
         alignItems: 'flex-start',
         gap: '10px',
-        padding: '12px 14px',
-        borderRadius: '10px',
+        padding: '13px 15px 15px',
+        borderRadius: '14px',
         backgroundColor: colors.white,
         border: `1px solid ${config.border}`,
-        boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+        boxShadow: '0 12px 32px -8px rgba(20,25,43,0.18), 0 0 0 1px rgba(20,25,43,0.03)',
         pointerEvents: 'auto',
-        animation: 'slideIn 0.25s ease-out',
+        animation: 'slideIn 0.3s cubic-bezier(0.22, 1, 0.36, 1)',
         maxWidth: '380px',
         width: '100%',
       }}
     >
-      <config.icon size={18} color={config.iconColor} style={{ flexShrink: 0, marginTop: '2px' }} />
+      <span style={{
+        width: 30, height: 30, borderRadius: 9, backgroundColor: config.iconBg,
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+      }}>
+        <config.icon size={16} color={config.iconColor} />
+      </span>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: '14px', fontWeight: 600, color: colors.gray[900] }}>{toast.title}</div>
+        <div style={{ fontSize: '13.5px', fontWeight: 700, color: colors.gray[900] }}>{toast.title}</div>
         {toast.message && (
-          <div style={{ fontSize: '13px', color: colors.gray[500], marginTop: '2px', lineHeight: 1.4 }}>
+          <div style={{ fontSize: '12.5px', color: colors.gray[500], marginTop: '2px', lineHeight: 1.45 }}>
             {toast.message}
           </div>
         )}
       </div>
       <button
         onClick={() => onRemove(toast.id)}
+        aria-label="Zamknij powiadomienie"
         style={{
           background: 'none', border: 'none', cursor: 'pointer',
           color: colors.gray[400], padding: '2px', flexShrink: 0,
@@ -117,28 +131,29 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) =
       >
         <X size={14} />
       </button>
+
+      {/* Pasek postępu do auto-zamknięcia (pauzuje na hover) */}
+      <div aria-hidden style={{
+        position: 'absolute', left: 0, right: 0, bottom: 0, height: 3,
+        backgroundColor: `${config.iconColor}22`,
+      }}>
+        <div style={{
+          height: '100%',
+          backgroundColor: config.iconColor,
+          transformOrigin: 'left',
+          animation: `wb-toast-run ${duration}ms linear forwards`,
+          animationPlayState: paused ? 'paused' : 'running',
+        }} />
+      </div>
     </div>
   );
 }
 
 const toastStyles = {
-  info: { icon: Info, iconColor: colors.primary[600], border: colors.primary[200] },
-  success: { icon: CheckCircle, iconColor: colors.success[600], border: colors.success[200] },
-  error: { icon: AlertCircle, iconColor: colors.danger[600], border: colors.danger[200] },
-  notification: { icon: Bell, iconColor: '#7c3aed', border: '#ddd6fe' },
+  info: { icon: Info, iconColor: colors.primary[600], iconBg: colors.primary[100], border: colors.primary[200] },
+  success: { icon: CheckCircle, iconColor: colors.success[600], iconBg: colors.success[100], border: colors.success[200] },
+  error: { icon: AlertCircle, iconColor: colors.danger[600], iconBg: colors.danger[100], border: colors.danger[200] },
+  notification: { icon: Bell, iconColor: '#7c3aed', iconBg: '#f3e8ff', border: '#ddd6fe' },
 };
 
-// ─── CSS keyframes ──────────────────────────────────────────
-
-const animId = 'workbase-toast-anim';
-if (typeof document !== 'undefined' && !document.getElementById(animId)) {
-  const style = document.createElement('style');
-  style.id = animId;
-  style.textContent = `
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateX(20px); }
-      to { opacity: 1; transform: translateX(0); }
-    }
-  `;
-  document.head.appendChild(style);
-}
+// Keyframes (slideIn, wb-toast-run) są zdefiniowane globalnie w theme/workbase.css.

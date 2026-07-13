@@ -92,74 +92,96 @@ export function DocumentListPage() {
   }
 
   return (
-    <div style={{ padding: mobile ? 16 : 24 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>Dokumenty</h1>
-        <label
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 8,
-            padding: '8px 16px',
-            background: colors.primary[600],
-            color: colors.white,
-            borderRadius: 8,
-            cursor: 'pointer',
-            fontWeight: 600,
-            fontSize: 14,
-          }}
-        >
-          <Upload size={16} />
-          Prześlij plik
-          <input
-            ref={fileInputRef}
-            type="file"
-            style={{ display: 'none' }}
-            onChange={handleFileChange}
-          />
-        </label>
-      </div>
-
-      {/* Filters */}
-      <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
-        <div style={{ position: 'relative', flex: 1, minWidth: 200 }}>
-          <Search size={16} style={{ position: 'absolute', left: 10, top: 10, color: colors.slate[400] }} />
-          <input
-            type="text"
-            placeholder="Szukaj dokumentów..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+    <div style={{ padding: mobile ? 14 : '24px 28px', maxWidth: 1240, margin: '0 auto' }}>
+      {/* ── Karta dowodzenia: tytuł + upload + filtry ── */}
+      <div
+        style={{
+          backgroundColor: colors.white,
+          border: `1px solid ${colors.gray[200]}`,
+          borderRadius: 20,
+          boxShadow: '0 1px 2px rgba(20,25,43,0.04), 0 10px 30px -12px rgba(20,25,43,0.10), inset 0 1px 0 var(--wb-card-hl, rgba(255,255,255,0.9))',
+          padding: mobile ? 16 : '18px 22px',
+          marginBottom: 18,
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <div>
+            <h1 style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.02em', margin: 0, color: colors.gray[900] }}>Dokumenty</h1>
+            <p style={{ margin: '3px 0 0', fontSize: 13, color: colors.gray[500] }}>
+              Pliki firmowe i dokumenty pracownicze
+            </p>
+          </div>
+          <label
             style={{
-              width: '100%',
-              padding: '8px 8px 8px 34px',
-              border: '1px solid #e2e8f0',
-              borderRadius: 8,
-              fontSize: 14,
-              outline: 'none',
-              boxSizing: 'border-box',
-            }}
-          />
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <Filter size={16} style={{ color: '#64748b' }} />
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            style={{
-              padding: '8px 12px',
-              border: '1px solid #e2e8f0',
-              borderRadius: 8,
-              fontSize: 14,
-              background: colors.white,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '9px 18px',
+              background: colors.primary[600],
+              color: colors.white,
+              borderRadius: 999,
+              cursor: 'pointer',
+              fontWeight: 700,
+              fontSize: 13.5,
+              boxShadow: '0 6px 14px -4px rgba(61,109,242,0.45)',
             }}
           >
-            <option value="">Wszystkie kategorie</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+            <Upload size={15} />
+            Prześlij plik
+            <input
+              ref={fileInputRef}
+              type="file"
+              style={{ display: 'none' }}
+              onChange={handleFileChange}
+            />
+          </label>
+        </div>
+
+        {/* Filters */}
+        <div style={{ display: 'flex', gap: 10, marginTop: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+          <div style={{ position: 'relative', flex: '1 1 220px', maxWidth: 340 }}>
+            <Search size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: colors.gray[400] }} />
+            <input
+              type="text"
+              placeholder="Szukaj dokumentów…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '9px 12px 9px 34px',
+                border: `1px solid ${colors.gray[300]}`,
+                borderRadius: 999,
+                fontSize: 13.5,
+                fontFamily: 'inherit',
+                outline: 'none',
+                boxSizing: 'border-box',
+                backgroundColor: colors.gray[50],
+              }}
+            />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Filter size={15} style={{ color: '#6b7490' }} />
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              style={{
+                padding: '9px 14px',
+                border: `1px solid ${colors.gray[300]}`,
+                borderRadius: 999,
+                fontSize: 13.5,
+                fontFamily: 'inherit',
+                background: colors.gray[50],
+                cursor: 'pointer',
+              }}
+            >
+              <option value="">Wszystkie kategorie</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
@@ -167,9 +189,9 @@ export function DocumentListPage() {
       {showUpload && uploadFile && (
         <div
           style={{
-            background: '#f8fafc',
-            border: '1px solid #e2e8f0',
-            borderRadius: 12,
+            background: 'var(--wb-g-50, #f8fafc)',
+            border: '1px solid var(--wb-line, #e2e8f0)',
+            borderRadius: 16,
             padding: 20,
             marginBottom: 16,
           }}
@@ -183,10 +205,10 @@ export function DocumentListPage() {
               onChange={(e) => setUploadCategory(e.target.value)}
               style={{
                 padding: '8px 12px',
-                border: '1px solid #e2e8f0',
-                borderRadius: 8,
+                border: '1px solid var(--wb-line, #e2e8f0)',
+                borderRadius: 12,
                 fontSize: 14,
-                background: '#fff',
+                background: 'var(--wb-panel, #fff)',
               }}
             >
               <option value="">Bez kategorii</option>
@@ -205,8 +227,8 @@ export function DocumentListPage() {
                 flex: 1,
                 minWidth: 200,
                 padding: '8px 12px',
-                border: '1px solid #e2e8f0',
-                borderRadius: 8,
+                border: '1px solid var(--wb-line, #e2e8f0)',
+                borderRadius: 12,
                 fontSize: 14,
                 outline: 'none',
               }}
@@ -221,7 +243,7 @@ export function DocumentListPage() {
                 background: colors.primary[600],
                 color: colors.white,
                 border: 'none',
-                borderRadius: 8,
+                borderRadius: 12,
                 cursor: 'pointer',
                 fontWeight: 600,
                 fontSize: 14,
@@ -238,9 +260,9 @@ export function DocumentListPage() {
               }}
               style={{
                 padding: '8px 20px',
-                background: '#f1f5f9',
-                border: '1px solid #e2e8f0',
-                borderRadius: 8,
+                background: 'var(--wb-g-100, #f1f5f9)',
+                border: '1px solid var(--wb-line, #e2e8f0)',
+                borderRadius: 12,
                 cursor: 'pointer',
                 fontSize: 14,
               }}
@@ -323,8 +345,8 @@ export function DocumentListPage() {
                           style={{
                             padding: 6,
                             background: 'none',
-                            border: '1px solid #e2e8f0',
-                            borderRadius: 6,
+                            border: '1px solid var(--wb-line, #e2e8f0)',
+                            borderRadius: 10,
                             cursor: 'pointer',
                             display: 'flex',
                           }}
@@ -337,8 +359,8 @@ export function DocumentListPage() {
                           style={{
                             padding: 6,
                             background: 'none',
-                            border: '1px solid #e2e8f0',
-                            borderRadius: 6,
+                            border: '1px solid var(--wb-line, #e2e8f0)',
+                            borderRadius: 10,
                             cursor: 'pointer',
                             display: 'flex',
                           }}

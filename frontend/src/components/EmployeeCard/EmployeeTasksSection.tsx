@@ -61,12 +61,12 @@ export function EmployeeTasksSection({ tasks, isLoading }: Props) {
                     {t.title}
                   </td>
                   <td style={tdStyle}>
-                    <span style={{ padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 500, backgroundColor: (t.priorityColor ?? '') + '20', color: t.priorityColor ?? undefined }}>
+                    <span style={{ padding: '2px 10px', borderRadius: '999px', fontSize: '11px', fontWeight: 500, backgroundColor: (t.priorityColor ?? '') + '20', color: t.priorityColor ?? undefined }}>
                       {t.priorityName}
                     </span>
                   </td>
                   <td style={tdStyle}>
-                    <span style={{ padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 500, backgroundColor: (t.statusColor ?? '') + '20', color: t.statusColor ?? undefined }}>
+                    <span style={{ padding: '2px 10px', borderRadius: '999px', fontSize: '11px', fontWeight: 500, backgroundColor: (t.statusColor ?? '') + '20', color: t.statusColor ?? undefined }}>
                       {t.statusName}
                     </span>
                   </td>
@@ -92,7 +92,7 @@ function formatDate(iso: string): string {
 const cardStyle: React.CSSProperties = {
   padding: '20px',
   border: `1px solid ${colors.gray[200]}`,
-  borderRadius: '12px',
+  borderRadius: '16px',
   backgroundColor: colors.white,
 };
 

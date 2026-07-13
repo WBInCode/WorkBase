@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import {
-  ChevronLeft, ChevronRight, Plus, Pencil, Trash2, Calendar, X, Zap, Building2,
+  ChevronLeft, ChevronRight, Plus, Pencil, Trash2, X, Zap, Building2,
 } from 'lucide-react';
 import TimeInput from '@/components/shared/TimeInput';
 import {
@@ -181,95 +181,108 @@ export function SchedulePage() {
   };
 
   return (
-    <div style={{ padding: mobile ? '16px' : '24px 32px' }}>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-        <h1 style={{ fontSize: '22px', fontWeight: 700, color: colors.gray[900], margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Calendar size={22} />
-          Grafik pracy
-        </h1>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <button
-            onClick={() => setShowOrgUnitPanel(true)}
-            style={{
-              display: 'flex', alignItems: 'center', gap: '6px',
-              padding: '8px 16px', fontSize: '13px', fontWeight: 600,
-              color: '#7c3aed', backgroundColor: '#f5f3ff',
-              border: '1px solid #c4b5fd', borderRadius: '8px', cursor: 'pointer',
-            }}
-          >
-            <Building2 size={16} /> Grafik jednostki
-          </button>
-          <button
-            onClick={() => setShowGenerator(true)}
-            style={{
-              display: 'flex', alignItems: 'center', gap: '6px',
-              padding: '8px 16px', fontSize: '13px', fontWeight: 600,
-              color: '#ffffff', backgroundColor: '#7c3aed',
-              border: 'none', borderRadius: '8px', cursor: 'pointer',
-            }}
-          >
-            <Zap size={16} /> Generuj grafik
-          </button>
-        </div>
-      </div>
-
-      {/* Controls */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
-        {/* View mode */}
-        <div style={{ display: 'flex', borderRadius: '8px', border: `1px solid ${colors.gray[200]}`, overflow: 'hidden' }}>
-          {(['week', 'month'] as const).map((m) => (
+    <div style={{ padding: mobile ? '14px' : '24px 28px', maxWidth: '1400px', margin: '0 auto' }}>
+      {/* ── Karta dowodzenia: tytuł + akcje + kontrolki ── */}
+      <div
+        style={{
+          backgroundColor: colors.white,
+          border: `1px solid ${colors.gray[200]}`,
+          borderRadius: '20px',
+          boxShadow: '0 1px 2px rgba(20,25,43,0.04), 0 10px 30px -12px rgba(20,25,43,0.10), inset 0 1px 0 var(--wb-card-hl, rgba(255,255,255,0.9))',
+          padding: mobile ? '16px' : '18px 22px',
+          marginBottom: '18px',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+          <div>
+            <h1 style={{ fontSize: '22px', fontWeight: 800, letterSpacing: '-0.02em', color: colors.gray[900], margin: 0 }}>
+              Grafik pracy
+            </h1>
+            <p style={{ margin: '3px 0 0', fontSize: '13.5px', fontWeight: 600, color: colors.primary[600], textTransform: 'capitalize' }}>
+              {periodLabel}
+            </p>
+          </div>
+          <div style={{ display: 'flex', gap: '8px' }}>
             <button
-              key={m}
-              onClick={() => setViewMode(m)}
+              onClick={() => setShowOrgUnitPanel(true)}
               style={{
-                padding: '6px 16px', fontSize: '13px', fontWeight: viewMode === m ? 600 : 400,
-                color: viewMode === m ? colors.white : colors.gray[700],
-                backgroundColor: viewMode === m ? colors.primary[500] : colors.white,
-                border: 'none', cursor: 'pointer',
-                borderRight: m === 'week' ? `1px solid ${colors.gray[200]}` : undefined,
+                display: 'flex', alignItems: 'center', gap: '6px',
+                padding: '9px 18px', fontSize: '13px', fontWeight: 700, fontFamily: 'inherit',
+                color: '#7c3aed', backgroundColor: '#f5f3ff',
+                border: 'none', borderRadius: '999px', cursor: 'pointer',
               }}
             >
-              {{ week: 'Tydzień', month: 'Miesiąc' }[m]}
+              <Building2 size={15} /> Grafik jednostki
             </button>
-          ))}
+            <button
+              onClick={() => setShowGenerator(true)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '6px',
+                padding: '9px 18px', fontSize: '13px', fontWeight: 700, fontFamily: 'inherit',
+                color: '#ffffff', backgroundColor: '#7c3aed',
+                border: 'none', borderRadius: '999px', cursor: 'pointer',
+                boxShadow: '0 6px 14px -4px rgba(124,58,237,0.45)',
+              }}
+            >
+              <Zap size={15} /> Generuj grafik
+            </button>
+          </div>
         </div>
 
-        {/* Nav */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <NavBtn onClick={() => navigate(-1)}><ChevronLeft size={18} /></NavBtn>
-          <button
-            onClick={() => setCurrentDate(new Date())}
+        {/* Kontrolki */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '14px', flexWrap: 'wrap' }}>
+          {/* View mode — segmentowana pigułka */}
+          <div style={{ display: 'flex', borderRadius: '999px', border: `1px solid ${colors.gray[200]}`, backgroundColor: colors.gray[50], padding: '3px', gap: '2px' }}>
+            {(['week', 'month'] as const).map((m) => (
+              <button
+                key={m}
+                onClick={() => setViewMode(m)}
+                style={{
+                  padding: '6px 16px', fontSize: '12.5px', fontWeight: 700, fontFamily: 'inherit',
+                  color: viewMode === m ? colors.white : colors.gray[600],
+                  backgroundColor: viewMode === m ? colors.primary[500] : 'transparent',
+                  border: 'none', cursor: 'pointer', borderRadius: '999px',
+                  boxShadow: viewMode === m ? '0 4px 10px -3px rgba(61,109,242,0.5)' : 'none',
+                  transition: 'background 0.15s ease, color 0.15s ease',
+                }}
+              >
+                {{ week: 'Tydzień', month: 'Miesiąc' }[m]}
+              </button>
+            ))}
+          </div>
+
+          {/* Nav */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <NavBtn onClick={() => navigate(-1)}><ChevronLeft size={17} /></NavBtn>
+            <button
+              onClick={() => setCurrentDate(new Date())}
+              style={{
+                padding: '7px 14px', fontSize: '12px', fontWeight: 700, fontFamily: 'inherit',
+                color: colors.primary[600], backgroundColor: colors.primary[100],
+                border: 'none', borderRadius: '999px', cursor: 'pointer',
+              }}
+            >
+              Dziś
+            </button>
+            <NavBtn onClick={() => navigate(1)}><ChevronRight size={17} /></NavBtn>
+          </div>
+
+          {/* Unit filter */}
+          <select
+            value={unitId}
+            onChange={(e) => setUnitId(e.target.value)}
             style={{
-              padding: '6px 12px', fontSize: '12px', fontWeight: 500,
-              color: colors.primary[500], backgroundColor: colors.primary[50],
-              border: `1px solid ${colors.primary[200]}`, borderRadius: '6px', cursor: 'pointer',
+              marginLeft: 'auto', padding: '8px 14px', fontSize: '13px', fontFamily: 'inherit',
+              border: `1px solid ${colors.gray[300]}`, borderRadius: '999px', color: colors.gray[700],
+              backgroundColor: colors.gray[50], minWidth: '200px', cursor: 'pointer',
             }}
           >
-            Dziś
-          </button>
-          <NavBtn onClick={() => navigate(1)}><ChevronRight size={18} /></NavBtn>
+            <option value="">Wszystkie jednostki</option>
+            {flatUnits.map((u) => (
+              <option key={u.id} value={u.id}>{'  '.repeat(u.depth)}{u.name}</option>
+            ))}
+          </select>
         </div>
-
-        <span style={{ fontSize: '15px', fontWeight: 600, color: colors.gray[700], textTransform: 'capitalize' }}>
-          {periodLabel}
-        </span>
-
-        {/* Unit filter */}
-        <select
-          value={unitId}
-          onChange={(e) => setUnitId(e.target.value)}
-          style={{
-            marginLeft: 'auto', padding: '6px 10px', fontSize: '13px',
-            border: `1px solid ${colors.gray[200]}`, borderRadius: '6px', color: colors.gray[700],
-            backgroundColor: colors.white, minWidth: '200px',
-          }}
-        >
-          <option value="">Wszystkie jednostki</option>
-          {flatUnits.map((u) => (
-            <option key={u.id} value={u.id}>{'  '.repeat(u.depth)}{u.name}</option>
-          ))}
-        </select>
       </div>
 
       {/* Legend */}
@@ -301,14 +314,14 @@ export function SchedulePage() {
 
       {/* Empty */}
       {!isLoading && employees.length === 0 && (
-        <div style={{ padding: '40px', textAlign: 'center', color: colors.gray[400], border: `1px solid ${colors.gray[200]}`, borderRadius: '10px' }}>
+        <div style={{ padding: '40px', textAlign: 'center', color: colors.gray[400], border: `1px solid ${colors.gray[200]}`, borderRadius: '16px', backgroundColor: colors.white }}>
           Brak pracowników w wybranej jednostce.
         </div>
       )}
 
       {/* Grid */}
       {!isLoading && employees.length > 0 && (
-        <div style={{ overflowX: 'auto', border: `1px solid ${colors.gray[200]}`, borderRadius: '10px' }}>
+        <div style={{ overflowX: 'auto', border: `1px solid ${colors.gray[200]}`, borderRadius: '16px', backgroundColor: colors.white, boxShadow: '0 1px 2px rgba(20,25,43,0.04), 0 10px 30px -12px rgba(20,25,43,0.08)' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', minWidth: dates.length * 90 + 200 }}>
             <thead>
               <tr style={{ backgroundColor: colors.gray[50] }}>
@@ -355,7 +368,7 @@ export function SchedulePage() {
                             onClick={() => openEdit(sched)}
                             style={{
                               backgroundColor: style.bg, border: `1px ${src.borderStyle} ${style.border}`,
-                              borderRadius: '6px', padding: '4px 6px', cursor: 'pointer',
+                              borderRadius: '10px', padding: '4px 6px', cursor: 'pointer',
                               fontSize: '12px', lineHeight: '1.3', opacity: src.opacity,
                             }}
                             title={`${formatTime(sched.plannedStart)}–${formatTime(sched.plannedEnd)}${sched.shiftType ? ` (${sched.shiftType})` : ''}${src.label ? `\nŹródło: ${src.label}` : ''}\nKliknij aby edytować`}
@@ -384,7 +397,7 @@ export function SchedulePage() {
                           onClick={() => openAdd(emp.id, d)}
                           style={{
                             width: '100%', height: '36px', border: `1px dashed ${colors.gray[300]}`,
-                            borderRadius: '6px', backgroundColor: 'transparent', cursor: 'pointer',
+                            borderRadius: '10px', backgroundColor: 'transparent', cursor: 'pointer',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             color: colors.gray[400], fontSize: '14px',
                           }}
@@ -525,13 +538,13 @@ function ScheduleModal({
 
   return (
     <div style={{
-      position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 1000,
+      position: 'fixed', inset: 0, backgroundColor: 'rgba(20,25,43,0.45)', backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)', animation: 'wb-backdrop-in 0.18s ease both', zIndex: 1000,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
     }} onClick={onClose}>
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          backgroundColor: colors.white, borderRadius: '12px', padding: '24px',
+          backgroundColor: colors.white, borderRadius: '16px', padding: '24px',
           width: '420px', maxWidth: '95vw', boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
         }}
       >
@@ -562,7 +575,7 @@ function ScheduleModal({
                   onClick={() => applyTemplate(tpl)}
                   style={{
                     padding: '4px 10px', fontSize: '12px', fontWeight: 500,
-                    border: `1px solid ${colors.gray[300]}`, borderRadius: '6px',
+                    border: `1px solid ${colors.gray[300]}`, borderRadius: '10px',
                     backgroundColor: state.templateId === tpl.id ? colors.primary[50] : colors.white,
                     color: state.templateId === tpl.id ? colors.primary[500] : colors.gray[700],
                     cursor: 'pointer',
@@ -610,7 +623,7 @@ function ScheduleModal({
 
         {/* Error */}
         {error && (
-          <div style={{ marginBottom: '12px', padding: '8px 12px', backgroundColor: colors.danger[50], border: `1px solid ${colors.danger[200]}`, borderRadius: '6px', color: colors.danger[600], fontSize: '13px' }}>
+          <div style={{ marginBottom: '12px', padding: '8px 12px', backgroundColor: colors.danger[50], border: `1px solid ${colors.danger[200]}`, borderRadius: '10px', color: colors.danger[600], fontSize: '13px' }}>
             {error}
           </div>
         )}
@@ -625,7 +638,7 @@ function ScheduleModal({
                 display: 'flex', alignItems: 'center', gap: '4px',
                 padding: '8px 14px', fontSize: '13px', fontWeight: 600,
                 color: colors.danger[600], backgroundColor: colors.danger[50],
-                border: `1px solid ${colors.danger[200]}`, borderRadius: '8px', cursor: 'pointer',
+                border: `1px solid ${colors.danger[200]}`, borderRadius: '12px', cursor: 'pointer',
                 marginRight: 'auto', opacity: deleteMut.isPending ? 0.5 : 1,
               }}
             >
@@ -637,7 +650,7 @@ function ScheduleModal({
             style={{
               padding: '8px 16px', fontSize: '13px', fontWeight: 500,
               color: colors.gray[700], backgroundColor: colors.white,
-              border: `1px solid ${colors.gray[200]}`, borderRadius: '8px', cursor: 'pointer',
+              border: `1px solid ${colors.gray[200]}`, borderRadius: '12px', cursor: 'pointer',
             }}
           >
             Anuluj
@@ -649,7 +662,7 @@ function ScheduleModal({
               display: 'flex', alignItems: 'center', gap: '4px',
               padding: '8px 16px', fontSize: '13px', fontWeight: 600,
               color: colors.white, backgroundColor: colors.primary[500],
-              border: 'none', borderRadius: '8px', cursor: 'pointer',
+              border: 'none', borderRadius: '12px', cursor: 'pointer',
               opacity: saving ? 0.5 : 1,
             }}
           >
@@ -670,7 +683,7 @@ function NavBtn({ onClick, children }: { onClick: () => void; children: React.Re
       style={{
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
         width: '32px', height: '32px', border: `1px solid ${colors.gray[200]}`,
-        borderRadius: '6px', backgroundColor: colors.white, cursor: 'pointer', color: colors.gray[700],
+        borderRadius: '10px', backgroundColor: colors.white, cursor: 'pointer', color: colors.gray[700],
       }}
     >
       {children}
@@ -831,7 +844,7 @@ function GenerateScheduleModal({
 
   return (
     <div style={{
-      position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 1000,
+      position: 'fixed', inset: 0, backgroundColor: 'rgba(20,25,43,0.45)', backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)', animation: 'wb-backdrop-in 0.18s ease both', zIndex: 1000,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
     }} onClick={onClose}>
       <div
@@ -884,7 +897,7 @@ function GenerateScheduleModal({
                   color: rangeMode === m ? colors.white : colors.gray[700],
                   backgroundColor: rangeMode === m ? '#7c3aed' : colors.gray[100],
                   border: '1px solid ' + (rangeMode === m ? '#7c3aed' : colors.gray[200]),
-                  borderRadius: '6px', cursor: 'pointer',
+                  borderRadius: '10px', cursor: 'pointer',
                 }}
               >
                 {{ month: 'Miesiąc', custom: 'Własny zakres' }[m]}
@@ -929,7 +942,7 @@ function GenerateScheduleModal({
                   onClick={() => applyTemplateToAll(tpl)}
                   style={{
                     padding: '4px 10px', fontSize: '12px', fontWeight: 500,
-                    border: `1px solid ${colors.gray[300]}`, borderRadius: '6px',
+                    border: `1px solid ${colors.gray[300]}`, borderRadius: '10px',
                     backgroundColor: colors.white, color: colors.gray[700], cursor: 'pointer',
                   }}
                   title={tpl.definition}
@@ -944,7 +957,7 @@ function GenerateScheduleModal({
         {/* Week pattern */}
         <div style={{ marginBottom: '16px' }}>
           <label style={labelStyle}>Wzorzec tygodnia</label>
-          <div style={{ border: `1px solid ${colors.gray[200]}`, borderRadius: '8px', overflow: 'hidden' }}>
+          <div style={{ border: `1px solid ${colors.gray[200]}`, borderRadius: '16px', overflow: 'hidden', backgroundColor: colors.white, boxShadow: '0 1px 2px rgba(20,25,43,0.04), 0 10px 30px -12px rgba(20,25,43,0.08)' }}>
             {WEEKDAYS.map((wd, i) => {
               const row = weekRows[wd.dow] ?? { enabled: false, plannedStart: '08:00', plannedEnd: '16:00', shiftType: '' };
               const isWeekend = wd.dow === 0 || wd.dow === 6;
@@ -1007,7 +1020,7 @@ function GenerateScheduleModal({
             <span>Nadpisz istniejące wpisy grafiku</span>
           </label>
           {overwrite && (
-            <div style={{ marginTop: '4px', padding: '6px 10px', backgroundColor: colors.danger[50], border: `1px solid ${colors.danger[200]}`, borderRadius: '6px', fontSize: '12px', color: colors.danger[600] }}>
+            <div style={{ marginTop: '4px', padding: '6px 10px', backgroundColor: colors.danger[50], border: `1px solid ${colors.danger[200]}`, borderRadius: '10px', fontSize: '12px', color: colors.danger[600] }}>
               Uwaga: istniejące grafiki w wybranym okresie zostaną zastąpione.
             </div>
           )}
@@ -1015,12 +1028,12 @@ function GenerateScheduleModal({
 
         {/* Error / Success */}
         {error && (
-          <div style={{ marginBottom: '12px', padding: '8px 12px', backgroundColor: colors.danger[50], border: `1px solid ${colors.danger[200]}`, borderRadius: '6px', color: colors.danger[600], fontSize: '13px' }}>
+          <div style={{ marginBottom: '12px', padding: '8px 12px', backgroundColor: colors.danger[50], border: `1px solid ${colors.danger[200]}`, borderRadius: '10px', color: colors.danger[600], fontSize: '13px' }}>
             {error}
           </div>
         )}
         {success && (
-          <div style={{ marginBottom: '12px', padding: '8px 12px', backgroundColor: colors.success[50], border: '1px solid #bbf7d0', borderRadius: '6px', color: colors.success[800], fontSize: '13px' }}>
+          <div style={{ marginBottom: '12px', padding: '8px 12px', backgroundColor: colors.success[50], border: '1px solid #bbf7d0', borderRadius: '10px', color: colors.success[800], fontSize: '13px' }}>
             {success}
           </div>
         )}
@@ -1032,7 +1045,7 @@ function GenerateScheduleModal({
             style={{
               padding: '8px 16px', fontSize: '13px', fontWeight: 500,
               color: colors.gray[700], backgroundColor: colors.white,
-              border: `1px solid ${colors.gray[200]}`, borderRadius: '8px', cursor: 'pointer',
+              border: `1px solid ${colors.gray[200]}`, borderRadius: '12px', cursor: 'pointer',
             }}
           >
             {success ? 'Zamknij' : 'Anuluj'}
@@ -1045,7 +1058,7 @@ function GenerateScheduleModal({
                 display: 'flex', alignItems: 'center', gap: '6px',
                 padding: '8px 20px', fontSize: '13px', fontWeight: 600,
                 color: colors.white, backgroundColor: '#7c3aed',
-                border: 'none', borderRadius: '8px', cursor: 'pointer',
+                border: 'none', borderRadius: '12px', cursor: 'pointer',
                 opacity: generateMut.isPending ? 0.5 : 1,
               }}
             >
@@ -1137,11 +1150,11 @@ function OrgUnitSchedulePanel({
 
   return (
     <div style={{
-      position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)',
+      position: 'fixed', inset: 0, backgroundColor: 'rgba(20,25,43,0.45)', backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)', animation: 'wb-backdrop-in 0.18s ease both',
       display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
     }}>
       <div style={{
-        backgroundColor: colors.white, borderRadius: '12px', padding: '28px',
+        backgroundColor: colors.white, borderRadius: '16px', padding: '28px',
         width: '600px', maxHeight: '85vh', overflow: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -1230,7 +1243,7 @@ function OrgUnitSchedulePanel({
             {patterns.length < 7 && (
               <button onClick={addDay} style={{
                 padding: '6px 12px', fontSize: '12px', color: colors.primary[500], backgroundColor: colors.primary[50],
-                border: `1px solid ${colors.primary[200]}`, borderRadius: '6px', cursor: 'pointer', alignSelf: 'flex-start',
+                border: `1px solid ${colors.primary[200]}`, borderRadius: '10px', cursor: 'pointer', alignSelf: 'flex-start',
               }}>
                 + Dodaj dzień
               </button>
@@ -1241,7 +1254,7 @@ function OrgUnitSchedulePanel({
         {/* Info about inheritance */}
         <div style={{
           padding: '12px', backgroundColor: '#f0f9ff', border: '1px solid #bae6fd',
-          borderRadius: '8px', marginBottom: '20px', fontSize: '12px', color: '#0369a1',
+          borderRadius: '12px', marginBottom: '20px', fontSize: '12px', color: '#0369a1',
         }}>
           💡 Grafik jednostki zostanie automatycznie zastosowany do wszystkich pracowników w tej jednostce.
           Indywidualne wpisy (ręczne) nie zostaną nadpisane.
@@ -1250,7 +1263,7 @@ function OrgUnitSchedulePanel({
 
         {/* Status messages */}
         {isSuccess && (
-          <div style={{ padding: '10px', backgroundColor: colors.success[50], border: '1px solid #86efac', borderRadius: '6px', marginBottom: '16px', fontSize: '13px', color: colors.success[800] }}>
+          <div style={{ padding: '10px', backgroundColor: colors.success[50], border: '1px solid #86efac', borderRadius: '10px', marginBottom: '16px', fontSize: '13px', color: colors.success[800] }}>
             ✓ Grafik zapisany. Wpisy zostaną wygenerowane automatycznie.
           </div>
         )}
@@ -1265,7 +1278,7 @@ function OrgUnitSchedulePanel({
                 style={{
                   padding: '10px 16px', fontSize: '13px', fontWeight: 600,
                   color: colors.danger[600], backgroundColor: colors.danger[50],
-                  border: `1px solid ${colors.danger[200]}`, borderRadius: '8px', cursor: 'pointer',
+                  border: `1px solid ${colors.danger[200]}`, borderRadius: '12px', cursor: 'pointer',
                 }}
               >
                 <Trash2 size={14} style={{ marginRight: '4px' }} /> Usuń grafik
@@ -1276,7 +1289,7 @@ function OrgUnitSchedulePanel({
             <button onClick={onClose} style={{
               padding: '10px 20px', fontSize: '13px', fontWeight: 500,
               color: colors.gray[700], backgroundColor: colors.white,
-              border: `1px solid ${colors.gray[300]}`, borderRadius: '8px', cursor: 'pointer',
+              border: `1px solid ${colors.gray[300]}`, borderRadius: '12px', cursor: 'pointer',
             }}>
               Anuluj
             </button>
@@ -1286,7 +1299,7 @@ function OrgUnitSchedulePanel({
               style={{
                 padding: '10px 20px', fontSize: '13px', fontWeight: 600,
                 color: colors.white, backgroundColor: isSaving ? colors.gray[400] : '#7c3aed',
-                border: 'none', borderRadius: '8px', cursor: isSaving ? 'default' : 'pointer',
+                border: 'none', borderRadius: '12px', cursor: isSaving ? 'default' : 'pointer',
               }}
             >
               {existing ? 'Aktualizuj' : 'Utwórz'} grafik
@@ -1328,7 +1341,7 @@ const inputStyle: React.CSSProperties = {
   padding: '8px 10px',
   fontSize: '14px',
   border: `1px solid ${colors.gray[300]}`,
-  borderRadius: '6px',
+  borderRadius: '10px',
   color: colors.gray[900],
   boxSizing: 'border-box',
 };

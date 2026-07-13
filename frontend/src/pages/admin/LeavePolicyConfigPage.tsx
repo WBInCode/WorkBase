@@ -57,7 +57,7 @@ export function LeavePolicyConfigPage() {
   return (
     <div style={{ padding: mobile ? '16px' : '24px 32px', maxWidth: '1100px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-        <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 600, color: colors.gray[900] }}>Polityki urlopowe</h1>
+        <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, letterSpacing: '-0.02em', color: colors.gray[900] }}>Polityki urlopowe</h1>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button onClick={() => refetch()} style={iconBtnStyle} title="Odśwież">
             <RefreshCw size={16} style={isFetching ? { animation: 'spin 1s linear infinite' } : undefined} />
@@ -94,7 +94,7 @@ export function LeavePolicyConfigPage() {
           <div style={{ fontSize: '13px', marginTop: '4px' }}>Dodaj pierwszą politykę klikając „Nowa polityka".</div>
         </div>
       ) : (
-        <div style={{ border: `1px solid ${colors.gray[200]}`, borderRadius: '8px', overflowX: 'auto' }}>
+        <div style={{ border: `1px solid ${colors.gray[200]}`, borderRadius: '16px', overflowX: 'auto', backgroundColor: colors.white, boxShadow: '0 1px 2px rgba(20,25,43,0.04), 0 10px 30px -12px rgba(20,25,43,0.08)' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
             <thead>
               <tr style={{ backgroundColor: colors.gray[50] }}>
@@ -251,40 +251,40 @@ function Td({ children, style }: { children?: React.ReactNode; style?: React.CSS
 
 const iconBtnStyle: React.CSSProperties = {
   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-  width: '34px', height: '34px', border: `1px solid ${colors.gray[300]}`, borderRadius: '6px',
+  width: '34px', height: '34px', border: `1px solid ${colors.gray[300]}`, borderRadius: '10px',
   background: colors.white, color: colors.gray[700], cursor: 'pointer',
 };
 const primaryBtnStyle: React.CSSProperties = {
   display: 'inline-flex', alignItems: 'center', gap: '6px',
   padding: '7px 16px', fontSize: '13px', fontWeight: 600,
-  color: colors.white, backgroundColor: colors.primary[600], border: 'none', borderRadius: '6px', cursor: 'pointer',
+  color: colors.white, backgroundColor: colors.primary[600], border: 'none', borderRadius: '999px', cursor: 'pointer', boxShadow: '0 6px 14px -4px rgba(61,109,242,0.45)',
 };
 const cancelBtnStyle: React.CSSProperties = {
   padding: '7px 16px', fontSize: '13px', fontWeight: 500,
-  color: colors.gray[700], backgroundColor: colors.white, border: `1px solid ${colors.gray[300]}`, borderRadius: '6px', cursor: 'pointer',
+  color: colors.gray[700], backgroundColor: colors.white, border: `1px solid ${colors.gray[300]}`, borderRadius: '999px', cursor: 'pointer',
 };
 const smallIconBtn: React.CSSProperties = {
   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
   width: '28px', height: '28px', background: 'none', border: 'none', cursor: 'pointer', color: colors.gray[500], borderRadius: '4px',
 };
 const errorBoxStyle: React.CSSProperties = {
-  padding: '12px 16px', marginBottom: '16px', borderRadius: '8px',
+  padding: '12px 16px', marginBottom: '16px', borderRadius: '12px',
   backgroundColor: colors.danger[50], border: `1px solid ${colors.danger[200]}`, color: colors.danger[800], fontSize: '13px',
 };
 const retryLinkStyle: React.CSSProperties = {
   marginLeft: '8px', color: colors.primary[600], background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', fontSize: '13px',
 };
 const overlayStyle: React.CSSProperties = {
-  position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100,
+  position: 'fixed', inset: 0, backgroundColor: 'rgba(20,25,43,0.45)', backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)', animation: 'wb-backdrop-in 0.18s ease both', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100,
 };
 const modalStyle: React.CSSProperties = {
-  backgroundColor: colors.white, borderRadius: '12px', padding: '24px', width: '100%', maxWidth: '560px', maxHeight: '90vh', overflow: 'auto',
-  boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
+  backgroundColor: colors.white, borderRadius: '20px', animation: 'wb-modal-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both', padding: '24px', width: '100%', maxWidth: '560px', maxHeight: '90vh', overflow: 'auto',
+  boxShadow: '0 24px 64px -12px rgba(20,25,43,0.28), 0 0 0 1px rgba(20,25,43,0.04)',
 };
 const labelStyle: React.CSSProperties = {
   display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px', fontWeight: 500, color: colors.gray[700],
 };
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '8px 12px', fontSize: '14px',
-  border: `1px solid ${colors.gray[300]}`, borderRadius: '6px', boxSizing: 'border-box',
+  border: `1px solid ${colors.gray[300]}`, borderRadius: '10px', boxSizing: 'border-box',
 };

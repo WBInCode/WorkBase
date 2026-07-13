@@ -67,7 +67,7 @@ export function MyLeaveWidget({ requests, isLoading }: Props) {
                   </div>
                 </div>
                 <span style={{
-                  padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 500,
+                  padding: '2px 10px', borderRadius: '999px', fontSize: '11px', fontWeight: 500,
                   backgroundColor: cfg.bg, color: cfg.color,
                 }}>
                   {cfg.label}
@@ -82,8 +82,8 @@ export function MyLeaveWidget({ requests, isLoading }: Props) {
 }
 
 const cardStyle: React.CSSProperties = {
-  backgroundColor: colors.white, borderRadius: '12px', border: `1px solid ${colors.gray[200]}`,
-  padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+  backgroundColor: colors.white, borderRadius: '16px', border: `1px solid ${colors.gray[200]}`,
+  padding: '20px', boxShadow: '0 1px 2px rgba(20,25,43,0.04), 0 10px 30px -12px rgba(20,25,43,0.10), inset 0 1px 0 var(--wb-card-hl, rgba(255,255,255,0.9))',
 };
 const headerStyle: React.CSSProperties = {
   display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px',
@@ -91,10 +91,10 @@ const headerStyle: React.CSSProperties = {
 const titleStyle: React.CSSProperties = { fontSize: '14px', fontWeight: 600, color: colors.gray[700] };
 const rowStyle: React.CSSProperties = {
   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-  padding: '10px 12px', borderRadius: '8px', cursor: 'pointer',
+  padding: '10px 12px', borderRadius: '12px', cursor: 'pointer',
   backgroundColor: colors.gray[50],
 };
 const emptyStyle: React.CSSProperties = {
   padding: '16px', textAlign: 'center', color: colors.gray[400], fontSize: '13px',
-  backgroundColor: colors.gray[50], borderRadius: '8px', border: `1px dashed ${colors.gray[300]}`,
+  backgroundColor: colors.gray[50], borderRadius: '12px', border: `1px dashed ${colors.gray[300]}`,
 };

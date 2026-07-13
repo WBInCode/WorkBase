@@ -23,7 +23,7 @@ export function UnitTypesConfigPage() {
   return (
     <div style={{ padding: mobile ? '16px' : '24px 32px', maxWidth: '900px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-        <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 600, color: colors.gray[900] }}>Typy jednostek organizacyjnych</h1>
+        <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, letterSpacing: '-0.02em', color: colors.gray[900] }}>Typy jednostek organizacyjnych</h1>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button onClick={() => refetch()} style={iconBtnStyle} title="Odśwież">
             <RefreshCw size={16} style={isFetching ? { animation: 'spin 1s linear infinite' } : undefined} />
@@ -50,7 +50,7 @@ export function UnitTypesConfigPage() {
           <div style={{ fontSize: '13px', marginTop: 4 }}>Dodaj pierwszy klikając „Nowy typ".</div>
         </div>
       ) : (
-        <div style={{ border: `1px solid ${colors.gray[200]}`, borderRadius: '8px', overflowX: 'auto' }}>
+        <div style={{ border: `1px solid ${colors.gray[200]}`, borderRadius: '16px', overflowX: 'auto', backgroundColor: colors.white, boxShadow: '0 1px 2px rgba(20,25,43,0.04), 0 10px 30px -12px rgba(20,25,43,0.08)' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
             <thead>
               <tr style={{ backgroundColor: colors.gray[50] }}>
@@ -69,7 +69,7 @@ export function UnitTypesConfigPage() {
                   <Td>{t.sortOrder}</Td>
                   <Td>
                     <span style={{
-                      padding: '2px 8px', borderRadius: 12, fontSize: 12, fontWeight: 500,
+                      padding: '2px 8px', borderRadius: 16, fontSize: 12, fontWeight: 500,
                       backgroundColor: t.isActive ? '#d1fae5' : colors.gray[100],
                       color: t.isActive ? '#065f46' : colors.gray[500],
                     }}>
@@ -179,15 +179,15 @@ function Td({ children, style }: { children?: React.ReactNode; style?: React.CSS
   return <td style={{ padding: '10px 16px', ...style }}>{children}</td>;
 }
 
-const iconBtnStyle: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', padding: '8px', border: `1px solid ${colors.gray[300]}`, borderRadius: 6, backgroundColor: colors.white, cursor: 'pointer', color: colors.gray[700] };
-const primaryBtnStyle: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', fontSize: 14, fontWeight: 500, color: colors.white, backgroundColor: colors.primary[500], border: 'none', borderRadius: 6, cursor: 'pointer' };
+const iconBtnStyle: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', padding: '8px', border: `1px solid ${colors.gray[300]}`, borderRadius: 10, backgroundColor: colors.white, cursor: 'pointer', color: colors.gray[700] };
+const primaryBtnStyle: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', fontSize: 14, fontWeight: 500, color: colors.white, backgroundColor: colors.primary[500], border: 'none', borderRadius: 10, cursor: 'pointer' };
 const smBtnStyle: React.CSSProperties = { padding: '4px 6px', background: 'none', border: `1px solid ${colors.gray[200]}`, borderRadius: 4, cursor: 'pointer', color: colors.gray[500], display: 'inline-flex', alignItems: 'center' };
-const errorStyle: React.CSSProperties = { padding: '12px 16px', marginBottom: 16, backgroundColor: colors.danger[50], border: `1px solid ${colors.danger[200]}`, borderRadius: 8, color: colors.danger[800], fontSize: 14 };
+const errorStyle: React.CSSProperties = { padding: '12px 16px', marginBottom: 16, backgroundColor: colors.danger[50], border: `1px solid ${colors.danger[200]}`, borderRadius: 12, color: colors.danger[800], fontSize: 14 };
 const retryStyle: React.CSSProperties = { marginLeft: 8, color: colors.primary[500], background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', fontSize: 14 };
-const overlayStyle: React.CSSProperties = { position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 };
-const modalStyle: React.CSSProperties = { backgroundColor: colors.white, borderRadius: 12, padding: 24, width: '100%', maxWidth: 480, boxShadow: '0 20px 60px rgba(0,0,0,0.15)' };
-const formErrorStyle: React.CSSProperties = { padding: '10px 14px', marginBottom: 12, backgroundColor: colors.danger[50], border: `1px solid ${colors.danger[200]}`, borderRadius: 6, color: colors.danger[600], fontSize: 13 };
+const overlayStyle: React.CSSProperties = { position: 'fixed', inset: 0, backgroundColor: 'rgba(20,25,43,0.45)', backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)', animation: 'wb-backdrop-in 0.18s ease both', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 };
+const modalStyle: React.CSSProperties = { backgroundColor: colors.white, borderRadius: 20, animation: 'wb-modal-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both', padding: 24, width: '100%', maxWidth: 480, boxShadow: '0 24px 64px -12px rgba(20,25,43,0.28), 0 0 0 1px rgba(20,25,43,0.04)' };
+const formErrorStyle: React.CSSProperties = { padding: '10px 14px', marginBottom: 12, backgroundColor: colors.danger[50], border: `1px solid ${colors.danger[200]}`, borderRadius: 10, color: colors.danger[600], fontSize: 13 };
 const labelStyle: React.CSSProperties = { display: 'block', marginBottom: 4, fontSize: 13, fontWeight: 500, color: colors.gray[700] };
-const inputStyle: React.CSSProperties = { width: '100%', padding: '8px 12px', fontSize: 14, border: `1px solid ${colors.gray[300]}`, borderRadius: 6, boxSizing: 'border-box' };
-const cancelBtnStyle: React.CSSProperties = { padding: '8px 16px', fontSize: 14, border: `1px solid ${colors.gray[300]}`, borderRadius: 6, backgroundColor: colors.white, cursor: 'pointer' };
-const submitBtnStyle: React.CSSProperties = { padding: '8px 20px', fontSize: 14, fontWeight: 500, color: colors.white, backgroundColor: colors.primary[500], border: 'none', borderRadius: 6, cursor: 'pointer' };
+const inputStyle: React.CSSProperties = { width: '100%', padding: '8px 12px', fontSize: 14, border: `1px solid ${colors.gray[300]}`, borderRadius: 10, boxSizing: 'border-box' };
+const cancelBtnStyle: React.CSSProperties = { padding: '8px 16px', fontSize: 14, border: `1px solid ${colors.gray[300]}`, borderRadius: 10, backgroundColor: colors.white, cursor: 'pointer' };
+const submitBtnStyle: React.CSSProperties = { padding: '8px 20px', fontSize: 14, fontWeight: 500, color: colors.white, backgroundColor: colors.primary[500], border: 'none', borderRadius: 10, cursor: 'pointer' };

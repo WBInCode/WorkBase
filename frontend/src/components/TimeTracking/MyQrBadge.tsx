@@ -1,4 +1,5 @@
 import { QRCodeSVG } from 'qrcode.react';
+import { QrCode } from 'lucide-react';
 import { colors } from '@/theme/tokens';
 
 interface MyQrBadgeProps {
@@ -14,13 +15,13 @@ export function MyQrBadge({ employeeId, employeeName, employeeNumber }: MyQrBadg
   return (
     <div style={{
       backgroundColor: colors.white,
-      borderRadius: '12px',
+      borderRadius: '16px',
       border: `1px solid ${colors.gray[200]}`,
       padding: '20px',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '16px' }}>
-        <span style={{ fontSize: '16px' }}>🪪</span>
-        <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: colors.gray[900] }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+        <QrCode size={18} color={colors.primary[500]} />
+        <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: colors.gray[700] }}>
           Moja karta QR
         </h3>
       </div>
@@ -29,7 +30,7 @@ export function MyQrBadge({ employeeId, employeeName, employeeNumber }: MyQrBadg
         <div style={{
           padding: '12px',
           backgroundColor: '#f8fafc',
-          borderRadius: '12px',
+          borderRadius: '16px',
           border: '1px solid #e2e8f0',
           flexShrink: 0,
         }}>

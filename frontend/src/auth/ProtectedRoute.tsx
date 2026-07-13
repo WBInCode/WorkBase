@@ -5,25 +5,86 @@ interface ProtectedRouteProps {
   children: ReactNode;
 }
 
+function FullScreenCentered({ children }: { children: ReactNode }) {
+  return (
+    <div
+      style={{
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 14,
+        padding: 24,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const auth = useAuth();
 
   if (auth.isLoading) {
-    return <div>Ładowanie...</div>;
+    return (
+      <FullScreenCentered>
+        <div className="wb-spinner" />
+        <div style={{ fontSize: 13, fontWeight: 600, color: '#9aa3bc' }}>Ładowanie…</div>
+      </FullScreenCentered>
+    );
   }
 
   if (auth.error) {
     return (
-      <div>
-        <p>Błąd autentykacji: {auth.error.message}</p>
-        <button onClick={() => auth.signinRedirect()}>Zaloguj ponownie</button>
-      </div>
+      <FullScreenCentered>
+        <div
+          style={{
+            background: 'var(--wb-panel, #fff)',
+            borderRadius: 20,
+            padding: '32px 36px',
+            maxWidth: 420,
+            textAlign: 'center',
+            boxShadow: '0 1px 2px rgba(20,25,43,0.04), 0 10px 30px -12px rgba(20,25,43,0.12)',
+            border: '1px solid var(--wb-line, #e3e7f1)',
+          }}
+        >
+          <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--wb-ink, #14192b)', marginBottom: 6 }}>
+            Błąd autentykacji
+          </div>
+          <div style={{ fontSize: 13, color: 'var(--wb-ink-2, #6b7490)', marginBottom: 18, lineHeight: 1.5 }}>
+            {auth.error.message}
+          </div>
+          <button
+            onClick={() => auth.signinRedirect()}
+            style={{
+              padding: '10px 22px',
+              fontSize: 13.5,
+              fontWeight: 700,
+              fontFamily: 'inherit',
+              color: '#fff',
+              background: '#3d6df2',
+              border: 'none',
+              borderRadius: 999,
+              cursor: 'pointer',
+              boxShadow: '0 6px 14px -4px rgba(61,109,242,0.45)',
+            }}
+          >
+            Zaloguj ponownie
+          </button>
+        </div>
+      </FullScreenCentered>
     );
   }
 
   if (!auth.isAuthenticated) {
     auth.signinRedirect();
-    return <div>Przekierowanie do logowania...</div>;
+    return (
+      <FullScreenCentered>
+        <div className="wb-spinner" />
+        <div style={{ fontSize: 13, fontWeight: 600, color: '#9aa3bc' }}>Przekierowanie do logowania…</div>
+      </FullScreenCentered>
+    );
   }
 
   return <>{children}</>;

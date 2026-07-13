@@ -27,7 +27,7 @@ const DEFAULT_COLORS: Record<string, string> = {
   ANNUAL: colors.primary[500],
   ON_DEMAND: colors.warning[500],
   SICK: colors.danger[500],
-  CHILDCARE: '#8b5cf6',
+  CHILDCARE: '#2b55d4',
 };
 
 export function EmployeeLeaveSection({ balances, requests, isLoading }: Props) {
@@ -51,7 +51,7 @@ export function EmployeeLeaveSection({ balances, requests, isLoading }: Props) {
             const color = b.leaveTypeColor || DEFAULT_COLORS[b.leaveTypeCode] || colors.gray[500];
             const pct = b.totalDays > 0 ? Math.round((b.usedDays / b.totalDays) * 100) : 0;
             return (
-              <div key={b.id} style={{ padding: '12px', borderRadius: '8px', border: `1px solid ${colors.gray[200]}`, backgroundColor: colors.gray[50] }}>
+              <div key={b.id} style={{ padding: '12px', borderRadius: '12px', border: `1px solid ${colors.gray[200]}`, backgroundColor: colors.gray[50] }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
                   <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: color }} />
                   <span style={{ fontSize: '13px', fontWeight: typography.fontWeight.semibold, color: colors.gray[700] }}>{b.leaveTypeName}</span>
@@ -103,7 +103,7 @@ export function EmployeeLeaveSection({ balances, requests, isLoading }: Props) {
                   <td style={tdStyle}>{formatDate(r.endDate)}</td>
                   <td style={tdStyle}>{r.totalDays}</td>
                   <td style={tdStyle}>
-                    <span style={{ padding: '2px 8px', borderRadius: '4px', fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.medium, backgroundColor: sc.bg, color: sc.text }}>
+                    <span style={{ padding: '2px 10px', borderRadius: '999px', fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.medium, backgroundColor: sc.bg, color: sc.text }}>
                       {STATUS_LABELS[r.status]}
                     </span>
                   </td>
@@ -127,7 +127,7 @@ function formatDate(iso: string): string {
 const cardStyle: React.CSSProperties = {
   padding: '20px',
   border: `1px solid ${colors.gray[200]}`,
-  borderRadius: '12px',
+  borderRadius: '16px',
   backgroundColor: colors.white,
 };
 
