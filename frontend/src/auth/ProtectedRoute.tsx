@@ -129,11 +129,17 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
       );
     }
 
-    auth.signinRedirect();
+    // Logowanie przez Hub jako dostawcę tożsamości (brokering): gdy przychodzimy
+    // z launchera Huba (?sso=wb-hub), podpowiadamy Keycloakowi dostawcę „wb-hub",
+    // przez co Keycloak od razu przekierowuje do Huba — bezhasłowe SSO.
+    const ssoHint = new URLSearchParams(window.location.search).get('sso');
+    auth.signinRedirect(ssoHint === 'wb-hub' ? { extraQueryParams: { kc_idp_hint: 'wb-hub' } } : undefined);
     return (
       <FullScreenCentered>
         <div className="wb-spinner" />
-        <div style={{ fontSize: 13, fontWeight: 600, color: '#9aa3bc' }}>Przekierowanie do logowania…</div>
+        <div style={{ fontSize: 13, fontWeight: 600, color: '#9aa3bc' }}>
+          {ssoHint === 'wb-hub' ? 'Łączenie z platformą WB…' : 'Przekierowanie do logowania…'}
+        </div>
       </FullScreenCentered>
     );
   }
