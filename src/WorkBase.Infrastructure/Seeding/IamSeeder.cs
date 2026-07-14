@@ -94,15 +94,33 @@ public static class IamSeeder
 
     public static async Task SeedAsync(WorkBaseDbContext dbContext, ILogger logger)
     {
-        if (await dbContext.Set<Permission>().AnyAsync())
+        // Guard on ROLES, not permissions: a migration (20260512091000_AddConfigManagePermission)
+        // inserts a single `config.manage` permission, so an "any permission exists" guard would
+        // wrongly treat the tenant as fully seeded and skip creating the 5 system roles + grants,
+        // leaving every user with 403 everywhere. Roles are the real signal that RBAC bootstrap ran.
+        if (await dbContext.Set<Role>().AnyAsync(r => r.TenantId == DefaultTenantId))
         {
-            logger.LogInformation("IAM data already seeded, skipping.");
+            logger.LogInformation("IAM roles already seeded for default tenant, skipping.");
             return;
         }
 
         logger.LogInformation("Seeding IAM permissions...");
-        var permissions = CreatePermissions();
-        dbContext.Set<Permission>().AddRange(permissions);
+        // Idempotent: skip permission codes that already exist (e.g. config.manage from a migration),
+        // so re-running after a partial/half-committed seed cannot violate the unique index.
+        var existingCodes = (await dbContext.Set<Permission>()
+                .Select(p => new { p.Module, p.Action, p.Scope })
+                .ToListAsync())
+            .Select(p => p.Scope != null ? $"{p.Module}.{p.Action}.{p.Scope}" : $"{p.Module}.{p.Action}")
+            .ToHashSet();
+
+        var allPermissions = CreatePermissions();
+        var newPermissions = allPermissions.Where(p => !existingCodes.Contains(p.FullCode)).ToList();
+        dbContext.Set<Permission>().AddRange(newPermissions);
+        await dbContext.SaveChangesAsync();
+
+        // Re-load the full permission set (new + pre-existing) so role-permission grants below
+        // reference the actual persisted rows regardless of who created them.
+        var permissions = await dbContext.Set<Permission>().ToListAsync();
 
         logger.LogInformation("Seeding IAM roles...");
         var roles = CreateRoles();
@@ -119,13 +137,19 @@ public static class IamSeeder
         dbContext.Set<DataScope>().AddRange(dataScopes);
 
         logger.LogInformation("Seeding feature flags...");
-        var featureFlags = CreateFeatureFlags();
+        // Idempotent: default tenant may already have feature-flag rows from a partial seed.
+        var existingFlagModules = (await dbContext.Set<FeatureFlag>()
+                .Where(f => f.TenantId == DefaultTenantId)
+                .Select(f => f.Module)
+                .ToListAsync())
+            .ToHashSet();
+        var featureFlags = CreateFeatureFlags().Where(f => !existingFlagModules.Contains(f.Module)).ToList();
         dbContext.Set<FeatureFlag>().AddRange(featureFlags);
 
         await dbContext.SaveChangesAsync();
 
-        logger.LogInformation("IAM seeding completed: {PermCount} permissions, {RoleCount} roles, {RpCount} role-permissions, {DsCount} data scopes, {FfCount} feature flags.",
-            permissions.Count, roles.Count, rolePermissions.Count, dataScopes.Count, featureFlags.Count);
+        logger.LogInformation("IAM seeding completed: {PermCount} permissions ({NewPerm} new), {RoleCount} roles, {RpCount} role-permissions, {DsCount} data scopes, {FfCount} feature flags.",
+            permissions.Count, newPermissions.Count, roles.Count, rolePermissions.Count, dataScopes.Count, featureFlags.Count);
     }
 
     /// <summary>
