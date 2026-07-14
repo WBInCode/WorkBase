@@ -36,6 +36,15 @@ function resolveAuthority(): string {
 
 const authority = resolveAuthority();
 
+/**
+ * Domyślny dostawca tożsamości (Identity Provider) dla logowania. Ustawiony na
+ * „wb-hub" sprawia, że Keycloak od razu przekierowuje do logowania przez WB Platform
+ * (Hub jako IdP) — użytkownik NIE widzi natywnego ekranu logowania Keycloak. Pusta
+ * wartość (VITE_KC_IDP_HINT="") przywraca standardowy ekran Keycloak (np. do lokalnego
+ * logowania administracyjnego). Konta kiosku używają osobnego przepływu i to nie dotyczy ich.
+ */
+const kcIdpHint = import.meta.env.VITE_KC_IDP_HINT ?? 'wb-hub';
+
 export const oidcConfig: AuthProviderProps = {
   authority,
   client_id: clientId,
@@ -44,6 +53,8 @@ export const oidcConfig: AuthProviderProps = {
   response_type: 'code',
   scope: 'openid profile email',
   automaticSilentRenew: true,
+  // kc_idp_hint kieruje Keycloak prosto do wskazanego IdP, pomijając jego ekran logowania.
+  ...(kcIdpHint ? { extraQueryParams: { kc_idp_hint: kcIdpHint } } : {}),
   // sessionStorage keeps OIDC state across redirects but clears on tab close
   userStore: new WebStorageStateStore({ store: sessionStorage }),
   onSigninCallback: () => {
