@@ -30,6 +30,10 @@ public sealed class HubOptions
     public string WebhookSecret { get; init; } = "";
     /// <summary>Tenant WorkBase, na który mapowana jest instancja Huba (dev: tenant seedowy).</summary>
     public Guid TenantId { get; init; }
+    /// <summary>Issuer w tokenach handoff Huba (JWT_ISSUER, publiczny origin, np. https://wb-partners.pl).</summary>
+    public string Issuer { get; init; } = "";
+    /// <summary>Publiczny adres frontendu WorkBase, dokąd wraca przeglądarka po JIT-provisioningu.</summary>
+    public string FrontendUrl { get; init; } = "";
 }
 
 /// <summary>

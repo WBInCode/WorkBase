@@ -8,6 +8,7 @@ import { getRouterMode } from '@/shared';
 import { MainLayout } from '@/layouts/MainLayout';
 import { ErrorBoundary } from '@/components/ui';
 import { AuthCallbackPage } from '@/pages/AuthCallbackPage';
+import { SsoBridgePage } from '@/pages/SsoBridgePage';
 import { ToastProvider } from '@/components/Notifications';
 import { colors } from '@/theme/tokens';
 import { useCurrentUser } from '@/api/hooks/useIam';
@@ -166,6 +167,7 @@ function App() {
             <Suspense fallback={<RouteLoadingFallback />}>
             <Routes>
               <Route path="/auth/callback" element={<AuthCallbackPage />} />
+              <Route path="/auth/sso-bridge" element={<SsoBridgePage />} />
               <Route
                 path="/kiosk"
                 element={

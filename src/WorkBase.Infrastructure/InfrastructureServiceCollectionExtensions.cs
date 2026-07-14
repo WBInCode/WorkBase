@@ -50,6 +50,8 @@ public static class InfrastructureServiceCollectionExtensions
         // Integracja z Hubem ekosystemu (wb-platform) — opcjonalna (Hub:Enabled).
         // Singleton: bezstanowy, sam tworzy scope na DbContext przy synchronizacji.
         services.AddSingleton<HubPlatform.HubEntitlementsSyncService>();
+        // Singleton: cache'uje ConfigurationManager (JWKS Huba) między żądaniami handoff.
+        services.AddSingleton<HubPlatform.HubSsoService>();
 
         services.AddScoped<ICurrentTenantService, HttpContextTenantService>();
         services.AddScoped<IDataScopeService, DataScopeService>();
