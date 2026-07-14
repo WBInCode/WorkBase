@@ -4,7 +4,14 @@ import { WebStorageStateStore } from 'oidc-client-ts';
 const defaultAuthority = import.meta.env.VITE_KEYCLOAK_AUTHORITY || 'http://localhost:8080/realms/workbase';
 const clientId = import.meta.env.VITE_KEYCLOAK_CLIENT_ID || 'workbase-web';
 const redirectUri = import.meta.env.VITE_REDIRECT_URI || `${window.location.origin}/auth/callback`;
-const postLogoutRedirectUri = import.meta.env.VITE_POST_LOGOUT_REDIRECT_URI || `${window.location.origin}/logged-out`;
+
+// Wylogowanie z produktu kończy też sesję Huba (single logout ekosystemu). Inaczej
+// globalny kc_idp_hint natychmiast zalogowałby użytkownika z powrotem przez żywą sesję
+// Huba. Po zakończeniu sesji Huba wracamy na ekran „Wylogowano".
+const hubUrl = import.meta.env.VITE_HUB_URL || 'https://wb-partners.pl';
+const postLogoutRedirectUri =
+  import.meta.env.VITE_POST_LOGOUT_REDIRECT_URI ||
+  `${hubUrl}/api/v1/auth/logout-redirect?return=${encodeURIComponent(`${window.location.origin}/logged-out`)}`;
 
 const REALM_STORAGE_KEY = 'wb_realm';
 
