@@ -9,6 +9,7 @@ import { MainLayout } from '@/layouts/MainLayout';
 import { ErrorBoundary } from '@/components/ui';
 import { AuthCallbackPage } from '@/pages/AuthCallbackPage';
 import { SsoBridgePage } from '@/pages/SsoBridgePage';
+import { LoggedOutPage } from '@/pages/LoggedOutPage';
 import { ToastProvider } from '@/components/Notifications';
 import { colors } from '@/theme/tokens';
 import { useCurrentUser } from '@/api/hooks/useIam';
@@ -168,6 +169,7 @@ function App() {
             <Routes>
               <Route path="/auth/callback" element={<AuthCallbackPage />} />
               <Route path="/auth/sso-bridge" element={<SsoBridgePage />} />
+              <Route path="/logged-out" element={<LoggedOutPage />} />
               <Route
                 path="/kiosk"
                 element={

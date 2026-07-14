@@ -4,7 +4,7 @@ import { WebStorageStateStore } from 'oidc-client-ts';
 const defaultAuthority = import.meta.env.VITE_KEYCLOAK_AUTHORITY || 'http://localhost:8080/realms/workbase';
 const clientId = import.meta.env.VITE_KEYCLOAK_CLIENT_ID || 'workbase-web';
 const redirectUri = import.meta.env.VITE_REDIRECT_URI || `${window.location.origin}/auth/callback`;
-const postLogoutRedirectUri = import.meta.env.VITE_POST_LOGOUT_REDIRECT_URI || window.location.origin;
+const postLogoutRedirectUri = import.meta.env.VITE_POST_LOGOUT_REDIRECT_URI || `${window.location.origin}/logged-out`;
 
 const REALM_STORAGE_KEY = 'wb_realm';
 
