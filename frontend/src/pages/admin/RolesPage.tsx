@@ -1,8 +1,10 @@
 import { useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { Shield, Plus, RefreshCw, Edit2, Users, Lock, X, Mail, UserCheck } from 'lucide-react';
-import { useRoles, useCreateRole, useUpdateRole, useRoleUsers } from '@/api/hooks/useIam';
-import type { RoleDto, CreateRoleRequest, UpdateRoleRequest } from '@/api/types/iam';
+import { Shield, Plus, RefreshCw, Edit2, Users, Lock, X, Mail, UserCheck, UserMinus } from 'lucide-react';
+import { useRoles, useCreateRole, useUpdateRole, useRoleUsers, useUnassignUserRole, useCurrentUser } from '@/api/hooks/useIam';
+import type { RoleDto, RoleUserDto, CreateRoleRequest, UpdateRoleRequest } from '@/api/types/iam';
+import { ApiError } from '@/api/client';
+import { useToast } from '@/components/Notifications';
 import { useIsMobile } from '@/shared';
 import { colors } from '@/theme/tokens';
 
@@ -246,6 +248,31 @@ function RoleRow({
 
 function RoleUsersModal({ role, onClose }: { role: RoleDto; onClose: () => void }) {
   const { data: users, isLoading, error, refetch, isFetching } = useRoleUsers(role.id);
+  const { data: currentUser } = useCurrentUser();
+  const unassignMutation = useUnassignUserRole();
+  const { addToast } = useToast();
+  const [userToUnassign, setUserToUnassign] = useState<RoleUserDto | null>(null);
+  const canUnassignRoles = currentUser?.permissions.includes('platform.manage-tenants') ?? false;
+
+  const unassignRole = () => {
+    if (!userToUnassign) return;
+    unassignMutation.mutate(
+      { userId: userToUnassign.userId, roleId: role.id },
+      {
+        onSuccess: () => {
+          addToast({ type: 'success', title: 'Odebrano rolę', message: `Użytkownik ${userToUnassign.email} nie ma już roli ${role.name}.` });
+          setUserToUnassign(null);
+        },
+        onError: (mutationError) => {
+          addToast({
+            type: 'error',
+            title: 'Nie udało się odebrać roli',
+            message: mutationError instanceof ApiError ? mutationError.message : 'Spróbuj ponownie.',
+          });
+        },
+      },
+    );
+  };
 
   return createPortal(
     <div style={{ ...overlayStyle, padding: '16px' }} onClick={onClose}>
@@ -258,7 +285,7 @@ function RoleUsersModal({ role, onClose }: { role: RoleDto; onClose: () => void 
             <div style={{ minWidth: 0 }}>
               <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: colors.gray[900] }}>Użytkownicy roli</h2>
               <div style={{ marginTop: '2px', fontSize: '13px', color: colors.gray[500] }}>
-                {role.name} · {role.userCount} {role.userCount === 1 ? 'osoba' : 'osób'}
+                {role.name} · {users?.length ?? role.userCount} {(users?.length ?? role.userCount) === 1 ? 'osoba' : 'osób'}
               </div>
             </div>
           </div>
@@ -281,7 +308,25 @@ function RoleUsersModal({ role, onClose }: { role: RoleDto; onClose: () => void 
               <div style={{ fontSize: '14px', fontWeight: 600 }}>Brak przypisanych użytkowników</div>
             </div>
           ) : (
-            users.map((user, index) => {
+            <>
+              {userToUnassign && (
+                <div style={{ margin: '16px 22px 4px', padding: '14px 16px', border: `1px solid ${colors.danger[200]}`, borderRadius: '12px', backgroundColor: colors.danger[50] }}>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: colors.danger[700] }}>Odebrać rolę „{role.name}”?</div>
+                  <div style={{ marginTop: '4px', fontSize: '12px', color: colors.gray[700] }}>{userToUnassign.email} utraci uprawnienia wynikające z tej roli.</div>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '12px' }}>
+                    <button type="button" onClick={() => setUserToUnassign(null)} style={secondaryBtnStyle}>Anuluj</button>
+                    <button
+                      type="button"
+                      onClick={unassignRole}
+                      disabled={unassignMutation.isPending}
+                      style={{ ...dangerBtnStyle, opacity: unassignMutation.isPending ? 0.6 : 1 }}
+                    >
+                      {unassignMutation.isPending ? 'Odbieranie...' : 'Odbierz rolę'}
+                    </button>
+                  </div>
+                </div>
+              )}
+              {users.map((user, index) => {
               const fullName = `${user.firstName} ${user.lastName}`.trim() || user.email;
               return (
                 <div
@@ -305,11 +350,23 @@ function RoleUsersModal({ role, onClose }: { role: RoleDto; onClose: () => void 
                   </div>
                   <div style={{ flexShrink: 0, textAlign: 'right', fontSize: '11px', color: colors.gray[500] }}>
                     <div>{new Date(user.assignedAt).toLocaleDateString('pl-PL')}</div>
-                    <div style={{ marginTop: '2px' }}>{user.assignedBy === 'system' ? 'Automatycznie' : 'Przez administratora'}</div>
+                    <div style={{ marginTop: '2px' }}>{user.assignedBy === 'system' ? 'Zarządzane w WB Platform' : 'Przez administratora'}</div>
                   </div>
+                  {canUnassignRoles && user.assignedBy !== 'system' && (
+                    <button
+                      type="button"
+                      onClick={() => setUserToUnassign(user)}
+                      style={{ ...iconBtnStyle, color: colors.danger[600], borderColor: colors.danger[200] }}
+                      title="Odbierz rolę"
+                      aria-label={`Odbierz rolę użytkownikowi ${fullName}`}
+                    >
+                      <UserMinus size={15} />
+                    </button>
+                  )}
                 </div>
               );
-            })
+              })}
+            </>
           )}
         </div>
 
@@ -484,6 +541,13 @@ const secondaryBtnStyle: React.CSSProperties = {
   border: `1px solid ${colors.gray[300]}`,
   borderRadius: '10px',
   cursor: 'pointer',
+};
+
+const dangerBtnStyle: React.CSSProperties = {
+  ...secondaryBtnStyle,
+  color: colors.white,
+  backgroundColor: colors.danger[600],
+  borderColor: colors.danger[600],
 };
 
 const errorBoxStyle: React.CSSProperties = {

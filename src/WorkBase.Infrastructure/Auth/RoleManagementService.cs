@@ -216,11 +216,27 @@ public sealed class RoleManagementService(WorkBaseDbContext dbContext) : IRoleMa
 
     public async Task UnassignUserRoleAsync(Guid userId, Guid roleId, Guid tenantId, CancellationToken ct = default)
     {
+        var role = await dbContext.Set<Role>()
+            .FirstOrDefaultAsync(r => r.Id == roleId && r.TenantId == tenantId, ct)
+            ?? throw new InvalidOperationException("Rola nie istnieje w bieżącej organizacji.");
+
         var userRole = await dbContext.Set<UserRole>()
             .FirstOrDefaultAsync(ur => ur.UserId == userId && ur.RoleId == roleId && ur.TenantId == tenantId, ct);
 
         if (userRole is null)
             return;
+
+        if (userRole.AssignedBy == "system")
+            throw new InvalidOperationException("Ta rola jest synchronizowana automatycznie z WB Platform. Zmień rolę lub dostęp użytkownika w panelu organizacji WB Platform.");
+
+        if (role.Name == "Super Admin")
+        {
+            var superAdminCount = await dbContext.Set<UserRole>()
+                .CountAsync(ur => ur.RoleId == roleId && ur.TenantId == tenantId, ct);
+
+            if (superAdminCount <= 1)
+                throw new InvalidOperationException("Nie można odebrać roli ostatniemu Super Adminowi.");
+        }
 
         dbContext.Set<UserRole>().Remove(userRole);
         await dbContext.SaveChangesAsync(ct);

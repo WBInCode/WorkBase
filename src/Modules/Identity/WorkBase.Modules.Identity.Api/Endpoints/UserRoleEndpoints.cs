@@ -74,8 +74,15 @@ public static class UserRoleEndpoints
         var tenantId = GetTenantId(user);
         if (tenantId is null) return Results.Forbid();
 
-        await service.UnassignUserRoleAsync(userId, roleId, tenantId.Value, ct);
-        return Results.NoContent();
+        try
+        {
+            await service.UnassignUserRoleAsync(userId, roleId, tenantId.Value, ct);
+            return Results.NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Results.BadRequest(new { ex.Message });
+        }
     }
 
     private static Guid? GetTenantId(ClaimsPrincipal user)

@@ -351,29 +351,6 @@
   ],
   "users": [
     {
-      "username": "admin@workbase.local",
-      "email": "admin@workbase.local",
-      "emailVerified": true,
-      "enabled": true,
-      "firstName": "Admin",
-      "lastName": "WorkBase",
-      "attributes": {
-        "tenant_id": ["00000000-0000-0000-0000-000000000001"],
-        "employee_id": ["00000000-0000-0000-0000-000000000001"]
-      },
-      "credentials": [
-        {
-          "type": "password",
-          "value": "admin",
-          "temporary": false
-        }
-      ],
-      "realmRoles": [
-        "workbase-admin",
-        "workbase-user"
-      ]
-    },
-    {
       "username": "user@workbase.local",
       "email": "user@workbase.local",
       "emailVerified": true,
