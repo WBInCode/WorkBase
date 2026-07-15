@@ -120,11 +120,13 @@ export function OrgTreePage() {
       </div>
 
       {/* Content */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: mobile ? 'column' : 'row', overflow: 'hidden' }}>
+      <div style={{ flex: 1, minWidth: 0, width: '100%', display: 'flex', flexDirection: mobile ? 'column' : 'row', overflow: 'hidden' }}>
         {/* Tree panel */}
         <div
           style={{
-            flex: mobile ? 'none' : (selectedNode ? '0 0 50%' : '1'),
+            flex: mobile ? 'none' : (selectedNode ? '1 1 0' : '1'),
+            minWidth: 0,
+            boxSizing: 'border-box',
             overflowY: 'auto',
             padding: '12px',
             transition: 'flex 0.2s',
@@ -179,8 +181,9 @@ export function OrgTreePage() {
         {selectedNode && (
           <div
             style={{
-              flex: mobile ? 'none' : '0 0 50%',
+              flex: mobile ? 'none' : '1 1 0',
               minWidth: 0,
+              boxSizing: 'border-box',
               borderLeft: mobile ? 'none' : `1px solid ${colors.gray[200]}`,
               borderTop: mobile ? `1px solid ${colors.gray[200]}` : 'none',
               overflowY: 'auto',
@@ -225,7 +228,7 @@ function UnitDetailPanel({
   onAddChild: (parentId: string) => void;
 }) {
   return (
-    <div>
+    <div style={{ width: '100%', minWidth: 0, boxSizing: 'border-box' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '20px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: '1 1 auto' }}>
           <Building2 size={22} style={{ color: colors.primary[500], flexShrink: 0 }} />
