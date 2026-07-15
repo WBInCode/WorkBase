@@ -156,17 +156,18 @@ public sealed class RoleManagementService(WorkBaseDbContext dbContext) : IRoleMa
                 dbContext.Set<User>().Where(user => user.TenantId == tenantId),
                 userRole => userRole.UserId,
                 user => user.Id,
-                (userRole, user) => new RoleUserDto(
-                    user.Id,
-                    user.Email,
-                    user.FirstName,
-                    user.LastName,
-                    user.IsActive,
-                    userRole.AssignedAt,
-                    userRole.AssignedBy))
-            .OrderBy(user => user.LastName)
-            .ThenBy(user => user.FirstName)
-            .ThenBy(user => user.Email)
+                (userRole, user) => new { UserRole = userRole, User = user })
+            .OrderBy(row => row.User.LastName)
+            .ThenBy(row => row.User.FirstName)
+            .ThenBy(row => row.User.Email)
+            .Select(row => new RoleUserDto(
+                row.User.Id,
+                row.User.Email,
+                row.User.FirstName,
+                row.User.LastName,
+                row.User.IsActive,
+                row.UserRole.AssignedAt,
+                row.UserRole.AssignedBy))
             .ToListAsync(ct);
     }
 
