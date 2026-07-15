@@ -141,8 +141,21 @@ public sealed class RoleManagementService(WorkBaseDbContext dbContext) : IRoleMa
 
     public async Task<IReadOnlyList<UserRoleDto>> GetUserRolesAsync(Guid userId, Guid tenantId, CancellationToken ct = default)
     {
+        // userId may be either the internal User.Id or the Keycloak sub (parsed as Guid) —
+        // brokered/SSO logins carry the Keycloak id in `sub`, whereas iam_user_roles.user_id
+        // stores the internal User.Id. Resolve to internal id so the UserRole join matches
+        // (mirrors PermissionService.GetUserPermissionsAsync). Without this, isAdmin in
+        // /api/auth/me was always false for brokered users → admin nav section hidden.
+        var internalUserId = await dbContext.Set<User>()
+            .Where(u => u.Id == userId || u.KeycloakId == userId.ToString())
+            .Select(u => u.Id)
+            .FirstOrDefaultAsync(ct);
+
+        if (internalUserId == Guid.Empty)
+            return [];
+
         return await dbContext.Set<UserRole>()
-            .Where(ur => ur.UserId == userId && ur.TenantId == tenantId)
+            .Where(ur => ur.UserId == internalUserId && ur.TenantId == tenantId)
             .Join(
                 dbContext.Set<Role>(),
                 ur => ur.RoleId,
