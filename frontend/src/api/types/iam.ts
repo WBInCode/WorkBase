@@ -45,6 +45,16 @@ export interface UserRoleDto {
   assignedBy: string | null;
 }
 
+export interface RoleUserDto {
+  userId: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  isActive: boolean;
+  assignedAt: string;
+  assignedBy: string | null;
+}
+
 export interface CreateRoleRequest {
   name: string;
   description?: string;

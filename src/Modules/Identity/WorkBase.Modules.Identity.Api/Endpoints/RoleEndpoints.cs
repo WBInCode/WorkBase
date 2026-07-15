@@ -48,6 +48,12 @@ public static class RoleEndpoints
             .RequirePermission("identity.view")
             .Produces<IReadOnlyList<Guid>>();
 
+        group.MapGet("/{id:guid}/users", GetRoleUsers)
+            .WithName("GetRoleUsers")
+            .WithSummary("Pobierz użytkowników przypisanych do roli")
+            .RequirePermission("identity.view")
+            .Produces<IReadOnlyList<RoleUserDto>>();
+
         group.MapPut("/{id:guid}/permissions", UpdateRolePermissions)
             .WithName("UpdateRolePermissions")
             .WithSummary("Ustaw uprawnienia roli")
@@ -129,6 +135,19 @@ public static class RoleEndpoints
     {
         var permissionIds = await service.GetRolePermissionIdsAsync(id, ct);
         return Results.Ok(permissionIds);
+    }
+
+    private static async Task<IResult> GetRoleUsers(
+        Guid id,
+        ClaimsPrincipal user,
+        IRoleManagementService service,
+        CancellationToken ct)
+    {
+        var tenantId = GetTenantId(user);
+        if (tenantId is null) return Results.Forbid();
+
+        var users = await service.GetRoleUsersAsync(id, tenantId.Value, ct);
+        return Results.Ok(users);
     }
 
     private static async Task<IResult> UpdateRolePermissions(

@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
-import { Shield, Plus, RefreshCw, Edit2, Users, Lock } from 'lucide-react';
-import { useRoles, useCreateRole, useUpdateRole } from '@/api/hooks/useIam';
+import { createPortal } from 'react-dom';
+import { Shield, Plus, RefreshCw, Edit2, Users, Lock, X, Mail, UserCheck } from 'lucide-react';
+import { useRoles, useCreateRole, useUpdateRole, useRoleUsers } from '@/api/hooks/useIam';
 import type { RoleDto, CreateRoleRequest, UpdateRoleRequest } from '@/api/types/iam';
 import { useIsMobile } from '@/shared';
 import { colors } from '@/theme/tokens';
@@ -25,6 +26,7 @@ export function RolesPage() {
 
   const [showForm, setShowForm] = useState(false);
   const [editingRole, setEditingRole] = useState<RoleDto | null>(null);
+  const [usersRole, setUsersRole] = useState<RoleDto | null>(null);
 
   const handleCreate = useCallback(
     (req: CreateRoleRequest) => {
@@ -115,6 +117,7 @@ export function RolesPage() {
                   key={role.id}
                   role={role}
                   onEdit={() => { setEditingRole(role); setShowForm(true); }}
+                  onShowUsers={() => setUsersRole(role)}
                 />
               ))}
             </tbody>
@@ -143,13 +146,25 @@ export function RolesPage() {
           }}
         />
       )}
+
+      {usersRole && (
+        <RoleUsersModal role={usersRole} onClose={() => setUsersRole(null)} />
+      )}
     </div>
   );
 }
 
 /* ---- Sub-components ---- */
 
-function RoleRow({ role, onEdit }: { role: RoleDto; onEdit: () => void }) {
+function RoleRow({
+  role,
+  onEdit,
+  onShowUsers,
+}: {
+  role: RoleDto;
+  onEdit: () => void;
+  onShowUsers: () => void;
+}) {
   const tc = typeColors[role.type] ?? typeColors.Custom;
   return (
     <tr style={{ borderTop: `1px solid ${colors.gray[200]}` }}>
@@ -183,10 +198,27 @@ function RoleRow({ role, onEdit }: { role: RoleDto; onEdit: () => void }) {
         </span>
       </td>
       <td style={cellStyle}>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+        <button
+          type="button"
+          onClick={onShowUsers}
+          disabled={role.userCount === 0}
+          title={role.userCount > 0 ? 'Pokaż przypisanych użytkowników' : 'Brak przypisanych użytkowników'}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '5px',
+            padding: '4px 8px',
+            border: role.userCount > 0 ? `1px solid ${colors.primary[200]}` : '1px solid transparent',
+            borderRadius: '999px',
+            backgroundColor: role.userCount > 0 ? colors.primary[50] : 'transparent',
+            color: role.userCount > 0 ? colors.primary[700] : colors.gray[500],
+            cursor: role.userCount > 0 ? 'pointer' : 'default',
+            font: 'inherit',
+          }}
+        >
           <Users size={14} style={{ color: colors.gray[500] }} />
           {role.userCount}
-        </span>
+        </button>
       </td>
       <td style={cellStyle}>
         <span style={{
@@ -210,6 +242,93 @@ function RoleRow({ role, onEdit }: { role: RoleDto; onEdit: () => void }) {
       </td>
     </tr>
   );
+}
+
+function RoleUsersModal({ role, onClose }: { role: RoleDto; onClose: () => void }) {
+  const { data: users, isLoading, error, refetch, isFetching } = useRoleUsers(role.id);
+
+  return createPortal(
+    <div style={{ ...overlayStyle, padding: '16px' }} onClick={onClose}>
+      <div style={roleUsersModalStyle} onClick={(event) => event.stopPropagation()}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', padding: '20px 22px', borderBottom: `1px solid ${colors.gray[200]}` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+            <span style={{ width: '40px', height: '40px', borderRadius: '12px', display: 'grid', placeItems: 'center', flexShrink: 0, color: colors.primary[700], backgroundColor: colors.primary[100] }}>
+              <Users size={19} />
+            </span>
+            <div style={{ minWidth: 0 }}>
+              <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: colors.gray[900] }}>Użytkownicy roli</h2>
+              <div style={{ marginTop: '2px', fontSize: '13px', color: colors.gray[500] }}>
+                {role.name} · {role.userCount} {role.userCount === 1 ? 'osoba' : 'osób'}
+              </div>
+            </div>
+          </div>
+          <button type="button" onClick={onClose} style={iconBtnStyle} title="Zamknij" aria-label="Zamknij">
+            <X size={16} />
+          </button>
+        </div>
+
+        <div style={{ overflowY: 'auto', minHeight: '160px', maxHeight: 'min(60vh, 560px)' }}>
+          {isLoading ? (
+            <div style={{ padding: '48px 24px', textAlign: 'center', color: colors.gray[500], fontSize: '14px' }}>Ładowanie użytkowników...</div>
+          ) : error ? (
+            <div style={{ margin: '20px', ...errorBoxStyle }}>
+              Nie udało się pobrać użytkowników.
+              <button type="button" onClick={() => refetch()} style={retryLinkStyle}>{isFetching ? 'Ładowanie...' : 'Ponów'}</button>
+            </div>
+          ) : !users?.length ? (
+            <div style={{ padding: '48px 24px', textAlign: 'center', color: colors.gray[500] }}>
+              <UserCheck size={34} style={{ marginBottom: '10px', opacity: 0.45 }} />
+              <div style={{ fontSize: '14px', fontWeight: 600 }}>Brak przypisanych użytkowników</div>
+            </div>
+          ) : (
+            users.map((user, index) => {
+              const fullName = `${user.firstName} ${user.lastName}`.trim() || user.email;
+              return (
+                <div
+                  key={user.userId}
+                  style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '14px 22px', borderTop: index > 0 ? `1px solid ${colors.gray[100]}` : 'none' }}
+                >
+                  <span style={{ width: '36px', height: '36px', borderRadius: '50%', display: 'grid', placeItems: 'center', flexShrink: 0, fontSize: '12px', fontWeight: 700, color: colors.primary[700], backgroundColor: colors.primary[100] }}>
+                    {initials(fullName)}
+                  </span>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: '14px', fontWeight: 600, color: colors.gray[900] }}>{fullName}</span>
+                      {!user.isActive && (
+                        <span style={{ padding: '2px 6px', borderRadius: '999px', fontSize: '10px', color: colors.gray[600], backgroundColor: colors.gray[100] }}>Nieaktywny</span>
+                      )}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginTop: '2px', minWidth: 0, fontSize: '12px', color: colors.gray[500] }}>
+                      <Mail size={12} style={{ flexShrink: 0 }} />
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.email}</span>
+                    </div>
+                  </div>
+                  <div style={{ flexShrink: 0, textAlign: 'right', fontSize: '11px', color: colors.gray[500] }}>
+                    <div>{new Date(user.assignedAt).toLocaleDateString('pl-PL')}</div>
+                    <div style={{ marginTop: '2px' }}>{user.assignedBy === 'system' ? 'Automatycznie' : 'Przez administratora'}</div>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '14px 22px', borderTop: `1px solid ${colors.gray[200]}` }}>
+          <button type="button" onClick={onClose} style={secondaryBtnStyle}>Zamknij</button>
+        </div>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
+function initials(name: string): string {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join('');
 }
 
 function RoleFormModal({
@@ -402,6 +521,18 @@ const modalStyle: React.CSSProperties = {
   padding: '24px',
   width: '100%',
   maxWidth: '480px',
+  boxShadow: '0 24px 64px -12px rgba(20,25,43,0.28), 0 0 0 1px rgba(20,25,43,0.04)',
+};
+
+const roleUsersModalStyle: React.CSSProperties = {
+  width: '100%',
+  maxWidth: '640px',
+  maxHeight: 'calc(100vh - 32px)',
+  display: 'flex',
+  flexDirection: 'column',
+  overflow: 'hidden',
+  backgroundColor: colors.white,
+  borderRadius: '16px',
   boxShadow: '0 24px 64px -12px rgba(20,25,43,0.28), 0 0 0 1px rgba(20,25,43,0.04)',
 };
 

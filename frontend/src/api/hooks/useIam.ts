@@ -4,6 +4,7 @@ import type {
   RoleDto,
   PermissionDto,
   UserRoleDto,
+  RoleUserDto,
   CreateRoleRequest,
   UpdateRoleRequest,
   UpdateRolePermissionsRequest,
@@ -53,6 +54,14 @@ export function useRolePermissions(roleId: string | null) {
   return useQuery({
     queryKey: ['iam', 'roles', roleId, 'permissions'],
     queryFn: () => api.get<string[]>(`/api/iam/roles/${roleId}/permissions`),
+    enabled: !!roleId,
+  });
+}
+
+export function useRoleUsers(roleId: string | null) {
+  return useQuery({
+    queryKey: ['iam', 'roles', roleId, 'users'],
+    queryFn: () => api.get<RoleUserDto[]>(`/api/iam/roles/${roleId}/users`),
     enabled: !!roleId,
   });
 }

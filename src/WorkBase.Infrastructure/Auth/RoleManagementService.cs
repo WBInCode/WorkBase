@@ -139,6 +139,37 @@ public sealed class RoleManagementService(WorkBaseDbContext dbContext) : IRoleMa
         await dbContext.SaveChangesAsync(ct);
     }
 
+    public async Task<IReadOnlyList<RoleUserDto>> GetRoleUsersAsync(
+        Guid roleId,
+        Guid tenantId,
+        CancellationToken ct = default)
+    {
+        var roleBelongsToTenant = await dbContext.Set<Role>()
+            .AnyAsync(role => role.Id == roleId && role.TenantId == tenantId, ct);
+
+        if (!roleBelongsToTenant)
+            return [];
+
+        return await dbContext.Set<UserRole>()
+            .Where(userRole => userRole.RoleId == roleId && userRole.TenantId == tenantId)
+            .Join(
+                dbContext.Set<User>().Where(user => user.TenantId == tenantId),
+                userRole => userRole.UserId,
+                user => user.Id,
+                (userRole, user) => new RoleUserDto(
+                    user.Id,
+                    user.Email,
+                    user.FirstName,
+                    user.LastName,
+                    user.IsActive,
+                    userRole.AssignedAt,
+                    userRole.AssignedBy))
+            .OrderBy(user => user.LastName)
+            .ThenBy(user => user.FirstName)
+            .ThenBy(user => user.Email)
+            .ToListAsync(ct);
+    }
+
     public async Task<IReadOnlyList<UserRoleDto>> GetUserRolesAsync(Guid userId, Guid tenantId, CancellationToken ct = default)
     {
         // userId may be either the internal User.Id or the Keycloak sub (parsed as Guid) —

@@ -10,6 +10,7 @@ public interface IRoleManagementService
     Task<IReadOnlyList<PermissionDto>> GetAllPermissionsAsync(CancellationToken ct = default);
     Task<IReadOnlyList<Guid>> GetRolePermissionIdsAsync(Guid roleId, CancellationToken ct = default);
     Task UpdateRolePermissionsAsync(Guid roleId, IReadOnlyList<Guid> permissionIds, CancellationToken ct = default);
+    Task<IReadOnlyList<RoleUserDto>> GetRoleUsersAsync(Guid roleId, Guid tenantId, CancellationToken ct = default);
     Task<IReadOnlyList<UserRoleDto>> GetUserRolesAsync(Guid userId, Guid tenantId, CancellationToken ct = default);
     Task AssignUserRoleAsync(Guid userId, Guid roleId, Guid tenantId, string? assignedBy, CancellationToken ct = default);
     Task UnassignUserRoleAsync(Guid userId, Guid roleId, Guid tenantId, CancellationToken ct = default);
@@ -37,5 +38,14 @@ public sealed record UserRoleDto(
     Guid RoleId,
     string RoleName,
     string RoleType,
+    DateTime AssignedAt,
+    string? AssignedBy);
+
+public sealed record RoleUserDto(
+    Guid UserId,
+    string Email,
+    string FirstName,
+    string LastName,
+    bool IsActive,
     DateTime AssignedAt,
     string? AssignedBy);
