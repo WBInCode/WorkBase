@@ -21,10 +21,8 @@ public sealed class UserProvisioningService
     }
 
     /// <summary>
-    /// Name of the role assigned by default to newly provisioned users. Resolved per-tenant
-    /// (via GetDefaultRoleIdAsync) rather than a single hardcoded RoleId, since Role rows are
-    /// tenant-scoped — every tenant seeded via IamSeeder.SeedTenantRbacAsync has its own
-    /// "Admin" role with a different Id.
+    /// Fallback for direct/non-Hub accounts that do not carry hub_role. Hub-brokered users
+    /// are mapped explicitly: owner -> Super Admin, admin -> Admin, member -> Pracownik.
     /// </summary>
     private const string DefaultRoleName = "Admin";
 
@@ -35,10 +33,18 @@ public sealed class UserProvisioningService
     /// full "Super Admin" role here rather than the default "Admin".
     /// </summary>
     private const string OwnerRoleName = "Super Admin";
-    private const string HubRoleOwnerClaim = "owner";
+    private const string MemberRoleName = "Pracownik";
+    private const string SystemAssignedBy = "system";
+    private static readonly string[] HubManagedRoleNames = [OwnerRoleName, DefaultRoleName, MemberRoleName];
 
-    private static bool IsHubOwner(ClaimsPrincipal principal) =>
-        string.Equals(principal.FindFirstValue("hub_role"), HubRoleOwnerClaim, StringComparison.OrdinalIgnoreCase);
+    private static string? GetHubRoleName(ClaimsPrincipal principal) =>
+        principal.FindFirstValue("hub_role")?.Trim().ToLowerInvariant() switch
+        {
+            "owner" => OwnerRoleName,
+            "admin" => DefaultRoleName,
+            "member" => MemberRoleName,
+            _ => null
+        };
 
     public async Task EnsureUserProvisionedAsync(ClaimsPrincipal principal, CancellationToken cancellationToken = default)
     {
@@ -47,8 +53,8 @@ public sealed class UserProvisioningService
         if (string.IsNullOrEmpty(keycloakId))
             return;
 
-        var isOwner = IsHubOwner(principal);
-        var targetRoleName = isOwner ? OwnerRoleName : DefaultRoleName;
+        var hubRoleName = GetHubRoleName(principal);
+        var targetRoleName = hubRoleName ?? DefaultRoleName;
 
         var existingUser = await _dbContext.Set<User>()
             .FirstOrDefaultAsync(u => u.KeycloakId == keycloakId, cancellationToken);
@@ -57,33 +63,60 @@ public sealed class UserProvisioningService
         {
             existingUser.UpdateLastLogin();
 
-            var currentRoleIds = await _dbContext.Set<UserRole>()
-                .Where(ur => ur.UserId == existingUser.Id)
-                .Select(ur => ur.RoleId)
-                .ToListAsync(cancellationToken);
-
-            // Owner licence: ensure the owner always holds the Super Admin role, even if the
-            // account was provisioned earlier with only the default Admin role.
-            if (isOwner)
+            if (hubRoleName is not null)
             {
-                var ownerRoleId = await GetRoleIdByNameAsync(existingUser.TenantId, OwnerRoleName, cancellationToken);
-                if (ownerRoleId is not null && !currentRoleIds.Contains(ownerRoleId.Value))
+                // Synchronize only integration-managed assignments. Roles granted manually
+                // have AssignedBy=<administrator sub> and must remain untouched.
+                var targetRoleId = await GetRoleIdByNameAsync(existingUser.TenantId, hubRoleName, cancellationToken);
+                if (targetRoleId is not null)
                 {
-                    _dbContext.Set<UserRole>().Add(
-                        UserRole.Create(existingUser.Id, ownerRoleId.Value, existingUser.TenantId, "system"));
-                    _logger.LogInformation("Elevated existing user {UserId} to Super Admin (Hub licence owner)", existingUser.Id);
+                    var managedAssignments = await _dbContext.Set<UserRole>()
+                        .Where(ur => ur.UserId == existingUser.Id &&
+                                     ur.TenantId == existingUser.TenantId &&
+                                     ur.AssignedBy == SystemAssignedBy)
+                        .Join(
+                            _dbContext.Set<Role>().Where(r => HubManagedRoleNames.Contains(r.Name)),
+                            ur => ur.RoleId,
+                            role => role.Id,
+                            (ur, role) => new { UserRole = ur, RoleName = role.Name })
+                        .ToListAsync(cancellationToken);
+
+                    var obsoleteAssignments = managedAssignments
+                        .Where(assignment => assignment.RoleName != hubRoleName)
+                        .Select(assignment => assignment.UserRole)
+                        .ToList();
+                    if (obsoleteAssignments.Count > 0)
+                        _dbContext.Set<UserRole>().RemoveRange(obsoleteAssignments);
+
+                    if (managedAssignments.All(assignment => assignment.RoleName != hubRoleName))
+                    {
+                        _dbContext.Set<UserRole>().Add(
+                            UserRole.Create(existingUser.Id, targetRoleId.Value, existingUser.TenantId, SystemAssignedBy));
+                    }
+
+                    if (obsoleteAssignments.Count > 0 || managedAssignments.All(assignment => assignment.RoleName != hubRoleName))
+                    {
+                        _logger.LogInformation(
+                            "Synchronized Hub role for user {UserId}: hub_role={HubRole}, WorkBase role={RoleName}",
+                            existingUser.Id, principal.FindFirstValue("hub_role"), hubRoleName);
+                    }
                 }
             }
-            // Ensure user has at least one role (retroactive fix for users provisioned before role assignment)
-            else if (currentRoleIds.Count == 0)
+            else
             {
-                var existingUserRoleId = await GetRoleIdByNameAsync(existingUser.TenantId, DefaultRoleName, cancellationToken);
+                // Direct/non-Hub login: retain historical fallback and only fill a missing role.
+                var hasAnyRole = await _dbContext.Set<UserRole>()
+                    .AnyAsync(ur => ur.UserId == existingUser.Id && ur.TenantId == existingUser.TenantId, cancellationToken);
 
-                if (existingUserRoleId is not null)
+                if (!hasAnyRole)
                 {
-                    var userRole = UserRole.Create(existingUser.Id, existingUserRoleId.Value, existingUser.TenantId, "system");
-                    _dbContext.Set<UserRole>().Add(userRole);
-                    _logger.LogInformation("Assigned default Admin role to existing user {UserId}", existingUser.Id);
+                    var fallbackRoleId = await GetRoleIdByNameAsync(existingUser.TenantId, DefaultRoleName, cancellationToken);
+                    if (fallbackRoleId is not null)
+                    {
+                        _dbContext.Set<UserRole>().Add(
+                            UserRole.Create(existingUser.Id, fallbackRoleId.Value, existingUser.TenantId, SystemAssignedBy));
+                        _logger.LogInformation("Assigned fallback Admin role to direct-login user {UserId}", existingUser.Id);
+                    }
                 }
             }
 
@@ -108,13 +141,14 @@ public sealed class UserProvisioningService
 
         _dbContext.Set<User>().Add(user);
 
-        // Assign role based on the Hub role: licence owner → Super Admin, otherwise → Admin.
+        // Hub role mapping: owner -> Super Admin, admin -> Admin, member -> Pracownik.
+        // Direct/non-Hub accounts retain the historical Admin fallback.
         var defaultRoleId = await GetRoleIdByNameAsync(tenantId, targetRoleName, cancellationToken)
             ?? await GetRoleIdByNameAsync(tenantId, DefaultRoleName, cancellationToken);
 
         if (defaultRoleId is not null)
         {
-            var userRole = UserRole.Create(user.Id, defaultRoleId.Value, tenantId, "system");
+            var userRole = UserRole.Create(user.Id, defaultRoleId.Value, tenantId, SystemAssignedBy);
             _dbContext.Set<UserRole>().Add(userRole);
         }
 
