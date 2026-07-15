@@ -28,12 +28,27 @@ public sealed class UserProvisioningService
     /// </summary>
     private const string DefaultRoleName = "Admin";
 
+    /// <summary>
+    /// Role granted to the licence owner. When a company receives a WorkBase licence via
+    /// wb-platform, the Hub embeds hub_role="owner" in the brokered token (see
+    /// hub-api oidc/token) for the organization owner — that account is elevated to the
+    /// full "Super Admin" role here rather than the default "Admin".
+    /// </summary>
+    private const string OwnerRoleName = "Super Admin";
+    private const string HubRoleOwnerClaim = "owner";
+
+    private static bool IsHubOwner(ClaimsPrincipal principal) =>
+        string.Equals(principal.FindFirstValue("hub_role"), HubRoleOwnerClaim, StringComparison.OrdinalIgnoreCase);
+
     public async Task EnsureUserProvisionedAsync(ClaimsPrincipal principal, CancellationToken cancellationToken = default)
     {
         var keycloakId = principal.FindFirstValue("sub") 
             ?? principal.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(keycloakId))
             return;
+
+        var isOwner = IsHubOwner(principal);
+        var targetRoleName = isOwner ? OwnerRoleName : DefaultRoleName;
 
         var existingUser = await _dbContext.Set<User>()
             .FirstOrDefaultAsync(u => u.KeycloakId == keycloakId, cancellationToken);
@@ -42,13 +57,27 @@ public sealed class UserProvisioningService
         {
             existingUser.UpdateLastLogin();
 
-            // Ensure user has at least one role (retroactive fix for users provisioned before role assignment)
-            var hasAnyRole = await _dbContext.Set<UserRole>()
-                .AnyAsync(ur => ur.UserId == existingUser.Id, cancellationToken);
+            var currentRoleIds = await _dbContext.Set<UserRole>()
+                .Where(ur => ur.UserId == existingUser.Id)
+                .Select(ur => ur.RoleId)
+                .ToListAsync(cancellationToken);
 
-            if (!hasAnyRole)
+            // Owner licence: ensure the owner always holds the Super Admin role, even if the
+            // account was provisioned earlier with only the default Admin role.
+            if (isOwner)
             {
-                var existingUserRoleId = await GetDefaultRoleIdAsync(existingUser.TenantId, cancellationToken);
+                var ownerRoleId = await GetRoleIdByNameAsync(existingUser.TenantId, OwnerRoleName, cancellationToken);
+                if (ownerRoleId is not null && !currentRoleIds.Contains(ownerRoleId.Value))
+                {
+                    _dbContext.Set<UserRole>().Add(
+                        UserRole.Create(existingUser.Id, ownerRoleId.Value, existingUser.TenantId, "system"));
+                    _logger.LogInformation("Elevated existing user {UserId} to Super Admin (Hub licence owner)", existingUser.Id);
+                }
+            }
+            // Ensure user has at least one role (retroactive fix for users provisioned before role assignment)
+            else if (currentRoleIds.Count == 0)
+            {
+                var existingUserRoleId = await GetRoleIdByNameAsync(existingUser.TenantId, DefaultRoleName, cancellationToken);
 
                 if (existingUserRoleId is not null)
                 {
@@ -79,8 +108,9 @@ public sealed class UserProvisioningService
 
         _dbContext.Set<User>().Add(user);
 
-        // Assign default Admin role if it exists for this tenant
-        var defaultRoleId = await GetDefaultRoleIdAsync(tenantId, cancellationToken);
+        // Assign role based on the Hub role: licence owner → Super Admin, otherwise → Admin.
+        var defaultRoleId = await GetRoleIdByNameAsync(tenantId, targetRoleName, cancellationToken)
+            ?? await GetRoleIdByNameAsync(tenantId, DefaultRoleName, cancellationToken);
 
         if (defaultRoleId is not null)
         {
@@ -103,14 +133,14 @@ public sealed class UserProvisioningService
         }
 
         _logger.LogInformation(
-            "Provisioned new user {UserId} (Keycloak: {KeycloakId}, Tenant: {TenantId}) with default Admin role",
-            user.Id, keycloakId, tenantId);
+            "Provisioned new user {UserId} (Keycloak: {KeycloakId}, Tenant: {TenantId}) with role {RoleName}",
+            user.Id, keycloakId, tenantId, targetRoleName);
     }
 
-    private async Task<Guid?> GetDefaultRoleIdAsync(Guid tenantId, CancellationToken cancellationToken)
+    private async Task<Guid?> GetRoleIdByNameAsync(Guid tenantId, string roleName, CancellationToken cancellationToken)
     {
         return await _dbContext.Set<Role>()
-            .Where(r => r.TenantId == tenantId && r.Name == DefaultRoleName)
+            .Where(r => r.TenantId == tenantId && r.Name == roleName)
             .Select(r => (Guid?)r.Id)
             .FirstOrDefaultAsync(cancellationToken);
     }

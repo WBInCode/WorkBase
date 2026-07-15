@@ -180,6 +180,7 @@ export function OrgTreePage() {
           <div
             style={{
               flex: mobile ? 'none' : '0 0 50%',
+              minWidth: 0,
               borderLeft: mobile ? 'none' : `1px solid ${colors.gray[200]}`,
               borderTop: mobile ? `1px solid ${colors.gray[200]}` : 'none',
               overflowY: 'auto',
@@ -225,14 +226,14 @@ function UnitDetailPanel({
 }) {
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <Building2 size={22} style={{ color: colors.primary[500] }} />
-          <h2 style={{ fontSize: '18px', fontWeight: 600, margin: 0, color: colors.gray[900] }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: '1 1 auto' }}>
+          <Building2 size={22} style={{ color: colors.primary[500], flexShrink: 0 }} />
+          <h2 style={{ fontSize: '18px', fontWeight: 600, margin: 0, color: colors.gray[900], whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {node.name}
           </h2>
         </div>
-        <div style={{ display: 'flex', gap: '6px' }}>
+        <div style={{ display: 'flex', gap: '6px', flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
           <button
             onClick={() => onAddChild(node.id)}
             title="Dodaj podjednostkę"
