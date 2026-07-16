@@ -120,11 +120,24 @@ export function OrgTreePage() {
       </div>
 
       {/* Content */}
-      <div style={{ flex: 1, minWidth: 0, width: '100%', display: 'flex', flexDirection: mobile ? 'column' : 'row', overflow: 'hidden' }}>
+      <div
+        style={{
+          flex: 1,
+          minWidth: 0,
+          width: '100%',
+          display: mobile ? 'flex' : 'grid',
+          flexDirection: mobile ? 'column' : undefined,
+          gridTemplateColumns: mobile ? undefined : (selectedNode ? 'minmax(0, 11fr) minmax(0, 9fr)' : 'minmax(0, 1fr)'),
+          columnGap: !mobile && selectedNode ? '12px' : undefined,
+          paddingRight: !mobile && selectedNode ? '16px' : undefined,
+          boxSizing: 'border-box',
+          overflow: 'hidden',
+        }}
+      >
         {/* Tree panel */}
         <div
           style={{
-            flex: mobile ? 'none' : (selectedNode ? '1 1 0' : '1'),
+            flex: mobile ? 'none' : undefined,
             minWidth: 0,
             boxSizing: 'border-box',
             overflowY: 'auto',
@@ -181,7 +194,8 @@ export function OrgTreePage() {
         {selectedNode && (
           <div
             style={{
-              flex: mobile ? 'none' : '1 1 0',
+              flex: mobile ? 'none' : undefined,
+              width: '100%',
               minWidth: 0,
               boxSizing: 'border-box',
               borderLeft: mobile ? 'none' : `1px solid ${colors.gray[200]}`,
