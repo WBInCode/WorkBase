@@ -37,6 +37,7 @@ services:
     command: start-dev --import-realm
     volumes:
       - ./keycloak/workbase-realm.json:/opt/keycloak/data/import/workbase-realm.json:ro
+      - ./keycloak/themes:/opt/keycloak/themes:ro
     depends_on:
       postgres:
         condition: service_healthy

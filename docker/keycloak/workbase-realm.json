@@ -3,6 +3,11 @@
   "enabled": true,
   "displayName": "WorkBase",
   "displayNameHtml": "<strong>WorkBase</strong>",
+  "internationalizationEnabled": true,
+  "supportedLocales": ["pl"],
+  "defaultLocale": "pl",
+  "loginTheme": "workbase",
+  "accountTheme": "workbase",
   "sslRequired": "external",
   "registrationAllowed": false,
   "loginWithEmailAllowed": true,
@@ -63,8 +68,8 @@
       "directAccessGrantsEnabled": false,
       "serviceAccountsEnabled": false,
       "protocol": "openid-connect",
-      "rootUrl": "http://localhost:5173",
-      "baseUrl": "/",
+      "rootUrl": "https://workbase.wb-partners.pl",
+      "baseUrl": "https://workbase.wb-partners.pl/",
       "redirectUris": [
         "http://localhost:5173/*",
         "http://localhost:5174/*",
@@ -81,7 +86,7 @@
       ],
       "attributes": {
         "pkce.code.challenge.method": "S256",
-        "post.logout.redirect.uris": "http://localhost:5173/*##http://localhost:5175/*##https://work-base-roan.vercel.app/*##https://workbase.wb-partners.pl/*"
+        "post.logout.redirect.uris": "http://localhost:5173/*##http://localhost:5175/*##https://work-base-roan.vercel.app/*##https://workbase.wb-partners.pl/*##https://wb-partners.pl/*"
       },
       "defaultClientScopes": [
         "openid",

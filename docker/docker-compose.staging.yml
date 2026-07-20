@@ -47,6 +47,7 @@ services:
     command: start --import-realm --optimized
     volumes:
       - ./docker/keycloak/workbase-realm.json:/opt/keycloak/data/import/workbase-realm.json:ro
+      - ./docker/keycloak/themes:/opt/keycloak/themes:ro
     depends_on:
       postgres:
         condition: service_healthy

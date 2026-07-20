@@ -1,0 +1,13 @@
+:root {
+  --pf-global--primary-color--100: #3d6df2;
+  --pf-global--primary-color--200: #2b55d4;
+  --pf-global--BackgroundColor--100: #eef1f8;
+  --pf-global--Color--100: #14192b;
+  --pf-global--BorderColor--100: #dde3f0;
+  --pf-global--BorderRadius--sm: 8px;
+}
+
+body { background: #eef1f8; color: #14192b; font-family: "Segoe UI", "Noto Sans", sans-serif; }
+.pf-c-page__header, .pf-v5-c-masthead { background: #fff; border-bottom: 1px solid #dde3f0; box-shadow: 0 5px 20px -16px rgba(20,25,43,.45); }
+.pf-c-card, .pf-v5-c-card { border: 1px solid #dde3f0; border-radius: 14px; box-shadow: 0 12px 30px -22px rgba(20,25,43,.4); }
+.pf-c-button.pf-m-primary, .pf-v5-c-button.pf-m-primary { background: #3d6df2; border-radius: 8px; }
