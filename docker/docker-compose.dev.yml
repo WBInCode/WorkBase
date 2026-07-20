@@ -88,7 +88,7 @@ services:
     container_name: workbase-api
     restart: unless-stopped
     ports:
-      - "5000:5000"
+      - "${API_PORT:-5000}:5000"
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=${DATABASE_NAME:-workbase};Username=${DATABASE_USER:-workbase};Password=${DATABASE_PASSWORD:-workbase}"
@@ -101,6 +101,7 @@ services:
       Storage__UseSSL: "false"
       Serilog__WriteTo__0__Name: "Seq"
       Serilog__WriteTo__0__Args__serverUrl: "http://seq:5341"
+      Serilog__WriteTo__1__Name: "Console"
       Hangfire__DashboardEnabled: "true"
       Stripe__WebhookSecret: "${STRIPE_WEBHOOK_SECRET:-}"
     depends_on:
