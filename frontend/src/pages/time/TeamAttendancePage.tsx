@@ -1,8 +1,10 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight, Download, AlertTriangle } from 'lucide-react';
-import { useTeamTimesheets, useAnomalies } from '@/api/hooks/useTimeTracking';
+import { useQueryClient } from '@tanstack/react-query';
+import { useTeamTimesheets, useAnomalies, useAdminCreateTimeEntry, useAdminDeleteTimeEntry } from '@/api/hooks/useTimeTracking';
 import { useEmployees, useOrgUnitTree } from '@/api/hooks/useOrganization';
-import type { TimeSheetPeriodDto, TimeAnomalyDto } from '@/api/types/time';
+import type { TimeSheetPeriodDto, TimeAnomalyDto, TimeSheetEntryDto } from '@/api/types/time';
 import type { EmployeeDto, OrganizationUnitTreeNode } from '@/api/types/organization';
 import { useIsMobile } from '@/shared';
 import type ExcelJS from 'exceljs';
@@ -117,11 +119,58 @@ const ANOMALY_COLORS: Record<string, string> = {
 
 /* ── main component ── */
 
+interface BreakDraft {
+  start: string;
+  end: string;
+  breakType: string;
+}
+
+interface DayEditState {
+  employeeId: string;
+  date: string;
+  start: string;
+  end: string;
+  breaks: BreakDraft[];
+  existingEntries: TimeSheetEntryDto[];
+}
+
+const BREAK_TYPE_OPTIONS = [
+  { value: '', label: 'Bez typu' },
+  { value: 'Paid', label: 'Płatna' },
+  { value: 'Unpaid', label: 'Bezpłatna' },
+];
+
 export function TeamAttendancePage() {
   const [currentDate, setCurrentDate] = useState(() => new Date());
   const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
   const [unitId, setUnitId] = useState<string>('');
   const mobile = useIsMobile();
+  const queryClient = useQueryClient();
+
+  /* panel edycji dnia (od / do / przerwy) — renderowany w portalu, żeby nie był przycinany przez overflow tabeli */
+  const [editState, setEditState] = useState<DayEditState | null>(null);
+  const [panelPos, setPanelPos] = useState<{ top: number; left: number } | null>(null);
+  const [savingCell, setSavingCell] = useState<string | null>(null);
+  const startInputRef = useRef<HTMLInputElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const createEntry = useAdminCreateTimeEntry();
+  const deleteEntry = useAdminDeleteTimeEntry();
+
+  useEffect(() => {
+    if (editState) startInputRef.current?.focus();
+  }, [editState]);
+
+  useEffect(() => {
+    if (!editState) return;
+    const onDocClick = (e: MouseEvent) => {
+      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
+        setEditState(null);
+        setPanelPos(null);
+      }
+    };
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, [editState]);
 
   const dateRange = useMemo(() => {
     return viewMode === 'week' ? getWeekRange(currentDate) : getMonthRange(currentDate);
@@ -170,6 +219,131 @@ export function TeamAttendancePage() {
   );
 
   const { data: anomalies } = useAnomalies({ from: dateRange.from, to: dateRange.to });
+
+  const refreshTeamTimesheets = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['time', 'team-timesheets'] });
+    queryClient.invalidateQueries({ queryKey: ['time', 'anomalies'] });
+  }, [queryClient]);
+
+  const startCellEdit = useCallback((employeeId: string, date: string, existingEntries: TimeSheetEntryDto[], anchor: HTMLElement) => {
+    const rect = anchor.getBoundingClientRect();
+    setPanelPos({ top: rect.bottom + 4, left: rect.left });
+    const fmt = (iso: string) => {
+      const d = new Date(iso);
+      return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    };
+    const sorted = [...existingEntries].sort((a, b) => a.entryTime.localeCompare(b.entryTime));
+    const clockIn = sorted.find((e) => e.type === 'ClockIn');
+    const clockOut = [...sorted].reverse().find((e) => e.type === 'ClockOut');
+    const breaks: BreakDraft[] = [];
+    let pendingStart: TimeSheetEntryDto | null = null;
+    for (const entry of sorted) {
+      if (entry.type === 'BreakStart') pendingStart = entry;
+      else if (entry.type === 'BreakEnd' && pendingStart) {
+        breaks.push({ start: fmt(pendingStart.entryTime), end: fmt(entry.entryTime), breakType: entry.breakType ?? '' });
+        pendingStart = null;
+      }
+    }
+    setEditState({
+      employeeId,
+      date,
+      start: clockIn ? fmt(clockIn.entryTime) : '',
+      end: clockOut ? fmt(clockOut.entryTime) : '',
+      breaks,
+      existingEntries,
+    });
+  }, []);
+
+  const cancelCellEdit = useCallback(() => {
+    setEditState(null);
+    setPanelPos(null);
+  }, []);
+
+  const addBreakRow = useCallback(() => {
+    setEditState((prev) => (prev ? { ...prev, breaks: [...prev.breaks, { start: '', end: '', breakType: '' }] } : prev));
+  }, []);
+
+  const removeBreakRow = useCallback((idx: number) => {
+    setEditState((prev) => (prev ? { ...prev, breaks: prev.breaks.filter((_, i) => i !== idx) } : prev));
+  }, []);
+
+  const updateBreakRow = useCallback((idx: number, field: keyof BreakDraft, value: string) => {
+    setEditState((prev) => {
+      if (!prev) return prev;
+      const breaks = prev.breaks.map((b, i) => (i === idx ? { ...b, [field]: value } : b));
+      return { ...prev, breaks };
+    });
+  }, []);
+
+  /** Zapisuje panel (od / do / przerwy) dla danego pracownika/dnia jako zestaw wpisów. */
+  const saveCellEdit = useCallback(async () => {
+    if (!editState) return;
+    const { employeeId, date, start, end, breaks, existingEntries } = editState;
+    const toMinutes = (t: string) => {
+      const m = t.match(/^(\d{1,2}):(\d{2})$/);
+      if (!m) return null;
+      return parseInt(m[1]!, 10) * 60 + parseInt(m[2]!, 10);
+    };
+    const startMin = start ? toMinutes(start) : null;
+    const endMin = end ? toMinutes(end) : null;
+    // wymagamy pełnego zakresu od-do, albo całkowicie puste pole (czyszczenie dnia)
+    if ((start || end) && (startMin === null || endMin === null || endMin <= startMin)) return;
+    const validBreaks = breaks
+      .map((b) => ({ ...b, startMin: toMinutes(b.start), endMin: toMinutes(b.end) }))
+      .filter((b) => b.startMin !== null && b.endMin !== null && b.endMin! > b.startMin!);
+
+    const cellKey = `${employeeId}:${date}`;
+    setSavingCell(cellKey);
+    try {
+      // usuń istniejące wpisy tego dnia, żeby uniknąć duplikatów
+      for (const entry of existingEntries) {
+        // eslint-disable-next-line no-await-in-loop
+        await deleteEntry.mutateAsync(entry.id);
+      }
+      if (startMin !== null && endMin !== null) {
+        const toIso = (minutes: number) => {
+          const d = new Date(`${date}T00:00:00`);
+          d.setMinutes(minutes);
+          return d.toISOString();
+        };
+        await createEntry.mutateAsync({
+          employeeId,
+          entryTime: toIso(startMin),
+          type: 'ClockIn',
+          note: 'Edycja z raportu zespołu',
+        });
+        for (const b of validBreaks) {
+          // eslint-disable-next-line no-await-in-loop
+          await createEntry.mutateAsync({
+            employeeId,
+            entryTime: toIso(b.startMin!),
+            type: 'BreakStart',
+            breakType: b.breakType || undefined,
+            note: 'Edycja z raportu zespołu',
+          });
+          // eslint-disable-next-line no-await-in-loop
+          await createEntry.mutateAsync({
+            employeeId,
+            entryTime: toIso(b.endMin!),
+            type: 'BreakEnd',
+            breakType: b.breakType || undefined,
+            note: 'Edycja z raportu zespołu',
+          });
+        }
+        await createEntry.mutateAsync({
+          employeeId,
+          entryTime: toIso(endMin),
+          type: 'ClockOut',
+          note: 'Edycja z raportu zespołu',
+        });
+      }
+      refreshTeamTimesheets();
+    } finally {
+      setSavingCell(null);
+      setEditState(null);
+      setPanelPos(null);
+    }
+  }, [editState, createEntry, deleteEntry, refreshTeamTimesheets]);
 
   /* index anomalies by employeeId+date */
   const anomalyMap = useMemo(() => {
@@ -472,10 +646,10 @@ export function TeamAttendancePage() {
             <tbody>
               {employees.map((emp) => {
                 const ts = tsMap.get(emp.id);
-                const dayMap = new Map<string, { netWorked: string; status: string }>();
+                const dayMap = new Map<string, { netWorked: string; status: string; entries: TimeSheetEntryDto[] }>();
                 if (ts) {
                   for (const day of ts.days) {
-                    dayMap.set(day.date, { netWorked: day.netWorked, status: day.status });
+                    dayMap.set(day.date, { netWorked: day.netWorked, status: day.status, entries: day.entries ?? [] });
                   }
                 }
 
@@ -493,6 +667,8 @@ export function TeamAttendancePage() {
                       const cellAnomalies = anomalyMap.get(`${emp.id}:${d}`) ?? [];
                       const day = new Date(d + 'T00:00:00');
                       const isWeekend = day.getDay() === 0 || day.getDay() === 6;
+                      const isEditing = editState?.employeeId === emp.id && editState?.date === d;
+                      const isSaving = savingCell === `${emp.id}:${d}`;
 
                       let bg = isWeekend ? '#f8fafc' : colors.white;
                       if (mins >= 480) bg = colors.success[100];
@@ -503,18 +679,22 @@ export function TeamAttendancePage() {
                         <td
                           key={d}
                           title={cellAnomalies.map((a) => ANOMALY_TYPE_LABELS[a.type] ?? a.type).join(', ')}
+                          onClick={(e) => {
+                            if (!isEditing && !isSaving) startCellEdit(emp.id, d, cell?.entries ?? [], e.currentTarget);
+                          }}
                           style={{
                             ...tdStyle,
                             textAlign: 'center',
                             fontVariantNumeric: 'tabular-nums',
-                            backgroundColor: bg,
+                            backgroundColor: isEditing ? colors.primary[50] : bg,
                             padding: '4px 2px',
                             position: 'relative',
                             fontSize: '12px',
+                            cursor: isSaving ? 'wait' : 'pointer',
                           }}
                         >
-                          {mins > 0 ? formatDuration(cell!.netWorked) : (isWeekend ? '—' : '')}
-                          {cellAnomalies.length > 0 && (
+                          {isSaving ? '…' : (mins > 0 ? formatDuration(cell!.netWorked) : (isWeekend ? '—' : ''))}
+                          {!isEditing && cellAnomalies.length > 0 && (
                             <span style={{ position: 'absolute', top: 2, right: 2 }}>
                               <AlertTriangle
                                 size={10}
@@ -538,6 +718,131 @@ export function TeamAttendancePage() {
             </tbody>
           </table>
         </div>
+      )}
+
+      {/* Panel edycji dnia — portal do document.body, żeby nie był przycinany przez overflow tabeli */}
+      {editState && panelPos && createPortal(
+        <div
+          ref={panelRef}
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => { if (e.key === 'Escape') cancelCellEdit(); }}
+          style={{
+            position: 'fixed',
+            top: panelPos.top,
+            left: panelPos.left,
+            zIndex: 1000,
+            width: '280px',
+            boxSizing: 'border-box',
+            backgroundColor: colors.white,
+            border: `1px solid ${colors.gray[200]}`,
+            borderRadius: '12px',
+            boxShadow: '0 10px 30px -8px rgba(20,25,43,0.35)',
+            padding: '12px',
+            textAlign: 'left',
+            fontSize: '13px',
+          }}
+        >
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+            <label style={{ flex: 1, fontSize: '11px', fontWeight: 600, color: colors.gray[500] }}>
+              Od
+              <input
+                ref={startInputRef}
+                type="time"
+                value={editState.start}
+                onChange={(e) => setEditState((prev) => (prev ? { ...prev, start: e.target.value } : prev))}
+                style={timeInputStyle}
+              />
+            </label>
+            <label style={{ flex: 1, fontSize: '11px', fontWeight: 600, color: colors.gray[500] }}>
+              Do
+              <input
+                type="time"
+                value={editState.end}
+                onChange={(e) => setEditState((prev) => (prev ? { ...prev, end: e.target.value } : prev))}
+                style={timeInputStyle}
+              />
+            </label>
+          </div>
+
+          {editState.breaks.map((b, idx) => (
+            <div key={idx} style={{ marginBottom: '8px', padding: '6px', backgroundColor: colors.gray[50], borderRadius: '8px' }}>
+              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                <input
+                  type="time"
+                  value={b.start}
+                  onChange={(e) => updateBreakRow(idx, 'start', e.target.value)}
+                  style={{ ...timeInputStyle, marginTop: 0, flex: 1 }}
+                />
+                <span style={{ color: colors.gray[400], fontSize: '11px' }}>–</span>
+                <input
+                  type="time"
+                  value={b.end}
+                  onChange={(e) => updateBreakRow(idx, 'end', e.target.value)}
+                  style={{ ...timeInputStyle, marginTop: 0, flex: 1 }}
+                />
+                <button
+                  onClick={() => removeBreakRow(idx)}
+                  title="Usuń przerwę"
+                  style={{
+                    border: 'none', background: 'none', cursor: 'pointer',
+                    color: colors.danger[500], fontSize: '14px', padding: '0 2px',
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+              <select
+                value={b.breakType}
+                onChange={(e) => updateBreakRow(idx, 'breakType', e.target.value)}
+                style={{
+                  width: '100%', marginTop: '4px', fontSize: '11px', fontFamily: 'inherit',
+                  padding: '3px 4px', border: `1px solid ${colors.gray[200]}`, borderRadius: '6px',
+                  color: colors.gray[600], backgroundColor: colors.white,
+                }}
+              >
+                {BREAK_TYPE_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
+          ))}
+
+          <button
+            onClick={addBreakRow}
+            style={{
+              display: 'block', width: '100%', textAlign: 'left',
+              border: 'none', background: 'none', cursor: 'pointer',
+              color: colors.primary[600], fontSize: '12px', fontWeight: 600,
+              padding: '4px 0', marginBottom: '8px',
+            }}
+          >
+            + Dodaj przerwę
+          </button>
+
+          <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+            <button
+              onClick={() => saveCellEdit()}
+              style={{
+                flex: 1, padding: '7px 0', fontSize: '12px', fontWeight: 700, fontFamily: 'inherit',
+                color: colors.white, backgroundColor: colors.primary[500],
+                border: 'none', borderRadius: '8px', cursor: 'pointer',
+              }}
+            >
+              Zapisz
+            </button>
+            <button
+              onClick={cancelCellEdit}
+              style={{
+                flex: 1, padding: '7px 0', fontSize: '12px', fontWeight: 700, fontFamily: 'inherit',
+                color: colors.gray[600], backgroundColor: colors.gray[100],
+                border: 'none', borderRadius: '8px', cursor: 'pointer',
+              }}
+            >
+              Anuluj
+            </button>
+          </div>
+        </div>,
+        document.body,
       )}
     </div>
   );
@@ -573,4 +878,17 @@ const thStyle: React.CSSProperties = {
 const tdStyle: React.CSSProperties = {
   padding: '8px',
   color: colors.gray[700],
+};
+
+const timeInputStyle: React.CSSProperties = {
+  display: 'block',
+  width: '100%',
+  boxSizing: 'border-box',
+  marginTop: '4px',
+  fontSize: '13px',
+  fontFamily: 'inherit',
+  padding: '5px 6px',
+  border: `1px solid ${colors.gray[300]}`,
+  borderRadius: '6px',
+  color: colors.gray[800],
 };
