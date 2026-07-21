@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Play, Square, Coffee, CoffeeIcon, Loader2, RotateCcw } from 'lucide-react';
 import { useTimeStatus, useBreakAvailability, useClockIn, useClockOut, useStartBreak, useEndBreak } from '@/api/hooks/useTimeTracking';
 import { colors } from '@/theme/tokens';
@@ -63,7 +64,15 @@ export function ClockButton({ employeeId }: ClockButtonProps) {
   const [flash, setFlash] = useState<{ type: 'ok' | 'err'; msg: string } | null>(null);
   const [confirmAction, setConfirmAction] = useState<{ label: string; onConfirm: () => void } | null>(null);
   const [showBreakPicker, setShowBreakPicker] = useState(false);
+  const [popoverPos, setPopoverPos] = useState<{ top: number; right: number } | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const flashTimer = useRef<ReturnType<typeof setTimeout>>(null);
+
+  /** Oblicza pozycję popupu (portal do document.body), żeby nie był przycinany przez overflow karty. */
+  const openPopoverAt = useCallback(() => {
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (rect) setPopoverPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right });
+  }, []);
 
   const status: TimeStatus = (statusData?.status as TimeStatus) ?? 'not-started';
   const breakTypeLabel = statusData?.currentBreakType === 'Paid' ? 'Płatna' : statusData?.currentBreakType === 'Unpaid' ? 'Bezpłatna' : null;
@@ -112,6 +121,7 @@ export function ClockButton({ employeeId }: ClockButtonProps) {
   }, [employeeId, clockIn, mutOpts]);
 
   const handleClockOut = useCallback(() => {
+    openPopoverAt();
     setConfirmAction({
       label: 'Czy na pewno chcesz zakończyć czas pracy?',
       onConfirm: () => {
@@ -119,11 +129,12 @@ export function ClockButton({ employeeId }: ClockButtonProps) {
         setConfirmAction(null);
       },
     });
-  }, [employeeId, clockOut, mutOpts]);
+  }, [employeeId, clockOut, mutOpts, openPopoverAt]);
 
   const handleStartBreak = useCallback(() => {
+    openPopoverAt();
     setShowBreakPicker(true);
-  }, []);
+  }, [openPopoverAt]);
 
   const handleBreakType = useCallback((breakType: 'Paid' | 'Unpaid') => {
     setShowBreakPicker(false);
@@ -147,6 +158,7 @@ export function ClockButton({ employeeId }: ClockButtonProps) {
 
   return (
     <div
+      ref={containerRef}
       style={{
         display: 'flex',
         alignItems: 'center',
@@ -257,8 +269,8 @@ export function ClockButton({ employeeId }: ClockButtonProps) {
         )}
       </div>
 
-      {/* Confirmation popup */}
-      {confirmAction && (
+      {/* Confirmation popup — portal do document.body, żeby nie było przycinane przez overflow karty */}
+      {confirmAction && popoverPos && createPortal(
         <>
           <div
             onClick={() => setConfirmAction(null)}
@@ -270,9 +282,9 @@ export function ClockButton({ employeeId }: ClockButtonProps) {
           />
           <div
             style={{
-              position: 'absolute',
-              top: 'calc(100% + 8px)',
-              right: 0,
+              position: 'fixed',
+              top: popoverPos.top,
+              right: popoverPos.right,
               zIndex: 100,
               backgroundColor: colors.white,
               borderRadius: '10px',
@@ -311,11 +323,12 @@ export function ClockButton({ employeeId }: ClockButtonProps) {
               </button>
             </div>
           </div>
-        </>
+        </>,
+        document.body,
       )}
 
-      {/* Break type picker popup */}
-      {showBreakPicker && (
+      {/* Break type picker popup — portal do document.body, żeby nie było przycinane przez overflow karty */}
+      {showBreakPicker && popoverPos && createPortal(
         <>
           <div
             onClick={() => setShowBreakPicker(false)}
@@ -327,9 +340,9 @@ export function ClockButton({ employeeId }: ClockButtonProps) {
           />
           <div
             style={{
-              position: 'absolute',
-              top: 'calc(100% + 8px)',
-              right: 0,
+              position: 'fixed',
+              top: popoverPos.top,
+              right: popoverPos.right,
               zIndex: 100,
               backgroundColor: colors.white,
               borderRadius: '10px',
@@ -408,10 +421,9 @@ export function ClockButton({ employeeId }: ClockButtonProps) {
               )}
             </div>
           </div>
-        </>
+        </>,
+        document.body,
       )}
-
-      {/* Flash message */}
       {flash && (
         <div
           style={{
