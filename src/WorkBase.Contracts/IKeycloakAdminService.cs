@@ -61,5 +61,16 @@ public interface IKeycloakAdminService
         Dictionary<string, string>? attributes = null,
         string[]? realmRoles = null,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Replaces only the indicated integration-managed realm roles, preserving every role
+    /// outside <paramref name="managedRoleNames"/>.
+    /// </summary>
+    Task SyncUserRealmRolesAsync(
+        string realmName,
+        string keycloakUserId,
+        string[] managedRoleNames,
+        string[] assignedRoleNames,
+        CancellationToken cancellationToken = default);
 }
 

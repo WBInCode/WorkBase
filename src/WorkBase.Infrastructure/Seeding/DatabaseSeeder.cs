@@ -7,6 +7,17 @@ namespace WorkBase.Infrastructure.Seeding;
 
 public static class DatabaseSeeder
 {
+    public static async Task MigrateAsync(IServiceProvider serviceProvider)
+    {
+        using var scope = serviceProvider.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<WorkBaseDbContext>();
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<WorkBaseDbContext>>();
+
+        logger.LogInformation("Applying database migrations...");
+        await dbContext.Database.MigrateAsync();
+        logger.LogInformation("Database migrations applied successfully.");
+    }
+
     public static async Task SeedAsync(IServiceProvider serviceProvider)
     {
         using var scope = serviceProvider.CreateScope();

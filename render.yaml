@@ -28,6 +28,30 @@ services:
         value: admin
       - key: Keycloak__Admin__Password
         sync: false
+      # Integracja HUB: uzupełnić wartości sync:false przed wdrożeniem, ale
+      # włączyć dopiero po migracjach HUB/WorkBase i konfiguracji mapperów Keycloak.
+      - key: Hub__Enabled
+        value: "false"
+      - key: Hub__BaseUrl
+        value: https://wb-partners.pl
+      - key: Hub__InstanceId
+        sync: false
+      - key: Hub__ClientId
+        value: workbase
+      - key: Hub__ClientSecret
+        sync: false
+      - key: Hub__WebhookSecret
+        sync: false
+      - key: Hub__TenantId
+        value: 00000000-0000-0000-0000-000000000001
+      - key: Hub__Issuer
+        value: https://wb-partners.pl
+      - key: Hub__FrontendUrl
+        sync: false
+      - key: Hub__EmployeeAccessSyncEnabled
+        value: "false"
+      - key: Hub__UserAccessCheckEnabled
+        value: "false"
       - key: Cors__AllowedOrigins__0
         value: https://work-base-roan.vercel.app
       - key: Cors__AllowedOrigins__1

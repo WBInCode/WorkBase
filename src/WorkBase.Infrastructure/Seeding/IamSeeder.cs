@@ -164,7 +164,7 @@ public static class IamSeeder
     /// </summary>
     public static async Task SeedTenantRbacAsync(WorkBaseDbContext dbContext, Guid tenantId, ILogger logger)
     {
-        if (await dbContext.Set<Role>().AnyAsync(r => r.TenantId == tenantId))
+        if (await dbContext.Set<Role>().IgnoreQueryFilters().AnyAsync(r => r.TenantId == tenantId))
         {
             logger.LogInformation("Tenant {TenantId} already has roles seeded, skipping.", tenantId);
             return;
@@ -177,7 +177,8 @@ public static class IamSeeder
             return;
         }
 
-        var superAdminRoleId = Guid.NewGuid();
+        var isOperatorTenant = tenantId == PlatformConstants.OperatorTenantId;
+        var superAdminRoleId = isOperatorTenant ? Guid.NewGuid() : (Guid?)null;
         var adminRoleId = Guid.NewGuid();
         var kierownikRoleId = Guid.NewGuid();
         var pracownikRoleId = Guid.NewGuid();
@@ -185,8 +186,6 @@ public static class IamSeeder
 
         var roles = new List<Role>
         {
-            SetId(Role.Create(tenantId, "Super Admin", RoleType.System, level: 0,
-                description: "Pełny dostęp do wszystkich modułów i funkcji systemu"), superAdminRoleId),
             SetId(Role.Create(tenantId, "Admin", RoleType.System, level: 1,
                 description: "Zarządzanie organizacją, użytkownikami i konfiguracją"), adminRoleId),
             SetId(Role.Create(tenantId, "Kierownik", RoleType.Organizational, level: 10,
@@ -196,14 +195,23 @@ public static class IamSeeder
             SetId(Role.Create(tenantId, "HR", RoleType.Organizational, level: 5,
                 description: "Dział HR — zarządzanie pracownikami, urlopami i czasem pracy"), hrRoleId),
         };
+        if (superAdminRoleId.HasValue)
+        {
+            roles.Insert(0, SetId(Role.Create(tenantId, "Super Admin", RoleType.System, level: 0,
+                description: "Pełny dostęp do wszystkich modułów i funkcji systemu"), superAdminRoleId.Value));
+        }
         dbContext.Set<Role>().AddRange(roles);
         await dbContext.SaveChangesAsync();
 
         var rolePermissions = new List<RolePermission>();
 
-        // Super Admin — all permissions. Admin — all except platform.manage-tenants (reserved
-        // for Super Admin of our own operator tenant, see PlatformConstants).
-        rolePermissions.AddRange(permissions.Select(p => RolePermission.Create(superAdminRoleId, p.Id)));
+        // Super Admin exists only in the operator tenant and receives all permissions.
+        // Customer tenants start at Admin, without platform.manage-tenants.
+        if (superAdminRoleId.HasValue)
+        {
+            rolePermissions.AddRange(
+                permissions.Select(p => RolePermission.Create(superAdminRoleId.Value, p.Id)));
+        }
         rolePermissions.AddRange(permissions
             .Where(p => p.FullCode != PlatformConstants.ManageTenantsPermission)
             .Select(p => RolePermission.Create(adminRoleId, p.Id)));
@@ -213,7 +221,11 @@ public static class IamSeeder
         dbContext.Set<RolePermission>().AddRange(rolePermissions);
 
         var dataScopes = new List<DataScope>();
-        dataScopes.AddRange(Modules.All.Select(module => DataScope.Create(tenantId, superAdminRoleId, module, DataScopeLevel.Organization)));
+        if (superAdminRoleId.HasValue)
+        {
+            dataScopes.AddRange(Modules.All.Select(module =>
+                DataScope.Create(tenantId, superAdminRoleId.Value, module, DataScopeLevel.Organization)));
+        }
         dataScopes.AddRange(Modules.All.Select(module => DataScope.Create(tenantId, adminRoleId, module, DataScopeLevel.Organization)));
         dataScopes.AddRange(Modules.All.Select(module => DataScope.Create(tenantId, kierownikRoleId, module, DataScopeLevel.Department)));
         dataScopes.AddRange(Modules.All.Select(module => DataScope.Create(tenantId, pracownikRoleId, module, DataScopeLevel.Own)));

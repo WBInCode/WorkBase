@@ -18,7 +18,25 @@ public interface ITenantProvisioningService
         string adminFirstName,
         string adminLastName,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Ensures that one HUB organization is represented by exactly one WorkBase tenant.
+    /// Unlike operator onboarding, HUB owns user authentication, so this operation creates
+    /// only the tenant and its baseline RBAC. It is safe to call repeatedly.
+    /// </summary>
+    Task<HubTenantProvisioningResult> EnsureHubTenantAsync(
+        HubTenantRegistration registration,
+        CancellationToken cancellationToken = default);
 }
+
+public sealed record HubTenantRegistration(
+    string OrganizationId,
+    string ProductInstanceId,
+    string OrganizationName,
+    string OrganizationSlug,
+    Guid? ExistingTenantId = null);
+
+public sealed record HubTenantProvisioningResult(Guid TenantId, bool Created);
 
 /// <summary>
 /// <paramref name="AdminTemporaryPassword"/> is only non-null when the Keycloak account was

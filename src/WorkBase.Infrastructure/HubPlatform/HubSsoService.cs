@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
+using WorkBase.Shared.Auth;
 
 namespace WorkBase.Infrastructure.HubPlatform;
 
@@ -107,7 +108,42 @@ public sealed class HubSsoService(
     /// <summary>Rola realm Keycloaka wynikająca z roli w Hubie (organizacja lub instancja).</summary>
     public static string MapRealmRole(string orgRole, string instanceRole)
     {
-        var r = (orgRole.Length > 0 ? orgRole : instanceRole).ToUpperInvariant();
-        return r is "OWNER" or "ADMIN" ? "workbase-admin" : "workbase-user";
+        return MapHubRole(orgRole, instanceRole) is "owner"
+            ? "workbase-admin"
+            : "workbase-user";
+    }
+
+    /// <summary>Canonical HUB role stored as a Keycloak attribute and mapped into tokens.</summary>
+    public static string MapHubRole(string orgRole, string instanceRole)
+    {
+        var roles = new[] { orgRole, instanceRole }
+            .Select(role => role.Trim().ToUpperInvariant())
+            .ToHashSet(StringComparer.Ordinal);
+
+        if (roles.Contains("OWNER")) return "owner";
+        if (roles.Contains("ADMIN")) return "admin";
+        return "member";
+    }
+
+    public static bool HasEligibleMembership(string orgRole, string instanceRole)
+    {
+        return new[] { orgRole, instanceRole }
+            .Select(role => role.Trim().ToUpperInvariant())
+            .Any(role => role is "OWNER" or "ADMIN" or "MEMBER");
+    }
+
+    public static bool RequiresEmployeeRecord(string canonicalHubRole) =>
+        !string.Equals(canonicalHubRole, "owner", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>Maps a canonical HUB role to a tenant-local WorkBase role.</summary>
+    public static string? MapApplicationRole(string? hubRole, Guid tenantId)
+    {
+        return hubRole?.Trim().ToLowerInvariant() switch
+        {
+            "owner" when tenantId == PlatformConstants.OperatorTenantId => "Super Admin",
+            "owner" => "Admin",
+            "admin" or "member" => "Pracownik",
+            _ => null,
+        };
     }
 }

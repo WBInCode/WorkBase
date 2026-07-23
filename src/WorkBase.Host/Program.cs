@@ -72,6 +72,12 @@ try
 
     var app = builder.Build();
 
+    if (args.Contains("--migrate-only", StringComparer.OrdinalIgnoreCase))
+    {
+        await DatabaseSeeder.MigrateAsync(app.Services);
+        return;
+    }
+
     app.MapOpenApi();
 
     if (app.Environment.IsDevelopment())
@@ -147,6 +153,12 @@ try
             job => job.ExecuteAsync(),
             "0 2 * * 1", // Every Monday at 02:00 UTC
             new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
+
+        RecurringJob.AddOrUpdate<WorkBase.Infrastructure.HubPlatform.HubEmployeeAccessJob>(
+            "hub-employee-invitations",
+            job => job.ExecuteAsync(),
+            "* * * * *",
+            new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
     }
 
     app.MapHealthChecks("/health", new HealthCheckOptions
@@ -182,7 +194,7 @@ try
         // Hub ekosystemu: pierwsza synchronizacja modułów po starcie (fail-soft —
         // bez Huba WorkBase działa na lokalnych feature flags jak dotychczas).
         var hubSync = app.Services.GetRequiredService<WorkBase.Infrastructure.HubPlatform.HubEntitlementsSyncService>();
-        _ = hubSync.SyncAsync();
+        _ = hubSync.SyncAllAsync();
     }
 
     app.Run();

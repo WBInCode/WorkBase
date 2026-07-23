@@ -5,6 +5,7 @@ import type {
   OrganizationUnitType,
   EmployeeDto,
   EmployeeDetailDto,
+  EmployeeAccessStatus,
   EmployeeStatus,
   PagedResult,
   PositionDto,
@@ -54,6 +55,24 @@ export function useEmployeeDetail(id: string | null) {
     queryKey: ['org', 'employees', id],
     queryFn: () => api.get<EmployeeDetailDto>(`/api/org/employees/${id}`),
     enabled: !!id,
+  });
+}
+
+export function useEmployeeAccessStatus(id: string | null) {
+  return useQuery({
+    queryKey: ['org', 'employees', id, 'access-status'],
+    queryFn: () => api.get<EmployeeAccessStatus>(`/api/org/employees/${id}/access-status`),
+    enabled: !!id,
+  });
+}
+
+export function useRetryEmployeeAccess() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (employeeId: string) =>
+      api.post<void>(`/api/org/employees/${employeeId}/access-status/retry`),
+    onSuccess: (_, employeeId) =>
+      qc.invalidateQueries({ queryKey: ['org', 'employees', employeeId, 'access-status'] }),
   });
 }
 

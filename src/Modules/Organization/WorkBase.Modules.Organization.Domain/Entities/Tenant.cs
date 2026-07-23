@@ -9,6 +9,12 @@ public sealed class Tenant : AuditableEntity<Guid>, IAuditable
     public bool IsActive { get; private set; }
     public string? Settings { get; private set; }
 
+    /// <summary>Stable organization identifier assigned by HUB.</summary>
+    public string? HubOrganizationId { get; private set; }
+
+    /// <summary>Stable WorkBase product-instance identifier assigned by HUB.</summary>
+    public string? HubProductInstanceId { get; private set; }
+
     /// <summary>
     /// Name of the Keycloak realm dedicated to this tenant (e.g. "tenant-acme-corp").
     /// Null while the tenant still lives on the shared "workbase" realm.
@@ -60,6 +66,21 @@ public sealed class Tenant : AuditableEntity<Guid>, IAuditable
     public void UpdateSettings(string? settings)
     {
         Settings = settings;
+    }
+
+    public void LinkToHub(string organizationId, string productInstanceId)
+    {
+        if (string.IsNullOrWhiteSpace(organizationId))
+            throw new ArgumentException("HUB organization id is required.", nameof(organizationId));
+        if (string.IsNullOrWhiteSpace(productInstanceId))
+            throw new ArgumentException("HUB product instance id is required.", nameof(productInstanceId));
+        if (HubOrganizationId is not null && HubOrganizationId != organizationId)
+            throw new InvalidOperationException("Tenant is already linked to another HUB organization.");
+        if (HubProductInstanceId is not null && HubProductInstanceId != productInstanceId)
+            throw new InvalidOperationException("Tenant is already linked to another HUB product instance.");
+
+        HubOrganizationId = organizationId;
+        HubProductInstanceId = productInstanceId;
     }
 
     public void AssignKeycloakRealm(string realmName)

@@ -67,7 +67,10 @@ public static class AuthEndpoints
             }
         }
 
-        if (!isAdmin)
+        // Legacy realm-role fallback is retained only for direct/non-HUB accounts. HUB
+        // accounts are synchronized from current InstanceAccess during JWT validation, so
+        // trusting an older workbase-admin claim would resurrect revoked ownership in the UI.
+        if (!isAdmin && string.IsNullOrWhiteSpace(user.FindFirstValue("hub_user_id")))
         {
             isAdmin = keycloakRoles.Any(r => r is "workbase-admin" or "Admin" or "Super Admin");
         }

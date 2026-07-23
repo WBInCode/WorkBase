@@ -21,7 +21,7 @@ public sealed class DataScopeService(WorkBaseDbContext dbContext, IMemoryCache c
             return cached;
 
         var internalUserId = await dbContext.Set<User>()
-            .Where(u => u.Id == userId || u.KeycloakId == userId.ToString())
+            .Where(u => u.TenantId == tenantId && (u.Id == userId || u.KeycloakId == userId.ToString()))
             .Select(u => u.Id)
             .FirstOrDefaultAsync(ct);
 

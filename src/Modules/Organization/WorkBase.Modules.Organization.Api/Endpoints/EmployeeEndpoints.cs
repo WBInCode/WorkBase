@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using WorkBase.Contracts;
 using WorkBase.Modules.Organization.Application.Commands.Employees;
 using WorkBase.Modules.Organization.Application.Dtos;
 using WorkBase.Modules.Organization.Application.Queries.Employees;
@@ -97,6 +98,20 @@ public static class EmployeeEndpoints
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound);
+
+        group.MapGet("/{id:guid}/access-status", GetAccessStatus)
+            .WithName("GetEmployeeAccessStatus")
+            .WithSummary("Pobierz status dostępu pracownika do WorkBase przez HUB")
+            .RequirePermission("org.view")
+            .Produces<EmployeeAccessStatus>()
+            .Produces(StatusCodes.Status404NotFound);
+
+        group.MapPost("/{id:guid}/access-status/retry", RetryAccess)
+            .WithName("RetryEmployeeAccess")
+            .WithSummary("Ponów synchronizację dostępu pracownika z HUB")
+            .RequirePermission("org.edit")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status409Conflict);
 
         return endpoints;
     }
@@ -197,6 +212,40 @@ public static class EmployeeEndpoints
 
         var result = await sender.Send(new GetEmployeeByNumberQuery(tid, employeeNumber));
         return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> GetAccessStatus(
+        Guid id,
+        HttpContext httpContext,
+        IEmployeeAccessStatusService service,
+        CancellationToken cancellationToken)
+    {
+        if (!TryGetTenantId(httpContext, out var tenantId))
+            return Results.Forbid();
+
+        var status = await service.GetAsync(tenantId, id, cancellationToken);
+        return status is null ? Results.NotFound() : Results.Ok(status);
+    }
+
+    private static async Task<IResult> RetryAccess(
+        Guid id,
+        HttpContext httpContext,
+        IEmployeeAccessStatusService service,
+        CancellationToken cancellationToken)
+    {
+        if (!TryGetTenantId(httpContext, out var tenantId))
+            return Results.Forbid();
+
+        var queued = await service.RetryAsync(tenantId, id, cancellationToken);
+        return queued
+            ? Results.NoContent()
+            : Results.Conflict(new { Message = "Brak nieudanej operacji dostępu do ponowienia." });
+    }
+
+    private static bool TryGetTenantId(HttpContext httpContext, out Guid tenantId)
+    {
+        var claim = httpContext.User.FindFirst("tenant_id")?.Value;
+        return Guid.TryParse(claim, out tenantId);
     }
 
     private static async Task<IResult> LinkUser(

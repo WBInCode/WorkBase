@@ -38,10 +38,10 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
             .IsRequired()
             .HasDefaultValue(true);
 
+        builder.HasIndex(u => u.TenantId);
+
         builder.HasIndex(u => u.KeycloakId)
             .IsUnique();
-
-        builder.HasIndex(u => u.TenantId);
 
         builder.HasIndex(u => new { u.TenantId, u.Email })
             .IsUnique();

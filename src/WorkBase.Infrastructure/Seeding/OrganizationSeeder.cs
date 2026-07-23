@@ -27,6 +27,64 @@ public static class OrganizationSeeder
     private static readonly Guid JanNowakEmployeeId = Guid.Parse("019db4ab-0cf8-7891-8026-787573dfc13c");
     private static readonly Guid JanNowakAssignmentId = Guid.Parse("50000000-0000-0000-0000-000000000001");
 
+    /// <summary>
+    /// Creates the minimal editable organization structure for a newly provisioned tenant.
+    /// Existing roots are never replaced; roots created here are identified by code ROOT.
+    /// </summary>
+    public static async Task SeedTenantStructureAsync(
+        WorkBaseDbContext dbContext,
+        Guid tenantId,
+        string companyName,
+        ILogger logger,
+        CancellationToken cancellationToken = default)
+    {
+        var unitTypes = await dbContext.Set<OrganizationUnitType>()
+            .IgnoreQueryFilters()
+            .Where(type => type.TenantId == tenantId)
+            .ToListAsync(cancellationToken);
+
+        OrganizationUnitType EnsureType(string name, string description, int sortOrder)
+        {
+            var existing = unitTypes.FirstOrDefault(type => type.Name == name);
+            if (existing is not null) return existing;
+
+            var created = OrganizationUnitType.Create(tenantId, name, description, sortOrder);
+            unitTypes.Add(created);
+            dbContext.Set<OrganizationUnitType>().Add(created);
+            return created;
+        }
+
+        var companyType = EnsureType("Firma", "Główna jednostka organizacyjna", 1);
+        EnsureType("Dział", "Dział organizacyjny", 2);
+        EnsureType("Zespół", "Zespół roboczy", 3);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        var root = await dbContext.Set<OrganizationUnit>()
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(
+                unit => unit.TenantId == tenantId && unit.ParentId == null,
+                cancellationToken);
+        if (root is not null)
+        {
+            if (root.Code == "ROOT" && root.Name != companyName)
+            {
+                root.Update(companyName, root.Code, companyType.Id);
+                await dbContext.SaveChangesAsync(cancellationToken);
+            }
+            return;
+        }
+
+        root = OrganizationUnit.Create(tenantId, companyName, "ROOT", companyType.Id, null);
+        dbContext.Set<OrganizationUnit>().Add(root);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        dbContext.Set<OrganizationUnitClosure>().Add(
+            OrganizationUnitClosure.Create(root.Id, root.Id, 0));
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        logger.LogInformation("Seeded root organization unit for tenant {TenantId}", tenantId);
+    }
+
     public static async Task SeedAsync(WorkBaseDbContext dbContext, ILogger logger)
     {
         if (await dbContext.Set<OrganizationUnit>().AnyAsync())

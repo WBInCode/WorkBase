@@ -1,9 +1,13 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using WorkBase.Infrastructure.Auth.MultiRealm;
+using WorkBase.Infrastructure.HubPlatform;
+using WorkBase.Infrastructure.Persistence;
+using WorkBase.Modules.Organization.Domain.Entities;
 
 namespace WorkBase.Infrastructure.Auth;
 
@@ -74,11 +78,16 @@ public static class AuthenticationExtensions
                             MapKeycloakClaims(context);
                             OverrideTenantClaimFromIssuer(context);
 
+                            if (!await ValidateTenantAccessAsync(context))
+                                return;
+
                             if (context.Principal is not null)
                             {
-                                await UserProvisioningService.OnTokenValidatedAsync(
+                                var provisioned = await UserProvisioningService.OnTokenValidatedAsync(
                                     context.HttpContext.RequestServices,
                                     context.Principal);
+                                if (!provisioned && context.Principal.HasClaim(claim => claim.Type == "hub_role"))
+                                    context.Fail("HUB role synchronization failed.");
                             }
                         }
                     };
@@ -110,11 +119,16 @@ public static class AuthenticationExtensions
                         {
                             MapKeycloakClaims(context);
 
+                            if (!await ValidateTenantAccessAsync(context))
+                                return;
+
                             if (context.Principal is not null)
                             {
-                                await UserProvisioningService.OnTokenValidatedAsync(
+                                var provisioned = await UserProvisioningService.OnTokenValidatedAsync(
                                     context.HttpContext.RequestServices,
                                     context.Principal);
+                                if (!provisioned && context.Principal.HasClaim(claim => claim.Type == "hub_role"))
+                                    context.Fail("HUB role synchronization failed.");
                             }
                         }
                     };
@@ -138,6 +152,146 @@ public static class AuthenticationExtensions
         {
             identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, sub));
         }
+    }
+
+    private static async Task<bool> ValidateTenantAccessAsync(TokenValidatedContext context)
+    {
+        var tenantClaim = context.Principal?.FindFirstValue("tenant_id");
+        if (!Guid.TryParse(tenantClaim, out var tenantId))
+        {
+            context.Fail("Tenant context is required.");
+            return false;
+        }
+
+        await using var scope = context.HttpContext.RequestServices.CreateAsyncScope();
+        var accessCache = scope.ServiceProvider.GetRequiredService<TenantAccessCache>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<WorkBaseDbContext>();
+        TenantAccessState tenantAccess;
+        if (accessCache.TryGet(tenantId, out var cachedState) && cachedState is not null)
+        {
+            tenantAccess = cachedState;
+        }
+        else
+        {
+            var tenant = await dbContext.Set<Tenant>()
+                .AsNoTracking()
+                .IgnoreQueryFilters()
+                .Where(item => item.Id == tenantId)
+                .Select(item => new
+                {
+                    item.IsActive,
+                    item.Status,
+                    item.TrialExpiresAt,
+                    item.HubProductInstanceId,
+                })
+                .SingleOrDefaultAsync(context.HttpContext.RequestAborted);
+
+            var trialActive = tenant?.Status == TenantStatus.Trial
+                              && tenant.TrialExpiresAt is not null
+                              && tenant.TrialExpiresAt > DateTime.UtcNow;
+            var accessAllowed = tenant is not null
+                                && tenant.IsActive
+                                && (tenant.Status == TenantStatus.Active || trialActive);
+            tenantAccess = new TenantAccessState(accessAllowed, tenant?.HubProductInstanceId);
+            accessCache.Set(tenantId, tenantAccess);
+        }
+
+        if (!tenantAccess.AccessAllowed)
+        {
+            context.Fail("Tenant access is inactive.");
+            return false;
+        }
+
+        var isKiosk = context.Principal?.IsInRole("workbase-kiosk") == true;
+        var hubOptions = scope.ServiceProvider.GetRequiredService<IConfiguration>()
+            .GetSection(HubOptions.SectionName)
+            .Get<HubOptions>() ?? new HubOptions();
+        if (tenantAccess.HubProductInstanceId is not null
+            && hubOptions.UserAccessCheckEnabled
+            && !isKiosk)
+        {
+            var email = context.Principal?.FindFirstValue("email");
+            var hubUserId = context.Principal?.FindFirstValue("hub_user_id");
+            if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(hubUserId))
+            {
+                context.Fail("HUB user identity is required.");
+                return false;
+            }
+
+            var verifier = scope.ServiceProvider.GetRequiredService<HubUserAccessVerifier>();
+            var decision = await verifier.VerifyAsync(
+                tenantAccess.HubProductInstanceId,
+                hubUserId,
+                email,
+                context.HttpContext.RequestAborted);
+            if (!decision.Active || decision.HubRole is null)
+            {
+                context.Fail("HUB user access is inactive.");
+                return false;
+            }
+
+            ReplaceHubRoleClaim(context, decision.HubRole);
+        }
+
+        return await ValidateEmployeeAccessAsync(context, dbContext, tenantId);
+    }
+
+    private static void ReplaceHubRoleClaim(TokenValidatedContext context, string hubRole)
+    {
+        if (context.Principal?.Identity is not ClaimsIdentity identity)
+            return;
+
+        foreach (var claim in identity.FindAll("hub_role").ToList())
+            identity.RemoveClaim(claim);
+        identity.AddClaim(new Claim("hub_role", hubRole));
+    }
+
+    private static async Task<bool> ValidateEmployeeAccessAsync(
+        TokenValidatedContext context,
+        WorkBaseDbContext dbContext,
+        Guid tenantId)
+    {
+        var employeeClaim = context.Principal?.FindFirstValue("employee_id");
+        if (!string.IsNullOrWhiteSpace(employeeClaim))
+        {
+            if (!Guid.TryParse(employeeClaim, out var employeeId))
+            {
+                context.Fail("Employee context is invalid.");
+                return false;
+            }
+
+            var employeeStatus = await dbContext.Set<Employee>()
+                .AsNoTracking()
+                .IgnoreQueryFilters()
+                .Where(employee => employee.Id == employeeId && employee.TenantId == tenantId)
+                .Select(employee => (EmployeeStatus?)employee.Status)
+                .SingleOrDefaultAsync(context.HttpContext.RequestAborted);
+            if (employeeStatus != EmployeeStatus.Active)
+            {
+                context.Fail("Employee access is inactive.");
+                return false;
+            }
+
+            return true;
+        }
+
+        var subject = context.Principal?.FindFirstValue("sub");
+        if (!Guid.TryParse(subject, out var keycloakUserId))
+            return true;
+
+        var linkedEmployeeStatus = await dbContext.Set<Employee>()
+            .AsNoTracking()
+            .IgnoreQueryFilters()
+            .Where(employee => employee.TenantId == tenantId && employee.UserId == keycloakUserId)
+            .Select(employee => (EmployeeStatus?)employee.Status)
+            .FirstOrDefaultAsync(context.HttpContext.RequestAborted);
+        if (linkedEmployeeStatus.HasValue && linkedEmployeeStatus != EmployeeStatus.Active)
+        {
+            context.Fail("Employee access is inactive.");
+            return false;
+        }
+
+        return true;
     }
 
     /// <summary>
