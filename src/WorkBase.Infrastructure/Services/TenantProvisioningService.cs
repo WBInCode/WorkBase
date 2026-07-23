@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -18,6 +19,83 @@ public sealed class TenantProvisioningService(
     IConfiguration configuration,
     ILogger<TenantProvisioningService> logger) : ITenantProvisioningService
 {
+    public async Task<HubTenantProvisioningResult> EnsureHubTenantAsync(
+        HubTenantRegistration registration,
+        CancellationToken cancellationToken = default)
+    {
+        var organizationId = registration.OrganizationId.Trim();
+        var productInstanceId = registration.ProductInstanceId.Trim();
+        if (organizationId.Length == 0 || productInstanceId.Length == 0)
+            throw new ArgumentException("HUB organization id and product instance id are required.", nameof(registration));
+        if (organizationId.Length > 128 || productInstanceId.Length > 128)
+            throw new ArgumentException("HUB organization id and product instance id cannot exceed 128 characters.", nameof(registration));
+
+        var linkedTenants = await dbContext.Set<Tenant>()
+            .IgnoreQueryFilters()
+            .Where(t => t.HubOrganizationId == organizationId
+                        || t.HubProductInstanceId == productInstanceId
+                        || (registration.ExistingTenantId.HasValue && t.Id == registration.ExistingTenantId.Value))
+            .ToListAsync(cancellationToken);
+
+        if (linkedTenants.Count > 1)
+        {
+            throw new InvalidOperationException(
+                $"HUB organization '{organizationId}' and product instance '{productInstanceId}' are linked to different tenants.");
+        }
+
+        if (linkedTenants.SingleOrDefault() is { } existingTenant)
+        {
+            ValidateHubLink(existingTenant, organizationId, productInstanceId);
+            existingTenant.LinkToHub(organizationId, productInstanceId);
+
+            var currentName = GetHubOrganizationName(registration);
+            if (existingTenant.Name != currentName)
+                existingTenant.Update(currentName);
+
+            await dbContext.SaveChangesAsync(cancellationToken);
+            await SeedTenantBaselineAsync(existingTenant.Id, currentName, cancellationToken);
+            return new HubTenantProvisioningResult(existingTenant.Id, Created: false);
+        }
+
+        var slug = await GetAvailableHubSlugAsync(
+            registration.OrganizationSlug, organizationId, cancellationToken);
+        var tenant = Tenant.Create(GetHubOrganizationName(registration), slug);
+        tenant.LinkToHub(organizationId, productInstanceId);
+        dbContext.Set<Tenant>().Add(tenant);
+
+        try
+        {
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException)
+        {
+            // Two handoffs/webhooks for a newly licensed company may race. The unique HUB
+            // indexes choose the winner; the other request reuses that tenant.
+            dbContext.ChangeTracker.Clear();
+            var concurrentTenant = await dbContext.Set<Tenant>()
+                .IgnoreQueryFilters()
+                .SingleOrDefaultAsync(
+                    t => t.HubOrganizationId == organizationId || t.HubProductInstanceId == productInstanceId,
+                    cancellationToken);
+            if (concurrentTenant is null)
+                throw;
+
+            ValidateHubLink(concurrentTenant, organizationId, productInstanceId);
+            await SeedTenantBaselineAsync(
+                concurrentTenant.Id,
+                GetHubOrganizationName(registration),
+                cancellationToken);
+            return new HubTenantProvisioningResult(concurrentTenant.Id, Created: false);
+        }
+
+        await SeedTenantBaselineAsync(tenant.Id, tenant.Name, cancellationToken);
+        logger.LogInformation(
+            "Provisioned HUB organization {HubOrganizationId} as tenant {TenantId} ({Slug})",
+            organizationId, tenant.Id, tenant.Slug);
+
+        return new HubTenantProvisioningResult(tenant.Id, Created: true);
+    }
+
     public async Task<TenantProvisioningResult> CreateTenantAsync(
         string name,
         string slug,
@@ -48,7 +126,7 @@ public sealed class TenantProvisioningService(
         // A brand-new tenant has no Roles/Permissions/DataScopes of its own yet — without
         // this, its first provisioned user would get zero working permissions (see
         // UserProvisioningService.GetDefaultRoleIdAsync).
-        await IamSeeder.SeedTenantRbacAsync(dbContext, tenant.Id, logger);
+        await SeedTenantBaselineAsync(tenant.Id, tenant.Name, cancellationToken);
 
         // Multi-realm mode (docs/05-module-licensing-architecture.md §5): every new company
         // gets its own, fully login-ready Keycloak realm. Realm-per-tenant means the issuer
@@ -130,6 +208,63 @@ public sealed class TenantProvisioningService(
             adminEmail, keycloakUserId, tenant.Id);
 
         return new TenantProvisioningResult(tenant.Id, adminEmail, temporaryPassword, realmName);
+    }
+
+    private async Task SeedTenantBaselineAsync(
+        Guid tenantId,
+        string companyName,
+        CancellationToken cancellationToken)
+    {
+        if (!dbContext.Database.IsRelational())
+        {
+            await SeedAsync();
+            return;
+        }
+
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        await dbContext.Database.ExecuteSqlInterpolatedAsync(
+            $"SELECT pg_advisory_xact_lock(hashtextextended({$"tenant-baseline:{tenantId}"}, 0))",
+            cancellationToken);
+        await SeedAsync();
+        await transaction.CommitAsync(cancellationToken);
+
+        async Task SeedAsync()
+        {
+            await IamSeeder.SeedTenantRbacAsync(dbContext, tenantId, logger);
+            await OrganizationSeeder.SeedTenantStructureAsync(
+                dbContext, tenantId, companyName, logger, cancellationToken);
+        }
+    }
+
+    private static void ValidateHubLink(Tenant tenant, string organizationId, string productInstanceId)
+    {
+        if (tenant.HubOrganizationId is not null && tenant.HubOrganizationId != organizationId)
+            throw new InvalidOperationException($"HUB product instance '{productInstanceId}' belongs to another organization.");
+        if (tenant.HubProductInstanceId is not null && tenant.HubProductInstanceId != productInstanceId)
+            throw new InvalidOperationException($"HUB organization '{organizationId}' is already linked to another WorkBase instance.");
+    }
+
+    private async Task<string> GetAvailableHubSlugAsync(
+        string preferredSlug,
+        string organizationId,
+        CancellationToken cancellationToken)
+    {
+        var sanitizedSlug = SanitizeRealmName(preferredSlug);
+        var baseSlug = sanitizedSlug[..Math.Min(sanitizedSlug.Length, 128)];
+        if (!await dbContext.Set<Tenant>().IgnoreQueryFilters().AnyAsync(t => t.Slug == baseSlug, cancellationToken))
+            return baseSlug;
+
+        var suffix = Convert.ToHexString(
+            SHA256.HashData(Encoding.UTF8.GetBytes(organizationId)).AsSpan(0, 4)).ToLowerInvariant();
+        var prefixLength = Math.Min(baseSlug.Length, 128 - suffix.Length - 1);
+        return $"{baseSlug[..prefixLength]}-{suffix}";
+    }
+
+    private static string GetHubOrganizationName(HubTenantRegistration registration)
+    {
+        var name = registration.OrganizationName.Trim();
+        var resolvedName = name.Length > 0 ? name : registration.OrganizationSlug.Trim();
+        return resolvedName[..Math.Min(resolvedName.Length, 256)];
     }
 
     /// <summary>Realm names must be URL-safe — keep lowercase letters, digits and hyphens only.</summary>

@@ -60,8 +60,15 @@ public static class UserRoleEndpoints
         if (tenantId is null) return Results.Forbid();
 
         var assignedBy = user.FindFirstValue("sub");
-        await service.AssignUserRoleAsync(userId, request.RoleId, tenantId.Value, assignedBy, ct);
-        return Results.NoContent();
+        try
+        {
+            await service.AssignUserRoleAsync(userId, request.RoleId, tenantId.Value, assignedBy, ct);
+            return Results.NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Results.BadRequest(new { ex.Message });
+        }
     }
 
     private static async Task<IResult> UnassignUserRole(

@@ -1,3 +1,4 @@
+using WorkBase.Contracts;
 using WorkBase.Modules.Organization.Application.Contracts;
 using WorkBase.Modules.Organization.Domain.Entities;
 using WorkBase.Shared.Cqrs;
@@ -17,7 +18,9 @@ public sealed record ImportEmployeeRow(
 
 public sealed record ImportEmployeesResult(int Imported, int Skipped, List<string> Errors);
 
-public sealed class ImportEmployeesHandler(IEmployeeRepository employeeRepository)
+public sealed class ImportEmployeesHandler(
+    IEmployeeRepository employeeRepository,
+    IEmployeeAccessProvisioningQueue accessProvisioningQueue)
     : ICommandHandler<ImportEmployeesCommand, ImportEmployeesResult>
 {
     public async Task<Result<ImportEmployeesResult>> Handle(
@@ -48,6 +51,14 @@ public sealed class ImportEmployeesHandler(IEmployeeRepository employeeRepositor
                 request.TenantId, row.FirstName, row.LastName,
                 row.Email, row.EmployeeNumber, row.HireDate);
             await employeeRepository.AddAsync(employee, cancellationToken);
+            await accessProvisioningQueue.QueueInvitationAsync(
+                new EmployeeAccessInvitationRequest(
+                    employee.TenantId,
+                    employee.Id,
+                    employee.Email,
+                    employee.FirstName,
+                    employee.LastName),
+                cancellationToken);
             imported++;
         }
 

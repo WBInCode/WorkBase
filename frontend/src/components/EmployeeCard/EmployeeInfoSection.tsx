@@ -1,9 +1,14 @@
-import type { EmployeeDetailDto, EmployeeStatus } from '@/api/types/organization';
+import type { EmployeeAccessState, EmployeeDetailDto, EmployeeStatus } from '@/api/types/organization';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { useSetEmployeeHourlyRate, useDeactivateEmployee } from '@/api/hooks/useOrganization';
+import {
+  useDeactivateEmployee,
+  useEmployeeAccessStatus,
+  useRetryEmployeeAccess,
+  useSetEmployeeHourlyRate,
+} from '@/api/hooks/useOrganization';
 import { useCurrentUser } from '@/api/hooks/useIam';
-import { UserMinus } from 'lucide-react';
+import { RefreshCw, UserMinus } from 'lucide-react';
 import { colors } from '@/theme/tokens';
 
 const statusLabels: Record<EmployeeStatus, string> = {
@@ -18,6 +23,28 @@ const statusColors: Record<EmployeeStatus, { bg: string; text: string }> = {
   OnLeave: { bg: '#fef9c3', text: '#854d0e' },
 };
 
+const accessLabels: Record<EmployeeAccessState, string> = {
+  NotRequested: 'Oczekuje na synchronizację',
+  Pending: 'Oczekuje na wysłanie',
+  Processing: 'Synchronizacja',
+  Invited: 'Zaproszenie wysłane',
+  Active: 'Aktywny',
+  Failed: 'Błąd synchronizacji',
+  RevocationPending: 'Odbieranie dostępu',
+  Revoked: 'Dostęp odebrany',
+};
+
+const accessColors: Record<EmployeeAccessState, { bg: string; text: string }> = {
+  NotRequested: { bg: colors.gray[100], text: colors.gray[600] },
+  Pending: { bg: colors.warning[100], text: colors.warning[800] },
+  Processing: { bg: colors.primary[100], text: colors.primary[700] },
+  Invited: { bg: colors.primary[100], text: colors.primary[700] },
+  Active: { bg: colors.success[100], text: colors.success[800] },
+  Failed: { bg: colors.danger[50], text: colors.danger[600] },
+  RevocationPending: { bg: colors.warning[100], text: colors.warning[800] },
+  Revoked: { bg: colors.gray[100], text: colors.gray[600] },
+};
+
 interface Props {
   employee: EmployeeDetailDto;
 }
@@ -30,6 +57,8 @@ export function EmployeeInfoSection({ employee }: Props) {
   const isAdmin = !!currentUser?.isAdmin;
   const setRate = useSetEmployeeHourlyRate();
   const deactivate = useDeactivateEmployee();
+  const { data: access } = useEmployeeAccessStatus(employee.id);
+  const retryAccess = useRetryEmployeeAccess();
   const [editingRate, setEditingRate] = useState(false);
   const [rateInput, setRateInput] = useState<string>(
     employee.hourlyRate !== null && employee.hourlyRate !== undefined ? String(employee.hourlyRate) : '',
@@ -76,6 +105,47 @@ export function EmployeeInfoSection({ employee }: Props) {
         <Field label="Data zatrudnienia" value={formatDate(employee.hireDate)} />
         {employee.terminationDate && (
           <Field label="Data zakończenia" value={formatDate(employee.terminationDate)} />
+        )}
+        {access?.managedByHub && access.status && (
+          <Field label="Dostęp do WorkBase">
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <span
+                style={{
+                  padding: '3px 8px',
+                  borderRadius: 4,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  backgroundColor: accessColors[access.status].bg,
+                  color: accessColors[access.status].text,
+                }}
+              >
+                {accessLabels[access.status]}
+              </span>
+              {isAdmin && access.status === 'Failed' && (
+                <button
+                  type="button"
+                  title="Ponów synchronizację dostępu"
+                  aria-label="Ponów synchronizację dostępu"
+                  onClick={() => retryAccess.mutate(employee.id)}
+                  disabled={retryAccess.isPending}
+                  style={{
+                    width: 28,
+                    height: 28,
+                    display: 'inline-grid',
+                    placeItems: 'center',
+                    padding: 0,
+                    border: `1px solid ${colors.gray[200]}`,
+                    borderRadius: 4,
+                    color: colors.gray[600],
+                    background: colors.white,
+                    cursor: retryAccess.isPending ? 'wait' : 'pointer',
+                  }}
+                >
+                  <RefreshCw size={14} />
+                </button>
+              )}
+            </span>
+          </Field>
         )}
         {employee.supervisor ? (
           <Field label="Przełożony">

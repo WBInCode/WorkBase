@@ -8,7 +8,9 @@ public sealed class RoleConfiguration : IEntityTypeConfiguration<Role>
 {
     public void Configure(EntityTypeBuilder<Role> builder)
     {
-        builder.ToTable("iam_roles");
+        builder.ToTable("iam_roles", table => table.HasCheckConstraint(
+            "ck_iam_roles_super_admin_operator_only",
+            "lower(btrim(name)) <> 'super admin' OR tenant_id = '00000000-0000-0000-0000-000000000001'::uuid"));
 
         builder.HasKey(r => r.Id);
 

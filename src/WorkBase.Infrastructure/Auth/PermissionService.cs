@@ -26,7 +26,7 @@ public sealed class PermissionService(
         // userId may be either the internal User.Id or the Keycloak sub (parsed as Guid).
         // Resolve to internal User.Id via the users table so UserRole join works.
         var internalUserId = await dbContext.Set<User>()
-            .Where(u => u.Id == userId || u.KeycloakId == userId.ToString())
+            .Where(u => u.TenantId == tenantId && (u.Id == userId || u.KeycloakId == userId.ToString()))
             .Select(u => u.Id)
             .FirstOrDefaultAsync(cancellationToken);
 

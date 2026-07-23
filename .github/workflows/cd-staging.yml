@@ -124,7 +124,7 @@ jobs:
 
             # Run database migrations
             docker compose -f docker-compose.staging.yml run --rm \
-              workbase-api dotnet WorkBase.Host.dll --migrate-only || true
+              workbase-api dotnet WorkBase.Host.dll --migrate-only
 
             # Rolling restart
             docker compose -f docker-compose.staging.yml up -d --remove-orphans

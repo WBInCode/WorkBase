@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -7,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using WorkBase.Contracts;
 using WorkBase.Infrastructure.HubPlatform;
+using WorkBase.Shared.Auth;
 
 namespace WorkBase.Host.Endpoints;
 
@@ -49,9 +51,16 @@ public static class HubIntegrationEndpoints
 
             if (eventName is "entitlements.updated")
             {
-                // Fire-and-forget z perspektywy Huba — odpowiadamy szybko 200,
-                // sync robimy synchronicznie (lekki: 1 GET + kilka UPDATE).
-                await sync.SyncAsync(http.RequestAborted);
+                var instanceId = GetWebhookInstanceId(http.Request, rawBody);
+                var synced = instanceId is not null
+                    ? await sync.SyncInstanceAsync(instanceId, cancellationToken: http.RequestAborted) is not null
+                    : await sync.SyncAllAsync(http.RequestAborted) > 0;
+
+                if (!synced)
+                {
+                    logger.LogWarning("Webhook Huba nie wskazał instancji możliwej do synchronizacji");
+                    return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+                }
             }
             // session.revoked: sesje WorkBase żyją w Keycloak — rewokacja SSO
             // dotyczy sesji Huba; lokalne tokeny wygasają naturalnie (krótki TTL).
@@ -62,12 +71,14 @@ public static class HubIntegrationEndpoints
         .WithName("HubWebhooks")
         .WithSummary("Webhook Huba ekosystemu (entitlements.updated — podpis HMAC)");
 
-        group.MapPost("/sync", async (HubEntitlementsSyncService sync, CancellationToken ct) =>
+        group.MapPost("/sync", async (string? instanceId, HubEntitlementsSyncService sync, CancellationToken ct) =>
         {
-            var ok = await sync.SyncAsync(ct);
+            var ok = string.IsNullOrWhiteSpace(instanceId)
+                ? await sync.SyncAllAsync(ct) > 0
+                : await sync.SyncInstanceAsync(instanceId, cancellationToken: ct) is not null;
             return ok ? Results.Ok(new { synced = true }) : Results.Ok(new { synced = false });
         })
-        .RequireAuthorization()
+        .RequirePlatformOperator()
         .WithName("HubManualSync")
         .WithSummary("Ręczny resync modułów z Hub Entitlements API");
 
@@ -79,6 +90,7 @@ public static class HubIntegrationEndpoints
             HubSsoService sso,
             HubEntitlementsSyncService entitlements,
             IKeycloakAdminService keycloak,
+            IHubEmployeeIdentityLinker employeeIdentityLinker,
             IConfiguration configuration,
             ILoggerFactory loggerFactory,
             CancellationToken ct) =>
@@ -104,9 +116,26 @@ public static class HubIntegrationEndpoints
                 return RedirectError("invalid");
             }
 
-            if (claims.InstanceId != opts.InstanceId) return RedirectError("wrong_instance");
+            if (string.IsNullOrWhiteSpace(claims.OrgId)
+                || string.IsNullOrWhiteSpace(claims.InstanceId)
+                || !HubSsoService.HasEligibleMembership(claims.OrgRole, claims.InstanceRole)
+                || !string.Equals(claims.ProductKey, opts.ClientId, StringComparison.OrdinalIgnoreCase))
+            {
+                return RedirectError("wrong_instance");
+            }
 
             if (!await sso.RedeemAsync(token, ct)) return RedirectError("used");
+
+            var tenantSync = await entitlements.SyncInstanceAsync(claims.InstanceId, claims.OrgId, ct);
+            if (tenantSync is null) return RedirectError("wrong_instance");
+            if (!tenantSync.AccessEnabled) return RedirectError("access_inactive");
+
+            var employeeDecision = await employeeIdentityLinker.ResolveForSsoAsync(
+                tenantSync.TenantId, claims.Email, ct);
+            if (employeeDecision.AccessDenied) return RedirectError("employee_inactive");
+            var hubRole = HubSsoService.MapHubRole(claims.OrgRole, claims.InstanceRole);
+            if (!employeeDecision.EmployeeId.HasValue && HubSsoService.RequiresEmployeeRecord(hubRole))
+                return RedirectError("employee_missing");
 
             // JIT provisioning: konto w Keycloaku powiązane po e-mailu, rola zsynchronizowana
             // z Hubem przy KAŻDYM logowaniu (CreateUserInRealmAsync jest idempotentny — 409 =
@@ -114,26 +143,106 @@ public static class HubIntegrationEndpoints
             var realm = configuration["Keycloak:Realm"] ?? "workbase";
             var nameParts = claims.Name.Split(' ', 2);
             var role = HubSsoService.MapRealmRole(claims.OrgRole, claims.InstanceRole);
-            await keycloak.CreateUserInRealmAsync(
+            var attributes = new Dictionary<string, string>
+            {
+                ["tenant_id"] = tenantSync.TenantId.ToString(),
+                ["hub_org_id"] = claims.OrgId,
+                ["hub_instance_id"] = claims.InstanceId,
+                ["hub_user_id"] = claims.Sub,
+                ["hub_role"] = hubRole,
+            };
+            var keycloakUserId = await keycloak.CreateUserInRealmAsync(
                 realm,
                 claims.Email,
                 nameParts.ElementAtOrDefault(0) ?? claims.Email,
                 nameParts.ElementAtOrDefault(1) ?? "",
                 temporaryPassword: null,
-                attributes: new Dictionary<string, string> { ["hub_org_id"] = claims.OrgId },
+                attributes,
                 realmRoles: [role],
+                cancellationToken: ct);
+            if (keycloakUserId is null) return RedirectError("account_provisioning");
+
+            if (employeeDecision.EmployeeId.HasValue)
+            {
+                var linked = await employeeIdentityLinker.LinkOnSsoAsync(
+                    tenantSync.TenantId,
+                    employeeDecision.EmployeeId.Value,
+                    claims.Sub,
+                    keycloakUserId,
+                    ct);
+                if (!linked) return RedirectError("account_linking");
+                attributes["employee_id"] = employeeDecision.EmployeeId.Value.ToString();
+            }
+
+            // CreateUserInRealmAsync is idempotent; on an existing account Keycloak returns
+            // 409, so explicitly refresh the HUB-managed attributes on every handoff.
+            await keycloak.SetUserAttributesAsync(keycloakUserId, attributes, ct);
+            await keycloak.SyncUserRealmRolesAsync(
+                realm,
+                keycloakUserId,
+                managedRoleNames: ["workbase-admin", "workbase-user"],
+                assignedRoleNames: [role],
                 cancellationToken: ct);
 
             // Frontend inicjuje PRAWDZIWY Authorization Code + PKCE (react-oidc-context) —
             // e-mail tylko podpowiada Keycloakowi kogo logujemy (login_hint), nic wrażliwego
             // nie leci w URL. Konto już istnieje i ma właściwą rolę, więc to już tylko hasło.
-            return Results.Redirect($"{frontendUrl}/auth/sso-bridge?email={Uri.EscapeDataString(claims.Email)}");
+            return Results.Redirect(
+                $"{frontendUrl}/auth/sso-bridge?realm=&email={Uri.EscapeDataString(claims.Email)}");
         })
         .AllowAnonymous()
         .WithName("HubSsoCallback")
         .WithSummary("Handoff SSO z Huba: weryfikacja + JIT provisioning konta Keycloak, potem redirect do logowania z podpowiedzią e-maila");
 
         return endpoints;
+    }
+
+    private static string? GetWebhookInstanceId(HttpRequest request, string rawBody)
+    {
+        var headerValue = request.Headers["x-wb-instance-id"].ToString();
+        if (!string.IsNullOrWhiteSpace(headerValue))
+            return headerValue;
+
+        try
+        {
+            using var document = JsonDocument.Parse(rawBody);
+            return FindInstanceId(document.RootElement, depth: 0);
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+    }
+
+    private static string? FindInstanceId(JsonElement element, int depth)
+    {
+        if (depth > 10)
+            return null;
+
+        if (element.ValueKind == JsonValueKind.Object)
+        {
+            foreach (var property in element.EnumerateObject())
+            {
+                if ((property.NameEquals("instanceId") || property.NameEquals("instance_id"))
+                    && property.Value.ValueKind == JsonValueKind.String)
+                {
+                    return property.Value.GetString();
+                }
+
+                var nested = FindInstanceId(property.Value, depth + 1);
+                if (nested is not null) return nested;
+            }
+        }
+        else if (element.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var item in element.EnumerateArray())
+            {
+                var nested = FindInstanceId(item, depth + 1);
+                if (nested is not null) return nested;
+            }
+        }
+
+        return null;
     }
 
     private static bool VerifySignature(string secret, string body, string signature)

@@ -115,21 +115,18 @@ add_mapper "email" "email" "email"
 add_mapper "firstName" "given_name" "firstName"
 add_mapper "lastName" "family_name" "lastName"
 
-# Każdy brokerowany użytkownik tej instancji WorkBase należy do domyślnego tenanta.
-# Mapper jest częścią bazowej konfiguracji IdP, aby nie znikał po odtworzeniu realm.
-cat > /tmp/m.json <<JSON
-{"name":"tenant_id-hardcoded","identityProviderAlias":"wb-hub","identityProviderMapper":"hardcoded-attribute-idp-mapper",
- "config":{"syncMode":"FORCE","attribute":"tenant_id","attribute.value":"00000000-0000-0000-0000-000000000001"}}
-JSON
+# Tenant jest rozwiązywany przez backend z pary org_id + instance_id przekazanej w
+# podpisanym handoffie HUB. Stary mapper przypisywał każdą firmę do seedowego tenanta
+# i nadpisywał tenant_id ustawiony przez /sso/callback, więc musi zostać usunięty.
 TENANT_MAPPER_ID=$(curl -sk -H "Authorization: Bearer $TOKEN" \
   "$KC/admin/realms/workbase/identity-provider/instances/wb-hub/mappers" \
   | python3 -c 'import sys,json;print(next((m["id"] for m in json.load(sys.stdin) if m.get("name")=="tenant_id-hardcoded"),""))')
 if [ -n "$TENANT_MAPPER_ID" ]; then
-  echo "  mapper tenant_id-hardcoded: exists"
+  curl -sk -X DELETE -H "Authorization: Bearer $TOKEN" \
+    "$KC/admin/realms/workbase/identity-provider/instances/wb-hub/mappers/$TENANT_MAPPER_ID" \
+    -o /dev/null -w "  usunięcie mappera tenant_id-hardcoded: HTTP %{http_code}\n"
 else
-  curl -sk -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-    -d @/tmp/m.json "$KC/admin/realms/workbase/identity-provider/instances/wb-hub/mappers" \
-    -o /dev/null -w "  mapper tenant_id-hardcoded create: HTTP %{http_code}\n"
+  echo "  mapper tenant_id-hardcoded: już nie istnieje"
 fi
 
 echo "=== weryfikacja IdP ==="

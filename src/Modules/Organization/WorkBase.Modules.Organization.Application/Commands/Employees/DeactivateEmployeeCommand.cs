@@ -1,3 +1,4 @@
+using WorkBase.Contracts;
 using WorkBase.Modules.Organization.Application.Contracts;
 using WorkBase.Shared.Cqrs;
 using WorkBase.Shared.Domain;
@@ -9,7 +10,9 @@ public sealed record DeactivateEmployeeCommand(Guid Id) : ICommand, ITenantReque
     public Guid TenantId { get; set; }
 }
 
-public sealed class DeactivateEmployeeHandler(IEmployeeRepository repository)
+public sealed class DeactivateEmployeeHandler(
+    IEmployeeRepository repository,
+    IEmployeeAccessProvisioningQueue accessProvisioningQueue)
     : ICommandHandler<DeactivateEmployeeCommand>
 {
     public async Task<Result> Handle(DeactivateEmployeeCommand request, CancellationToken cancellationToken)
@@ -20,6 +23,8 @@ public sealed class DeactivateEmployeeHandler(IEmployeeRepository repository)
 
         employee.Deactivate(DateTime.UtcNow);
         repository.Update(employee);
+        await accessProvisioningQueue.QueueRevocationAsync(
+            employee.TenantId, employee.Id, cancellationToken);
         return Result.Success();
     }
 }

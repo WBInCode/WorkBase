@@ -7,6 +7,9 @@ namespace WorkBase.Infrastructure.Auth;
 
 public sealed class RoleManagementService(WorkBaseDbContext dbContext) : IRoleManagementService
 {
+    private const string AdminRoleName = "Admin";
+    private const string SuperAdminRoleName = "Super Admin";
+
     public async Task<IReadOnlyList<RoleDto>> GetRolesAsync(Guid tenantId, CancellationToken ct = default)
     {
         var rows = await dbContext.Set<Role>()
@@ -55,6 +58,7 @@ public sealed class RoleManagementService(WorkBaseDbContext dbContext) : IRoleMa
 
     public async Task<Guid> CreateRoleAsync(Guid tenantId, string name, string? description, int level, CancellationToken ct = default)
     {
+        EnsureCustomRoleNameAllowed(name);
         var role = Role.Create(tenantId, name, RoleType.Custom, level, description);
         dbContext.Set<Role>().Add(role);
         await dbContext.SaveChangesAsync(ct);
@@ -69,6 +73,7 @@ public sealed class RoleManagementService(WorkBaseDbContext dbContext) : IRoleMa
         if (role.IsSystemRole)
             throw new InvalidOperationException("Cannot edit system roles.");
 
+        EnsureCustomRoleNameAllowed(name);
         role.Update(name, description, level);
         await dbContext.SaveChangesAsync(ct);
     }
@@ -179,7 +184,7 @@ public sealed class RoleManagementService(WorkBaseDbContext dbContext) : IRoleMa
         // (mirrors PermissionService.GetUserPermissionsAsync). Without this, isAdmin in
         // /api/auth/me was always false for brokered users → admin nav section hidden.
         var internalUserId = await dbContext.Set<User>()
-            .Where(u => u.Id == userId || u.KeycloakId == userId.ToString())
+            .Where(u => u.TenantId == tenantId && (u.Id == userId || u.KeycloakId == userId.ToString()))
             .Select(u => u.Id)
             .FirstOrDefaultAsync(ct);
 
@@ -203,6 +208,22 @@ public sealed class RoleManagementService(WorkBaseDbContext dbContext) : IRoleMa
 
     public async Task AssignUserRoleAsync(Guid userId, Guid roleId, Guid tenantId, string? assignedBy, CancellationToken ct = default)
     {
+        var role = await dbContext.Set<Role>()
+            .FirstOrDefaultAsync(item => item.Id == roleId && item.TenantId == tenantId, ct)
+            ?? throw new InvalidOperationException("Rola nie istnieje w bieżącej organizacji.");
+        EnsureSuperAdminAllowed(tenantId, role.Name);
+
+        var userBelongsToTenant = await dbContext.Set<User>()
+            .AnyAsync(user => user.Id == userId && user.TenantId == tenantId, ct);
+        if (!userBelongsToTenant)
+            throw new InvalidOperationException("Użytkownik nie istnieje w bieżącej organizacji.");
+
+        if (tenantId != PlatformConstants.OperatorTenantId && role.Name == AdminRoleName)
+        {
+            throw new InvalidOperationException(
+                "Administrator firmy jest synchronizowany z właścicielem organizacji w WB Platform.");
+        }
+
         var exists = await dbContext.Set<UserRole>()
             .AnyAsync(ur => ur.UserId == userId && ur.RoleId == roleId && ur.TenantId == tenantId, ct);
 
@@ -226,6 +247,12 @@ public sealed class RoleManagementService(WorkBaseDbContext dbContext) : IRoleMa
         if (userRole is null)
             return;
 
+        if (tenantId != PlatformConstants.OperatorTenantId && role.Name == AdminRoleName)
+        {
+            throw new InvalidOperationException(
+                "Administrator firmy jest synchronizowany z właścicielem organizacji w WB Platform.");
+        }
+
         if (userRole.AssignedBy == "system")
             throw new InvalidOperationException("Ta rola jest synchronizowana automatycznie z WB Platform. Zmień rolę lub dostęp użytkownika w panelu organizacji WB Platform.");
 
@@ -240,5 +267,24 @@ public sealed class RoleManagementService(WorkBaseDbContext dbContext) : IRoleMa
 
         dbContext.Set<UserRole>().Remove(userRole);
         await dbContext.SaveChangesAsync(ct);
+    }
+
+    private static void EnsureSuperAdminAllowed(Guid tenantId, string roleName)
+    {
+        if (tenantId != PlatformConstants.OperatorTenantId
+            && string.Equals(roleName.Trim(), SuperAdminRoleName, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException("Rola Super Admin jest zarezerwowana dla operatora platformy.");
+        }
+    }
+
+    private static void EnsureCustomRoleNameAllowed(string roleName)
+    {
+        var normalizedName = roleName.Trim();
+        if (string.Equals(normalizedName, AdminRoleName, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(normalizedName, SuperAdminRoleName, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException("Nazwy Admin i Super Admin są zarezerwowane dla ról systemowych.");
+        }
     }
 }

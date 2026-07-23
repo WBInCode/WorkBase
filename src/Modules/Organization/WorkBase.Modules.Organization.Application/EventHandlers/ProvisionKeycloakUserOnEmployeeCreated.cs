@@ -31,6 +31,15 @@ public sealed class ProvisionKeycloakUserOnEmployeeCreated(
                 return;
             }
 
+            var tenant = await tenantRepository.GetByIdAsync(notification.TenantId, cancellationToken);
+            if (tenant?.HubOrganizationId is not null)
+            {
+                logger.LogInformation(
+                    "Employee {EmployeeId} belongs to HUB-managed tenant {TenantId}; account invitation is handled by HUB",
+                    employee.Id, notification.TenantId);
+                return;
+            }
+
             var attributes = new Dictionary<string, string>
             {
                 ["tenant_id"] = notification.TenantId.ToString(),
@@ -41,7 +50,6 @@ public sealed class ProvisionKeycloakUserOnEmployeeCreated(
             // created IN that realm (with the standard user role) — the shared-realm
             // CreateUserAsync would put them where they can never log in from the tenant's
             // login link. Tenants without a dedicated realm keep the shared-realm path.
-            var tenant = await tenantRepository.GetByIdAsync(notification.TenantId, cancellationToken);
             var realmName = tenant?.KeycloakRealmName;
 
             var keycloakUserId = realmName is not null

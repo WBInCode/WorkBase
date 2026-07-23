@@ -604,6 +604,12 @@ public sealed class KeycloakAdminService(
         {
             logger.LogWarning("Keycloak user {Email} already exists in realm {Realm}", email, realmName);
             userId = await FindUserIdByEmailAsync(client, baseUrl, realmName, token, email, cancellationToken);
+            if (userId is not null
+                && await HasConflictingIdentityScopeAsync(
+                    client, baseUrl, realmName, token, userId, attributes, cancellationToken))
+            {
+                return null;
+            }
         }
         else if (!response.IsSuccessStatusCode)
         {
@@ -626,6 +632,129 @@ public sealed class KeycloakAdminService(
         }
 
         return userId;
+    }
+
+    private async Task<bool> HasConflictingIdentityScopeAsync(
+        HttpClient client,
+        string baseUrl,
+        string realmName,
+        string token,
+        string userId,
+        Dictionary<string, string>? requestedAttributes,
+        CancellationToken cancellationToken)
+    {
+        if (requestedAttributes is null)
+            return false;
+
+        var scopedAttributes = requestedAttributes
+            .Where(attribute => attribute.Key is "tenant_id" or "hub_org_id" or "hub_user_id")
+            .ToArray();
+        if (scopedAttributes.Length == 0)
+            return false;
+
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            $"{baseUrl}/admin/realms/{realmName}/users/{userId}");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var response = await client.SendAsync(request, cancellationToken);
+        if (!response.IsSuccessStatusCode)
+        {
+            logger.LogError(
+                "Cannot verify identity scope for Keycloak user {UserId} in realm {Realm}",
+                userId, realmName);
+            return true;
+        }
+
+        var user = await response.Content.ReadFromJsonAsync<JsonElement>(cancellationToken);
+        if (!user.TryGetProperty("attributes", out var attributes))
+            return false;
+
+        foreach (var (attributeName, requestedValue) in scopedAttributes)
+        {
+            if (!attributes.TryGetProperty(attributeName, out var currentValues)
+                || currentValues.ValueKind != JsonValueKind.Array
+                || currentValues.GetArrayLength() == 0)
+            {
+                continue;
+            }
+
+            var currentValue = currentValues[0].GetString();
+            if (!string.IsNullOrWhiteSpace(currentValue)
+                && !string.Equals(currentValue, requestedValue, StringComparison.Ordinal))
+            {
+                logger.LogWarning(
+                    "Rejected Keycloak user {UserId}: {Attribute} is already bound to another company",
+                    userId, attributeName);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public async Task SyncUserRealmRolesAsync(
+        string realmName,
+        string keycloakUserId,
+        string[] managedRoleNames,
+        string[] assignedRoleNames,
+        CancellationToken cancellationToken = default)
+    {
+        var token = await GetAdminTokenAsync(cancellationToken);
+        if (token is null) return;
+
+        var client = httpClientFactory.CreateClient();
+        var baseUrl = GetAdminBaseUrl();
+        var currentRequest = new HttpRequestMessage(
+            HttpMethod.Get,
+            $"{baseUrl}/admin/realms/{realmName}/users/{keycloakUserId}/role-mappings/realm");
+        currentRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var currentResponse = await client.SendAsync(currentRequest, cancellationToken);
+        if (!currentResponse.IsSuccessStatusCode)
+        {
+            logger.LogError(
+                "Failed to read realm roles for user {UserId} in realm {Realm}: {Status}",
+                keycloakUserId, realmName, currentResponse.StatusCode);
+            return;
+        }
+
+        var currentRoles = await currentResponse.Content.ReadFromJsonAsync<JsonElement[]>(cancellationToken) ?? [];
+        var managed = managedRoleNames.ToHashSet(StringComparer.Ordinal);
+        var assigned = assignedRoleNames.ToHashSet(StringComparer.Ordinal);
+        var staleRoles = currentRoles
+            .Where(role => role.TryGetProperty("name", out var name)
+                           && managed.Contains(name.GetString() ?? "")
+                           && !assigned.Contains(name.GetString() ?? ""))
+            .ToArray();
+
+        if (staleRoles.Length > 0)
+        {
+            var removeRequest = new HttpRequestMessage(
+                HttpMethod.Delete,
+                $"{baseUrl}/admin/realms/{realmName}/users/{keycloakUserId}/role-mappings/realm");
+            removeRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            removeRequest.Content = JsonContent.Create(staleRoles, options: JsonOptions);
+            var removeResponse = await client.SendAsync(removeRequest, cancellationToken);
+            if (!removeResponse.IsSuccessStatusCode)
+            {
+                var error = await removeResponse.Content.ReadAsStringAsync(cancellationToken);
+                logger.LogError(
+                    "Failed to remove stale realm roles from user {UserId} in realm {Realm}: {Status} {Error}",
+                    keycloakUserId, realmName, removeResponse.StatusCode, error);
+                return;
+            }
+        }
+
+        var currentRoleNames = currentRoles
+            .Where(role => role.TryGetProperty("name", out _))
+            .Select(role => role.GetProperty("name").GetString() ?? "")
+            .ToHashSet(StringComparer.Ordinal);
+        var missingRoles = assigned.Where(role => !currentRoleNames.Contains(role)).ToArray();
+        if (missingRoles.Length > 0)
+        {
+            await AssignRealmRolesAsync(
+                client, baseUrl, realmName, token, keycloakUserId, missingRoles, cancellationToken);
+        }
     }
 
     private async Task AssignRealmRolesAsync(

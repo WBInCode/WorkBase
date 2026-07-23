@@ -39,6 +39,7 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddWorkBaseAuthentication(configuration);
 
         services.AddMemoryCache();
+        services.AddSingleton<TenantAccessCache>();
         services.AddScoped<IPermissionService, PermissionService>();
         services.AddScoped<IRoleManagementService, RoleManagementService>();
         services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
@@ -52,6 +53,11 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddSingleton<HubPlatform.HubEntitlementsSyncService>();
         // Singleton: cache'uje ConfigurationManager (JWKS Huba) między żądaniami handoff.
         services.AddSingleton<HubPlatform.HubSsoService>();
+        services.AddScoped<IEmployeeAccessProvisioningQueue, HubPlatform.EmployeeAccessProvisioningQueue>();
+        services.AddScoped<IHubEmployeeIdentityLinker, HubPlatform.HubEmployeeIdentityLinker>();
+        services.AddScoped<IEmployeeAccessStatusService, HubPlatform.EmployeeAccessStatusService>();
+        services.AddScoped<HubPlatform.HubEmployeeAccessJob>();
+        services.AddSingleton<HubPlatform.HubUserAccessVerifier>();
 
         services.AddScoped<ICurrentTenantService, HttpContextTenantService>();
         services.AddScoped<IDataScopeService, DataScopeService>();

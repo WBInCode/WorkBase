@@ -33,6 +33,23 @@ export interface EmployeeDto {
 
 export type EmployeeStatus = 'Active' | 'Inactive' | 'OnLeave';
 
+export type EmployeeAccessState =
+  | 'NotRequested'
+  | 'Pending'
+  | 'Processing'
+  | 'Invited'
+  | 'Active'
+  | 'Failed'
+  | 'RevocationPending'
+  | 'Revoked';
+
+export interface EmployeeAccessStatus {
+  managedByHub: boolean;
+  status: EmployeeAccessState | null;
+  attempts: number;
+  updatedAt: string | null;
+}
+
 export interface EmployeeDetailDto {
   id: string;
   firstName: string;
