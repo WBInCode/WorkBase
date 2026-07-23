@@ -5,6 +5,8 @@ public interface IHubEmployeeIdentityLinker
     Task<HubEmployeeSsoDecision> ResolveForSsoAsync(
         Guid tenantId,
         string email,
+        string? employeeReference = null,
+        string? hubUserId = null,
         CancellationToken cancellationToken = default);
 
     Task<bool> LinkOnSsoAsync(

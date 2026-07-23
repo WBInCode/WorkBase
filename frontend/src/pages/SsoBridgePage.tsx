@@ -28,6 +28,7 @@ export function SsoBridgePage() {
     // authenticated user, so the API receives a token with current HUB claims.
     void auth.signinRedirect({
       login_hint: email,
+      prompt: 'login',
       redirect_uri: `${window.location.origin}/auth/callback`,
     });
   }, [auth, auth.isLoading, auth.isAuthenticated]);

@@ -30,6 +30,7 @@ public sealed class HubSsoEdDsaTests
         Assert.Equal("org-1", claims.OrgId);
         Assert.Equal("instance-1", claims.InstanceId);
         Assert.Equal("OWNER", claims.OrgRole);
+        Assert.Equal("10000000-0000-0000-0000-000000000010", claims.EmployeeReference);
         Assert.Equal(["org", "identity"], claims.Modules);
         Assert.Equal(1, fixture.Handler.RequestCount);
         Assert.Equal("https://hub.example.test/.well-known/jwks.json", fixture.Handler.RequestUri?.ToString());
@@ -134,6 +135,7 @@ public sealed class HubSsoEdDsaTests
             instance_id = "instance-1",
             instance_role = "admin",
             product_key = "workbase",
+            employee_ref = "10000000-0000-0000-0000-000000000010",
             modules = new[] { "org", "identity" },
         })));
         var signingInput = Encoding.ASCII.GetBytes($"{header}.{payload}");
