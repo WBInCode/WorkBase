@@ -123,6 +123,108 @@ public sealed class HubEmployeeAccessTests
     }
 
     [Fact]
+    public async Task Sso_linker_prefers_signed_employee_reference_over_email()
+    {
+        await using var db = CreateDbContext();
+        var employee = Employee.Create(
+            TenantId, "Jan", "Kowalski", "old-address@acme.test", null, DateTime.UtcNow);
+        db.Add(employee);
+        await db.SaveChangesAsync();
+        var linker = new HubEmployeeIdentityLinker(
+            db, NullLogger<HubEmployeeIdentityLinker>.Instance);
+
+        var decision = await linker.ResolveForSsoAsync(
+            TenantId,
+            "new-address@acme.test",
+            employee.Id.ToString(),
+            hubUserId: null);
+
+        Assert.Equal(employee.Id, decision.EmployeeId);
+        Assert.False(decision.AccessDenied);
+    }
+
+    [Fact]
+    public async Task Sso_linker_rejects_unknown_signed_employee_reference_without_email_fallback()
+    {
+        await using var db = CreateDbContext();
+        var employee = Employee.Create(
+            TenantId, "Jan", "Kowalski", "jan@acme.test", null, DateTime.UtcNow);
+        db.Add(employee);
+        await db.SaveChangesAsync();
+        var linker = new HubEmployeeIdentityLinker(
+            db, NullLogger<HubEmployeeIdentityLinker>.Instance);
+
+        var decision = await linker.ResolveForSsoAsync(
+            TenantId,
+            employee.Email,
+            Guid.NewGuid().ToString());
+
+        Assert.Null(decision.EmployeeId);
+        Assert.True(decision.AccessDenied);
+    }
+
+    [Fact]
+    public async Task Sso_linker_rejects_signed_employee_reference_for_another_HUB_user()
+    {
+        await using var db = CreateDbContext();
+        var employee = Employee.Create(
+            TenantId, "Jan", "Kowalski", "jan@acme.test", null, DateTime.UtcNow);
+        var accessRequest = HubEmployeeAccessRequest.Create(
+            TenantId,
+            employee.Id,
+            "org-acme",
+            "instance-acme",
+            employee.Email,
+            employee.FirstName,
+            employee.LastName);
+        accessRequest.MarkActive("hub-user-1");
+        db.AddRange(employee, accessRequest);
+        await db.SaveChangesAsync();
+        var linker = new HubEmployeeIdentityLinker(
+            db, NullLogger<HubEmployeeIdentityLinker>.Instance);
+
+        var decision = await linker.ResolveForSsoAsync(
+            TenantId,
+            employee.Email,
+            employee.Id.ToString(),
+            "hub-user-2");
+
+        Assert.Null(decision.EmployeeId);
+        Assert.True(decision.AccessDenied);
+    }
+
+    [Fact]
+    public async Task Sso_linker_rejects_rebinding_employee_to_another_HUB_user()
+    {
+        await using var db = CreateDbContext();
+        var employee = Employee.Create(
+            TenantId, "Jan", "Kowalski", "jan@acme.test", null, DateTime.UtcNow);
+        var accessRequest = HubEmployeeAccessRequest.Create(
+            TenantId,
+            employee.Id,
+            "org-acme",
+            "instance-acme",
+            employee.Email,
+            employee.FirstName,
+            employee.LastName);
+        accessRequest.MarkActive("hub-user-1");
+        db.AddRange(employee, accessRequest);
+        await db.SaveChangesAsync();
+        var linker = new HubEmployeeIdentityLinker(
+            db, NullLogger<HubEmployeeIdentityLinker>.Instance);
+
+        var linked = await linker.LinkOnSsoAsync(
+            TenantId,
+            employee.Id,
+            "hub-user-2",
+            Guid.NewGuid().ToString());
+
+        Assert.False(linked);
+        Assert.Null(employee.UserId);
+        Assert.Equal("hub-user-1", accessRequest.HubUserId);
+    }
+
+    [Fact]
     public async Task Sso_linker_denies_an_inactive_employee_before_account_linking()
     {
         await using var db = CreateDbContext();

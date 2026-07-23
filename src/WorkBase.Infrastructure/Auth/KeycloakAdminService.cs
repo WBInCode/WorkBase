@@ -82,13 +82,13 @@ public sealed class KeycloakAdminService(
         return await FindUserIdByEmailAsync(client, baseUrl, realm, token, email, cancellationToken);
     }
 
-    public async Task SetUserAttributesAsync(
+    public async Task<bool> SetUserAttributesAsync(
         string keycloakUserId,
         Dictionary<string, string> attributes,
         CancellationToken cancellationToken = default)
     {
         var token = await GetAdminTokenAsync(cancellationToken);
-        if (token is null) return;
+        if (token is null) return false;
 
         var client = httpClientFactory.CreateClient();
         var baseUrl = configuration["Keycloak:AdminUrl"]
@@ -103,7 +103,7 @@ public sealed class KeycloakAdminService(
         if (!getUserResponse.IsSuccessStatusCode)
         {
             logger.LogError("Failed to get Keycloak user {UserId}", keycloakUserId);
-            return;
+            return false;
         }
 
         var user = await getUserResponse.Content.ReadFromJsonAsync<JsonElement>(cancellationToken);
@@ -140,7 +140,10 @@ public sealed class KeycloakAdminService(
             var error = await updateResponse.Content.ReadAsStringAsync(cancellationToken);
             logger.LogError("Failed to set attributes on Keycloak user {UserId}: {Status} {Error}",
                 keycloakUserId, updateResponse.StatusCode, error);
+            return false;
         }
+
+        return true;
     }
 
     private async Task<string?> GetAdminTokenAsync(CancellationToken cancellationToken)

@@ -131,7 +131,11 @@ public static class HubIntegrationEndpoints
             if (!tenantSync.AccessEnabled) return RedirectError("access_inactive");
 
             var employeeDecision = await employeeIdentityLinker.ResolveForSsoAsync(
-                tenantSync.TenantId, claims.Email, ct);
+                tenantSync.TenantId,
+                claims.Email,
+                claims.EmployeeReference,
+                claims.Sub,
+                ct);
             if (employeeDecision.AccessDenied) return RedirectError("employee_inactive");
             var hubRole = HubSsoService.MapHubRole(claims.OrgRole, claims.InstanceRole);
             if (!employeeDecision.EmployeeId.HasValue && HubSsoService.RequiresEmployeeRecord(hubRole))
@@ -176,7 +180,8 @@ public static class HubIntegrationEndpoints
 
             // CreateUserInRealmAsync is idempotent; on an existing account Keycloak returns
             // 409, so explicitly refresh the HUB-managed attributes on every handoff.
-            await keycloak.SetUserAttributesAsync(keycloakUserId, attributes, ct);
+            if (!await keycloak.SetUserAttributesAsync(keycloakUserId, attributes, ct))
+                return RedirectError("account_provisioning");
             await keycloak.SyncUserRealmRolesAsync(
                 realm,
                 keycloakUserId,

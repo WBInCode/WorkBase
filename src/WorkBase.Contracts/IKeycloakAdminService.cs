@@ -10,7 +10,7 @@ public interface IKeycloakAdminService
         Dictionary<string, string>? attributes = null,
         CancellationToken cancellationToken = default);
 
-    Task SetUserAttributesAsync(
+    Task<bool> SetUserAttributesAsync(
         string keycloakUserId,
         Dictionary<string, string> attributes,
         CancellationToken cancellationToken = default);

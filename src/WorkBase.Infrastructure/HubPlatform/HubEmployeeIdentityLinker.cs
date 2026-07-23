@@ -13,15 +13,59 @@ public sealed class HubEmployeeIdentityLinker(
     public async Task<HubEmployeeSsoDecision> ResolveForSsoAsync(
         Guid tenantId,
         string email,
+        string? employeeReference = null,
+        string? hubUserId = null,
         CancellationToken cancellationToken = default)
     {
-        var normalizedEmail = email.Trim().ToLowerInvariant();
-        var employee = await dbContext.Set<Employee>()
-            .AsNoTracking()
-            .IgnoreQueryFilters()
-            .SingleOrDefaultAsync(
-                item => item.TenantId == tenantId && item.Email.ToLower() == normalizedEmail,
-                cancellationToken);
+        Employee? employee;
+        if (!string.IsNullOrWhiteSpace(employeeReference))
+        {
+            if (!Guid.TryParse(employeeReference, out var employeeId))
+            {
+                logger.LogWarning("HUB employee reference {EmployeeReference} is not a UUID", employeeReference);
+                return new HubEmployeeSsoDecision(null, AccessDenied: true);
+            }
+
+            employee = await dbContext.Set<Employee>()
+                .AsNoTracking()
+                .IgnoreQueryFilters()
+                .SingleOrDefaultAsync(
+                    item => item.TenantId == tenantId && item.Id == employeeId,
+                    cancellationToken);
+            if (employee is null)
+            {
+                logger.LogWarning(
+                    "HUB employee reference {EmployeeId} does not belong to tenant {TenantId}",
+                    employeeId,
+                    tenantId);
+                return new HubEmployeeSsoDecision(null, AccessDenied: true);
+            }
+
+            var linkedHubUserId = await dbContext.Set<HubEmployeeAccessRequest>()
+                .AsNoTracking()
+                .IgnoreQueryFilters()
+                .Where(item => item.TenantId == tenantId && item.EmployeeId == employeeId)
+                .Select(item => item.HubUserId)
+                .SingleOrDefaultAsync(cancellationToken);
+            if (!string.IsNullOrWhiteSpace(linkedHubUserId)
+                && !string.Equals(linkedHubUserId, hubUserId, StringComparison.Ordinal))
+            {
+                logger.LogWarning(
+                    "HUB employee reference {EmployeeId} belongs to another HUB user",
+                    employeeId);
+                return new HubEmployeeSsoDecision(null, AccessDenied: true);
+            }
+        }
+        else
+        {
+            var normalizedEmail = email.Trim().ToLowerInvariant();
+            employee = await dbContext.Set<Employee>()
+                .AsNoTracking()
+                .IgnoreQueryFilters()
+                .SingleOrDefaultAsync(
+                    item => item.TenantId == tenantId && item.Email.ToLower() == normalizedEmail,
+                    cancellationToken);
+        }
 
         return employee is null
             ? new HubEmployeeSsoDecision(null, AccessDenied: false)
@@ -51,6 +95,21 @@ public sealed class HubEmployeeIdentityLinker(
         if (employee is null || employee.Status != EmployeeStatus.Active)
             return false;
 
+        var accessRequest = await dbContext.Set<HubEmployeeAccessRequest>()
+            .IgnoreQueryFilters()
+            .SingleOrDefaultAsync(
+                item => item.TenantId == tenantId && item.EmployeeId == employee.Id,
+                cancellationToken);
+        if (accessRequest?.HubUserId is not null
+            && !string.Equals(accessRequest.HubUserId, hubUserId, StringComparison.Ordinal))
+        {
+            logger.LogError(
+                "Employee {EmployeeId} is already linked to another HUB user {HubUserId}",
+                employee.Id,
+                accessRequest.HubUserId);
+            return false;
+        }
+
         if (employee.UserId is not null && employee.UserId != keycloakId)
         {
             logger.LogError(
@@ -62,11 +121,6 @@ public sealed class HubEmployeeIdentityLinker(
         if (employee.UserId is null)
             employee.LinkUser(keycloakId);
 
-        var accessRequest = await dbContext.Set<HubEmployeeAccessRequest>()
-            .IgnoreQueryFilters()
-            .SingleOrDefaultAsync(
-                item => item.TenantId == tenantId && item.EmployeeId == employee.Id,
-                cancellationToken);
         accessRequest?.MarkActive(hubUserId);
 
         await dbContext.SaveChangesAsync(cancellationToken);

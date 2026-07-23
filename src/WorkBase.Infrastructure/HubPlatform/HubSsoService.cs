@@ -21,6 +21,7 @@ public sealed record HandoffClaims(
     string InstanceId,
     string InstanceRole,
     string ProductKey,
+    string? EmployeeReference,
     string[] Modules,
     string Jti);
 
@@ -108,6 +109,7 @@ public sealed class HubSsoService(
             InstanceId: RequiredString(payload.RootElement, "instance_id"),
             InstanceRole: RequiredString(payload.RootElement, "instance_role"),
             ProductKey: RequiredString(payload.RootElement, "product_key"),
+            EmployeeReference: OptionalString(payload.RootElement, "employee_ref"),
             Modules: modules,
             Jti: RequiredString(payload.RootElement, "jti"));
     }
@@ -213,6 +215,19 @@ public sealed class HubSsoService(
         }
 
         return value.GetString()!;
+    }
+
+    private static string? OptionalString(JsonElement payload, string name)
+    {
+        if (!payload.TryGetProperty(name, out var value) || value.ValueKind == JsonValueKind.Null)
+            return null;
+        if (value.ValueKind != JsonValueKind.String)
+            throw new SecurityTokenException($"Optional JWT claim '{name}' is invalid.");
+
+        var result = value.GetString()?.Trim();
+        if (result?.Length > 128)
+            throw new SecurityTokenException($"Optional JWT claim '{name}' is too long.");
+        return string.IsNullOrEmpty(result) ? null : result;
     }
 
     private static long RequiredNumericDate(JsonElement payload, string name)
