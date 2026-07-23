@@ -19,15 +19,15 @@ python3 <<'PY'
 import json, os, urllib.request
 KC=os.environ['KC']; TOKEN=os.environ['TOKEN']
 p=json.load(open('/tmp/prof.json'))
-p['unmanagedAttributePolicy']='ENABLED'
+p['unmanagedAttributePolicy']='ADMIN_EDIT'
 names={a['name'] for a in p.get('attributes',[])}
 for attr in ('tenant_id','employee_id'):
-    if attr not in names:
-        p.setdefault('attributes',[]).append({
-            'name':attr,'displayName':attr,
-            'permissions':{'view':['admin','user'],'edit':['admin']},
-            'multivalued':False
-        })
+    attribute=next((a for a in p.get('attributes',[]) if a.get('name')==attr),None)
+    if attribute is None:
+        attribute={'name':attr,'displayName':attr}
+        p.setdefault('attributes',[]).append(attribute)
+    attribute['permissions']={'view':['admin'],'edit':['admin']}
+    attribute['multivalued']=False
 req=urllib.request.Request(f"{KC}/admin/realms/workbase/users/profile",
     data=json.dumps(p).encode(), method='PUT',
     headers={'Authorization':f'Bearer {TOKEN}','Content-Type':'application/json'})

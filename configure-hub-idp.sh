@@ -62,6 +62,7 @@ cat > /tmp/idp.json <<JSON
   "trustEmail": true,
   "storeToken": false,
   "linkOnly": false,
+  "updateProfileFirstLoginMode": "off",
   "firstBrokerLoginFlowAlias": "$FLOW_ALIAS",
   "config": {
     "clientId": "keycloak",
@@ -131,5 +132,5 @@ fi
 
 echo "=== weryfikacja IdP ==="
 curl -sk -H "Authorization: Bearer $TOKEN" "$KC/admin/realms/workbase/identity-provider/instances/wb-hub" \
-  | python3 -c 'import sys,json;d=json.load(sys.stdin);print("alias:",d.get("alias"),"| enabled:",d.get("enabled"),"| authUrl:",d["config"].get("authorizationUrl"))'
+  | python3 -c 'import sys,json;d=json.load(sys.stdin);print("alias:",d.get("alias"),"| enabled:",d.get("enabled"),"| profile update:",d.get("updateProfileFirstLoginMode"),"| authUrl:",d["config"].get("authorizationUrl"))'
 rm -f /tmp/idp.json /tmp/m.json /tmp/flow-executions.json /tmp/flow-execution.json
