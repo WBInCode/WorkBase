@@ -21,15 +21,11 @@ export function SsoBridgePage() {
     if (started.current) return;
     if (auth.isLoading) return;
 
-    // Już zalogowany (aktywna sesja) → prosto do pulpitu.
-    if (auth.isAuthenticated) {
-      started.current = true;
-      window.location.replace('/workspace');
-      return;
-    }
-
     started.current = true;
     const email = new URLSearchParams(window.location.search).get('email') ?? undefined;
+    // Backend just refreshed tenant/user attributes from a verified HUB handoff.
+    // Always run authorize again, even when react-oidc-context still holds an older
+    // authenticated user, so the API receives a token with current HUB claims.
     void auth.signinRedirect({
       login_hint: email,
       redirect_uri: `${window.location.origin}/auth/callback`,
