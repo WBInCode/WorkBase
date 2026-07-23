@@ -184,15 +184,58 @@ public sealed class KeycloakAdminService(
         HttpClient client, string baseUrl, string realm, string token,
         string email, CancellationToken cancellationToken)
     {
-        var request = new HttpRequestMessage(HttpMethod.Get,
-            $"{baseUrl}/admin/realms/{realm}/users?email={Uri.EscapeDataString(email)}&exact=true");
+        var users = await QueryUsersAsync(
+            client, baseUrl, realm, token, "email", email, cancellationToken);
+        if (users is null)
+            return null;
+
+        var userId = FindUniqueExactUserId(users, "email", email, out var hasEmailMatch);
+        if (hasEmailMatch)
+            return userId;
+
+        users = await QueryUsersAsync(
+            client, baseUrl, realm, token, "username", email, cancellationToken);
+        return users is null
+            ? null
+            : FindUniqueExactUserId(users, "username", email, out _);
+    }
+
+    private static async Task<JsonElement[]?> QueryUsersAsync(
+        HttpClient client, string baseUrl, string realm, string token,
+        string propertyName, string value, CancellationToken cancellationToken)
+    {
+        using var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            $"{baseUrl}/admin/realms/{realm}/users?{propertyName}={Uri.EscapeDataString(value)}&exact=true");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-        var response = await client.SendAsync(request, cancellationToken);
-        if (!response.IsSuccessStatusCode) return null;
+        using var response = await client.SendAsync(request, cancellationToken);
+        return response.IsSuccessStatusCode
+            ? await response.Content.ReadFromJsonAsync<JsonElement[]>(cancellationToken)
+            : null;
+    }
 
-        var users = await response.Content.ReadFromJsonAsync<JsonElement[]>(cancellationToken);
-        return users?.Length > 0 ? users[0].GetProperty("id").GetString() : null;
+    private static string? FindUniqueExactUserId(
+        JsonElement[] users, string propertyName, string value, out bool hasMatch)
+    {
+        string? userId = null;
+        var matchCount = 0;
+        foreach (var user in users)
+        {
+            if (!user.TryGetProperty(propertyName, out var property)
+                || !string.Equals(property.GetString(), value, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            matchCount++;
+            userId = user.TryGetProperty("id", out var idProperty)
+                ? idProperty.GetString()
+                : null;
+        }
+
+        hasMatch = matchCount > 0;
+        return matchCount == 1 ? userId : null;
     }
 
     private string GetAdminBaseUrl() =>
