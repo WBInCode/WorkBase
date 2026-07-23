@@ -129,6 +129,13 @@ body,
   box-shadow: 0 0 0 3px rgba(61, 109, 242, 0.14);
 }
 
+.form-control[aria-invalid="true"],
+.pf-c-form-control[aria-invalid="true"] {
+  padding-right: 40px;
+  background-position: right 12px center;
+  background-repeat: no-repeat;
+}
+
 .btn-primary,
 .pf-c-button.pf-m-primary,
 #kc-login {
