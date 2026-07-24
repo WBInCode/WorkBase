@@ -9,6 +9,7 @@ using WorkBase.Infrastructure.Seeding;
 using WorkBase.Modules.Notification.Infrastructure.Hubs;
 using WorkBase.Modules.TimeTracking.Infrastructure.Jobs;
 using WorkBase.Modules.Tasks.Infrastructure.Jobs;
+using WorkBase.Infrastructure.Ecosystem;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -158,6 +159,12 @@ try
             "hub-employee-invitations",
             job => job.ExecuteAsync(),
             "* * * * *",
+            new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
+
+        RecurringJob.AddOrUpdate<EcosystemSyncScheduler>(
+            "rytm-ecosystem-snapshot",
+            job => job.EnqueueAllAsync(),
+            "*/15 * * * *",
             new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
     }
 

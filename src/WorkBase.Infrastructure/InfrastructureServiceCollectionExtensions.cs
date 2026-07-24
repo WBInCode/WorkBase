@@ -22,6 +22,8 @@ using WorkBase.Infrastructure.PublicApi;
 using WorkBase.Shared.Auth;
 using WorkBase.Shared.Domain;
 using WorkBase.Shared.Storage;
+using WorkBase.Contracts.Ecosystem;
+using WorkBase.Infrastructure.Ecosystem;
 
 namespace WorkBase.Infrastructure;
 
@@ -58,6 +60,25 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<IEmployeeAccessStatusService, HubPlatform.EmployeeAccessStatusService>();
         services.AddScoped<HubPlatform.HubEmployeeAccessJob>();
         services.AddSingleton<HubPlatform.HubUserAccessVerifier>();
+
+        services.AddOptions<EcosystemOptions>()
+            .Bind(configuration.GetSection(EcosystemOptions.SectionName))
+            .Validate(options => !options.Enabled || (
+                options.TenantId != Guid.Empty
+                && Uri.TryCreate(options.BaseUrl, UriKind.Absolute, out _)
+                && !string.IsNullOrWhiteSpace(options.Secret)
+                && !string.IsNullOrWhiteSpace(options.HubOrgId)),
+                "Ecosystem requires TenantId, BaseUrl, Secret and HubOrgId when enabled")
+            .ValidateOnStart();
+        services.AddScoped<EcosystemSnapshotJob>();
+        services.AddScoped<EcosystemSyncScheduler>();
+        services.AddScoped<IEcosystemSyncScheduler>(provider => provider.GetRequiredService<EcosystemSyncScheduler>());
+        services.AddHttpClient("RytmEcosystem", (provider, client) =>
+        {
+            var options = provider.GetRequiredService<Microsoft.Extensions.Options.IOptions<EcosystemOptions>>().Value;
+            client.BaseAddress = new Uri(options.BaseUrl.TrimEnd('/') + "/");
+            client.Timeout = TimeSpan.FromSeconds(8);
+        });
 
         services.AddScoped<ICurrentTenantService, HttpContextTenantService>();
         services.AddScoped<IDataScopeService, DataScopeService>();
