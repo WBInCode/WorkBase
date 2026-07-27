@@ -79,7 +79,8 @@ export default function TimeInput({ value, onChange, style, disabled }: TimeInpu
       const idx = TIME_SLOTS.indexOf(value);
       if (idx >= 0) {
         const item = listRef.current.children[idx] as HTMLElement;
-        item?.scrollIntoView({ block: 'center' });
+        const centeredOffset = item.offsetTop - (listRef.current.clientHeight - item.offsetHeight) / 2;
+        listRef.current.scrollTop = Math.max(0, centeredOffset);
       }
     }
   }, [open, value]);
