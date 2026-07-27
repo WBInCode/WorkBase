@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Plus, Pencil, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import TimeInput from '@/components/shared/TimeInput';
 import type { TimeStatusDto, TimeSheetPeriodDto, TimeSheetEntryDto } from '@/api/types/time';
@@ -383,17 +384,22 @@ export function EmployeeTimesheetSection({ timeStatus, timesheet, isLoading, emp
       )}
 
       {/* Entry Modal */}
-      {modal.open && (
+      {modal.open && createPortal(
         <div style={{
           position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.3)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
+          padding: '16px', overflowY: 'auto', boxSizing: 'border-box',
         }}
           onClick={() => setModal(initialModal)}
+          role="dialog"
+          aria-modal="true"
+          aria-label={modal.mode === 'create' ? 'Dodaj wpis' : 'Edytuj wpis'}
         >
           <div
             style={{
               backgroundColor: colors.white, borderRadius: '16px', padding: '24px',
-              width: '400px', maxWidth: '90vw', boxShadow: '0 24px 64px -12px rgba(20,25,43,0.28), 0 0 0 1px rgba(20,25,43,0.04)',
+              width: '400px', maxWidth: '100%', maxHeight: 'calc(100dvh - 32px)', overflowY: 'auto',
+              boxShadow: '0 24px 64px -12px rgba(20,25,43,0.28), 0 0 0 1px rgba(20,25,43,0.04)',
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -495,7 +501,8 @@ export function EmployeeTimesheetSection({ timeStatus, timesheet, isLoading, emp
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );
