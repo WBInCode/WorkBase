@@ -94,56 +94,8 @@ public sealed class KeycloakAdminService(
         var baseUrl = configuration["Keycloak:AdminUrl"]
             ?? configuration["Keycloak:Authority"]!.Replace("/realms/workbase", "");
         var realm = configuration["Keycloak:Realm"] ?? "workbase";
-
-        var getUserRequest = new HttpRequestMessage(HttpMethod.Get,
-            $"{baseUrl}/admin/realms/{realm}/users/{keycloakUserId}");
-        getUserRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        var getUserResponse = await client.SendAsync(getUserRequest, cancellationToken);
-
-        if (!getUserResponse.IsSuccessStatusCode)
-        {
-            logger.LogError("Failed to get Keycloak user {UserId}", keycloakUserId);
-            return false;
-        }
-
-        var user = await getUserResponse.Content.ReadFromJsonAsync<JsonElement>(cancellationToken);
-        var existingAttrs = new Dictionary<string, string[]>();
-        if (user.TryGetProperty("attributes", out var attrsElement))
-        {
-            foreach (var prop in attrsElement.EnumerateObject())
-            {
-                existingAttrs[prop.Name] = prop.Value.EnumerateArray()
-                    .Select(v => v.GetString()!)
-                    .ToArray();
-            }
-        }
-
-        foreach (var (key, value) in attributes)
-        {
-            existingAttrs[key] = [value];
-        }
-
-        var updatePayload = new
-        {
-            attributes = existingAttrs
-        };
-
-        var updateRequest = new HttpRequestMessage(HttpMethod.Put,
-            $"{baseUrl}/admin/realms/{realm}/users/{keycloakUserId}");
-        updateRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        updateRequest.Content = JsonContent.Create(updatePayload, options: JsonOptions);
-
-        var updateResponse = await client.SendAsync(updateRequest, cancellationToken);
-
-        if (!updateResponse.IsSuccessStatusCode)
-        {
-            var error = await updateResponse.Content.ReadAsStringAsync(cancellationToken);
-            logger.LogError("Failed to set attributes on Keycloak user {UserId}: {Status} {Error}",
-                keycloakUserId, updateResponse.StatusCode, error);
-            return false;
-        }
-
-        return true;
+        return await MergeUserAttributesAsync(
+            client, baseUrl, realm, token, keycloakUserId, attributes, cancellationToken);
     }
 
     private async Task<string?> GetAdminTokenAsync(CancellationToken cancellationToken)
@@ -768,7 +720,19 @@ public sealed class KeycloakAdminService(
             ["kiosk_credentials_delivered"] = credentialsDelivered ? "true" : "false",
         };
         if (!await MergeUserAttributesAsync(
-                client, baseUrl, realmName, token, userId, mergedAttributes, cancellationToken))
+                client,
+                baseUrl,
+                realmName,
+                token,
+                userId,
+                mergedAttributes,
+                cancellationToken,
+                new KeycloakUserProfile(
+                    username,
+                    $"{username}@workbase.local",
+                    "Kiosk",
+                    displayName,
+                    EmailVerified: true)))
         {
             return null;
         }
@@ -861,7 +825,8 @@ public sealed class KeycloakAdminService(
         string token,
         string userId,
         Dictionary<string, string> attributes,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        KeycloakUserProfile? profile = null)
     {
         var getRequest = new HttpRequestMessage(
             HttpMethod.Get,
@@ -886,20 +851,56 @@ public sealed class KeycloakAdminService(
         foreach (var (key, value) in attributes)
             merged[key] = [value];
 
+        static string? StringProperty(JsonElement source, string name) =>
+            source.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String
+                ? value.GetString()
+                : null;
+        static bool? BooleanProperty(JsonElement source, string name) =>
+            source.TryGetProperty(name, out var value)
+                && value.ValueKind is JsonValueKind.True or JsonValueKind.False
+                    ? value.GetBoolean()
+                    : null;
+        static string[]? StringArrayProperty(JsonElement source, string name) =>
+            source.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.Array
+                ? value.EnumerateArray()
+                    .Where(item => item.ValueKind == JsonValueKind.String)
+                    .Select(item => item.GetString() ?? string.Empty)
+                    .ToArray()
+                : null;
+
+        var updatePayload = new
+        {
+            username = profile?.Username ?? StringProperty(user, "username"),
+            email = profile?.Email ?? StringProperty(user, "email"),
+            firstName = profile?.FirstName ?? StringProperty(user, "firstName"),
+            lastName = profile?.LastName ?? StringProperty(user, "lastName"),
+            enabled = BooleanProperty(user, "enabled"),
+            emailVerified = profile?.EmailVerified ?? BooleanProperty(user, "emailVerified"),
+            requiredActions = StringArrayProperty(user, "requiredActions"),
+            attributes = merged,
+        };
+
         var updateRequest = new HttpRequestMessage(
             HttpMethod.Put,
             $"{baseUrl}/admin/realms/{realmName}/users/{userId}");
         updateRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        updateRequest.Content = JsonContent.Create(new { attributes = merged }, options: JsonOptions);
+        updateRequest.Content = JsonContent.Create(updatePayload, options: JsonOptions);
         var updateResponse = await client.SendAsync(updateRequest, cancellationToken);
         if (updateResponse.IsSuccessStatusCode)
             return true;
 
         logger.LogError(
-            "Failed to update managed kiosk account attributes: {Status}",
+            "Failed to update Keycloak user attributes: {Status}",
             updateResponse.StatusCode);
         return false;
     }
+
+    private sealed record KeycloakUserProfile(
+        string Username,
+        string Email,
+        string FirstName,
+        string LastName,
+        bool EmailVerified);
 
     private static async Task<JsonElement?> FindUserByUsernameAsync(
         HttpClient client,
