@@ -57,7 +57,10 @@ public sealed record HubInstanceConfig(
     string[] Modules,
     string? CustomDomain,
     string? OrgName = null,
-    string? OrganizationName = null);
+    string? OrganizationName = null,
+    HubInstanceAdministrator? Administrator = null);
+
+public sealed record HubInstanceAdministrator(string Email, string DisplayName);
 
 public sealed record HubTenantSyncResult(
     Guid TenantId,
@@ -155,8 +158,8 @@ public sealed class HubEntitlementsSyncService(
             if (!res.IsSuccessStatusCode)
             {
                 logger.LogWarning(
-                    "Hub Entitlements API zwróciło {Status} dla instancji {InstanceId}",
-                    (int)res.StatusCode, instanceId);
+                    "Hub Entitlements API zwróciło {Status} podczas pobierania konfiguracji instancji",
+                    (int)res.StatusCode);
                 return null;
             }
 
@@ -167,17 +170,15 @@ public sealed class HubEntitlementsSyncService(
                 || string.IsNullOrWhiteSpace(config.OrgSlug)
                 || !string.Equals(config.ProductKey, opts.ClientId, StringComparison.OrdinalIgnoreCase))
             {
-                logger.LogWarning(
-                    "Hub zwrócił niespójną konfigurację instancji {InstanceId} (org={OrgId}, product={ProductKey})",
-                    instanceId, config?.OrgId, config?.ProductKey);
+                logger.LogWarning("Hub zwrócił niespójną konfigurację instancji");
                 return null;
             }
 
             return config;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            logger.LogWarning(ex, "Nie udało się pobrać konfiguracji instancji HUB {InstanceId}", instanceId);
+            logger.LogWarning("Nie udało się pobrać konfiguracji instancji HUB");
             return null;
         }
     }
@@ -198,9 +199,7 @@ public sealed class HubEntitlementsSyncService(
         if (expectedOrganizationId is not null
             && !string.Equals(config.OrgId, expectedOrganizationId, StringComparison.Ordinal))
         {
-            logger.LogWarning(
-                "Instancja HUB {InstanceId} należy do organizacji {ActualOrgId}, a token wskazuje {ExpectedOrgId}",
-                instanceId, config.OrgId, expectedOrganizationId);
+            logger.LogWarning("Instancja HUB należy do innej organizacji niż wskazana w tokenie");
             return null;
         }
 
@@ -266,6 +265,19 @@ public sealed class HubEntitlementsSyncService(
             scope.ServiceProvider.GetRequiredService<TenantAccessCache>()
                 .Invalidate(provisioned.TenantId);
 
+            if (accessEnabled && config.Administrator is { Email.Length: > 0 } administrator)
+            {
+                var kiosk = await scope.ServiceProvider
+                    .GetRequiredService<IKioskAccountProvisioningService>()
+                    .EnsureForTenantAsync(
+                        provisioned.TenantId,
+                        administrator.Email,
+                        credentialsCanBeReturned: false,
+                        cancellationToken);
+                if (kiosk is null || !kiosk.CredentialsDelivered)
+                    throw new InvalidOperationException("Kiosk credentials were not delivered.");
+            }
+
             logger.LogInformation(
                 "Hub sync OK — tenant {TenantId}, org {OrgId}, plan {Plan}, status {Status}, modułów {Enabled}/{Total}, zmian {Changed}",
                 provisioned.TenantId, config.OrgId, config.Plan, config.Status,
@@ -279,9 +291,9 @@ public sealed class HubEntitlementsSyncService(
                 accessEnabled,
                 provisioned.Created);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            logger.LogWarning(ex, "Hub sync nie powiódł się dla instancji {InstanceId}", instanceId);
+            logger.LogWarning("Hub sync instancji nie powiódł się");
             return null;
         }
     }

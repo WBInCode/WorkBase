@@ -1,0 +1,31 @@
+{
+  "id": "/kiosk",
+  "name": "WorkBase Kiosk",
+  "short_name": "WB Kiosk",
+  "description": "Terminal rejestracji czasu pracy WorkBase",
+  "lang": "pl",
+  "start_url": "/kiosk?source=pwa",
+  "scope": "/",
+  "display": "fullscreen",
+  "orientation": "any",
+  "theme_color": "#0f172a",
+  "background_color": "#0f172a",
+  "icons": [
+    {
+      "src": "/pwa-192x192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/pwa-512x512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/pwa-512x512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

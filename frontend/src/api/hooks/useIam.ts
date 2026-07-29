@@ -179,6 +179,11 @@ export interface CreateTenantResponse {
   keycloakAccountCreated: boolean;
   /** Non-null in multi-realm mode: the company's dedicated realm (login via /?realm={name}). */
   keycloakRealmName: string | null;
+  kioskUsername: string | null;
+  /** Returned exactly once; also emailed to the tenant administrator when SMTP is available. */
+  kioskTemporaryPassword: string | null;
+  kioskLoginUrl: string | null;
+  kioskCredentialsEmailSent: boolean;
 }
 
 export function usePlatformTenantFeatureFlags(tenantId: string | null) {

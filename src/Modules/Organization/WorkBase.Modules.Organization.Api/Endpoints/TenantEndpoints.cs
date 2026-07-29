@@ -68,7 +68,11 @@ public static class TenantEndpoints
                 result.AdminEmail,
                 result.AdminTemporaryPassword,
                 KeycloakAccountCreated: result.AdminTemporaryPassword is not null,
-                result.KeycloakRealmName);
+                result.KeycloakRealmName,
+                result.KioskUsername,
+                result.KioskTemporaryPassword,
+                result.KioskLoginUrl,
+                result.KioskCredentialsEmailSent);
 
             return Results.Created($"/api/org/tenants/{result.TenantId}", response);
         }
@@ -100,5 +104,9 @@ public sealed record CreateTenantResponse(
     string AdminEmail,
     string? AdminTemporaryPassword,
     bool KeycloakAccountCreated,
-    string? KeycloakRealmName);
+    string? KeycloakRealmName,
+    string? KioskUsername,
+    string? KioskTemporaryPassword,
+    string? KioskLoginUrl,
+    bool KioskCredentialsEmailSent);
 
