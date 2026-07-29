@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { LogIn, LogOut, Coffee, CheckCircle, XCircle, User, ArrowLeft, Monitor, ScanLine } from 'lucide-react';
+import { LogIn, LogOut, Coffee, CheckCircle, XCircle, User, ArrowLeft, Monitor, ScanLine, Download, X } from 'lucide-react';
 import { useAuth } from 'react-oidc-context';
 import { mapUserClaims } from '@/auth';
 import { useTimeStatus, useClockIn, useClockOut, useStartBreak, useEndBreak } from '@/api/hooks/useTimeTracking';
@@ -16,6 +16,11 @@ interface KioskEmployee {
   firstName: string;
   lastName: string;
   employeeNumber: string;
+}
+
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
 export function KioskPage() {
@@ -45,6 +50,60 @@ export function KioskPage() {
   const [now, setNow] = useState(new Date());
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [showQrScanner, setShowQrScanner] = useState(false);
+  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [showInstallHelp, setShowInstallHelp] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(
+    window.matchMedia('(display-mode: standalone)').matches
+      || window.matchMedia('(display-mode: fullscreen)').matches
+      || (navigator as Navigator & { standalone?: boolean }).standalone === true,
+  );
+
+  useEffect(() => {
+    if ('caches' in window) void caches.delete('api-cache');
+
+    const manifest = document.querySelector<HTMLLinkElement>('link[rel="manifest"]');
+    const previousManifest = manifest?.href;
+    if (manifest) manifest.href = '/kiosk.webmanifest';
+
+    const previousTitle = document.title;
+    document.title = 'WorkBase Kiosk';
+
+    const themeColor = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+    const previousThemeColor = themeColor?.content;
+    if (themeColor) themeColor.content = '#0f172a';
+
+    const handleInstallPrompt = (event: Event) => {
+      event.preventDefault();
+      setInstallPrompt(event as BeforeInstallPromptEvent);
+    };
+    const handleInstalled = () => {
+      setInstallPrompt(null);
+      setShowInstallHelp(false);
+      setIsInstalled(true);
+    };
+    window.addEventListener('beforeinstallprompt', handleInstallPrompt);
+    window.addEventListener('appinstalled', handleInstalled);
+
+    return () => {
+      if (manifest && previousManifest) manifest.href = previousManifest;
+      document.title = previousTitle;
+      if (themeColor && previousThemeColor) themeColor.content = previousThemeColor;
+      window.removeEventListener('beforeinstallprompt', handleInstallPrompt);
+      window.removeEventListener('appinstalled', handleInstalled);
+    };
+  }, []);
+
+  const handleInstall = useCallback(async () => {
+    if (!installPrompt) {
+      setShowInstallHelp(true);
+      return;
+    }
+
+    await installPrompt.prompt();
+    const choice = await installPrompt.userChoice;
+    if (choice.outcome === 'accepted') setIsInstalled(true);
+    setInstallPrompt(null);
+  }, [installPrompt]);
 
   // Kiosk heartbeat: auto-refresh, reset on idle
   useKioskHeartbeat({
@@ -225,7 +284,13 @@ export function KioskPage() {
           </div>
         )}
 
-        <KioskFooter kioskLocation={kioskLocation} />
+        <KioskFooter
+          kioskLocation={kioskLocation}
+          isInstalled={isInstalled}
+          showInstallHelp={showInstallHelp}
+          onInstall={handleInstall}
+          onCloseInstallHelp={() => setShowInstallHelp(false)}
+        />
       </div>
     );
   }
@@ -349,7 +414,13 @@ export function KioskPage() {
         />
       )}
 
-      <KioskFooter kioskLocation={kioskLocation} />
+      <KioskFooter
+        kioskLocation={kioskLocation}
+        isInstalled={isInstalled}
+        showInstallHelp={showInstallHelp}
+        onInstall={handleInstall}
+        onCloseInstallHelp={() => setShowInstallHelp(false)}
+      />
     </div>
   );
 }
@@ -386,25 +457,63 @@ function ModeTab({ icon: Icon, label, active, onClick }: {
   );
 }
 
-function KioskFooter({ kioskLocation }: { kioskLocation: string | null }) {
+function KioskFooter({
+  kioskLocation,
+  isInstalled,
+  showInstallHelp,
+  onInstall,
+  onCloseInstallHelp,
+}: {
+  kioskLocation: string | null;
+  isInstalled: boolean;
+  showInstallHelp: boolean;
+  onInstall: () => void;
+  onCloseInstallHelp: () => void;
+}) {
   const auth = useAuth();
   return (
     <div style={{ position: 'fixed', bottom: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-      <button
-        onClick={() => auth.signoutRedirect()}
-        style={{
-          padding: '8px 20px',
-          borderRadius: '12px',
-          border: `1px solid ${colors.slate[700]}`,
-          backgroundColor: 'transparent',
-          color: colors.slate[400],
-          fontSize: '13px',
-          cursor: 'pointer',
-        }}
-      >
-        <LogOut size={14} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
-        Wyloguj
-      </button>
+      {showInstallHelp && (
+        <div style={{
+          width: 'min(360px, calc(100vw - 32px))', padding: '14px 44px 14px 16px',
+          borderRadius: '8px', border: `1px solid ${colors.slate[700]}`,
+          backgroundColor: colors.slate[900], color: colors.slate[400],
+          fontSize: '13px', lineHeight: 1.5, position: 'relative', boxSizing: 'border-box',
+        }}>
+          W Edge lub Chrome wybierz z menu „Zainstaluj aplikację”. Na iPhone wybierz Udostępnij, a następnie „Do ekranu początkowego”.
+          <button
+            onClick={onCloseInstallHelp}
+            title="Zamknij"
+            style={{ position: 'absolute', top: '8px', right: '8px', padding: '5px', border: 'none', background: 'transparent', color: colors.slate[400], cursor: 'pointer' }}
+          >
+            <X size={16} />
+          </button>
+        </div>
+      )}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        {!isInstalled && (
+          <button
+            onClick={onInstall}
+            style={{
+              padding: '8px 14px', borderRadius: '8px', border: `1px solid ${colors.slate[700]}`,
+              backgroundColor: 'transparent', color: colors.slate[400], fontSize: '13px', cursor: 'pointer',
+            }}
+          >
+            <Download size={14} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
+            Zainstaluj
+          </button>
+        )}
+        <button
+          onClick={() => auth.signoutRedirect()}
+          style={{
+            padding: '8px 14px', borderRadius: '8px', border: `1px solid ${colors.slate[700]}`,
+            backgroundColor: 'transparent', color: colors.slate[400], fontSize: '13px', cursor: 'pointer',
+          }}
+        >
+          <LogOut size={14} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
+          Wyloguj
+        </button>
+      </div>
       <div style={{ fontSize: '13px', color: '#475569', textAlign: 'center' }}>
         WorkBase Kiosk{kioskLocation ? ` — ${kioskLocation}` : ''}
       </div>

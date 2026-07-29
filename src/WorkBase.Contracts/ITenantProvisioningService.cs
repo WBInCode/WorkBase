@@ -50,4 +50,8 @@ public sealed record TenantProvisioningResult(
     Guid TenantId,
     string AdminEmail,
     string? AdminTemporaryPassword,
-    string? KeycloakRealmName = null);
+    string? KeycloakRealmName = null,
+    string? KioskUsername = null,
+    string? KioskTemporaryPassword = null,
+    string? KioskLoginUrl = null,
+    bool KioskCredentialsEmailSent = false);

@@ -90,6 +90,7 @@ public static class HubIntegrationEndpoints
             HubSsoService sso,
             HubEntitlementsSyncService entitlements,
             IKeycloakAdminService keycloak,
+            IKioskAccountProvisioningService kioskAccountProvisioning,
             IHubEmployeeIdentityLinker employeeIdentityLinker,
             IConfiguration configuration,
             ILoggerFactory loggerFactory,
@@ -188,6 +189,17 @@ public static class HubIntegrationEndpoints
                 managedRoleNames: ["workbase-admin", "workbase-user"],
                 assignedRoleNames: [role],
                 cancellationToken: ct);
+
+            if (role == "workbase-admin")
+            {
+                var kiosk = await kioskAccountProvisioning.EnsureForTenantAsync(
+                    tenantSync.TenantId,
+                    claims.Email,
+                    credentialsCanBeReturned: false,
+                    ct);
+                if (kiosk is null || !kiosk.CredentialsDelivered)
+                    return RedirectError("kiosk_credentials");
+            }
 
             // Frontend inicjuje PRAWDZIWY Authorization Code + PKCE (react-oidc-context) —
             // e-mail tylko podpowiada Keycloakowi kogo logujemy (login_hint), nic wrażliwego

@@ -15,6 +15,7 @@ namespace WorkBase.Infrastructure.Services;
 public sealed class TenantProvisioningService(
     WorkBaseDbContext dbContext,
     IKeycloakAdminService keycloakAdmin,
+    IKioskAccountProvisioningService kioskAccountProvisioning,
     TenantIssuerCache issuerCache,
     IConfiguration configuration,
     ILogger<TenantProvisioningService> logger) : ITenantProvisioningService
@@ -207,7 +208,21 @@ public sealed class TenantProvisioningService(
             "Provisioned admin {Email} (Keycloak: {KeycloakId}) for tenant {TenantId}",
             adminEmail, keycloakUserId, tenant.Id);
 
-        return new TenantProvisioningResult(tenant.Id, adminEmail, temporaryPassword, realmName);
+        var kiosk = await kioskAccountProvisioning.EnsureForTenantAsync(
+            tenant.Id,
+            adminEmail,
+            credentialsCanBeReturned: true,
+            cancellationToken);
+
+        return new TenantProvisioningResult(
+            tenant.Id,
+            adminEmail,
+            temporaryPassword,
+            realmName,
+            kiosk?.Username,
+            kiosk?.TemporaryPassword,
+            kiosk?.LoginUrl,
+            kiosk?.CredentialsEmailSent ?? false);
     }
 
     private async Task SeedTenantBaselineAsync(

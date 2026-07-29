@@ -63,6 +63,24 @@ public interface IKeycloakAdminService
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Creates or repairs the managed kiosk account for a tenant. A temporary password is
+    /// installed only while the initial credentials still need to be delivered, so repeated
+    /// owner logins do not rotate a working terminal password.
+    /// </summary>
+    Task<KeycloakKioskAccountResult?> PrepareKioskUserAsync(
+        string realmName,
+        string username,
+        string displayName,
+        string temporaryPassword,
+        Dictionary<string, string> attributes,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> MarkKioskCredentialsDeliveredAsync(
+        string realmName,
+        string keycloakUserId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Replaces only the indicated integration-managed realm roles, preserving every role
     /// outside <paramref name="managedRoleNames"/>.
     /// </summary>
@@ -73,4 +91,6 @@ public interface IKeycloakAdminService
         string[] assignedRoleNames,
         CancellationToken cancellationToken = default);
 }
+
+    public sealed record KeycloakKioskAccountResult(string UserId, bool CredentialsIssued);
 

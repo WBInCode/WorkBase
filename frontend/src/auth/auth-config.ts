@@ -4,14 +4,23 @@ import { WebStorageStateStore } from 'oidc-client-ts';
 const defaultAuthority = import.meta.env.VITE_KEYCLOAK_AUTHORITY || 'http://localhost:8080/realms/workbase';
 const clientId = import.meta.env.VITE_KEYCLOAK_CLIENT_ID || 'workbase-web';
 const redirectUri = import.meta.env.VITE_REDIRECT_URI || `${window.location.origin}/auth/callback`;
+const KIOSK_AUTH_STORAGE_KEY = 'wb_kiosk_auth';
+const currentPath = window.location.pathname;
+if (currentPath.startsWith('/kiosk')) {
+  sessionStorage.setItem(KIOSK_AUTH_STORAGE_KEY, 'true');
+} else if (!currentPath.startsWith('/auth/callback')) {
+  sessionStorage.removeItem(KIOSK_AUTH_STORAGE_KEY);
+}
+const isKioskAuth = sessionStorage.getItem(KIOSK_AUTH_STORAGE_KEY) === 'true';
 
 // Wylogowanie z produktu kończy też sesję Huba (single logout ekosystemu). Inaczej
 // globalny kc_idp_hint natychmiast zalogowałby użytkownika z powrotem przez żywą sesję
 // Huba. Po zakończeniu sesji Huba wracamy na ekran „Wylogowano".
 const hubUrl = import.meta.env.VITE_HUB_URL || 'https://wb-partners.pl';
-const postLogoutRedirectUri =
-  import.meta.env.VITE_POST_LOGOUT_REDIRECT_URI ||
-  `${hubUrl}/api/v1/auth/logout-redirect?return=${encodeURIComponent(`${window.location.origin}/logged-out`)}`;
+const postLogoutRedirectUri = isKioskAuth
+  ? `${window.location.origin}/kiosk?realm=`
+  : import.meta.env.VITE_POST_LOGOUT_REDIRECT_URI ||
+    `${hubUrl}/api/v1/auth/logout-redirect?return=${encodeURIComponent(`${window.location.origin}/logged-out`)}`;
 
 const REALM_STORAGE_KEY = 'wb_realm';
 
@@ -43,14 +52,11 @@ function resolveAuthority(): string {
 
 const authority = resolveAuthority();
 
-/**
- * Domyślny dostawca tożsamości (Identity Provider) dla logowania. Ustawiony na
- * „wb-hub" sprawia, że Keycloak od razu przekierowuje do logowania przez WB Platform
- * (Hub jako IdP) — użytkownik NIE widzi natywnego ekranu logowania Keycloak. Pusta
- * wartość (VITE_KC_IDP_HINT="") przywraca standardowy ekran Keycloak (np. do lokalnego
- * logowania administracyjnego). Konta kiosku używają osobnego przepływu i to nie dotyczy ich.
- */
-const kcIdpHint = import.meta.env.VITE_KC_IDP_HINT ?? 'wb-hub';
+// The Hub launcher requests its broker explicitly with ?sso=wb-hub in ProtectedRoute.
+// Direct /kiosk visits must keep Keycloak's native login so managed terminal accounts work.
+const configuredKcIdpHint = (
+  (import.meta.env.VITE_KC_IDP_HINT as string | undefined) ?? 'wb-hub'
+).trim();
 
 export const oidcConfig: AuthProviderProps = {
   authority,
@@ -60,8 +66,9 @@ export const oidcConfig: AuthProviderProps = {
   response_type: 'code',
   scope: 'openid profile email',
   automaticSilentRenew: true,
-  // kc_idp_hint kieruje Keycloak prosto do wskazanego IdP, pomijając jego ekran logowania.
-  ...(kcIdpHint ? { extraQueryParams: { kc_idp_hint: kcIdpHint } } : {}),
+  ...(configuredKcIdpHint && !isKioskAuth
+    ? { extraQueryParams: { kc_idp_hint: configuredKcIdpHint } }
+    : {}),
   // sessionStorage keeps OIDC state across redirects but clears on tab close
   userStore: new WebStorageStateStore({ store: sessionStorage }),
   onSigninCallback: () => {

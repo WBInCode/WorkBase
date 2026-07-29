@@ -9,36 +9,9 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'pwa-192x192.svg', 'pwa-512x512.svg'],
-      manifest: {
-        name: 'WorkBase',
-        short_name: 'WorkBase',
-        description: 'System zarządzania pracownikami i czasem pracy',
-        theme_color: '#eef1f8',
-        background_color: '#eef1f8',
-        display: 'standalone',
-        scope: '/',
-        start_url: '/',
-        icons: [
-          {
-            src: 'pwa-192x192.svg',
-            sizes: '192x192',
-            type: 'image/svg+xml',
-          },
-          {
-            src: 'pwa-512x512.svg',
-            sizes: '512x512',
-            type: 'image/svg+xml',
-          },
-          {
-            src: 'pwa-512x512.svg',
-            sizes: '512x512',
-            type: 'image/svg+xml',
-            purpose: 'any maskable',
-          },
-        ],
-      },
+      manifest: false,
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,webmanifest}'],
         navigateFallbackDenylist: [
           /^\/sso\/callback(?:\/|$)/,
           /^\/api(?:\/|$)/,
@@ -46,6 +19,10 @@ export default defineConfig({
           /^\/hubs(?:\/|$)/,
         ],
         runtimeCaching: [
+          {
+            urlPattern: /^https?:\/\/.*\/api\/(?:org\/employees|time)(?:\/|\?|$).*/i,
+            handler: 'NetworkOnly',
+          },
           {
             urlPattern: /^https?:\/\/.*\/api\/.*/i,
             handler: 'NetworkFirst',

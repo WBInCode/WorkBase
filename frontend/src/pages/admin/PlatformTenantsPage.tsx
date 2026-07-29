@@ -236,6 +236,62 @@ export function PlatformTenantsPage() {
                   </div>
                 </div>
               )}
+              {createdCredentials.kioskUsername && (
+                <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: `1px solid ${colors.success[200]}` }}>
+                  <div style={{ fontSize: '12px', fontWeight: 700, color: colors.success[800], marginBottom: '6px' }}>
+                    Dane logowania kiosku
+                  </div>
+                  <div style={{ fontSize: '12px', color: colors.gray[800], marginBottom: '4px' }}>
+                    Login: <strong>{createdCredentials.kioskUsername}</strong>
+                  </div>
+                  {createdCredentials.kioskTemporaryPassword && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                      <code style={{
+                        fontSize: '13px', padding: '4px 8px', borderRadius: '4px',
+                        backgroundColor: colors.white, border: `1px solid ${colors.success[200]}`,
+                      }}>
+                        {createdCredentials.kioskTemporaryPassword}
+                      </code>
+                      <button
+                        onClick={() => navigator.clipboard.writeText(createdCredentials.kioskTemporaryPassword!)}
+                        title="Kopiuj hasło kiosku"
+                        style={{
+                          display: 'inline-flex', padding: '4px', border: 'none',
+                          backgroundColor: 'transparent', cursor: 'pointer', color: colors.success[700],
+                        }}
+                      >
+                        <Copy size={14} />
+                      </button>
+                    </div>
+                  )}
+                  {createdCredentials.kioskLoginUrl && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <code style={{
+                        fontSize: '12px', padding: '4px 8px', borderRadius: '4px',
+                        backgroundColor: colors.white, border: `1px solid ${colors.success[200]}`,
+                        wordBreak: 'break-all',
+                      }}>
+                        {createdCredentials.kioskLoginUrl}
+                      </code>
+                      <button
+                        onClick={() => navigator.clipboard.writeText(createdCredentials.kioskLoginUrl!)}
+                        title="Kopiuj adres kiosku"
+                        style={{
+                          display: 'inline-flex', padding: '4px', border: 'none',
+                          backgroundColor: 'transparent', cursor: 'pointer', color: colors.success[700],
+                        }}
+                      >
+                        <Copy size={14} />
+                      </button>
+                    </div>
+                  )}
+                  <div style={{ fontSize: '11px', color: colors.gray[500], marginTop: '6px' }}>
+                    {createdCredentials.kioskCredentialsEmailSent
+                      ? 'Dane kiosku wysłano również do administratora firmy.'
+                      : 'Przekaż dane administratorowi bezpiecznym kanałem.'}
+                  </div>
+                </div>
+              )}
               <button
                 onClick={() => setCreatedCredentials(null)}
                 style={{

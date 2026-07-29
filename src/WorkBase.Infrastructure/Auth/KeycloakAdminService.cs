@@ -680,6 +680,256 @@ public sealed class KeycloakAdminService(
         return userId;
     }
 
+    public async Task<KeycloakKioskAccountResult?> PrepareKioskUserAsync(
+        string realmName,
+        string username,
+        string displayName,
+        string temporaryPassword,
+        Dictionary<string, string> attributes,
+        CancellationToken cancellationToken = default)
+    {
+        var token = await GetAdminTokenAsync(cancellationToken);
+        if (token is null) return null;
+
+        var client = httpClientFactory.CreateClient();
+        var baseUrl = GetAdminBaseUrl();
+        var user = await FindUserByUsernameAsync(
+            client, baseUrl, realmName, token, username, cancellationToken);
+        var created = false;
+
+        if (user is null)
+        {
+            var initialAttributes = new Dictionary<string, string>(attributes)
+            {
+                ["kiosk_credentials_delivered"] = "false",
+            };
+            var payload = new
+            {
+                username,
+                email = $"{username}@workbase.local",
+                firstName = "Kiosk",
+                lastName = displayName,
+                enabled = true,
+                emailVerified = true,
+                attributes = initialAttributes.ToDictionary(item => item.Key, item => new[] { item.Value }),
+                credentials = new[]
+                {
+                    new { type = "password", value = temporaryPassword, temporary = true },
+                },
+            };
+            var request = new HttpRequestMessage(
+                HttpMethod.Post,
+                $"{baseUrl}/admin/realms/{realmName}/users");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            request.Content = JsonContent.Create(payload, options: JsonOptions);
+            var response = await client.SendAsync(request, cancellationToken);
+
+            if (response.IsSuccessStatusCode)
+            {
+                created = true;
+                user = await FindUserByUsernameAsync(
+                    client, baseUrl, realmName, token, username, cancellationToken);
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+            {
+                user = await FindUserByUsernameAsync(
+                    client, baseUrl, realmName, token, username, cancellationToken);
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync(cancellationToken);
+                logger.LogError(
+                    "Failed to create managed kiosk account in realm {Realm}: {Status} {Error}",
+                    realmName, response.StatusCode, error);
+                return null;
+            }
+        }
+
+        if (user is null || !user.Value.TryGetProperty("id", out var idElement))
+            return null;
+
+        var userId = idElement.GetString();
+        if (string.IsNullOrWhiteSpace(userId)
+            || await HasConflictingIdentityScopeAsync(
+                client, baseUrl, realmName, token, userId, attributes, cancellationToken))
+        {
+            return null;
+        }
+
+        var fullUser = await GetUserByIdAsync(
+            client, baseUrl, realmName, token, userId, cancellationToken);
+        if (fullUser is null)
+            return null;
+
+        var credentialsDelivered = !created
+            && HasAttributeValue(fullUser.Value, "kiosk_credentials_delivered", "true");
+        var mergedAttributes = new Dictionary<string, string>(attributes)
+        {
+            ["kiosk_credentials_delivered"] = credentialsDelivered ? "true" : "false",
+        };
+        if (!await MergeUserAttributesAsync(
+                client, baseUrl, realmName, token, userId, mergedAttributes, cancellationToken))
+        {
+            return null;
+        }
+
+        if (!await AssignRealmRolesAsync(
+                client, baseUrl, realmName, token, userId, ["workbase-kiosk"], cancellationToken))
+        {
+            return null;
+        }
+
+        if (credentialsDelivered)
+            return new KeycloakKioskAccountResult(userId, CredentialsIssued: false);
+
+        if (!created)
+        {
+            var passwordRequest = new HttpRequestMessage(
+                HttpMethod.Put,
+                $"{baseUrl}/admin/realms/{realmName}/users/{userId}/reset-password");
+            passwordRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            passwordRequest.Content = JsonContent.Create(
+                new { type = "password", value = temporaryPassword, temporary = true },
+                options: JsonOptions);
+            var passwordResponse = await client.SendAsync(passwordRequest, cancellationToken);
+            if (!passwordResponse.IsSuccessStatusCode)
+            {
+                logger.LogError(
+                    "Failed to prepare temporary password for managed kiosk account: {Status}",
+                    passwordResponse.StatusCode);
+                return null;
+            }
+        }
+
+        return new KeycloakKioskAccountResult(userId, CredentialsIssued: true);
+    }
+
+    public async Task<bool> MarkKioskCredentialsDeliveredAsync(
+        string realmName,
+        string keycloakUserId,
+        CancellationToken cancellationToken = default)
+    {
+        var token = await GetAdminTokenAsync(cancellationToken);
+        if (token is null) return false;
+
+        var client = httpClientFactory.CreateClient();
+        return await MergeUserAttributesAsync(
+            client,
+            GetAdminBaseUrl(),
+            realmName,
+            token,
+            keycloakUserId,
+            new Dictionary<string, string> { ["kiosk_credentials_delivered"] = "true" },
+            cancellationToken);
+    }
+
+    private static async Task<JsonElement?> GetUserByIdAsync(
+        HttpClient client,
+        string baseUrl,
+        string realmName,
+        string token,
+        string userId,
+        CancellationToken cancellationToken)
+    {
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            $"{baseUrl}/admin/realms/{realmName}/users/{userId}");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var response = await client.SendAsync(request, cancellationToken);
+        return response.IsSuccessStatusCode
+            ? await response.Content.ReadFromJsonAsync<JsonElement>(cancellationToken)
+            : null;
+    }
+
+    private static bool HasAttributeValue(JsonElement user, string attributeName, string expectedValue)
+    {
+        if (!user.TryGetProperty("attributes", out var attributes)
+            || !attributes.TryGetProperty(attributeName, out var values)
+            || values.ValueKind != JsonValueKind.Array)
+        {
+            return false;
+        }
+
+        return values.EnumerateArray().Any(value =>
+            string.Equals(value.GetString(), expectedValue, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private async Task<bool> MergeUserAttributesAsync(
+        HttpClient client,
+        string baseUrl,
+        string realmName,
+        string token,
+        string userId,
+        Dictionary<string, string> attributes,
+        CancellationToken cancellationToken)
+    {
+        var getRequest = new HttpRequestMessage(
+            HttpMethod.Get,
+            $"{baseUrl}/admin/realms/{realmName}/users/{userId}");
+        getRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var getResponse = await client.SendAsync(getRequest, cancellationToken);
+        if (!getResponse.IsSuccessStatusCode)
+            return false;
+
+        var user = await getResponse.Content.ReadFromJsonAsync<JsonElement>(cancellationToken);
+        var merged = new Dictionary<string, string[]>();
+        if (user.TryGetProperty("attributes", out var currentAttributes))
+        {
+            foreach (var attribute in currentAttributes.EnumerateObject())
+            {
+                merged[attribute.Name] = attribute.Value.EnumerateArray()
+                    .Select(value => value.GetString() ?? string.Empty)
+                    .ToArray();
+            }
+        }
+
+        foreach (var (key, value) in attributes)
+            merged[key] = [value];
+
+        var updateRequest = new HttpRequestMessage(
+            HttpMethod.Put,
+            $"{baseUrl}/admin/realms/{realmName}/users/{userId}");
+        updateRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        updateRequest.Content = JsonContent.Create(new { attributes = merged }, options: JsonOptions);
+        var updateResponse = await client.SendAsync(updateRequest, cancellationToken);
+        if (updateResponse.IsSuccessStatusCode)
+            return true;
+
+        logger.LogError(
+            "Failed to update managed kiosk account attributes: {Status}",
+            updateResponse.StatusCode);
+        return false;
+    }
+
+    private static async Task<JsonElement?> FindUserByUsernameAsync(
+        HttpClient client,
+        string baseUrl,
+        string realmName,
+        string token,
+        string username,
+        CancellationToken cancellationToken)
+    {
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            $"{baseUrl}/admin/realms/{realmName}/users?username={Uri.EscapeDataString(username)}&exact=true&briefRepresentation=false");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var response = await client.SendAsync(request, cancellationToken);
+        if (!response.IsSuccessStatusCode)
+            return null;
+
+        var users = await response.Content.ReadFromJsonAsync<JsonElement[]>(cancellationToken) ?? [];
+        foreach (var candidate in users)
+        {
+            if (candidate.TryGetProperty("username", out var candidateUsername)
+                && string.Equals(candidateUsername.GetString(), username, StringComparison.OrdinalIgnoreCase))
+            {
+                return candidate;
+            }
+        }
+
+        return null;
+    }
+
     private async Task<bool> HasConflictingIdentityScopeAsync(
         HttpClient client,
         string baseUrl,
@@ -706,8 +956,8 @@ public sealed class KeycloakAdminService(
         if (!response.IsSuccessStatusCode)
         {
             logger.LogError(
-                "Cannot verify identity scope for Keycloak user {UserId} in realm {Realm}",
-                userId, realmName);
+                "Cannot verify identity scope for an existing Keycloak user: {Status}",
+                response.StatusCode);
             return true;
         }
 
@@ -728,9 +978,7 @@ public sealed class KeycloakAdminService(
             if (!string.IsNullOrWhiteSpace(currentValue)
                 && !string.Equals(currentValue, requestedValue, StringComparison.Ordinal))
             {
-                logger.LogWarning(
-                    "Rejected Keycloak user {UserId}: {Attribute} is already bound to another company",
-                    userId, attributeName);
+                logger.LogWarning("Rejected Keycloak user because its identity scope is already bound to another company");
                 return true;
             }
         }
@@ -759,8 +1007,8 @@ public sealed class KeycloakAdminService(
         if (!currentResponse.IsSuccessStatusCode)
         {
             logger.LogError(
-                "Failed to read realm roles for user {UserId} in realm {Realm}: {Status}",
-                keycloakUserId, realmName, currentResponse.StatusCode);
+                "Failed to read Keycloak realm roles for a user: {Status}",
+                currentResponse.StatusCode);
             return;
         }
 
@@ -783,10 +1031,9 @@ public sealed class KeycloakAdminService(
             var removeResponse = await client.SendAsync(removeRequest, cancellationToken);
             if (!removeResponse.IsSuccessStatusCode)
             {
-                var error = await removeResponse.Content.ReadAsStringAsync(cancellationToken);
                 logger.LogError(
-                    "Failed to remove stale realm roles from user {UserId} in realm {Realm}: {Status} {Error}",
-                    keycloakUserId, realmName, removeResponse.StatusCode, error);
+                    "Failed to remove stale Keycloak realm roles from a user: {Status}",
+                    removeResponse.StatusCode);
                 return;
             }
         }
@@ -803,7 +1050,7 @@ public sealed class KeycloakAdminService(
         }
     }
 
-    private async Task AssignRealmRolesAsync(
+    private async Task<bool> AssignRealmRolesAsync(
         HttpClient client, string baseUrl, string realmName, string token,
         string userId, string[] roleNames, CancellationToken cancellationToken)
     {
@@ -826,7 +1073,7 @@ public sealed class KeycloakAdminService(
             roleReps.Add(new { id = role.GetProperty("id").GetString(), name = roleName });
         }
 
-        if (roleReps.Count == 0) return;
+        if (roleReps.Count != roleNames.Length) return false;
 
         var assignRequest = new HttpRequestMessage(HttpMethod.Post,
             $"{baseUrl}/admin/realms/{realmName}/users/{userId}/role-mappings/realm");
@@ -839,6 +1086,9 @@ public sealed class KeycloakAdminService(
             var error = await assignResponse.Content.ReadAsStringAsync(cancellationToken);
             logger.LogError("Failed to assign realm roles to user {UserId} in realm {Realm}: {Status} {Error}",
                 userId, realmName, assignResponse.StatusCode, error);
+            return false;
         }
+
+        return true;
     }
 }
