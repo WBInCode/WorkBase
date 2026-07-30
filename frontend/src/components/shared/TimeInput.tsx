@@ -26,17 +26,30 @@ export default function TimeInput({ value, onChange, style, disabled }: TimeInpu
 
   const normalize = useCallback((raw: string): string | null => {
     const clean = raw.replace(/[^0-9:]/g, '');
-    let digits = clean.replace(':', '');
-    if (digits.length > 4) digits = digits.slice(0, 4);
-    if (digits.length === 0) return null;
+    if (clean.length === 0) return null;
 
     let h: number, m: number;
-    if (digits.length <= 2) {
-      h = parseInt(digits, 10);
-      m = 0;
+    // Dwukropek wpisany przez uzytkownika jednoznacznie dzieli godziny od minut.
+    // Bez tego „9:00" bylo czytane jako cyfry „900" -> godzina 90 -> odrzucone.
+    const idx = clean.indexOf(':');
+    if (idx >= 0) {
+      const hh = clean.slice(0, idx);
+      const mm = clean.slice(idx + 1).replace(/:/g, '').slice(0, 2);
+      if (hh.length === 0) return null;
+      h = parseInt(hh, 10);
+      m = mm.length === 0 ? 0 : parseInt(mm.padEnd(2, '0'), 10);
     } else {
-      h = parseInt(digits.slice(0, 2), 10);
-      m = parseInt(digits.slice(2), 10);
+      const digits = clean.slice(0, 4);
+      if (digits.length <= 2) {
+        // „9" -> 09:00, „17" -> 17:00
+        h = parseInt(digits, 10);
+        m = 0;
+      } else {
+        // „930" -> 09:30 (jedna cyfra godziny), „1730" -> 17:30
+        const podzial = digits.length === 3 ? 1 : 2;
+        h = parseInt(digits.slice(0, podzial), 10);
+        m = parseInt(digits.slice(podzial), 10);
+      }
     }
 
     if (isNaN(h) || isNaN(m) || h > 23 || m > 59) return null;
@@ -96,7 +109,10 @@ export default function TimeInput({ value, onChange, style, disabled }: TimeInpu
   }, [open]);
 
   return (
-    <div ref={containerRef} style={{ position: 'relative', display: 'inline-block' }}>
+    // Korzen musi wypelniac kontener: wszystkie miejsca uzycia podaja polu
+    // `width: 100%`, ale przy `inline-block` liczylo sie ono od szerokosci
+    // zawartosci, wiec pola i tak nie siegaly krawedzi.
+    <div ref={containerRef} style={{ position: 'relative', display: 'block', width: '100%' }}>
       <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
         <input
           ref={inputRef}
