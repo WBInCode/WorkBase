@@ -58,6 +58,7 @@ public static class UserRoleEndpoints
     {
         var tenantId = GetTenantId(user);
         if (tenantId is null) return Results.Forbid();
+        if (!await IsCompanyAdminAsync(user, service, tenantId.Value, ct)) return Results.Forbid();
 
         var assignedBy = user.FindFirstValue("sub");
         try
@@ -80,6 +81,7 @@ public static class UserRoleEndpoints
     {
         var tenantId = GetTenantId(user);
         if (tenantId is null) return Results.Forbid();
+        if (!await IsCompanyAdminAsync(user, service, tenantId.Value, ct)) return Results.Forbid();
 
         try
         {
@@ -90,6 +92,26 @@ public static class UserRoleEndpoints
         {
             return Results.BadRequest(new { ex.Message });
         }
+    }
+
+    /// <summary>
+    /// Nadawanie i odbieranie ról jest zarezerwowane dla ról systemowych firmy (Admin, Super Admin),
+    /// nawet jeśli inna rola dostanie uprawnienie identity.assign-roles w macierzy uprawnień.
+    /// </summary>
+    private static async Task<bool> IsCompanyAdminAsync(
+        ClaimsPrincipal user,
+        IRoleManagementService service,
+        Guid tenantId,
+        CancellationToken ct)
+    {
+        if (Guid.TryParse(user.FindFirstValue("sub"), out var callerId))
+        {
+            var roles = await service.GetUserRolesAsync(callerId, tenantId, ct);
+            if (roles.Any(role => role.RoleType == "System")) return true;
+        }
+
+        // Konta sprzed synchronizacji ról mają rolę administratora tylko w Keycloaku (jak /api/auth/me).
+        return user.FindAll("roles").Any(claim => claim.Value is "workbase-admin" or "Admin" or "Super Admin");
     }
 
     private static Guid? GetTenantId(ClaimsPrincipal user)

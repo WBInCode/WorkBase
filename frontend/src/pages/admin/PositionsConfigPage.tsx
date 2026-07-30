@@ -1,12 +1,17 @@
 import { useState, type FormEvent } from 'react';
 import { Briefcase, Plus, RefreshCw, Edit2, Trash2, X } from 'lucide-react';
 import { usePositions, useCreatePosition, useUpdatePosition, useDeletePosition } from '@/api/hooks/useOrganization';
+import { useRoles } from '@/api/hooks/useIam';
 import type { PositionDto } from '@/api/types/organization';
 import { useIsMobile } from '@/shared';
 import { colors } from '@/theme/tokens';
 
+// Role systemowe nadaje WB Platform — stanowisko moze wskazac tylko role organizacyjne.
+const HUB_MANAGED_ROLE_NAMES = ['Admin', 'Super Admin'];
+
 export function PositionsConfigPage() {
   const { data: positions, isLoading, error, refetch, isFetching } = usePositions();
+  const { data: roles } = useRoles();
   const createMut = useCreatePosition();
   const updateMut = useUpdatePosition();
   const deleteMut = useDeletePosition();
@@ -56,6 +61,7 @@ export function PositionsConfigPage() {
               <tr style={{ backgroundColor: colors.gray[50] }}>
                 <Th>Nazwa</Th>
                 <Th>Opis</Th>
+                <Th>Rola w WorkBase</Th>
                 <Th>Status</Th>
                 <Th style={{ width: 80 }} />
               </tr>
@@ -65,6 +71,16 @@ export function PositionsConfigPage() {
                 <tr key={p.id} style={{ borderTop: `1px solid ${colors.gray[200]}` }}>
                   <Td style={{ fontWeight: 500 }}>{p.name}</Td>
                   <Td>{p.description ?? '—'}</Td>
+                  <Td>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                      <span>{roles?.find((role) => role.id === p.defaultRoleId)?.name ?? '—'}</span>
+                      {p.isManagerial && (
+                        <span style={{ padding: '2px 8px', borderRadius: 16, fontSize: 11, fontWeight: 600, backgroundColor: colors.primary[100], color: colors.primary[800] }}>
+                          kierownicze
+                        </span>
+                      )}
+                    </div>
+                  </Td>
                   <Td>
                     <span style={{
                       padding: '2px 8px', borderRadius: 16, fontSize: 12, fontWeight: 500,
@@ -94,6 +110,7 @@ export function PositionsConfigPage() {
       {showForm && (
         <PositionFormModal
           position={editing}
+          roles={(roles ?? []).filter((role) => !HUB_MANAGED_ROLE_NAMES.includes(role.name))}
           isPending={editing ? updateMut.isPending : createMut.isPending}
           error={editing ? updateMut.error : createMut.error}
           onSubmit={(data) => {
@@ -114,19 +131,27 @@ export function PositionsConfigPage() {
   );
 }
 
-function PositionFormModal({ position, isPending, error, onSubmit, onClose }: {
+function PositionFormModal({ position, roles, isPending, error, onSubmit, onClose }: {
   position: PositionDto | null;
+  roles: { id: string; name: string }[];
   isPending: boolean;
   error: Error | null;
-  onSubmit: (data: { name: string; description?: string }) => void;
+  onSubmit: (data: { name: string; description?: string; defaultRoleId?: string; isManagerial: boolean }) => void;
   onClose: () => void;
 }) {
   const [name, setName] = useState(position?.name ?? '');
   const [description, setDescription] = useState(position?.description ?? '');
+  const [defaultRoleId, setDefaultRoleId] = useState(position?.defaultRoleId ?? '');
+  const [isManagerial, setIsManagerial] = useState(position?.isManagerial ?? false);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    onSubmit({ name, description: description || undefined });
+    onSubmit({
+      name,
+      description: description || undefined,
+      defaultRoleId: defaultRoleId || undefined,
+      isManagerial,
+    });
   };
 
   return (
@@ -151,6 +176,34 @@ function PositionFormModal({ position, isPending, error, onSubmit, onClose }: {
           <div style={{ marginBottom: 14 }}>
             <label style={labelStyle}>Opis</label>
             <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} style={inputStyle} />
+          </div>
+          <div style={{ marginBottom: 14 }}>
+            <label style={labelStyle}>Rola nadawana przy przypisaniu</label>
+            <select value={defaultRoleId} onChange={(e) => setDefaultRoleId(e.target.value)} style={inputStyle}>
+              <option value="">Bez zmiany roli</option>
+              {roles.map((role) => (
+                <option key={role.id} value={role.id}>{role.name}</option>
+              ))}
+            </select>
+            <div style={{ marginTop: 4, fontSize: 12, color: colors.gray[500] }}>
+              Pracownik dostaje tę rolę przy przypisaniu na stanowisko; poprzednia rola ze stanowiska jest odbierana.
+            </div>
+          </div>
+          <div style={{ marginBottom: 14 }}>
+            <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 13, color: colors.gray[700], cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={isManagerial}
+                onChange={(e) => setIsManagerial(e.target.checked)}
+                style={{ marginTop: 2 }}
+              />
+              <span>
+                Stanowisko kierownicze
+                <span style={{ display: 'block', fontSize: 12, color: colors.gray[500] }}>
+                  Osoba na tym stanowisku zostaje przełożonym pracowników swojej jednostki i akceptuje ich wnioski.
+                </span>
+              </span>
+            </label>
           </div>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 20 }}>
             <button type="button" onClick={onClose} style={cancelBtnStyle}>Anuluj</button>

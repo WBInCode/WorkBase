@@ -40,7 +40,9 @@ public sealed record PositionDto(
     Guid Id,
     string Name,
     string? Description,
-    bool IsActive);
+    bool IsActive,
+    Guid? DefaultRoleId,
+    bool IsManagerial);
 
 public sealed record EmployeeDto(
     Guid Id,

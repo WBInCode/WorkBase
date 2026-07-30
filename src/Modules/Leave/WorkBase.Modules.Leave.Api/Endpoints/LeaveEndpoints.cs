@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using System.Security.Claims;
 using WorkBase.Modules.Leave.Application.Commands;
 using WorkBase.Modules.Leave.Application.Dtos;
 using WorkBase.Modules.Leave.Application.Queries;
@@ -122,24 +123,36 @@ public static class LeaveEndpoints
     }
 
     private static async Task<IResult> GetLeaveBalances(
-        Guid employeeId, int? year, ISender sender)
+        Guid employeeId, int? year, ClaimsPrincipal user, IPermissionService permissions,
+        IEmployeeScopeResolver scopes, ISender sender, CancellationToken ct)
     {
+        if (!await user.CanAccessEmployeeAsync(employeeId, permissions, scopes, "leave.view-team", "leave", ct))
+            return Results.Forbid();
+
         var query = new GetLeaveBalancesQuery(employeeId, year ?? DateTime.UtcNow.Year);
         var result = await sender.Send(query);
         return result.ToHttpResult();
     }
 
     private static async Task<IResult> GetLeaveRequests(
-        Guid employeeId, int? year, ISender sender)
+        Guid employeeId, int? year, ClaimsPrincipal user, IPermissionService permissions,
+        IEmployeeScopeResolver scopes, ISender sender, CancellationToken ct)
     {
+        if (!await user.CanAccessEmployeeAsync(employeeId, permissions, scopes, "leave.view-team", "leave", ct))
+            return Results.Forbid();
+
         var query = new GetLeaveRequestsQuery(employeeId, year);
         var result = await sender.Send(query);
         return result.ToHttpResult();
     }
 
     private static async Task<IResult> SubmitLeaveRequest(
-        SubmitLeaveRequestBody body, ISender sender)
+        SubmitLeaveRequestBody body, ClaimsPrincipal user, IPermissionService permissions, ISender sender, CancellationToken ct)
     {
+        // Wniosek za kogoś innego składa tylko kadrowa — zwykły pracownik wyłącznie za siebie.
+        if (body.EmployeeId != user.EmployeeId() && !await user.HasPermissionAsync(permissions, "leave.manage", ct))
+            return Results.Forbid();
+
         var command = new SubmitLeaveRequestCommand(
             body.EmployeeId,
             body.LeaveTypeId,
@@ -156,16 +169,26 @@ public static class LeaveEndpoints
     }
 
     private static async Task<IResult> GetLeaveCalendar(
-        LeaveCalendarRequestBody body, ISender sender)
+        LeaveCalendarRequestBody body, ClaimsPrincipal user, IPermissionService permissions,
+        IEmployeeScopeResolver scopes, ISender sender, CancellationToken ct)
     {
-        var query = new GetLeaveCalendarQuery(body.EmployeeIds, body.From, body.To);
+        var accessibleIds = await user.FilterAccessibleEmployeesAsync(
+            body.EmployeeIds, permissions, scopes, "leave.view-team", "leave", ct);
+        if (accessibleIds.Count == 0) return Results.Forbid();
+
+        var query = new GetLeaveCalendarQuery([.. accessibleIds], body.From, body.To);
         var result = await sender.Send(query);
         return result.ToHttpResult();
     }
 
-    private static async Task<IResult> CancelLeaveRequest(Guid id, ISender sender)
+    private static async Task<IResult> CancelLeaveRequest(
+        Guid id, ClaimsPrincipal user, IPermissionService permissions, ISender sender, CancellationToken ct)
     {
-        var command = new CancelLeaveRequestCommand(id);
+        var restrictToEmployeeId = await user.HasPermissionAsync(permissions, "leave.manage", ct)
+            ? null
+            : user.EmployeeId();
+
+        var command = new CancelLeaveRequestCommand(id, restrictToEmployeeId);
         var result = await sender.Send(command);
         return result.ToHttpResult();
     }

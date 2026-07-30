@@ -15,7 +15,7 @@ public sealed class GetPositionsHandler(IPositionRepository positionRepository)
         var positions = await positionRepository.GetAllByTenantAsync(request.TenantId, cancellationToken);
 
         var dtos = positions
-            .Select(p => new PositionDto(p.Id, p.Name, p.Description, p.IsActive))
+            .Select(p => new PositionDto(p.Id, p.Name, p.Description, p.IsActive, p.DefaultRoleId, p.IsManagerial))
             .ToList();
 
         return dtos;

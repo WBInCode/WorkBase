@@ -26,6 +26,12 @@ public sealed class PositionConfiguration : IEntityTypeConfiguration<Position>
             .IsRequired()
             .HasDefaultValue(true);
 
+        builder.Property(p => p.DefaultRoleId);
+
+        builder.Property(p => p.IsManagerial)
+            .IsRequired()
+            .HasDefaultValue(false);
+
         builder.HasIndex(p => p.TenantId);
 
         builder.HasIndex(p => new { p.TenantId, p.Name })

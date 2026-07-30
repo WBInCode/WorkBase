@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using WorkBase.Contracts;
 using WorkBase.Modules.Organization.Application.Contracts;
+using WorkBase.Modules.Organization.Application.Services;
 using WorkBase.Modules.Organization.Infrastructure.Repositories;
 using WorkBase.Modules.Organization.Infrastructure.Services;
 using WorkBase.Shared.Domain;
@@ -26,6 +27,7 @@ public static class OrganizationServiceCollectionExtensions
         services.AddScoped<ISupervisorLookupService, SupervisorLookupService>();
         services.AddScoped<IOrganizationLookupService, OrganizationLookupService>();
         services.AddScoped<ITenantRepository, TenantRepository>();
+        services.AddScoped<PositionAssignmentPolicy>();
 
         return services;
     }

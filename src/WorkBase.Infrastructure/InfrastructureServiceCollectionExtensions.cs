@@ -82,6 +82,7 @@ public static class InfrastructureServiceCollectionExtensions
 
         services.AddScoped<ICurrentTenantService, HttpContextTenantService>();
         services.AddScoped<IDataScopeService, DataScopeService>();
+        services.AddScoped<IEmployeeScopeResolver, EmployeeScopeResolver>();
         services.AddScoped<ITenantConfigService, Services.TenantConfigService>();
         services.AddScoped<ITenantProvisioningService, Services.TenantProvisioningService>();
         services.AddScoped<IKioskAccountProvisioningService, Services.KioskAccountProvisioningService>();
