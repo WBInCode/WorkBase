@@ -7,6 +7,7 @@ import { useEmployees, useOrgUnitTree } from '@/api/hooks/useOrganization';
 import type { TimeSheetPeriodDto, TimeAnomalyDto, TimeSheetEntryDto } from '@/api/types/time';
 import type { EmployeeDto, OrganizationUnitTreeNode } from '@/api/types/organization';
 import { useIsMobile } from '@/shared';
+import TimeInput from '@/components/shared/TimeInput';
 import type ExcelJS from 'exceljs';
 import { colors } from '@/theme/tokens';
 
@@ -149,28 +150,34 @@ export function TeamAttendancePage() {
 
   /* panel edycji dnia (od / do / przerwy) — renderowany w portalu, żeby nie był przycinany przez overflow tabeli */
   const [editState, setEditState] = useState<DayEditState | null>(null);
+  const [editError, setEditError] = useState<string | null>(null);
   const [panelPos, setPanelPos] = useState<{ top: number; left: number } | null>(null);
   const [savingCell, setSavingCell] = useState<string | null>(null);
-  const startInputRef = useRef<HTMLInputElement>(null);
+  const startFieldRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const createEntry = useAdminCreateTimeEntry();
   const deleteEntry = useAdminDeleteTimeEntry();
 
-  useEffect(() => {
-    if (editState) startInputRef.current?.focus();
-  }, [editState]);
+  /* Tozsamosc edytowanej komorki. Fokus i nasluch klikniecia maja reagowac na
+     OTWARCIE panelu, a nie na kazda zmiane tresci pol. */
+  const editingCellKey = editState ? `${editState.employeeId}:${editState.date}` : null;
 
   useEffect(() => {
-    if (!editState) return;
+    if (editingCellKey) startFieldRef.current?.querySelector('input')?.focus();
+  }, [editingCellKey]);
+
+  useEffect(() => {
+    if (!editingCellKey) return;
     const onDocClick = (e: MouseEvent) => {
       if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
         setEditState(null);
+        setEditError(null);
         setPanelPos(null);
       }
     };
     document.addEventListener('mousedown', onDocClick);
     return () => document.removeEventListener('mousedown', onDocClick);
-  }, [editState]);
+  }, [editingCellKey]);
 
   const dateRange = useMemo(() => {
     return viewMode === 'week' ? getWeekRange(currentDate) : getMonthRange(currentDate);
@@ -244,6 +251,7 @@ export function TeamAttendancePage() {
         pendingStart = null;
       }
     }
+    setEditError(null);
     setEditState({
       employeeId,
       date,
@@ -256,6 +264,7 @@ export function TeamAttendancePage() {
 
   const cancelCellEdit = useCallback(() => {
     setEditState(null);
+    setEditError(null);
     setPanelPos(null);
   }, []);
 
@@ -286,8 +295,24 @@ export function TeamAttendancePage() {
     };
     const startMin = start ? toMinutes(start) : null;
     const endMin = end ? toMinutes(end) : null;
-    // wymagamy pełnego zakresu od-do, albo całkowicie puste pole (czyszczenie dnia)
-    if ((start || end) && (startMin === null || endMin === null || endMin <= startMin)) return;
+    // Wymagamy pelnego zakresu od-do, albo obu pol pustych (czyszczenie dnia).
+    // Wczesniej niespelniony warunek konczyl sie cichym `return` — przycisk
+    // nie robil nic i wygladalo to na zepsuty zapis.
+    setEditError(null);
+    if (start || end) {
+      if (startMin === null) { setEditError('Uzupełnij godzinę „Od”.'); return; }
+      if (endMin === null) { setEditError('Uzupełnij godzinę „Do”.'); return; }
+      if (endMin <= startMin) { setEditError('Godzina „Do” musi być późniejsza niż „Od”.'); return; }
+    }
+    const odrzuconePrzerwy = breaks.filter(
+      (b) => (b.start || b.end) && !(toMinutes(b.start) !== null && toMinutes(b.end) !== null && toMinutes(b.end)! > toMinutes(b.start)!),
+    ).length;
+    if (odrzuconePrzerwy > 0) {
+      setEditError(odrzuconePrzerwy === 1
+        ? 'Przerwa ma niepełny lub odwrócony zakres godzin.'
+        : `${odrzuconePrzerwy} przerwy mają niepełny lub odwrócony zakres godzin.`);
+      return;
+    }
     const validBreaks = breaks
       .map((b) => ({ ...b, startMin: toMinutes(b.start), endMin: toMinutes(b.end) }))
       .filter((b) => b.startMin !== null && b.endMin !== null && b.endMin! > b.startMin!);
@@ -338,10 +363,17 @@ export function TeamAttendancePage() {
         });
       }
       refreshTeamTimesheets();
+      setEditState(null);
+      setEditError(null);
+      setPanelPos(null);
+    } catch (err) {
+      // Panel ZOSTAJE otwarty z wpisanymi godzinami. Wczesniej `finally` zamykal go
+      // takze po bledzie — nieudany zapis wygladal identycznie jak udany.
+      setEditError(err instanceof Error && err.message
+        ? `Nie udało się zapisać: ${err.message}`
+        : 'Nie udało się zapisać. Spróbuj ponownie.');
     } finally {
       setSavingCell(null);
-      setEditState(null);
-      setPanelPos(null);
     }
   }, [editState, createEntry, deleteEntry, refreshTeamTimesheets]);
 
@@ -745,41 +777,44 @@ export function TeamAttendancePage() {
           <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
             <label style={{ flex: 1, fontSize: '11px', fontWeight: 600, color: colors.gray[500] }}>
               Od
-              <input
-                ref={startInputRef}
-                type="time"
-                value={editState.start}
-                onChange={(e) => setEditState((prev) => (prev ? { ...prev, start: e.target.value } : prev))}
-                style={timeInputStyle}
-              />
+              <div ref={startFieldRef} style={{ marginTop: '4px' }}>
+                <TimeInput
+                  value={editState.start}
+                  onChange={(v) => { setEditError(null); setEditState((prev) => (prev ? { ...prev, start: v } : prev)); }}
+                  style={timeInputStyle}
+                />
+              </div>
             </label>
             <label style={{ flex: 1, fontSize: '11px', fontWeight: 600, color: colors.gray[500] }}>
               Do
-              <input
-                type="time"
-                value={editState.end}
-                onChange={(e) => setEditState((prev) => (prev ? { ...prev, end: e.target.value } : prev))}
-                style={timeInputStyle}
-              />
+              <div style={{ marginTop: '4px' }}>
+                <TimeInput
+                  value={editState.end}
+                  onChange={(v) => { setEditError(null); setEditState((prev) => (prev ? { ...prev, end: v } : prev)); }}
+                  style={timeInputStyle}
+                />
+              </div>
             </label>
           </div>
 
           {editState.breaks.map((b, idx) => (
             <div key={idx} style={{ marginBottom: '8px', padding: '6px', backgroundColor: colors.gray[50], borderRadius: '8px' }}>
               <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                <input
-                  type="time"
-                  value={b.start}
-                  onChange={(e) => updateBreakRow(idx, 'start', e.target.value)}
-                  style={{ ...timeInputStyle, marginTop: 0, flex: 1 }}
-                />
+                <div style={{ flex: 1 }}>
+                  <TimeInput
+                    value={b.start}
+                    onChange={(v) => { setEditError(null); updateBreakRow(idx, 'start', v); }}
+                    style={{ ...timeInputStyle, marginTop: 0 }}
+                  />
+                </div>
                 <span style={{ color: colors.gray[400], fontSize: '11px' }}>–</span>
-                <input
-                  type="time"
-                  value={b.end}
-                  onChange={(e) => updateBreakRow(idx, 'end', e.target.value)}
-                  style={{ ...timeInputStyle, marginTop: 0, flex: 1 }}
-                />
+                <div style={{ flex: 1 }}>
+                  <TimeInput
+                    value={b.end}
+                    onChange={(v) => { setEditError(null); updateBreakRow(idx, 'end', v); }}
+                    style={{ ...timeInputStyle, marginTop: 0 }}
+                  />
+                </div>
                 <button
                   onClick={() => removeBreakRow(idx)}
                   title="Usuń przerwę"
@@ -819,16 +854,30 @@ export function TeamAttendancePage() {
             + Dodaj przerwę
           </button>
 
+          {editError && (
+            <div
+              role="alert"
+              style={{
+                marginBottom: '8px', padding: '6px 8px', borderRadius: '8px',
+                backgroundColor: colors.danger[50], color: colors.danger[600],
+                fontSize: '11.5px', fontWeight: 600, lineHeight: 1.35,
+              }}
+            >
+              {editError}
+            </div>
+          )}
+
           <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
             <button
               onClick={() => saveCellEdit()}
+              disabled={savingCell !== null}
               style={{
                 flex: 1, padding: '7px 0', fontSize: '12px', fontWeight: 700, fontFamily: 'inherit',
-                color: colors.white, backgroundColor: colors.primary[500],
-                border: 'none', borderRadius: '8px', cursor: 'pointer',
+                color: colors.white, backgroundColor: savingCell ? colors.gray[400] : colors.primary[500],
+                border: 'none', borderRadius: '8px', cursor: savingCell ? 'progress' : 'pointer',
               }}
             >
-              Zapisz
+              {savingCell ? 'Zapisuję…' : 'Zapisz'}
             </button>
             <button
               onClick={cancelCellEdit}
