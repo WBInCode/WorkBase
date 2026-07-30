@@ -123,9 +123,10 @@ public static class LeaveEndpoints
     }
 
     private static async Task<IResult> GetLeaveBalances(
-        Guid employeeId, int? year, ClaimsPrincipal user, IPermissionService permissions, ISender sender, CancellationToken ct)
+        Guid employeeId, int? year, ClaimsPrincipal user, IPermissionService permissions,
+        IEmployeeScopeResolver scopes, ISender sender, CancellationToken ct)
     {
-        if (!await user.CanAccessEmployeeAsync(employeeId, permissions, "leave.view-team", ct))
+        if (!await user.CanAccessEmployeeAsync(employeeId, permissions, scopes, "leave.view-team", "leave", ct))
             return Results.Forbid();
 
         var query = new GetLeaveBalancesQuery(employeeId, year ?? DateTime.UtcNow.Year);
@@ -134,9 +135,10 @@ public static class LeaveEndpoints
     }
 
     private static async Task<IResult> GetLeaveRequests(
-        Guid employeeId, int? year, ClaimsPrincipal user, IPermissionService permissions, ISender sender, CancellationToken ct)
+        Guid employeeId, int? year, ClaimsPrincipal user, IPermissionService permissions,
+        IEmployeeScopeResolver scopes, ISender sender, CancellationToken ct)
     {
-        if (!await user.CanAccessEmployeeAsync(employeeId, permissions, "leave.view-team", ct))
+        if (!await user.CanAccessEmployeeAsync(employeeId, permissions, scopes, "leave.view-team", "leave", ct))
             return Results.Forbid();
 
         var query = new GetLeaveRequestsQuery(employeeId, year);
@@ -167,16 +169,14 @@ public static class LeaveEndpoints
     }
 
     private static async Task<IResult> GetLeaveCalendar(
-        LeaveCalendarRequestBody body, ClaimsPrincipal user, IPermissionService permissions, ISender sender, CancellationToken ct)
+        LeaveCalendarRequestBody body, ClaimsPrincipal user, IPermissionService permissions,
+        IEmployeeScopeResolver scopes, ISender sender, CancellationToken ct)
     {
-        var ownEmployeeId = user.EmployeeId();
-        if (body.EmployeeIds.Any(id => id != ownEmployeeId)
-            && !await user.HasPermissionAsync(permissions, "leave.view-team", ct))
-        {
-            return Results.Forbid();
-        }
+        var accessibleIds = await user.FilterAccessibleEmployeesAsync(
+            body.EmployeeIds, permissions, scopes, "leave.view-team", "leave", ct);
+        if (accessibleIds.Count == 0) return Results.Forbid();
 
-        var query = new GetLeaveCalendarQuery(body.EmployeeIds, body.From, body.To);
+        var query = new GetLeaveCalendarQuery([.. accessibleIds], body.From, body.To);
         var result = await sender.Send(query);
         return result.ToHttpResult();
     }
