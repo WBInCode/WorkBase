@@ -109,8 +109,11 @@ export function useAssignUserRole() {
   return useMutation({
     mutationFn: ({ userId, ...data }: AssignUserRoleRequest & { userId: string }) =>
       api.post<void>(`/api/iam/users/${userId}/roles`, data),
-    onSuccess: (_data, variables) =>
-      qc.invalidateQueries({ queryKey: ['iam', 'users', variables.userId, 'roles'] }),
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({ queryKey: ['iam', 'users', variables.userId, 'roles'] });
+      qc.invalidateQueries({ queryKey: ['iam', 'roles', variables.roleId, 'users'] });
+      qc.invalidateQueries({ queryKey: ['iam', 'roles'] });
+    },
   });
 }
 

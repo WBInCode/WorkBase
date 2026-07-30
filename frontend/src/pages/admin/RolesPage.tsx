@@ -1,12 +1,17 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Shield, Plus, RefreshCw, Edit2, Users, Lock, X, Mail, UserCheck, UserMinus } from 'lucide-react';
-import { useRoles, useCreateRole, useUpdateRole, useRoleUsers, useUnassignUserRole, useCurrentUser } from '@/api/hooks/useIam';
+import { Shield, Plus, RefreshCw, Edit2, Users, Lock, X, Mail, UserCheck, UserMinus, UserPlus, Search } from 'lucide-react';
+import { useRoles, useCreateRole, useUpdateRole, useRoleUsers, useAssignUserRole, useUnassignUserRole, useCurrentUser } from '@/api/hooks/useIam';
+import { useEmployees } from '@/api/hooks/useOrganization';
 import type { RoleDto, RoleUserDto, CreateRoleRequest, UpdateRoleRequest } from '@/api/types/iam';
+import type { EmployeeDto } from '@/api/types/organization';
 import { ApiError } from '@/api/client';
 import { useToast } from '@/components/Notifications';
 import { useIsMobile } from '@/shared';
 import { colors } from '@/theme/tokens';
+
+/** Rola administratora firmy pochodzi z WB Platform — backend odrzuca ręczne przypisanie. */
+const HUB_MANAGED_ROLE_NAMES = ['Admin', 'Super Admin'];
 
 const typeLabels: Record<string, string> = {
   System: 'Systemowa',
@@ -203,18 +208,17 @@ function RoleRow({
         <button
           type="button"
           onClick={onShowUsers}
-          disabled={role.userCount === 0}
-          title={role.userCount > 0 ? 'Pokaż przypisanych użytkowników' : 'Brak przypisanych użytkowników'}
+          title={role.userCount > 0 ? 'Pokaż przypisanych użytkowników' : 'Brak przypisanych — przypisz pierwszego'}
           style={{
             display: 'inline-flex',
             alignItems: 'center',
             gap: '5px',
             padding: '4px 8px',
-            border: role.userCount > 0 ? `1px solid ${colors.primary[200]}` : '1px solid transparent',
+            border: role.userCount > 0 ? `1px solid ${colors.primary[200]}` : `1px solid ${colors.gray[200]}`,
             borderRadius: '999px',
             backgroundColor: role.userCount > 0 ? colors.primary[50] : 'transparent',
             color: role.userCount > 0 ? colors.primary[700] : colors.gray[500],
-            cursor: role.userCount > 0 ? 'pointer' : 'default',
+            cursor: 'pointer',
             font: 'inherit',
           }}
         >
@@ -252,7 +256,9 @@ function RoleUsersModal({ role, onClose }: { role: RoleDto; onClose: () => void 
   const unassignMutation = useUnassignUserRole();
   const { addToast } = useToast();
   const [userToUnassign, setUserToUnassign] = useState<RoleUserDto | null>(null);
-  const canUnassignRoles = currentUser?.permissions.includes('platform.manage-tenants') ?? false;
+  const [assigning, setAssigning] = useState(false);
+  const canManageRoles = currentUser?.permissions.includes('identity.assign-roles') ?? false;
+  const hubManagedRole = HUB_MANAGED_ROLE_NAMES.includes(role.name);
 
   const unassignRole = () => {
     if (!userToUnassign) return;
@@ -293,6 +299,27 @@ function RoleUsersModal({ role, onClose }: { role: RoleDto; onClose: () => void 
             <X size={16} />
           </button>
         </div>
+
+        {canManageRoles && (
+          <div style={{ padding: '14px 22px', borderBottom: `1px solid ${colors.gray[200]}`, backgroundColor: colors.gray[50] }}>
+            {hubManagedRole ? (
+              <div style={{ fontSize: '12px', color: colors.gray[600] }}>
+                Tę rolę nadaje WB Platform — zmień rolę lub dostęp użytkownika w panelu organizacji WB Platform.
+              </div>
+            ) : assigning ? (
+              <AssignUserPanel
+                role={role}
+                assignedUserIds={new Set((users ?? []).map((user) => user.userId))}
+                onClose={() => setAssigning(false)}
+              />
+            ) : (
+              <button type="button" onClick={() => setAssigning(true)} style={primaryBtnStyle}>
+                <UserPlus size={15} />
+                Przypisz użytkownika
+              </button>
+            )}
+          </div>
+        )}
 
         <div style={{ overflowY: 'auto', minHeight: '160px', maxHeight: 'min(60vh, 560px)' }}>
           {isLoading ? (
@@ -352,7 +379,7 @@ function RoleUsersModal({ role, onClose }: { role: RoleDto; onClose: () => void 
                     <div>{new Date(user.assignedAt).toLocaleDateString('pl-PL')}</div>
                     <div style={{ marginTop: '2px' }}>{user.assignedBy === 'system' ? 'Zarządzane w WB Platform' : 'Przez administratora'}</div>
                   </div>
-                  {canUnassignRoles && user.assignedBy !== 'system' && (
+                  {canManageRoles && user.assignedBy !== 'system' && (
                     <button
                       type="button"
                       onClick={() => setUserToUnassign(user)}
@@ -388,7 +415,121 @@ function initials(name: string): string {
     .join('');
 }
 
-function RoleFormModal({
+function AssignUserPanel({
+  role,
+  assignedUserIds,
+  onClose,
+}: {
+  role: RoleDto;
+  assignedUserIds: Set<string>;
+  onClose: () => void;
+}) {
+  const { addToast } = useToast();
+  const assignMutation = useAssignUserRole();
+  const [search, setSearch] = useState('');
+  const [query, setQuery] = useState('');
+  const [pendingUserId, setPendingUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setQuery(search.trim()), 250);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  const { data, isLoading, error } = useEmployees({
+    search: query || undefined,
+    status: 'Active',
+    page: 1,
+    pageSize: 8,
+  });
+  const employees = data?.items ?? [];
+
+  const assign = (employee: EmployeeDto) => {
+    if (!employee.userId) return;
+    setPendingUserId(employee.userId);
+    assignMutation.mutate(
+      { userId: employee.userId, roleId: role.id },
+      {
+        onSuccess: () => {
+          addToast({
+            type: 'success',
+            title: 'Przypisano rolę',
+            message: `${employee.firstName} ${employee.lastName} ma teraz rolę ${role.name}.`,
+          });
+          onClose();
+        },
+        onError: (mutationError) => {
+          addToast({
+            type: 'error',
+            title: 'Nie udało się przypisać roli',
+            message: mutationError instanceof ApiError ? mutationError.message : 'Spróbuj ponownie.',
+          });
+        },
+        onSettled: () => setPendingUserId(null),
+      },
+    );
+  };
+
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ position: 'relative', flex: 1, minWidth: 0 }}>
+          <Search size={15} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: colors.gray[400] }} />
+          <input
+            type="text"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Szukaj pracownika (imię, nazwisko, e-mail)"
+            style={{ ...inputStyle, width: '100%', paddingLeft: '32px' }}
+            autoFocus
+          />
+        </div>
+        <button type="button" onClick={onClose} style={secondaryBtnStyle}>Anuluj</button>
+      </div>
+
+      <div style={{ marginTop: '10px', border: `1px solid ${colors.gray[200]}`, borderRadius: '12px', backgroundColor: colors.white, overflow: 'hidden' }}>
+        {isLoading ? (
+          <div style={emptyPickerStyle}>Ładowanie pracowników...</div>
+        ) : error ? (
+          <div style={{ ...emptyPickerStyle, color: colors.danger[600] }}>Nie udało się pobrać listy pracowników.</div>
+        ) : employees.length === 0 ? (
+          <div style={emptyPickerStyle}>Brak pracowników pasujących do wyszukiwania.</div>
+        ) : (
+          employees.map((employee, index) => {
+            const fullName = `${employee.firstName} ${employee.lastName}`.trim() || employee.email;
+            const alreadyAssigned = !!employee.userId && assignedUserIds.has(employee.userId);
+            const noAccount = !employee.userId;
+            const busy = pendingUserId === employee.userId;
+            return (
+              <div
+                key={employee.id}
+                style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderTop: index > 0 ? `1px solid ${colors.gray[100]}` : 'none' }}
+              >
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ fontSize: '13px', fontWeight: 600, color: colors.gray[900], overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{fullName}</div>
+                  <div style={{ fontSize: '12px', color: colors.gray[500], overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{employee.email}</div>
+                </div>
+                {alreadyAssigned ? (
+                  <span style={pickerHintStyle}>Ma już tę rolę</span>
+                ) : noAccount ? (
+                  <span style={pickerHintStyle} title="Pracownik nie ma jeszcze konta w aplikacji">Brak konta</span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => assign(employee)}
+                    disabled={assignMutation.isPending}
+                    style={{ ...secondaryBtnStyle, padding: '6px 12px', fontSize: '13px', opacity: assignMutation.isPending ? 0.6 : 1 }}
+                  >
+                    {busy ? 'Przypisywanie...' : 'Przypisz'}
+                  </button>
+                )}
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}function RoleFormModal({
   role,
   isPending,
   error,
@@ -616,4 +757,17 @@ const inputStyle: React.CSSProperties = {
   borderRadius: '10px',
   outline: 'none',
   boxSizing: 'border-box',
+};
+
+const emptyPickerStyle: React.CSSProperties = {
+  padding: '18px 12px',
+  textAlign: 'center',
+  fontSize: '13px',
+  color: colors.gray[500],
+};
+
+const pickerHintStyle: React.CSSProperties = {
+  flexShrink: 0,
+  fontSize: '12px',
+  color: colors.gray[500],
 };
