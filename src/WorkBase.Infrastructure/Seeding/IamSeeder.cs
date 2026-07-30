@@ -82,7 +82,7 @@ public static class IamSeeder
     private static readonly HashSet<string> HrPermissionCodes =
     [
         "org.view", "org.create", "org.edit", "org.delete", "org.import", "org.export", "org.manage",
-        "identity.view", "identity.assign-roles",
+        "identity.view",
         "time.view", "time.create", "time.edit", "time.view-team", "time.manage", "time.approve", "time.export",
         "leave.view", "leave.create", "leave.edit", "leave.delete", "leave.view-team", "leave.approve", "leave.manage", "leave.export",
         "tasks.view", "tasks.create", "tasks.export",

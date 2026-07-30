@@ -38,6 +38,17 @@ const employees = [
   { id: 'emp-2', firstName: 'Piotr', lastName: 'Bez Konta', email: 'piotr@firma.pl', userId: null, status: 'Active' },
 ];
 
+const adminUser = {
+  userId: 'me',
+  email: 'admin@firma.pl',
+  name: 'Admin',
+  permissions: ['identity.assign-roles'],
+  isAdmin: true,
+};
+
+// HR ma uprawnienie identity.assign-roles, ale nie jest rola systemowa firmy.
+const hrUser = { ...adminUser, email: 'hr@firma.pl', name: 'HR', isAdmin: false };
+
 function renderPage() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
@@ -53,9 +64,7 @@ beforeEach(async () => {
   ({ RolesPage } = await import('./RolesPage'));
   apiPost.mockReset().mockResolvedValue(undefined);
   apiGet.mockReset().mockImplementation((url: string) => {
-    if (url === '/api/auth/me') {
-      return Promise.resolve({ userId: 'me', email: 'admin@firma.pl', name: 'Admin', permissions: ['identity.assign-roles'], isAdmin: true });
-    }
+    if (url === '/api/auth/me') return Promise.resolve(adminUser);
     if (url === '/api/iam/roles') return Promise.resolve([kierownik]);
     if (url.startsWith('/api/iam/roles/role-1/users')) return Promise.resolve([]);
     if (url.startsWith('/api/org/employees')) {
@@ -91,9 +100,7 @@ describe('RolesPage — przypisywanie roli', () => {
 
   it('ukrywa przypisywanie dla roli zarządzanej przez WB Platform', async () => {
     apiGet.mockImplementation((url: string) => {
-      if (url === '/api/auth/me') {
-        return Promise.resolve({ userId: 'me', email: 'admin@firma.pl', name: 'Admin', permissions: ['identity.assign-roles'], isAdmin: true });
-      }
+      if (url === '/api/auth/me') return Promise.resolve(adminUser);
       if (url === '/api/iam/roles') return Promise.resolve([{ ...kierownik, id: 'role-2', name: 'Admin' }]);
       if (url.startsWith('/api/iam/roles/role-2/users')) return Promise.resolve([]);
       return Promise.reject(new Error(`Unexpected URL ${url}`));
@@ -104,6 +111,22 @@ describe('RolesPage — przypisywanie roli', () => {
     await user.click(await screen.findByTitle('Brak przypisanych — przypisz pierwszego'));
 
     expect(await screen.findByText(/Tę rolę nadaje WB Platform/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Przypisz użytkownika/ })).not.toBeInTheDocument();
+  });
+
+  it('nie pokazuje przypisywania nikomu poza adminem i super adminem firmy', async () => {
+    apiGet.mockImplementation((url: string) => {
+      if (url === '/api/auth/me') return Promise.resolve(hrUser);
+      if (url === '/api/iam/roles') return Promise.resolve([kierownik]);
+      if (url.startsWith('/api/iam/roles/role-1/users')) return Promise.resolve([]);
+      return Promise.reject(new Error(`Unexpected URL ${url}`));
+    });
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.click(await screen.findByTitle('Brak przypisanych — przypisz pierwszego'));
+
+    expect(await screen.findByText('Brak przypisanych użytkowników')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Przypisz użytkownika/ })).not.toBeInTheDocument();
   });
 });

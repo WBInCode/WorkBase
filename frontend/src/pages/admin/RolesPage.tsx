@@ -63,7 +63,12 @@ export function RolesPage() {
     <div style={{ padding: mobile ? '16px' : '24px 32px', maxWidth: '1000px' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-        <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, letterSpacing: '-0.02em', color: colors.gray[900] }}>Role</h1>
+        <div>
+          <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, letterSpacing: '-0.02em', color: colors.gray[900] }}>Role</h1>
+          <div style={{ marginTop: '4px', fontSize: '13px', color: colors.gray[500] }}>
+            Uprawnienia w aplikacji WorkBase. Role nadaje administrator firmy.
+          </div>
+        </div>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button
             onClick={() => refetch()}
@@ -257,7 +262,8 @@ function RoleUsersModal({ role, onClose }: { role: RoleDto; onClose: () => void 
   const { addToast } = useToast();
   const [userToUnassign, setUserToUnassign] = useState<RoleUserDto | null>(null);
   const [assigning, setAssigning] = useState(false);
-  const canManageRoles = currentUser?.permissions.includes('identity.assign-roles') ?? false;
+  // Role nadaje wylacznie Admin i Super Admin firmy — isAdmin = rola typu System (patrz /api/auth/me).
+  const canManageRoles = currentUser?.isAdmin ?? false;
   const hubManagedRole = HUB_MANAGED_ROLE_NAMES.includes(role.name);
 
   const unassignRole = () => {
