@@ -4,7 +4,8 @@ using WorkBase.Shared.Domain;
 
 namespace WorkBase.Modules.Leave.Application.Commands;
 
-public sealed record CancelLeaveRequestCommand(Guid RequestId) : ICommand, ITenantRequest
+/// <param name="RestrictToEmployeeId">Ustawione, gdy wnioskujący może anulować tylko własny wniosek.</param>
+public sealed record CancelLeaveRequestCommand(Guid RequestId, Guid? RestrictToEmployeeId = null) : ICommand, ITenantRequest
 {
     public Guid TenantId { get; set; }
 }
@@ -18,6 +19,9 @@ public sealed class CancelLeaveRequestHandler(
         var leaveRequest = await requestRepository.GetByIdAsync(request.RequestId, cancellationToken);
         if (leaveRequest is null || leaveRequest.TenantId != request.TenantId)
             return Result.Failure(Error.NotFound("LeaveRequest.NotFound", "Leave request not found"));
+
+        if (request.RestrictToEmployeeId is Guid ownerId && leaveRequest.EmployeeId != ownerId)
+            return Result.Failure(Error.Forbidden("LeaveRequest.NotOwner", "Można anulować tylko własny wniosek urlopowy."));
 
         var balance = await balanceRepository.GetAsync(
             leaveRequest.TenantId, leaveRequest.EmployeeId, leaveRequest.LeaveTypeId,

@@ -300,8 +300,12 @@ public static class WorkflowEndpoints
         return result.ToHttpResult();
     }
 
-    private static async Task<IResult> GetPendingApprovals(Guid approverEmployeeId, ISender sender)
+    private static async Task<IResult> GetPendingApprovals(
+        Guid approverEmployeeId, ClaimsPrincipal user, IPermissionService permissions, ISender sender, CancellationToken ct)
     {
+        if (!await user.CanAccessEmployeeAsync(approverEmployeeId, permissions, "workflow.manage", ct))
+            return Results.Forbid();
+
         var query = new GetPendingApprovalsQuery(approverEmployeeId);
         var result = await sender.Send(query);
         return result.ToHttpResult();
