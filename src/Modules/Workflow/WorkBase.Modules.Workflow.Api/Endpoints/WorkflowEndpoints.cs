@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using System.Security.Claims;
 using WorkBase.Modules.Workflow.Application.Commands;
 using WorkBase.Modules.Workflow.Application.Dtos;
 using WorkBase.Modules.Workflow.Application.Queries;
@@ -154,7 +155,7 @@ public static class WorkflowEndpoints
         group.MapPost("/approvals/{id:guid}/decide", SubmitApprovalDecision)
             .WithName("SubmitApprovalDecision")
             .WithSummary("Zatwierdź, odrzuć lub zwróć wniosek o akceptację")
-            .RequirePermission("workflow.create")
+            .RequirePermission("workflow.approve")
             .Produces(StatusCodes.Status204NoContent);
 
         return endpoints;
@@ -316,12 +317,17 @@ public static class WorkflowEndpoints
     private static async Task<IResult> SubmitApprovalDecision(
         Guid id,
         SubmitApprovalDecisionRequest request,
+        ClaimsPrincipal user,
         ISender sender)
     {
+        // Akceptant bierze się z tokenu, nie z body — inaczej można podszyć się pod przypisanego akceptanta.
+        if (!Guid.TryParse(user.FindFirstValue("employee_id"), out var decidedByEmployeeId))
+            return Results.Unauthorized();
+
         var command = new SubmitApprovalDecisionCommand(
             id,
             request.Decision,
-            request.DecidedByEmployeeId,
+            decidedByEmployeeId,
             request.Comment);
 
         var result = await sender.Send(command);
@@ -357,7 +363,7 @@ public sealed record CreateWorkflowDefinitionRequest(string Name, string Definit
 public sealed record UpdateWorkflowDefinitionRequest(string Name, string DefinitionJson, string? Description = null);
 public sealed record CreateWorkflowInstanceRequest(Guid DefinitionId, string EntityType, Guid EntityId, Guid InitiatedBy);
 public sealed record AdvanceWorkflowRequest(string Outcome, string? CompletedBy = null, string? Comment = null);
-public sealed record SubmitApprovalDecisionRequest(string Decision, Guid DecidedByEmployeeId, string? Comment = null);
+public sealed record SubmitApprovalDecisionRequest(string Decision, string? Comment = null);
 public sealed record SetContextRequest(string ContextJson);
 public sealed record EvaluateConditionRequest(string Expression);
 

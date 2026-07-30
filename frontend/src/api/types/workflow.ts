@@ -149,6 +149,5 @@ export type ApprovalDecision = 'approve' | 'reject' | 'return';
 
 export interface SubmitApprovalDecisionRequest {
   decision: ApprovalDecision;
-  decidedByEmployeeId: string;
   comment?: string;
 }

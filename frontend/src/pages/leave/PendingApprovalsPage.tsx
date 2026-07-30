@@ -65,7 +65,6 @@ export function PendingApprovalsPage() {
       {
         approvalId: approval.id,
         decision,
-        decidedByEmployeeId: employeeId,
         comment: comment || undefined,
       },
       {
