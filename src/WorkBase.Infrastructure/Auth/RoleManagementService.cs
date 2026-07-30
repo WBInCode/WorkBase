@@ -9,6 +9,7 @@ public sealed class RoleManagementService(WorkBaseDbContext dbContext) : IRoleMa
 {
     private const string AdminRoleName = "Admin";
     private const string SuperAdminRoleName = "Super Admin";
+    private const string PositionAssignedBy = "position";
 
     public async Task<IReadOnlyList<RoleDto>> GetRolesAsync(Guid tenantId, CancellationToken ct = default)
     {
@@ -266,6 +267,31 @@ public sealed class RoleManagementService(WorkBaseDbContext dbContext) : IRoleMa
         }
 
         dbContext.Set<UserRole>().Remove(userRole);
+        await dbContext.SaveChangesAsync(ct);
+    }
+
+    public async Task ApplyPositionRoleAsync(Guid userId, Guid tenantId, Guid roleId, CancellationToken ct = default)
+    {
+        var role = await dbContext.Set<Role>()
+            .FirstOrDefaultAsync(item => item.Id == roleId && item.TenantId == tenantId, ct)
+            ?? throw new InvalidOperationException("Rola nie istnieje w bieżącej organizacji.");
+
+        if (role.Name == AdminRoleName || role.Name == SuperAdminRoleName)
+            throw new InvalidOperationException("Ról Admin i Super Admin nie nadaje się przez stanowisko.");
+
+        var previous = await dbContext.Set<UserRole>()
+            .Where(ur => ur.UserId == userId && ur.TenantId == tenantId && ur.AssignedBy == PositionAssignedBy)
+            .ToListAsync(ct);
+
+        if (previous.Any(ur => ur.RoleId == roleId) && previous.Count == 1) return;
+
+        dbContext.Set<UserRole>().RemoveRange(previous);
+        if (!await dbContext.Set<UserRole>().AnyAsync(
+                ur => ur.UserId == userId && ur.RoleId == roleId && ur.TenantId == tenantId && ur.AssignedBy != PositionAssignedBy, ct))
+        {
+            dbContext.Set<UserRole>().Add(UserRole.Create(userId, roleId, tenantId, PositionAssignedBy));
+        }
+
         await dbContext.SaveChangesAsync(ct);
     }
 

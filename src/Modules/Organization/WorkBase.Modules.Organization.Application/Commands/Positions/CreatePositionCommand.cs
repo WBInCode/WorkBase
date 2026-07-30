@@ -4,7 +4,9 @@ namespace WorkBase.Modules.Organization.Application.Commands.Positions;
 
 public sealed record CreatePositionCommand(
     string Name,
-    string? Description) : ICommand<Guid>, ITenantRequest
+    string? Description,
+    Guid? DefaultRoleId = null,
+    bool IsManagerial = false) : ICommand<Guid>, ITenantRequest
 {
     public Guid TenantId { get; set; }
 }

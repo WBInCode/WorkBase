@@ -94,6 +94,8 @@ export interface PositionDto {
   name: string;
   description: string | null;
   isActive: boolean;
+  defaultRoleId: string | null;
+  isManagerial: boolean;
 }
 
 export interface CreateEmployeeRequest {
@@ -133,11 +135,15 @@ export interface UpdateOrgUnitRequest {
 export interface CreatePositionRequest {
   name: string;
   description?: string;
+  defaultRoleId?: string;
+  isManagerial: boolean;
 }
 
 export interface UpdatePositionRequest {
   name: string;
   description?: string;
+  defaultRoleId?: string;
+  isManagerial: boolean;
 }
 
 // --- Unit Type CRUD ---

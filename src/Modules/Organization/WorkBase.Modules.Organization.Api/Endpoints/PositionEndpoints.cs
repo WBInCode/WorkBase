@@ -72,7 +72,7 @@ public static class PositionEndpoints
         UpdatePositionRequest request,
         ISender sender)
     {
-        var command = new UpdatePositionCommand(id, request.Name, request.Description);
+        var command = new UpdatePositionCommand(id, request.Name, request.Description, request.DefaultRoleId, request.IsManagerial);
         var result = await sender.Send(command);
         return result.ToHttpResult();
     }
@@ -86,4 +86,6 @@ public static class PositionEndpoints
 
 public sealed record UpdatePositionRequest(
     string Name,
-    string? Description);
+    string? Description,
+    Guid? DefaultRoleId = null,
+    bool IsManagerial = false);

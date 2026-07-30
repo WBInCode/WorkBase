@@ -1,4 +1,5 @@
 using WorkBase.Modules.Organization.Application.Contracts;
+using WorkBase.Modules.Organization.Application.Services;
 using WorkBase.Modules.Organization.Domain.Entities;
 using WorkBase.Modules.Organization.Domain.Events;
 using WorkBase.Shared.Cqrs;
@@ -10,7 +11,8 @@ public sealed class AssignEmployeeHandler(
     IEmployeeRepository employeeRepository,
     IOrganizationUnitRepository unitRepository,
     IPositionRepository positionRepository,
-    IEmployeeAssignmentRepository assignmentRepository)
+    IEmployeeAssignmentRepository assignmentRepository,
+    PositionAssignmentPolicy positionPolicy)
     : ICommandHandler<AssignEmployeeCommand, Guid>
 {
     public async Task<Result<Guid>> Handle(
@@ -24,7 +26,8 @@ public sealed class AssignEmployeeHandler(
         if (!await unitRepository.ExistsAsync(request.OrganizationUnitId, cancellationToken))
             return Result.Failure<Guid>(Error.NotFound("Unit.NotFound", "Organization unit not found."));
 
-        if (!await positionRepository.ExistsAsync(request.PositionId, cancellationToken))
+        var position = await positionRepository.GetByIdAsync(request.PositionId, cancellationToken);
+        if (position is null)
             return Result.Failure<Guid>(Error.NotFound("Position.NotFound", "Position not found."));
 
         if (request.IsPrimary)
@@ -46,6 +49,9 @@ public sealed class AssignEmployeeHandler(
             request.StartDate);
 
         await assignmentRepository.AddAsync(assignment, cancellationToken);
+
+        await positionPolicy.ApplyAsync(
+            employee, request.OrganizationUnitId, position, request.TenantId, cancellationToken);
 
         employee.RaiseDomainEvent(new EmployeeAssignmentChangedEvent(
             request.EmployeeId,

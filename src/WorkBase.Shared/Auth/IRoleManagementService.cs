@@ -14,6 +14,12 @@ public interface IRoleManagementService
     Task<IReadOnlyList<UserRoleDto>> GetUserRolesAsync(Guid userId, Guid tenantId, CancellationToken ct = default);
     Task AssignUserRoleAsync(Guid userId, Guid roleId, Guid tenantId, string? assignedBy, CancellationToken ct = default);
     Task UnassignUserRoleAsync(Guid userId, Guid roleId, Guid tenantId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Ustawia rolę wynikającą ze stanowiska, odbierając poprzednią nadaną tą samą drogą.
+    /// Role nadane ręcznie i synchronizowane z WB Platform zostają nietknięte.
+    /// </summary>
+    Task ApplyPositionRoleAsync(Guid userId, Guid tenantId, Guid roleId, CancellationToken ct = default);
 }
 
 public sealed record RoleDto(

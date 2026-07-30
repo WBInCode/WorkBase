@@ -19,7 +19,7 @@ public sealed class UpdatePositionHandler(IPositionRepository positionRepository
         if (await positionRepository.NameExistsInTenantAsync(request.TenantId, request.Name, request.PositionId, cancellationToken))
             return Result.Failure(Error.Conflict("Position.NameExists", $"Position '{request.Name}' already exists."));
 
-        position.Update(request.Name, request.Description);
+        position.Update(request.Name, request.Description, request.DefaultRoleId, request.IsManagerial);
         positionRepository.Update(position);
 
         return Result.Success();

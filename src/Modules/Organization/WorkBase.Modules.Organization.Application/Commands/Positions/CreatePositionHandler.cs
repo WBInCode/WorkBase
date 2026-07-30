@@ -15,7 +15,8 @@ public sealed class CreatePositionHandler(IPositionRepository positionRepository
         if (await positionRepository.NameExistsInTenantAsync(request.TenantId, request.Name, cancellationToken: cancellationToken))
             return Result.Failure<Guid>(Error.Conflict("Position.NameExists", $"Position '{request.Name}' already exists."));
 
-        var position = Position.Create(request.TenantId, request.Name, request.Description);
+        var position = Position.Create(
+            request.TenantId, request.Name, request.Description, request.DefaultRoleId, request.IsManagerial);
 
         await positionRepository.AddAsync(position, cancellationToken);
 
