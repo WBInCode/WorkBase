@@ -28,6 +28,14 @@ public sealed class EmployeeAssignmentRepository(WorkBaseDbContext dbContext) : 
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<List<EmployeeAssignment>> GetActivePrimaryByTenantAsync(Guid tenantId, CancellationToken cancellationToken = default)
+    {
+        return await dbContext.Set<EmployeeAssignment>()
+            .Where(a => a.TenantId == tenantId && a.IsPrimary && a.EndDate == null)
+            .OrderBy(a => a.StartDate)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task AddAsync(EmployeeAssignment assignment, CancellationToken cancellationToken = default)
     {
         await dbContext.Set<EmployeeAssignment>().AddAsync(assignment, cancellationToken);

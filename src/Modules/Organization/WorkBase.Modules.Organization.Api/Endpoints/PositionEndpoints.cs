@@ -47,7 +47,19 @@ public static class PositionEndpoints
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound);
 
+        group.MapPost("/reapply-policy", ReapplyPolicy)
+            .WithName("ReapplyPositionPolicy")
+            .WithSummary("Zastosuj politykę stanowisk do istniejących przypisań (role i przełożeni)")
+            .RequirePermission("org.manage")
+            .Produces<ReapplyPositionPolicyResult>();
+
         return endpoints;
+    }
+
+    private static async Task<IResult> ReapplyPolicy(ISender sender)
+    {
+        var result = await sender.Send(new ReapplyPositionPolicyCommand());
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> GetPositions(ISender sender)
