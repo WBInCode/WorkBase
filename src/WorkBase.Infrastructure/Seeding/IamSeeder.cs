@@ -35,6 +35,11 @@ public static class IamSeeder
         public const string Dashboard = "dashboard";
         public const string Notification = "notification";
         public const string Documents = "documents";
+        public const string Forms = "forms";
+        public const string Cases = "cases";
+        public const string Contacts = "contacts";
+        public const string Sales = "sales";
+        public const string AI = "ai";
 
         public static readonly string[] All = ModuleCatalog.All.Select(m => m.Key).ToArray();
     }
@@ -60,11 +65,13 @@ public static class IamSeeder
         "org.view", "org.export",
         "time.view", "time.create", "time.view-team", "time.approve", "time.export",
         "leave.view", "leave.create", "leave.view-team", "leave.approve", "leave.export",
-        "tasks.view", "tasks.create", "tasks.edit", "tasks.delete", "tasks.assign", "tasks.export",
+        "tasks.view", "tasks.create", "tasks.edit", "tasks.delete", "tasks.assign", "tasks.export", "tasks.comment",
         "workflow.view", "workflow.approve",
         "dashboard.view",
         "notification.view",
         "documents.view", "documents.create", "documents.export",
+        "ai.use",
+        "forms.submit", "reports.view",
     ];
 
     private static readonly HashSet<string> PracownikPermissionCodes =
@@ -72,11 +79,13 @@ public static class IamSeeder
         "org.view",
         "time.view", "time.create",
         "leave.view", "leave.create",
-        "tasks.view", "tasks.edit",
+        "tasks.view", "tasks.edit", "tasks.comment",
         "workflow.view",
         "dashboard.view",
         "notification.view",
         "documents.view", "documents.create",
+        "ai.use",
+        "forms.submit",
     ];
 
     private static readonly HashSet<string> HrPermissionCodes =
@@ -85,15 +94,22 @@ public static class IamSeeder
         "identity.view",
         "time.view", "time.create", "time.edit", "time.view-team", "time.manage", "time.approve", "time.export",
         "leave.view", "leave.create", "leave.edit", "leave.delete", "leave.view-team", "leave.approve", "leave.manage", "leave.export",
-        "tasks.view", "tasks.create", "tasks.export",
+        "tasks.view", "tasks.create", "tasks.export", "tasks.comment",
         "workflow.view", "workflow.approve",
         "dashboard.view", "dashboard.export",
         "notification.view",
         "documents.view", "documents.create", "documents.export", "documents.import",
+        "ai.use",
+        "forms.submit", "reports.view",
     ];
 
     public static async Task SeedAsync(WorkBaseDbContext dbContext, ILogger logger)
     {
+        // Najpierw uzupelnij slownik uprawnien i przypisania rolom, ktore juz istnieja.
+        // Musi to isc PRZED bramka ponizej, bo ta konczy metode dla kazdej dzialajacej
+        // instalacji — a wlasnie tam brakowalo uprawnien dodanych po pierwszym wdrozeniu.
+        await BackfillMissingPermissionsAsync(dbContext, logger);
+
         // Guard on ROLES, not permissions: a migration (20260512091000_AddConfigManagePermission)
         // inserts a single `config.manage` permission, so an "any permission exists" guard would
         // wrongly treat the tenant as fully seeded and skip creating the 5 system roles + grants,
@@ -239,6 +255,84 @@ public static class IamSeeder
             tenantId, roles.Count, rolePermissions.Count, dataScopes.Count);
     }
 
+    /// <summary>Pelne kody wszystkich uprawnien znanych systemowi (modul.akcja[.zakres]).</summary>
+    public static IReadOnlyCollection<string> AllPermissionCodes { get; } =
+        CreatePermissions().Select(p => p.FullCode).ToHashSet();
+
+    /// <summary>
+    /// Dopisuje uprawnienia, ktore pojawily sie w kodzie po pierwszym uruchomieniu instalacji,
+    /// i nadaje je istniejacym rolom systemowym oraz szablonowym we wszystkich firmach.
+    /// </summary>
+    /// <remarks>
+    /// Bez tego endpoint wymagajacy nowego uprawnienia odrzuca kazdego, lacznie z Super Adminem:
+    /// nie da sie przypisac uprawnienia, ktorego nie ma w slowniku. Metoda jest idempotentna —
+    /// przy braku zmian nie wykonuje zadnego zapisu.
+    /// Role wlasne (utworzone przez klienta) celowo pomijamy: o ich zakresie decyduje administrator.
+    /// </remarks>
+    private static async Task BackfillMissingPermissionsAsync(WorkBaseDbContext dbContext, ILogger logger)
+    {
+        var existing = await dbContext.Set<Permission>().ToListAsync();
+        var existingCodes = existing.Select(p => p.FullCode).ToHashSet();
+
+        var missing = CreatePermissions().Where(p => !existingCodes.Contains(p.FullCode)).ToList();
+        if (missing.Count > 0)
+        {
+            dbContext.Set<Permission>().AddRange(missing);
+            await dbContext.SaveChangesAsync();
+            existing.AddRange(missing);
+            logger.LogInformation("Uzupelniono slownik uprawnien o {Count} pozycji: {Codes}",
+                missing.Count, string.Join(", ", missing.Select(p => p.FullCode)));
+        }
+
+        // Przypisania uzupelniamy zawsze, nie tylko po dodaniu uprawnienia — instalacja moze miec
+        // uprawnienie w slowniku (np. z wczesniejszej migracji), ale bez nadania go rolom.
+        var roles = await dbContext.Set<Role>()
+            .Where(r => r.Name == "Super Admin" || r.Name == "Admin" || r.Name == "Kierownik"
+                || r.Name == "Pracownik" || r.Name == "HR")
+            .ToListAsync();
+        if (roles.Count == 0)
+        {
+            return;
+        }
+
+        var roleIds = roles.Select(r => r.Id).ToList();
+        var granted = (await dbContext.Set<RolePermission>()
+                .Where(rp => roleIds.Contains(rp.RoleId))
+                .Select(rp => new { rp.RoleId, rp.PermissionId })
+                .ToListAsync())
+            .Select(rp => (rp.RoleId, rp.PermissionId))
+            .ToHashSet();
+
+        var added = 0;
+        foreach (var role in roles)
+        {
+            foreach (var permission in existing.Where(p => RoleShouldHave(role.Name, p.FullCode)))
+            {
+                if (granted.Add((role.Id, permission.Id)))
+                {
+                    dbContext.Set<RolePermission>().Add(RolePermission.Create(role.Id, permission.Id));
+                    added++;
+                }
+            }
+        }
+
+        if (added > 0)
+        {
+            await dbContext.SaveChangesAsync();
+            logger.LogInformation("Uzupelniono {Count} przypisan uprawnien do rol.", added);
+        }
+    }
+
+    private static bool RoleShouldHave(string roleName, string permissionCode) => roleName switch
+    {
+        "Super Admin" => true,
+        "Admin" => permissionCode != PlatformConstants.ManageTenantsPermission,
+        "Kierownik" => KierownikPermissionCodes.Contains(permissionCode),
+        "Pracownik" => PracownikPermissionCodes.Contains(permissionCode),
+        "HR" => HrPermissionCodes.Contains(permissionCode),
+        _ => false,
+    };
+
     private static List<Permission> CreatePermissions()
     {
         var permissions = new List<Permission>();
@@ -299,6 +393,24 @@ public static class IamSeeder
         // deliberately NOT granted to Admin below, only to Super Admin, and further gated at
         // the endpoint level to require the caller's tenant to be our own operator tenant.
         permissions.Add(CreatePermission(permissionId++, "platform", "manage-tenants", description: "Zarządzanie firmami (tenantami) i ich planami licencyjnymi"));
+
+        // Akcje spoza standardowego CRUD, których wymagają endpointy. Bez tych wpisów
+        // 20 endpointów odrzucało każdego, łącznie z Super Adminem — nie da się przypisać
+        // uprawnienia, którego nie ma w słowniku.
+        // DOPISYWAĆ WYŁĄCZNIE NA KOŃCU: identyfikatory są wyliczane z kolejnego numeru,
+        // więc wstawienie czegokolwiek wyżej przesunęłoby id już istniejących uprawnień.
+        permissions.Add(CreatePermission(permissionId++, Modules.Tasks, "comment", description: "Komentowanie zadań"));
+        permissions.Add(CreatePermission(permissionId++, Modules.Cases, "comment", description: "Komentowanie spraw"));
+        permissions.Add(CreatePermission(permissionId++, Modules.Cases, "assign", description: "Przypisywanie spraw"));
+        permissions.Add(CreatePermission(permissionId++, Modules.Contacts, "assign", description: "Przypisywanie opiekuna kontrahenta"));
+        permissions.Add(CreatePermission(permissionId++, Modules.Forms, Actions.Manage, description: "Zarządzanie definicjami formularzy"));
+        permissions.Add(CreatePermission(permissionId++, Modules.Sales, Actions.Manage, description: "Zarządzanie leadami i szansami sprzedaży"));
+        permissions.Add(CreatePermission(permissionId++, Modules.AI, "use", description: "Korzystanie z funkcji AI"));
+        permissions.Add(CreatePermission(permissionId++, Modules.Forms, "submit", description: "Wypełnianie i wysyłanie formularzy"));
+        // Raporty to obszar modułu Dashboard, nie osobna pozycja katalogu modułów,
+        // więc nie dostają automatycznego kompletu CRUD.
+        permissions.Add(CreatePermission(permissionId++, "reports", Actions.View, description: "Przeglądanie raportów"));
+        permissions.Add(CreatePermission(permissionId++, "reports", Actions.Manage, description: "Definiowanie i eksport raportów"));
 
         return permissions;
     }
