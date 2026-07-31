@@ -1,11 +1,14 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using System.Net.Mail;
 using System.Text.RegularExpressions;
 using Stripe;
+using WorkBase.Infrastructure.Middleware;
 using WorkBase.Infrastructure.Persistence;
 using WorkBase.Infrastructure.Persistence.Entities;
 using WorkBase.Shared.Api;
@@ -80,22 +83,45 @@ public static class OnboardingEndpoints
     {
         var group = endpoints.MapGroup("/api/onboarding").WithTags("Onboarding");
 
-        group.MapPost("/register", async (RegisterTenantRequest req, WorkBaseDbContext db) =>
+        group.MapPost("/register", async (
+            RegisterTenantRequest req,
+            WorkBaseDbContext db,
+            IConfiguration configuration) =>
         {
-            var existing = await db.Set<OnboardingRequest>().AnyAsync(o => o.AdminEmail == req.AdminEmail && o.Status != "failed");
+            // Rejestracja samoobslugowa jest domyslnie WYLACZONA. WorkBase jest udostepniany
+            // przez logowanie z WB Platform, a ten endpoint dziala bez logowania i pisze do bazy
+            // — czyli jest darmowa powierzchnia ataku dla kazdego z internetu. Na produkcji nie
+            // powstalo tu ani jedno prawdziwe zgloszenie, za to skanery wywolaly bledy 500.
+            if (!configuration.GetValue("Onboarding:SelfServiceEnabled", false))
+            {
+                return Results.NotFound();
+            }
+
+            // Walidacja MUSI byc tutaj: bez niej puste pola szly wprost do bazy i uzytkownik
+            // dostawal 500 z naruszenia NOT NULL zamiast czytelnego 400.
+            var bledy = SprawdzDaneRejestracji(req);
+            if (bledy.Count > 0)
+            {
+                return Results.ValidationProblem(bledy);
+            }
+
+            var adminEmail = req.AdminEmail.Trim();
+            var existing = await db.Set<OnboardingRequest>().AnyAsync(o => o.AdminEmail == adminEmail && o.Status != "failed");
             if (existing) return Results.Conflict(new { Error = "Konto z tym adresem email już istnieje lub jest w trakcie rejestracji." });
 
             var request = new OnboardingRequest
             {
-                Id = Guid.NewGuid(), CompanyName = req.CompanyName,
-                AdminEmail = req.AdminEmail, AdminFullName = req.AdminFullName,
-                Phone = req.Phone, PlanId = req.PlanId,
+                Id = Guid.NewGuid(), CompanyName = req.CompanyName.Trim(),
+                AdminEmail = adminEmail, AdminFullName = req.AdminFullName.Trim(),
+                Phone = req.Phone?.Trim(), PlanId = req.PlanId.Trim(),
                 Status = "pending", CreatedAt = DateTime.UtcNow
             };
             db.Set<OnboardingRequest>().Add(request);
             await db.SaveChangesAsync();
             return Results.Accepted($"/api/onboarding/{request.Id}", new { RequestId = request.Id, Status = "pending" });
-        }).WithName("RegisterTenant").WithSummary("Rejestracja nowego tenanta (self-service)").AllowAnonymous();
+        }).WithName("RegisterTenant").WithSummary("Rejestracja nowego tenanta (self-service)")
+          .AllowAnonymous()
+          .RequireRateLimiting(RateLimitingExtensions.OnboardingPolicy);
 
         group.MapGet("/{id:guid}/status", async (Guid id, WorkBaseDbContext db) =>
         {
@@ -105,6 +131,38 @@ public static class OnboardingEndpoints
         }).WithName("GetOnboardingStatus").WithSummary("Sprawdź status rejestracji").AllowAnonymous();
 
         return endpoints;
+    }
+
+    /// <summary>Sprawdza dane rejestracji wzgledem ograniczen kolumn w bazie.</summary>
+    private static Dictionary<string, string[]> SprawdzDaneRejestracji(RegisterTenantRequest req)
+    {
+        var bledy = new Dictionary<string, string[]>();
+
+        void Wymagane(string pole, string? wartosc, int maks)
+        {
+            if (string.IsNullOrWhiteSpace(wartosc))
+                bledy[pole] = ["Pole jest wymagane."];
+            else if (wartosc.Trim().Length > maks)
+                bledy[pole] = [$"Pole może mieć najwyżej {maks} znaków."];
+        }
+
+        Wymagane(nameof(req.CompanyName), req.CompanyName, 256);
+        Wymagane(nameof(req.AdminFullName), req.AdminFullName, 256);
+        Wymagane(nameof(req.PlanId), req.PlanId, 64);
+        Wymagane(nameof(req.AdminEmail), req.AdminEmail, 256);
+
+        if (!bledy.ContainsKey(nameof(req.AdminEmail))
+            && !MailAddress.TryCreate(req.AdminEmail.Trim(), out _))
+        {
+            bledy[nameof(req.AdminEmail)] = ["Nieprawidłowy adres email."];
+        }
+
+        if (req.Phone is not null && req.Phone.Trim().Length > 32)
+        {
+            bledy[nameof(req.Phone)] = ["Pole może mieć najwyżej 32 znaki."];
+        }
+
+        return bledy;
     }
 }
 

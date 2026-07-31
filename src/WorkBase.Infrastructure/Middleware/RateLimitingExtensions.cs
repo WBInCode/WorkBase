@@ -9,6 +9,13 @@ namespace WorkBase.Infrastructure.Middleware;
 
 public static class RateLimitingExtensions
 {
+    /// <summary>
+    /// Limit dla rejestracji samoobslugowej: endpoint dziala bez logowania, wiec globalne
+    /// 100/min jest o wiele za hojne — pozwalaloby dopisac do bazy tysiace wierszy na godzine
+    /// bez posiadania jakiegokolwiek konta.
+    /// </summary>
+    public const string OnboardingPolicy = "onboarding";
+
     public static IServiceCollection AddTenantRateLimiting(
         this IServiceCollection services, IConfiguration configuration)
     {
@@ -34,6 +41,16 @@ public static class RateLimitingExtensions
                         QueueLimit = queueLimit,
                     });
             });
+
+            options.AddPolicy(OnboardingPolicy, context => RateLimitPartition.GetFixedWindowLimiter(
+                context.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
+                _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = configuration.GetValue("RateLimiting:OnboardingPermitLimit", 5),
+                    Window = TimeSpan.FromHours(1),
+                    QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                    QueueLimit = 0,
+                }));
 
             options.OnRejected = async (context, cancellationToken) =>
             {

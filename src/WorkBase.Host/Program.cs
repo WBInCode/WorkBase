@@ -1,5 +1,7 @@
 using Hangfire;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.HttpOverrides;
+using System.Net;
 using Scalar.AspNetCore;
 using Serilog;
 using WorkBase.Host.Endpoints;
@@ -71,6 +73,25 @@ try
         });
     });
 
+    builder.Services.Configure<ForwardedHeadersOptions>(options =>
+    {
+        options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+
+        // Domyslna lista zawiera tylko loopback, a Traefik stoi pod adresem z sieci Dockera,
+        // wiec bez tego naglowki bylyby ignorowane. Dopuszczamy wylacznie zakresy prywatne —
+        // ufanie dowolnemu nadawcy pozwoliloby podac obcy adres w X-Forwarded-For.
+        options.KnownNetworks.Clear();
+        options.KnownProxies.Clear();
+        options.KnownNetworks.Add(new Microsoft.AspNetCore.HttpOverrides.IPNetwork(IPAddress.Parse("10.0.0.0"), 8));
+        options.KnownNetworks.Add(new Microsoft.AspNetCore.HttpOverrides.IPNetwork(IPAddress.Parse("172.16.0.0"), 12));
+        options.KnownNetworks.Add(new Microsoft.AspNetCore.HttpOverrides.IPNetwork(IPAddress.Parse("192.168.0.0"), 16));
+        options.KnownNetworks.Add(new Microsoft.AspNetCore.HttpOverrides.IPNetwork(IPAddress.Parse("127.0.0.0"), 8));
+
+        // Miedzy klientem a aplikacja stoi dokladnie jeden posrednik (Traefik). Wieksza
+        // wartosc pozwolilaby doklejac wlasne wpisy do naglowka i falszowac adres zrodlowy.
+        options.ForwardLimit = 1;
+    });
+
     var app = builder.Build();
 
     if (args.Contains("--migrate-only", StringComparer.OrdinalIgnoreCase))
@@ -91,6 +112,13 @@ try
     }
 
     app.UseCors();
+
+    // Musi isc PRZED limiterem: bez tego Connection.RemoteIpAddress to zawsze adres
+    // kontenera Traefika, wiec caly ruch bez logowania (ktory nie ma tenant_id) trafia
+    // do JEDNEJ partycji limitu — jeden natretny klient wyczerpywal limit wszystkim.
+    // Naglowki przyjmujemy wylacznie z sieci prywatnych, bo X-Forwarded-For przyslany
+    // wprost od klienta pozwolilby podszyc sie pod dowolny adres i ominac limity.
+    app.UseForwardedHeaders();
 
     app.UseRateLimiter();
 
