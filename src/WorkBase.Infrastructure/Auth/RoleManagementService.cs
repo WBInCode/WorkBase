@@ -5,7 +5,9 @@ using WorkBase.Shared.Auth;
 
 namespace WorkBase.Infrastructure.Auth;
 
-public sealed class RoleManagementService(WorkBaseDbContext dbContext) : IRoleManagementService
+public sealed class RoleManagementService(
+    WorkBaseDbContext dbContext,
+    IAuthorizationCacheInvalidator cacheInvalidator) : IRoleManagementService
 {
     private const string AdminRoleName = "Admin";
     private const string SuperAdminRoleName = "Super Admin";
@@ -95,6 +97,10 @@ public sealed class RoleManagementService(WorkBaseDbContext dbContext) : IRoleMa
             .Where(ur => ur.RoleId == roleId).ToListAsync(ct);
         dbContext.Set<UserRole>().RemoveRange(userRoles);
 
+        // Czyscimy PRZED usunieciem powiazan — potem nie da sie juz ustalic,
+        // ktorzy uzytkownicy mieli te role.
+        await cacheInvalidator.InvalidateRoleAsync(roleId, role.TenantId, ct);
+
         dbContext.Set<Role>().Remove(role);
         await dbContext.SaveChangesAsync(ct);
     }
@@ -143,6 +149,7 @@ public sealed class RoleManagementService(WorkBaseDbContext dbContext) : IRoleMa
 
         dbContext.Set<RolePermission>().AddRange(newEntries);
         await dbContext.SaveChangesAsync(ct);
+        await cacheInvalidator.InvalidateRoleAsync(roleId, role.TenantId, ct);
     }
 
     public async Task<IReadOnlyList<RoleUserDto>> GetRoleUsersAsync(
@@ -234,6 +241,7 @@ public sealed class RoleManagementService(WorkBaseDbContext dbContext) : IRoleMa
         var userRole = UserRole.Create(userId, roleId, tenantId, assignedBy);
         dbContext.Set<UserRole>().Add(userRole);
         await dbContext.SaveChangesAsync(ct);
+        await cacheInvalidator.InvalidateUserAsync(userId, tenantId, ct);
     }
 
     public async Task UnassignUserRoleAsync(Guid userId, Guid roleId, Guid tenantId, CancellationToken ct = default)
@@ -268,6 +276,7 @@ public sealed class RoleManagementService(WorkBaseDbContext dbContext) : IRoleMa
 
         dbContext.Set<UserRole>().Remove(userRole);
         await dbContext.SaveChangesAsync(ct);
+        await cacheInvalidator.InvalidateUserAsync(userId, tenantId, ct);
     }
 
     public async Task ApplyPositionRoleAsync(Guid userId, Guid tenantId, Guid roleId, CancellationToken ct = default)
@@ -293,6 +302,7 @@ public sealed class RoleManagementService(WorkBaseDbContext dbContext) : IRoleMa
         }
 
         await dbContext.SaveChangesAsync(ct);
+        await cacheInvalidator.InvalidateUserAsync(userId, tenantId, ct);
     }
 
     private static void EnsureSuperAdminAllowed(Guid tenantId, string roleName)

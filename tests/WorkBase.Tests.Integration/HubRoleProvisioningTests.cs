@@ -1,9 +1,11 @@
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
+using NSubstitute;
 using WorkBase.Infrastructure.Auth;
 using WorkBase.Infrastructure.Persistence;
 using WorkBase.Modules.Identity.Domain.Entities;
+using WorkBase.Shared.Auth;
 using Xunit;
 
 namespace WorkBase.Tests.Integration;
@@ -60,7 +62,7 @@ public sealed class HubRoleProvisioningTests
         var user = User.Create("employee", "employee@example.com", "Test", "User", CustomerTenantId);
         db.AddRange(adminRole, user);
         await db.SaveChangesAsync();
-        var service = new RoleManagementService(db);
+        var service = new RoleManagementService(db, Substitute.For<IAuthorizationCacheInvalidator>());
 
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
             service.AssignUserRoleAsync(user.Id, adminRole.Id, CustomerTenantId, "manual"));
