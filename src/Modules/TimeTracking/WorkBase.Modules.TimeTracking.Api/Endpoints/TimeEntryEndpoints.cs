@@ -157,33 +157,56 @@ public static class TimeEntryEndpoints
 
     private static async Task<IResult> GetStatus(
         Guid employeeId,
-        ISender sender)
+        ClaimsPrincipal user,
+        IPermissionService permissions,
+        IEmployeeScopeResolver scopes,
+        ISender sender,
+        CancellationToken ct)
     {
+        // Samo uprawnienie time.view ma kazdy pracownik, wiec bez sprawdzenia zakresu
+        // wystarczylo podmienic identyfikator w adresie, zeby zobaczyc dane kolegi.
+        if (!await user.CanAccessEmployeeAsync(employeeId, permissions, scopes, "time.view-team", "time", ct))
+            return Results.Forbid();
+
         var query = new GetCurrentStatusQuery(employeeId);
-        var result = await sender.Send(query);
+        var result = await sender.Send(query, ct);
         return result.ToHttpResult();
     }
 
     private static async Task<IResult> GetBreakAvailability(
         Guid employeeId,
-        ISender sender)
+        ClaimsPrincipal user,
+        IPermissionService permissions,
+        IEmployeeScopeResolver scopes,
+        ISender sender,
+        CancellationToken ct)
     {
+        if (!await user.CanAccessEmployeeAsync(employeeId, permissions, scopes, "time.view-team", "time", ct))
+            return Results.Forbid();
+
         var query = new GetBreakAvailabilityQuery(employeeId);
-        var result = await sender.Send(query);
+        var result = await sender.Send(query, ct);
         return result.ToHttpResult();
     }
 
     private static async Task<IResult> GetTimeSheet(
         Guid employeeId,
         [Microsoft.AspNetCore.Http.AsParameters] TimeSheetRequest request,
-        ISender sender)
+        ClaimsPrincipal user,
+        IPermissionService permissions,
+        IEmployeeScopeResolver scopes,
+        ISender sender,
+        CancellationToken ct)
     {
+        if (!await user.CanAccessEmployeeAsync(employeeId, permissions, scopes, "time.view-team", "time", ct))
+            return Results.Forbid();
+
         var from = request.From ?? DateOnly.FromDateTime(DateTime.UtcNow);
         var to = request.To ?? from;
         var period = request.Period ?? "day";
 
         var query = new GetTimeSheetQuery(employeeId, from, to, period);
-        var result = await sender.Send(query);
+        var result = await sender.Send(query, ct);
         return result.ToHttpResult();
     }
 

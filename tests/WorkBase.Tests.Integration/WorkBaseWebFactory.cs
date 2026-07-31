@@ -68,7 +68,8 @@ public class WorkBaseWebFactory : WebApplicationFactory<WorkBase.Host.Program>
     public HttpClient CreateAuthenticatedClient(
         Guid? userId = null,
         Guid? tenantId = null,
-        string[]? permissions = null)
+        string[]? permissions = null,
+        Guid? employeeId = null)
     {
         var client = CreateClient();
 
@@ -76,6 +77,9 @@ public class WorkBaseWebFactory : WebApplicationFactory<WorkBase.Host.Program>
             client.DefaultRequestHeaders.Add("X-Test-Sub", userId.Value.ToString());
         if (tenantId.HasValue)
             client.DefaultRequestHeaders.Add("X-Test-Tenant", tenantId.Value.ToString());
+        // Bez tego roszczenia straznik zakresu nie rozpozna "to moje wlasne dane".
+        if (employeeId.HasValue)
+            client.DefaultRequestHeaders.Add("X-Test-Employee", employeeId.Value.ToString());
         if (permissions is { Length: > 0 })
         {
             foreach (var perm in permissions)
@@ -113,6 +117,9 @@ internal sealed class TestAuthHandler(
 
         if (Request.Headers.TryGetValue("X-Test-Tenant", out var tenant))
             claims.Add(new Claim("tenant_id", tenant.ToString()));
+
+        if (Request.Headers.TryGetValue("X-Test-Employee", out var employee))
+            claims.Add(new Claim("employee_id", employee.ToString()));
 
         if (Request.Headers.TryGetValue("X-Test-Permission", out var perms))
         {

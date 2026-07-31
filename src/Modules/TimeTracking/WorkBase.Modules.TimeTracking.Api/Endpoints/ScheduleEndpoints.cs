@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using System.Security.Claims;
 using WorkBase.Modules.TimeTracking.Application.Commands;
 using WorkBase.Modules.TimeTracking.Application.Dtos;
 using WorkBase.Modules.TimeTracking.Application.Queries;
@@ -90,12 +91,19 @@ public static class ScheduleEndpoints
     private static async Task<IResult> GetSchedules(
         Guid employeeId,
         [AsParameters] ScheduleQueryParams query,
-        ISender sender)
+        ClaimsPrincipal user,
+        IPermissionService permissions,
+        IEmployeeScopeResolver scopes,
+        ISender sender,
+        CancellationToken ct)
     {
+        if (!await user.CanAccessEmployeeAsync(employeeId, permissions, scopes, "time.view-team", "time", ct))
+            return Results.Forbid();
+
         var from = query.From ?? DateOnly.FromDateTime(DateTime.UtcNow);
         var to = query.To ?? from.AddDays(6);
 
-        var result = await sender.Send(new GetSchedulesQuery(employeeId, from, to));
+        var result = await sender.Send(new GetSchedulesQuery(employeeId, from, to), ct);
         return result.ToHttpResult();
     }
 
