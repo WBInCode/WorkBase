@@ -2,7 +2,10 @@ using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using System.Security.Claims;
+using WorkBase.Contracts;
 using WorkBase.Modules.TimeTracking.Application.Commands;
+using WorkBase.Modules.TimeTracking.Application.Contracts;
 using WorkBase.Modules.TimeTracking.Application.Dtos;
 using WorkBase.Modules.TimeTracking.Application.Queries;
 using WorkBase.Modules.TimeTracking.Domain.Entities;
@@ -65,25 +68,26 @@ public static class TimeEntryEndpoints
             .RequirePermission("time.view")
             .Produces<TimeSheetPeriodDto>();
 
-        // Admin endpoints for managing employee entries
+        // Uzupelnianie ewidencji: HR/Admin (time.manage) dla calej firmy, kierownik (time.edit)
+        // wylacznie dla siebie i swojego zespolu — zakres pilnuje EnsureCanManage.
         group.MapPost("/entries", AdminCreateEntry)
             .WithName("AdminCreateTimeEntry")
-            .WithSummary("Dodaj wpis czasu pracy pracownika (admin)")
-            .RequirePermission("time.manage")
+            .WithSummary("Dodaj wpis czasu pracy pracownika")
+            .RequireAnyPermission("time.manage", "time.edit")
             .Produces<Guid>(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest);
 
         group.MapPut("/entries/{entryId:guid}", AdminUpdateEntry)
             .WithName("AdminUpdateTimeEntry")
-            .WithSummary("Edytuj wpis czasu pracy (admin)")
-            .RequirePermission("time.manage")
+            .WithSummary("Edytuj wpis czasu pracy")
+            .RequireAnyPermission("time.manage", "time.edit")
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound);
 
         group.MapDelete("/entries/{entryId:guid}", AdminDeleteEntry)
             .WithName("AdminDeleteTimeEntry")
-            .WithSummary("Usuń wpis czasu pracy (admin)")
-            .RequirePermission("time.manage")
+            .WithSummary("Usun wpis czasu pracy")
+            .RequireAnyPermission("time.manage", "time.edit")
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound);
 
@@ -185,8 +189,15 @@ public static class TimeEntryEndpoints
 
     private static async Task<IResult> AdminCreateEntry(
         AdminCreateTimeEntryRequest request,
-        ISender sender)
+        ClaimsPrincipal caller,
+        ITimeManagementScopeService scope,
+        ISender sender,
+        CancellationToken cancellationToken)
     {
+        var denied = await EnsureCanManage(caller, scope, request.EmployeeId, cancellationToken);
+        if (denied is not null)
+            return denied;
+
         var command = new AdminCreateTimeEntryCommand(
             request.EmployeeId,
             request.EntryTime,
@@ -194,7 +205,7 @@ public static class TimeEntryEndpoints
             request.BreakType,
             request.Note);
 
-        var result = await sender.Send(command);
+        var result = await sender.Send(command, cancellationToken);
 
         return result.IsSuccess
             ? Results.Created($"/api/time/entries/{result.Value}", result.Value)
@@ -204,8 +215,16 @@ public static class TimeEntryEndpoints
     private static async Task<IResult> AdminUpdateEntry(
         Guid entryId,
         AdminUpdateTimeEntryRequest request,
-        ISender sender)
+        ClaimsPrincipal caller,
+        ITimeManagementScopeService scope,
+        ITimeEntryRepository entries,
+        ISender sender,
+        CancellationToken cancellationToken)
     {
+        var denied = await EnsureCanManageEntry(caller, scope, entries, entryId, cancellationToken);
+        if (denied is not null)
+            return denied;
+
         var command = new AdminUpdateTimeEntryCommand(
             entryId,
             request.EntryTime,
@@ -213,7 +232,7 @@ public static class TimeEntryEndpoints
             request.BreakType,
             request.Note);
 
-        var result = await sender.Send(command);
+        var result = await sender.Send(command, cancellationToken);
 
         return result.IsSuccess
             ? Results.NoContent()
@@ -222,14 +241,61 @@ public static class TimeEntryEndpoints
 
     private static async Task<IResult> AdminDeleteEntry(
         Guid entryId,
-        ISender sender)
+        ClaimsPrincipal caller,
+        ITimeManagementScopeService scope,
+        ITimeEntryRepository entries,
+        ISender sender,
+        CancellationToken cancellationToken)
     {
-        var command = new AdminDeleteTimeEntryCommand(entryId);
-        var result = await sender.Send(command);
+        var denied = await EnsureCanManageEntry(caller, scope, entries, entryId, cancellationToken);
+        if (denied is not null)
+            return denied;
+
+        var result = await sender.Send(new AdminDeleteTimeEntryCommand(entryId), cancellationToken);
 
         return result.IsSuccess
             ? Results.NoContent()
             : result.ToHttpResult();
+    }
+
+    private static async Task<IResult?> EnsureCanManageEntry(
+        ClaimsPrincipal caller,
+        ITimeManagementScopeService scope,
+        ITimeEntryRepository entries,
+        Guid entryId,
+        CancellationToken cancellationToken)
+    {
+        var tenantId = PermissionClaims.GetTenantId(caller);
+        if (tenantId is null)
+            return Results.Forbid();
+
+        var entry = await entries.GetByIdAsync(tenantId.Value, entryId, cancellationToken);
+        if (entry is null)
+            return Results.NotFound();
+
+        return await EnsureCanManage(caller, scope, entry.EmployeeId, cancellationToken);
+    }
+
+    private static async Task<IResult?> EnsureCanManage(
+        ClaimsPrincipal caller,
+        ITimeManagementScopeService scope,
+        Guid employeeId,
+        CancellationToken cancellationToken)
+    {
+        var userId = PermissionClaims.GetUserId(caller);
+        var tenantId = PermissionClaims.GetTenantId(caller);
+        if (userId is null || tenantId is null)
+            return Results.Forbid();
+
+        var allowed = await scope.CanManageEmployeeTimeAsync(
+            userId.Value, tenantId.Value, employeeId, cancellationToken);
+
+        return allowed
+            ? null
+            : Results.Problem(
+                statusCode: StatusCodes.Status403Forbidden,
+                title: "Forbidden",
+                detail: "Mozesz edytowac ewidencje czasu tylko wlasna i swojego zespolu.");
     }
 }
 
