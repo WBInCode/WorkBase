@@ -271,10 +271,20 @@ public static class IamSeeder
     /// </remarks>
     private static async Task BackfillMissingPermissionsAsync(WorkBaseDbContext dbContext, ILogger logger)
     {
-        var existing = await dbContext.Set<Permission>().ToListAsync();
+        var existing = await dbContext.Set<Permission>().AsNoTracking().ToListAsync();
         var existingCodes = existing.Select(p => p.FullCode).ToHashSet();
 
-        var missing = CreatePermissions().Where(p => !existingCodes.Contains(p.FullCode)).ToList();
+        // Dopisywane uprawnienia dostaja SWIEZE identyfikatory. Deterministyczne numery ze
+        // slownika nadaja sie tylko do pierwszego zasiewu: numeracja w dzialajacej instalacji
+        // ma dziury i wartosci wstawione migracjami. Na produkcji config.manage siedzi pod
+        // numerem 100, czyli dokladnie takim, jaki wypadlby jednemu z dopisywanych uprawnien —
+        // przy zapisie konczylo sie to bledem sledzenia dwoch encji o tym samym kluczu i
+        // aplikacja nie wstawala.
+        var missing = CreatePermissions()
+            .Where(permission => !existingCodes.Contains(permission.FullCode))
+            .Select(permission => Permission.Create(permission.Module, permission.Action, permission.Scope, permission.Description))
+            .ToList();
+
         if (missing.Count > 0)
         {
             dbContext.Set<Permission>().AddRange(missing);
