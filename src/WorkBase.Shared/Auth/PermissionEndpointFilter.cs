@@ -14,9 +14,17 @@ public static class PermissionEndpointExtensions
     /// </summary>
     public static RouteHandlerBuilder RequirePermission(this RouteHandlerBuilder builder, params string[] permissions)
     {
-        return builder.AddEndpointFilter(new PermissionEndpointFilter(permissions));
+        // Kody trafiaja takze do metadanych endpointu, zeby dalo sie je odczytac bez wywolywania
+        // zadania HTTP. Korzysta z tego test pilnujacy, ze kazde wymagane uprawnienie istnieje
+        // w slowniku — brak wpisu oznacza endpoint niedostepny dla nikogo, lacznie z Super Adminem.
+        return builder
+            .WithMetadata(new RequiredPermissionsMetadata(permissions))
+            .AddEndpointFilter(new PermissionEndpointFilter(permissions));
     }
 }
+
+/// <summary>Uprawnienia wymagane przez endpoint, wystawione jako metadane do celow diagnostycznych i testowych.</summary>
+public sealed record RequiredPermissionsMetadata(IReadOnlyList<string> Permissions);
 
 internal sealed class PermissionEndpointFilter(string[] permissions) : IEndpointFilter
 {
