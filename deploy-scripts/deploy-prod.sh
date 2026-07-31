@@ -37,9 +37,22 @@ ls -lh "$BACKUP/workbase.dump" | awk '{print "    zrzut bazy: " $5}'
 log "2/6 nowe zrodla"
 rm -rf /tmp/workbase-new && mkdir -p /tmp/workbase-new
 tar xzf /tmp/workbase-src.tar.gz -C /tmp/workbase-new
-# Bramka: bez tych sladow paczka jest nie ta, ktora chcemy wdrozyc.
-grep -q 'editingCellKey' /tmp/workbase-new/frontend/src/pages/time/TeamAttendancePage.tsx
-grep -q "display: 'block'" /tmp/workbase-new/frontend/src/components/shared/TimeInput.tsx
+# Bramka: paczka musi zawierac slady tego, co wlasnie wdrazamy. Liste aktualizujemy przy
+# kazdym wdrozeniu — chodzi o wylapanie sytuacji, w ktorej podlozylo sie starsze zrodlo.
+SLADY=(
+  "src/WorkBase.Infrastructure/Auth/EmployeeScopeResolver.cs:Select(scope => scope.ScopeLevel)"
+  "src/WorkBase.Infrastructure/Seeding/IamSeeder.cs:BackfillMissingPermissionsAsync"
+  "src/WorkBase.Infrastructure/Auth/AuthorizationCacheInvalidator.cs:IAuthorizationCacheInvalidator"
+  "src/WorkBase.Host/Program.cs:UseForwardedHeaders"
+)
+for wpis in "${SLADY[@]}"; do
+  plik=${wpis%%:*}
+  wzor=${wpis#*:}
+  if ! grep -qF "$wzor" "/tmp/workbase-new/$plik" 2>/dev/null; then
+    echo "!! paczka nie zawiera oczekiwanej zmiany: $plik -> $wzor"
+    exit 1
+  fi
+done
 rm -rf "$BASE/src" && mv /tmp/workbase-new "$BASE/src"
 
 restore() {
@@ -68,8 +81,15 @@ fi
 
 log "5/6 czekam na gotowosc"
 ok=0
-for _ in $(seq 1 48); do
+for i in $(seq 1 48); do
   if docker exec workbase-web wget -qO- --timeout=5 "$ZDROWIE" 2>/dev/null | grep -q 'Healthy'; then ok=1; break; fi
+  # Kontener w petli restartow juz nie wstanie, a czekanie pelnych czterech minut tylko
+  # przedluza czas, w ktorym uzytkownicy dostaja 502. Wycofujemy sie od razu po wykryciu.
+  if [ "$i" -ge 3 ] && [ "$(docker inspect workbase-api --format '{{.State.Restarting}}' 2>/dev/null)" = "true" ]; then
+    log "!! API jest w petli restartow — nie czekam dalej"
+    docker logs --tail 40 workbase-api 2>&1 | grep -E 'FTL|Exception|Unhandled' | head -8
+    restore
+  fi
   sleep 5
 done
 if [ "$ok" != 1 ]; then
@@ -82,9 +102,10 @@ fi
 log "6/6 weryfikacja"
 log "    /health -> $(docker exec workbase-web wget -qO- "$ZDROWIE" 2>/dev/null | head -c 80)"
 log "    HTTPS   -> $(curl -s -o /dev/null -w '%{http_code}' --resolve workbase.wb-partners.pl:443:127.0.0.1 https://workbase.wb-partners.pl/ --max-time 15)"
-# Czy poprawka faktycznie jest w zbudowanej paczce.
-TRAFIENIA=$(docker exec workbase-web sh -c "grep -rl 'HH:mm' /usr/share/nginx/html/assets/*.js 2>/dev/null | wc -l")
-log "    plikow paczki z polem godziny: $TRAFIENIA"
+# Czy uzupelnianie slownika uprawnien wykonalo sie przy starcie.
+log "    uprawnien w slowniku: $(docker exec wb-postgres psql -U wbadmin -d workbase -tAc 'select count(*) from iam_permissions' 2>/dev/null | tr -d ' ')"
+# Blad tlumaczenia na SQL w module urlopow nie moze juz wystepowac.
+log "    bledow 22P02 od startu: $(docker logs workbase-api --since 5m 2>&1 | grep -c '22P02')"
 
 echo "$NEW_COMMIT" | sudo tee "$BASE/COMMIT" > /dev/null
 log "GOTOWE. commit $NEW_COMMIT, kopia w $BACKUP"
