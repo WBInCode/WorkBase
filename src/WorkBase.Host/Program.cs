@@ -9,6 +9,7 @@ using WorkBase.Infrastructure;
 using WorkBase.Infrastructure.BackgroundJobs;
 using WorkBase.Infrastructure.Seeding;
 using WorkBase.Modules.Organization.Application.Commands.Positions;
+using WorkBase.Shared.Domain;
 using WorkBase.Modules.Notification.Infrastructure.Hubs;
 using WorkBase.Modules.TimeTracking.Infrastructure.Jobs;
 using WorkBase.Modules.Tasks.Infrastructure.Jobs;
@@ -116,8 +117,11 @@ try
         }
 
         using var zakres = app.Services.CreateScope();
-        var wysylka = zakres.ServiceProvider.GetRequiredService<MediatR.ISender>();
-        var wynik = await wysylka.Send(new ReapplyPositionPolicyCommand { TenantId = firmaId });
+        // Z pominieciem potoku MediatR: TenantBehavior czyta firme z tokenu HTTP, ktorego
+        // w wierszu polecen nie ma. Handler zapisuje zmiany sam, wiec nie traci nic z potoku.
+        var handler = zakres.ServiceProvider
+            .GetRequiredService<MediatR.IRequestHandler<ReapplyPositionPolicyCommand, Result<ReapplyPositionPolicyResult>>>();
+        var wynik = await handler.Handle(new ReapplyPositionPolicyCommand { TenantId = firmaId }, CancellationToken.None);
         Console.WriteLine(wynik.IsSuccess
             ? $"Przetworzono przypisan: {wynik.Value.PrzetworzonychPrzypisan}, pominieto: {wynik.Value.Pominietych}"
             : $"Nie powiodlo sie: {wynik.Error}");
