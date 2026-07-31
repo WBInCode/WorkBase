@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -102,6 +103,20 @@ public sealed class EcosystemSnapshotJob(
         };
         request.Headers.TryAddWithoutValidation("x-ecosystem-secret", _options.Secret);
         using var response = await client.SendAsync(request);
+
+        // Rytm nie zna tego adresu, czyli pracownik po prostu nie ma tam konta. To stan
+        // trwaly, a nie usterka: ponawianie nigdy nie zakonczy sie powodzeniem. Zanim to
+        // rozroznilismy, piecioro pracownikow bez konta generowalo ponad 5000 nieudanych
+        // wywolan na dobe, 1493 zablokowane zadania i 35 MB w tabelach kolejki — a prawdziwe
+        // awarie ginely w tym szumie.
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            logger.LogInformation(
+                "Pomijam synchronizacje z Rytmem dla pracownika {EmployeeId}: brak konta w Rytmie.",
+                employeeId);
+            return;
+        }
+
         if (!response.IsSuccessStatusCode)
         {
             var body = await response.Content.ReadAsStringAsync();
