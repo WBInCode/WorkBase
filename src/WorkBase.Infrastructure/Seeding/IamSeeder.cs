@@ -63,7 +63,9 @@ public static class IamSeeder
     private static readonly HashSet<string> KierownikPermissionCodes =
     [
         "org.view", "org.export",
-        "time.view", "time.create", "time.view-team", "time.approve", "time.export",
+        // time.edit pozwala uzupelnic i poprawic ewidencje czasu wlasna oraz swojego zespolu;
+        // pelny zasieg (cala firma) zostaje przy time.manage dla HR/Admina.
+        "time.view", "time.create", "time.edit", "time.view-team", "time.approve", "time.export",
         "leave.view", "leave.create", "leave.view-team", "leave.approve", "leave.export",
         "tasks.view", "tasks.create", "tasks.edit", "tasks.delete", "tasks.assign", "tasks.export", "tasks.comment",
         "workflow.view", "workflow.approve",
