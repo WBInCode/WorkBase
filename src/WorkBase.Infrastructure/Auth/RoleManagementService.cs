@@ -186,15 +186,7 @@ public sealed class RoleManagementService(
 
     public async Task<IReadOnlyList<UserRoleDto>> GetUserRolesAsync(Guid userId, Guid tenantId, CancellationToken ct = default)
     {
-        // userId may be either the internal User.Id or the Keycloak sub (parsed as Guid) —
-        // brokered/SSO logins carry the Keycloak id in `sub`, whereas iam_user_roles.user_id
-        // stores the internal User.Id. Resolve to internal id so the UserRole join matches
-        // (mirrors PermissionService.GetUserPermissionsAsync). Without this, isAdmin in
-        // /api/auth/me was always false for brokered users → admin nav section hidden.
-        var internalUserId = await dbContext.Set<User>()
-            .Where(u => u.TenantId == tenantId && (u.Id == userId || u.KeycloakId == userId.ToString()))
-            .Select(u => u.Id)
-            .FirstOrDefaultAsync(ct);
+        var internalUserId = await ResolveInternalUserIdAsync(userId, tenantId, ct);
 
         if (internalUserId == Guid.Empty)
             return [];
@@ -221,9 +213,8 @@ public sealed class RoleManagementService(
             ?? throw new InvalidOperationException("Rola nie istnieje w bieżącej organizacji.");
         EnsureSuperAdminAllowed(tenantId, role.Name);
 
-        var userBelongsToTenant = await dbContext.Set<User>()
-            .AnyAsync(user => user.Id == userId && user.TenantId == tenantId, ct);
-        if (!userBelongsToTenant)
+        var internalUserId = await ResolveInternalUserIdAsync(userId, tenantId, ct);
+        if (internalUserId == Guid.Empty)
             throw new InvalidOperationException("Użytkownik nie istnieje w bieżącej organizacji.");
 
         if (tenantId != PlatformConstants.OperatorTenantId && role.Name == AdminRoleName)
@@ -233,15 +224,15 @@ public sealed class RoleManagementService(
         }
 
         var exists = await dbContext.Set<UserRole>()
-            .AnyAsync(ur => ur.UserId == userId && ur.RoleId == roleId && ur.TenantId == tenantId, ct);
+            .AnyAsync(ur => ur.UserId == internalUserId && ur.RoleId == roleId && ur.TenantId == tenantId, ct);
 
         if (exists)
             return;
 
-        var userRole = UserRole.Create(userId, roleId, tenantId, assignedBy);
+        var userRole = UserRole.Create(internalUserId, roleId, tenantId, assignedBy);
         dbContext.Set<UserRole>().Add(userRole);
         await dbContext.SaveChangesAsync(ct);
-        await cacheInvalidator.InvalidateUserAsync(userId, tenantId, ct);
+        await cacheInvalidator.InvalidateUserAsync(internalUserId, tenantId, ct);
     }
 
     public async Task UnassignUserRoleAsync(Guid userId, Guid roleId, Guid tenantId, CancellationToken ct = default)
@@ -250,8 +241,12 @@ public sealed class RoleManagementService(
             .FirstOrDefaultAsync(r => r.Id == roleId && r.TenantId == tenantId, ct)
             ?? throw new InvalidOperationException("Rola nie istnieje w bieżącej organizacji.");
 
+        var internalUserId = await ResolveInternalUserIdAsync(userId, tenantId, ct);
+        if (internalUserId == Guid.Empty)
+            return;
+
         var userRole = await dbContext.Set<UserRole>()
-            .FirstOrDefaultAsync(ur => ur.UserId == userId && ur.RoleId == roleId && ur.TenantId == tenantId, ct);
+            .FirstOrDefaultAsync(ur => ur.UserId == internalUserId && ur.RoleId == roleId && ur.TenantId == tenantId, ct);
 
         if (userRole is null)
             return;
@@ -276,7 +271,7 @@ public sealed class RoleManagementService(
 
         dbContext.Set<UserRole>().Remove(userRole);
         await dbContext.SaveChangesAsync(ct);
-        await cacheInvalidator.InvalidateUserAsync(userId, tenantId, ct);
+        await cacheInvalidator.InvalidateUserAsync(internalUserId, tenantId, ct);
     }
 
     public async Task ApplyPositionRoleAsync(Guid userId, Guid tenantId, Guid roleId, CancellationToken ct = default)
@@ -288,22 +283,37 @@ public sealed class RoleManagementService(
         if (role.Name == AdminRoleName || role.Name == SuperAdminRoleName)
             throw new InvalidOperationException("Ról Admin i Super Admin nie nadaje się przez stanowisko.");
 
+        var internalUserId = await ResolveInternalUserIdAsync(userId, tenantId, ct);
+        if (internalUserId == Guid.Empty)
+            return;
+
         var previous = await dbContext.Set<UserRole>()
-            .Where(ur => ur.UserId == userId && ur.TenantId == tenantId && ur.AssignedBy == PositionAssignedBy)
+            .Where(ur => ur.UserId == internalUserId && ur.TenantId == tenantId && ur.AssignedBy == PositionAssignedBy)
             .ToListAsync(ct);
 
         if (previous.Any(ur => ur.RoleId == roleId) && previous.Count == 1) return;
 
         dbContext.Set<UserRole>().RemoveRange(previous);
         if (!await dbContext.Set<UserRole>().AnyAsync(
-                ur => ur.UserId == userId && ur.RoleId == roleId && ur.TenantId == tenantId && ur.AssignedBy != PositionAssignedBy, ct))
+                ur => ur.UserId == internalUserId && ur.RoleId == roleId && ur.TenantId == tenantId && ur.AssignedBy != PositionAssignedBy, ct))
         {
-            dbContext.Set<UserRole>().Add(UserRole.Create(userId, roleId, tenantId, PositionAssignedBy));
+            dbContext.Set<UserRole>().Add(UserRole.Create(internalUserId, roleId, tenantId, PositionAssignedBy));
         }
 
         await dbContext.SaveChangesAsync(ct);
-        await cacheInvalidator.InvalidateUserAsync(userId, tenantId, ct);
+        await cacheInvalidator.InvalidateUserAsync(internalUserId, tenantId, ct);
     }
+
+    /// <summary>
+    /// Identyfikator z zewnątrz bywa wewnętrznym User.Id albo `sub` z Keycloak: tak trzyma go
+    /// org_employees.user_id, a więc i panel przypisywania ról oraz rola nadawana przez stanowisko.
+    /// W iam_user_roles zapisujemy wyłącznie User.Id, inaczej rola nie ma żadnego skutku.
+    /// </summary>
+    private Task<Guid> ResolveInternalUserIdAsync(Guid userId, Guid tenantId, CancellationToken ct) =>
+        dbContext.Set<User>()
+            .Where(user => user.TenantId == tenantId && (user.Id == userId || user.KeycloakId == userId.ToString()))
+            .Select(user => user.Id)
+            .FirstOrDefaultAsync(ct);
 
     private static void EnsureSuperAdminAllowed(Guid tenantId, string roleName)
     {
