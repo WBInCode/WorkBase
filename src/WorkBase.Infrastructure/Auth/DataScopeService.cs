@@ -44,11 +44,14 @@ public sealed class DataScopeService(WorkBaseDbContext dbContext, IMemoryCache c
             return fallback;
         }
 
-        var scopeLevel = await dbContext.Set<DataScope>()
+        // Rzutowanie na int MUSI zostac poza zapytaniem: w projekcji EF tlumaczy je na
+        // scope_level::int, a kolumna trzyma nazwy poziomow i baza odrzuca zapytanie (22P02).
+        var levels = await dbContext.Set<DataScope>()
             .Where(ds => userRoleIds.Contains(ds.RoleId) && ds.Module == module && ds.TenantId == tenantId)
-            .Select(ds => (int)ds.ScopeLevel)
-            .DefaultIfEmpty(0)
-            .MaxAsync(ct);
+            .Select(ds => ds.ScopeLevel)
+            .ToListAsync(ct);
+
+        var scopeLevel = levels.Count == 0 ? 0 : (int)levels.Max();
 
         var result = new DataScopeResult((DataScopeLevelValue)scopeLevel);
         cache.Set(key, result, CacheDuration);

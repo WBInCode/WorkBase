@@ -75,13 +75,15 @@ public sealed class EmployeeScopeResolver(WorkBaseDbContext dbContext, IMemoryCa
             .ToListAsync(ct);
         if (roleIds.Count == 0) return DataScopeLevelValue.Team;
 
+        // Rzutowanie na int MUSI zostac poza zapytaniem: w projekcji EF tlumaczy je na
+        // scope_level::int, a kolumna trzyma nazwy poziomow i baza odrzuca zapytanie (22P02).
         var levels = await dbContext.Set<DataScope>()
             .Where(scope => scope.TenantId == tenantId && scope.Module == module && roleIds.Contains(scope.RoleId))
-            .Select(scope => (int)scope.ScopeLevel)
+            .Select(scope => scope.ScopeLevel)
             .ToListAsync(ct);
 
         // Tenanty sprzed wprowadzenia zakresów nie mają tych wierszy — nie odbieramy wtedy dostępu,
         // który daje samo uprawnienie zespołowe.
-        return levels.Count == 0 ? DataScopeLevelValue.Team : (DataScopeLevelValue)levels.Max();
+        return levels.Count == 0 ? DataScopeLevelValue.Team : (DataScopeLevelValue)(int)levels.Max();
     }
 }
