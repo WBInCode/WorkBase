@@ -51,8 +51,15 @@ public static class TimeCorrectionEndpoints
         Guid employeeId,
         DateOnly? from,
         DateOnly? to,
-        ISender sender)
+        ClaimsPrincipal user,
+        IPermissionService permissions,
+        IEmployeeScopeResolver scopes,
+        ISender sender,
+        CancellationToken ct)
     {
+        if (!await user.CanAccessEmployeeAsync(employeeId, permissions, scopes, "time.view-team", "time", ct))
+            return Results.Forbid();
+
         var fromDate = from ?? DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-30));
         var toDate = to ?? DateOnly.FromDateTime(DateTime.UtcNow);
 
