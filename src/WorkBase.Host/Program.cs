@@ -8,6 +8,7 @@ using WorkBase.Host.Endpoints;
 using WorkBase.Infrastructure;
 using WorkBase.Infrastructure.BackgroundJobs;
 using WorkBase.Infrastructure.Seeding;
+using WorkBase.Modules.Organization.Application.Commands.Positions;
 using WorkBase.Modules.Notification.Infrastructure.Hubs;
 using WorkBase.Modules.TimeTracking.Infrastructure.Jobs;
 using WorkBase.Modules.Tasks.Infrastructure.Jobs;
@@ -97,6 +98,30 @@ try
     if (args.Contains("--migrate-only", StringComparer.OrdinalIgnoreCase))
     {
         await DatabaseSeeder.MigrateAsync(app.Services);
+        return;
+    }
+
+    // Jednorazowe nadrobienie polityki stanowisk dla instalacji, ktore skonfigurowaly
+    // stanowiska, zanim ta polityka powstala. To samo robi endpoint /api/org/positions/reapply-policy,
+    // ale tu nie trzeba konta administratora — przydaje sie przy naprawie dzialajacej instalacji.
+    // Uzycie: --reapply-position-policy <id-firmy>
+    if (args.Contains("--reapply-position-policy", StringComparer.OrdinalIgnoreCase))
+    {
+        var indeks = Array.FindIndex(args, a => a.Equals("--reapply-position-policy", StringComparison.OrdinalIgnoreCase));
+        if (indeks + 1 >= args.Length || !Guid.TryParse(args[indeks + 1], out var firmaId))
+        {
+            Console.Error.WriteLine("Podaj identyfikator firmy: --reapply-position-policy <guid>");
+            Environment.ExitCode = 1;
+            return;
+        }
+
+        using var zakres = app.Services.CreateScope();
+        var wysylka = zakres.ServiceProvider.GetRequiredService<MediatR.ISender>();
+        var wynik = await wysylka.Send(new ReapplyPositionPolicyCommand { TenantId = firmaId });
+        Console.WriteLine(wynik.IsSuccess
+            ? $"Przetworzono przypisan: {wynik.Value.PrzetworzonychPrzypisan}, pominieto: {wynik.Value.Pominietych}"
+            : $"Nie powiodlo sie: {wynik.Error}");
+        Environment.ExitCode = wynik.IsSuccess ? 0 : 1;
         return;
     }
 

@@ -8,6 +8,9 @@ public interface IEmployeeAssignmentRepository
     Task<EmployeeAssignment?> GetPrimaryByEmployeeAsync(Guid employeeId, CancellationToken cancellationToken = default);
     Task<List<EmployeeAssignment>> GetByEmployeeAsync(Guid employeeId, CancellationToken cancellationToken = default);
     Task<List<EmployeeAssignment>> GetByOrgUnitAsync(Guid orgUnitId, CancellationToken cancellationToken = default);
+
+    /// <summary>Aktywne przypisania glowne w firmie — do ponownego zastosowania polityki stanowisk.</summary>
+    Task<List<EmployeeAssignment>> GetActivePrimaryByTenantAsync(Guid tenantId, CancellationToken cancellationToken = default);
     Task AddAsync(EmployeeAssignment assignment, CancellationToken cancellationToken = default);
     void Update(EmployeeAssignment assignment);
     void RemoveRange(IEnumerable<EmployeeAssignment> assignments);
