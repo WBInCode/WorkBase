@@ -1,7 +1,12 @@
 using System.Net;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using WorkBase.Infrastructure.Middleware;
 using Xunit;
 
 namespace WorkBase.Tests.Integration;
@@ -18,6 +23,9 @@ namespace WorkBase.Tests.Integration;
 [Collection("Integration")]
 public class OnboardingRegistrationTests
 {
+    private static readonly object Zamek = new();
+    private static WebApplicationFactory<WorkBase.Host.Program>? _zWlaczonaRejestracja;
+
     private readonly WorkBaseWebFactory _factory;
 
     public OnboardingRegistrationTests(WorkBaseWebFactory factory) => _factory = factory;
@@ -69,11 +77,40 @@ public class OnboardingRegistrationTests
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
-    private HttpClient UtworzKlientaZWlaczonaRejestracja()
-        => _factory.WithWebHostBuilder(builder =>
-            builder.ConfigureAppConfiguration((_, configuration) =>
-                configuration.AddInMemoryCollection(new Dictionary<string, string?>
-                {
-                    ["Onboarding:SelfServiceEnabled"] = "true",
-                }))).CreateClient();
+    [Fact]
+    public void Endpoint_rejestracji_ma_wlasny_limit_zgloszen()
+    {
+        // Bez wlasnej polityki obowiazywalby limit globalny (100 na minute), czyli o wiele
+        // za hojny dla zapisu do bazy bez logowania. Czytamy metadane, bo sprawdzenie tego
+        // zadaniami HTTP wymagaloby wyslania kilkuset requestow.
+        var endpointy = _factory.Services.GetRequiredService<EndpointDataSource>().Endpoints;
+
+        var rejestracja = endpointy.FirstOrDefault(e =>
+            e.Metadata.GetMetadata<IRouteNameMetadata>()?.RouteName == "RegisterTenant");
+
+        Assert.NotNull(rejestracja);
+        var polityka = rejestracja.Metadata.GetMetadata<EnableRateLimitingAttribute>();
+        Assert.Equal(RateLimitingExtensions.OnboardingPolicy, polityka?.PolicyName);
+    }
+
+    private HttpClient UtworzKlientaZWlaczonaRejestracja()    {
+        // Zbudowanie hosta testowego kosztuje okolo minuty. Wczesniej kazdy przypadek
+        // budowal wlasny i sama ta klasa wydluzala zestaw integracyjny o ponad szesc minut.
+        lock (Zamek)
+        {
+            _zWlaczonaRejestracja ??= _factory.WithWebHostBuilder(builder =>
+                builder.ConfigureAppConfiguration((_, configuration) =>
+                    configuration.AddInMemoryCollection(new Dictionary<string, string?>
+                    {
+                        ["Onboarding:SelfServiceEnabled"] = "true",
+                        // Produkcyjny limit to 5 zgloszen na godzine na adres. Wszystkie
+                        // przypadki ida z jednego hosta, wiec przy tej wartosci szosty
+                        // dostawalby 429 zamiast sprawdzanej walidacji. Sam limit weryfikuje
+                        // osobny test, ktory czyta metadane endpointu.
+                        ["RateLimiting:OnboardingPermitLimit"] = "1000",
+                    })));
+        }
+
+        return _zWlaczonaRejestracja.CreateClient();
+    }
 }
