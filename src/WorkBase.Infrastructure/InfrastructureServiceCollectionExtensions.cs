@@ -43,6 +43,7 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddMemoryCache();
         services.AddSingleton<TenantAccessCache>();
         services.AddScoped<IPermissionService, PermissionService>();
+        services.AddScoped<IAuthorizationCacheInvalidator, AuthorizationCacheInvalidator>();
         services.AddScoped<IRoleManagementService, RoleManagementService>();
         services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
 

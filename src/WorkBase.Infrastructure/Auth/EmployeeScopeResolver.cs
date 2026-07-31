@@ -51,9 +51,12 @@ public sealed class EmployeeScopeResolver(WorkBaseDbContext dbContext, IMemoryCa
         return accessible;
     }
 
+    internal static string CacheKey(Guid userId, Guid tenantId, string module)
+        => $"employeescope:{tenantId}:{userId}:{module}";
+
     private async Task<DataScopeLevelValue> GetScopeLevelAsync(Guid userId, Guid tenantId, string module, CancellationToken ct)
     {
-        var key = $"employeescope:{tenantId}:{userId}:{module}";
+        var key = CacheKey(userId, tenantId, module);
         if (cache.TryGetValue<DataScopeLevelValue>(key, out var cached)) return cached;
 
         var level = await LoadScopeLevelAsync(userId, tenantId, module, ct);

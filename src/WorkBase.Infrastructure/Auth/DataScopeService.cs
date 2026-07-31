@@ -8,7 +8,7 @@ namespace WorkBase.Infrastructure.Auth;
 
 public sealed class DataScopeService(WorkBaseDbContext dbContext, IMemoryCache cache) : IDataScopeService
 {
-    private static string CacheKey(Guid userId, Guid tenantId, string module)
+    internal static string CacheKey(Guid userId, Guid tenantId, string module)
         => $"datascope:{tenantId}:{userId}:{module}";
 
     private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(5);

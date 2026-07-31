@@ -10,7 +10,7 @@ public sealed class PermissionService(
     WorkBaseDbContext dbContext,
     IMemoryCache cache) : IPermissionService
 {
-    private static string CacheKey(Guid userId, Guid tenantId) => $"permissions:{tenantId}:{userId}";
+    internal static string CacheKey(Guid userId, Guid tenantId) => $"permissions:{tenantId}:{userId}";
     private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(5);
 
     public async Task<IReadOnlySet<string>> GetUserPermissionsAsync(
@@ -74,10 +74,5 @@ public sealed class PermissionService(
     {
         var permissions = await GetUserPermissionsAsync(userId, tenantId, cancellationToken);
         return permissions.Contains(permission);
-    }
-
-    public static void InvalidateCache(IMemoryCache cache, Guid userId, Guid tenantId)
-    {
-        cache.Remove(CacheKey(userId, tenantId));
     }
 }
