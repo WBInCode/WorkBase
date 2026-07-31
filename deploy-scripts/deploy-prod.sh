@@ -44,6 +44,10 @@ SLADY=(
   "src/WorkBase.Infrastructure/Seeding/IamSeeder.cs:BackfillMissingPermissionsAsync"
   "src/WorkBase.Infrastructure/Auth/AuthorizationCacheInvalidator.cs:IAuthorizationCacheInvalidator"
   "src/WorkBase.Host/Program.cs:UseForwardedHeaders"
+  "src/WorkBase.Host/Endpoints/WorkspaceEndpoints.cs:CanAccessEmployeeAsync"
+  "src/Modules/TimeTracking/WorkBase.Modules.TimeTracking.Api/Endpoints/TimeEntryEndpoints.cs:CanAccessEmployeeAsync"
+  "src/Modules/TimeTracking/WorkBase.Modules.TimeTracking.Api/Endpoints/ScheduleEndpoints.cs:CanAccessEmployeeAsync"
+  "src/Modules/TimeTracking/WorkBase.Modules.TimeTracking.Api/Endpoints/TimeCorrectionEndpoints.cs:CanAccessEmployeeAsync"
 )
 for wpis in "${SLADY[@]}"; do
   plik=${wpis%%:*}
