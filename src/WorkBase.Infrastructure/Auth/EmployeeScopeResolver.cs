@@ -9,7 +9,8 @@ namespace WorkBase.Infrastructure.Auth;
 
 /// <summary>
 /// „Zespół” to podwładni z relacji przełożonego — ta sama struktura, z której workflow wybiera
-/// akceptanta wniosku. Zakres Organization/Branch znosi ograniczenie, Own zostawia tylko siebie.
+/// akceptanta wniosku. Department dokłada jednostki, w których użytkownik ma stanowisko
+/// kierownicze. Zakres Organization/Branch znosi ograniczenie, Own zostawia tylko siebie.
 /// </summary>
 public sealed class EmployeeScopeResolver(WorkBaseDbContext dbContext, IMemoryCache cache) : IEmployeeScopeResolver
 {
@@ -48,6 +49,36 @@ public sealed class EmployeeScopeResolver(WorkBaseDbContext dbContext, IMemoryCa
             .ToListAsync(ct);
 
         accessible.UnionWith(subordinates);
+
+        if (level < DataScopeLevelValue.Department) return accessible;
+
+        // Zakres Department obejmuje całą jednostkę, w której użytkownik zajmuje stanowisko
+        // kierownicze, a nie tylko bezpośrednich podwładnych. Strona zapisu już tak działa
+        // (TimeManagementScopeService), więc bez tego kierownik układał grafik jednostki,
+        // po czym dostawał 403 przy jego odczycie.
+        var managedUnitIds = await dbContext.Set<EmployeeAssignment>()
+            .Where(assignment => assignment.TenantId == tenantId
+                && assignment.EmployeeId == employeeId
+                && assignment.EndDate == null)
+            .Join(
+                dbContext.Set<Position>().Where(position => position.IsManagerial),
+                assignment => assignment.PositionId,
+                position => position.Id,
+                (assignment, _) => assignment.OrganizationUnitId)
+            .Distinct()
+            .ToListAsync(ct);
+        if (managedUnitIds.Count == 0) return accessible;
+
+        var unitMembers = await dbContext.Set<EmployeeAssignment>()
+            .Where(assignment => assignment.TenantId == tenantId
+                && assignment.EndDate == null
+                && managedUnitIds.Contains(assignment.OrganizationUnitId)
+                && targetEmployeeIds.Contains(assignment.EmployeeId))
+            .Select(assignment => assignment.EmployeeId)
+            .Distinct()
+            .ToListAsync(ct);
+
+        accessible.UnionWith(unitMembers);
         return accessible;
     }
 

@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '@/api/client';
+import { api, ApiError } from '@/api/client';
 import type { TimeStatusDto, ClockRequest, StartBreakRequest, BreakPolicyDto, BreakAvailabilityDto, TimeSheetPeriodDto, TimeAnomalyDto, ScheduleDto, CreateScheduleRequest, UpdateScheduleRequest, ScheduleTemplateDto, AdminCreateTimeEntryRequest, AdminUpdateTimeEntryRequest, GenerateBatchSchedulesRequest, GenerateBatchResult, OrgUnitScheduleDto, CreateOrgUnitScheduleRequest, UpdateOrgUnitScheduleRequest } from '@/api/types/time';
 
 export function useTimeStatus(employeeId: string | undefined) {
@@ -169,6 +169,21 @@ export function useTeamTimesheets(
 
 /* ── Schedule hooks ── */
 
+// Backend zawęża dostęp per pracownik, więc 403 dla kogoś spoza zakresu to normalna odpowiedź,
+// a nie awaria. W Promise.all jedno takie 403 odrzucało całe zapytanie i grafik robił się pusty
+// nawet w wierszu samego kierownika.
+function fetchSchedulesPerEmployee(employeeIds: string[], from: string, to: string) {
+  return Promise.all(
+    employeeIds.map((id) => {
+      const params = new URLSearchParams({ from, to });
+      return api.get<ScheduleDto[]>(`/api/time/schedules/${id}?${params}`).catch((error) => {
+        if (error instanceof ApiError && error.status === 403) return [] as ScheduleDto[];
+        throw error;
+      });
+    }),
+  );
+}
+
 export function useSchedules(employeeId: string, from: string, to: string) {
   const params = new URLSearchParams({ from, to });
   return useQuery({
@@ -182,12 +197,7 @@ export function useTeamSchedules(employeeIds: string[], from: string, to: string
   return useQuery({
     queryKey: ['time', 'team-schedules', employeeIds, from, to],
     queryFn: () =>
-      Promise.all(
-        employeeIds.map((id) => {
-          const params = new URLSearchParams({ from, to });
-          return api.get<ScheduleDto[]>(`/api/time/schedules/${id}?${params}`);
-        }),
-      ).then((results) => results.flat()),
+      fetchSchedulesPerEmployee(employeeIds, from, to).then((results) => results.flat()),
     enabled: employeeIds.length > 0,
   });
 }
@@ -195,13 +205,7 @@ export function useTeamSchedules(employeeIds: string[], from: string, to: string
 export function useTeamSchedulesByEmployee(employeeIds: string[], from: string, to: string) {
   return useQuery({
     queryKey: ['time', 'team-schedules-grouped', employeeIds, from, to],
-    queryFn: () =>
-      Promise.all(
-        employeeIds.map((id) => {
-          const params = new URLSearchParams({ from, to });
-          return api.get<ScheduleDto[]>(`/api/time/schedules/${id}?${params}`);
-        }),
-      ),
+    queryFn: () => fetchSchedulesPerEmployee(employeeIds, from, to),
     enabled: employeeIds.length > 0,
   });
 }

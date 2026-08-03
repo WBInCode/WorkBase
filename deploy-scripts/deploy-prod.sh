@@ -41,6 +41,8 @@ tar xzf /tmp/workbase-src.tar.gz -C /tmp/workbase-new
 # kazdym wdrozeniu — chodzi o wylapanie sytuacji, w ktorej podlozylo sie starsze zrodlo.
 SLADY=(
   "src/WorkBase.Infrastructure/Auth/EmployeeScopeResolver.cs:Select(scope => scope.ScopeLevel)"
+  "src/WorkBase.Infrastructure/Auth/EmployeeScopeResolver.cs:DataScopeLevelValue.Department"
+  "frontend/src/api/hooks/useTimeTracking.ts:fetchSchedulesPerEmployee"
   "src/WorkBase.Infrastructure/Seeding/IamSeeder.cs:BackfillMissingPermissionsAsync"
   "src/WorkBase.Infrastructure/Auth/AuthorizationCacheInvalidator.cs:IAuthorizationCacheInvalidator"
   "src/WorkBase.Host/Program.cs:UseForwardedHeaders"
