@@ -61,6 +61,8 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<IEmployeeAccessStatusService, HubPlatform.EmployeeAccessStatusService>();
         services.AddScoped<HubPlatform.HubEmployeeAccessJob>();
         services.AddSingleton<HubPlatform.HubUserAccessVerifier>();
+        services.AddScoped<IHubNotificationForwarder, HubPlatform.HubNotificationForwarder>();
+        services.AddScoped<HubPlatform.HubNotificationJob>();
 
         services.AddOptions<EcosystemOptions>()
             .Bind(configuration.GetSection(EcosystemOptions.SectionName))

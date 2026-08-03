@@ -11,6 +11,7 @@ namespace WorkBase.Modules.TimeTracking.Application.EventHandlers;
 /// </summary>
 public sealed class AnomalyDetectedEventHandler(
     ISupervisorLookupService supervisorLookup,
+    IOrganizationLookupService organizationLookup,
     INotificationService notificationService,
     ILogger<AnomalyDetectedEventHandler> logger) : INotificationHandler<AnomalyDetectedEvent>
 {
@@ -27,9 +28,21 @@ public sealed class AnomalyDetectedEventHandler(
             return;
         }
 
+        // Dzwonek pyta o powiadomienia identyfikatorem konta, a nie pracownika — wczesniej
+        // trafial tu identyfikator pracownika i powiadomienia o anomaliach nie docieraly do nikogo.
+        var supervisorUserId = await organizationLookup.GetUserIdByEmployeeIdAsync(
+            supervisorId.Value, cancellationToken);
+        if (supervisorUserId is null)
+        {
+            logger.LogDebug(
+                "Supervisor {SupervisorId} has no user account — skipping anomaly notification",
+                supervisorId.Value);
+            return;
+        }
+
         await notificationService.SendAsync(
             notification.TenantId,
-            supervisorId.Value,
+            supervisorUserId.Value,
             $"Anomalia: {notification.AnomalyType}",
             $"Wykryto anomalię typu {notification.AnomalyType} dla pracownika {notification.EmployeeId} w dniu {notification.Date:yyyy-MM-dd}.",
             "anomaly_detected",

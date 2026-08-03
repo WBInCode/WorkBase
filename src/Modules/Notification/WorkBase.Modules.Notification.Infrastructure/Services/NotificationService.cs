@@ -5,7 +5,10 @@ using WorkBase.Modules.Notification.Infrastructure.Hubs;
 
 namespace WorkBase.Modules.Notification.Infrastructure.Services;
 
-public sealed class NotificationService(WorkBaseDbContext db, IHubContext<NotificationHub> hubContext)
+public sealed class NotificationService(
+    WorkBaseDbContext db,
+    IHubContext<NotificationHub> hubContext,
+    IHubNotificationForwarder hubForwarder)
     : INotificationService
 {
     public async Task SendAsync(Guid tenantId, Guid recipientUserId, string title, string body,
@@ -27,5 +30,7 @@ public sealed class NotificationService(WorkBaseDbContext db, IHubContext<Notifi
             notification.ReferenceType,
             notification.ReferenceId
         }, ct);
+
+        hubForwarder.Enqueue(tenantId, notification.Id);
     }
 }

@@ -10,13 +10,15 @@ namespace WorkBase.Tests.Unit.TimeTracking;
 public class AnomalyDetectedEventHandlerTests
 {
     private readonly ISupervisorLookupService _supervisorLookup = Substitute.For<ISupervisorLookupService>();
+    private readonly IOrganizationLookupService _organizationLookup = Substitute.For<IOrganizationLookupService>();
     private readonly INotificationService _notificationService = Substitute.For<INotificationService>();
     private readonly ILogger<AnomalyDetectedEventHandler> _logger = Substitute.For<ILogger<AnomalyDetectedEventHandler>>();
     private readonly AnomalyDetectedEventHandler _handler;
 
     public AnomalyDetectedEventHandlerTests()
     {
-        _handler = new AnomalyDetectedEventHandler(_supervisorLookup, _notificationService, _logger);
+        _handler = new AnomalyDetectedEventHandler(
+            _supervisorLookup, _organizationLookup, _notificationService, _logger);
     }
 
     [Fact]
@@ -24,9 +26,12 @@ public class AnomalyDetectedEventHandlerTests
     {
         var employeeId = Guid.NewGuid();
         var supervisorId = Guid.NewGuid();
+        var supervisorUserId = Guid.NewGuid();
         var tenantId = Guid.NewGuid();
         _supervisorLookup.GetSupervisorEmployeeIdAsync(employeeId, Arg.Any<CancellationToken>())
             .Returns(supervisorId);
+        _organizationLookup.GetUserIdByEmployeeIdAsync(supervisorId, Arg.Any<CancellationToken>())
+            .Returns(supervisorUserId);
 
         var evt = new AnomalyDetectedEvent(Guid.NewGuid(), tenantId, employeeId, "MissingClockOut", new DateOnly(2026, 4, 16));
 
@@ -34,11 +39,29 @@ public class AnomalyDetectedEventHandlerTests
 
         await _supervisorLookup.Received(1).GetSupervisorEmployeeIdAsync(employeeId, Arg.Any<CancellationToken>());
         await _notificationService.Received(1).SendAsync(
-            tenantId, supervisorId,
+            tenantId, supervisorUserId,
             Arg.Any<string>(), Arg.Any<string>(),
             "anomaly_detected",
             "anomaly", evt.AnomalyId,
             Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_SupervisorWithoutAccount_SkipsNotification()
+    {
+        var employeeId = Guid.NewGuid();
+        var supervisorId = Guid.NewGuid();
+        _supervisorLookup.GetSupervisorEmployeeIdAsync(employeeId, Arg.Any<CancellationToken>())
+            .Returns(supervisorId);
+        _organizationLookup.GetUserIdByEmployeeIdAsync(supervisorId, Arg.Any<CancellationToken>())
+            .Returns((Guid?)null);
+
+        var evt = new AnomalyDetectedEvent(Guid.NewGuid(), Guid.NewGuid(), employeeId, "MissingClockOut", new DateOnly(2026, 4, 16));
+
+        await _handler.Handle(evt, CancellationToken.None);
+
+        await _notificationService.DidNotReceiveWithAnyArgs().SendAsync(
+            default, default, default!, default!, default!, default, default, default);
     }
 
     [Fact]

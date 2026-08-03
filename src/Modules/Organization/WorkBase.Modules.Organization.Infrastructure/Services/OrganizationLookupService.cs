@@ -26,4 +26,13 @@ public sealed class OrganizationLookupService(WorkBaseDbContext dbContext) : IOr
             .Select(c => c.AncestorId)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<Guid?> GetUserIdByEmployeeIdAsync(
+        Guid employeeId, CancellationToken cancellationToken = default)
+    {
+        return await dbContext.Set<Employee>()
+            .Where(e => e.Id == employeeId)
+            .Select(e => e.UserId)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
 }
