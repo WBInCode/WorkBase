@@ -32,10 +32,16 @@ public sealed class TaskStatusMachine(
         var isAllowed = await transitionRepository.IsTransitionAllowedAsync(
             tenantId, fromStatusId, toStatusId, cancellationToken);
 
-        if (!isAllowed)
-            return Result.Failure(new Error("Task.TransitionNotAllowed",
-                "Przejście między tymi statusami nie jest dozwolone."));
+        if (isAllowed)
+            return Result.Success();
 
-        return Result.Success();
+        // Slownik przejsc nie ma zadnego interfejsu do uzupelnienia i nikt go nie zasiewa, wiec
+        // pusty oznacza „nie skonfigurowano”, a nie „nic nie wolno”. Wczesniej blokowal kazda
+        // zmiane statusu u kazdego najemcy.
+        if (!await transitionRepository.HasAnyAsync(tenantId, cancellationToken))
+            return Result.Success();
+
+        return Result.Failure(new Error("Task.TransitionNotAllowed",
+            "Przejście między tymi statusami nie jest dozwolone."));
     }
 }

@@ -18,4 +18,8 @@ public sealed class TaskStatusTransitionRepository(WorkBaseDbContext dbContext) 
         => await dbContext.Set<TaskStatusTransition>()
             .Where(t => t.TenantId == tenantId && t.IsActive)
             .ToListAsync(cancellationToken);
+
+    public async Task<bool> HasAnyAsync(Guid tenantId, CancellationToken cancellationToken = default)
+        => await dbContext.Set<TaskStatusTransition>()
+            .AnyAsync(t => t.TenantId == tenantId && t.IsActive, cancellationToken);
 }

@@ -68,11 +68,29 @@ public class TaskStatusMachineTests
             .Returns(activeStatus);
         _transitionRepository.IsTransitionAllowedAsync(TenantId, FromStatusId, ToStatusId, Arg.Any<CancellationToken>())
             .Returns(false);
+        _transitionRepository.HasAnyAsync(TenantId, Arg.Any<CancellationToken>())
+            .Returns(true);
 
         var result = await _sut.ValidateTransitionAsync(TenantId, FromStatusId, ToStatusId);
 
         Assert.True(result.IsFailure);
         Assert.Equal("Task.TransitionNotAllowed", result.Error.Code);
+    }
+
+    [Fact]
+    public async Task ValidateTransition_NoTransitionsConfigured_ReturnsSuccess()
+    {
+        var activeStatus = CreateStatus(ToStatusId, isActive: true);
+        _statusRepository.GetByIdAsync(ToStatusId, Arg.Any<CancellationToken>())
+            .Returns(activeStatus);
+        _transitionRepository.IsTransitionAllowedAsync(TenantId, FromStatusId, ToStatusId, Arg.Any<CancellationToken>())
+            .Returns(false);
+        _transitionRepository.HasAnyAsync(TenantId, Arg.Any<CancellationToken>())
+            .Returns(false);
+
+        var result = await _sut.ValidateTransitionAsync(TenantId, FromStatusId, ToStatusId);
+
+        Assert.True(result.IsSuccess);
     }
 
     [Fact]
