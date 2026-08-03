@@ -23,6 +23,10 @@ export default function TimeInput({ value, onChange, style, disabled }: TimeInpu
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const blurTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  // Odlozony blur wolal setState po odmontowaniu komponentu.
+  useEffect(() => () => clearTimeout(blurTimerRef.current), []);
 
   const normalize = useCallback((raw: string): string | null => {
     const clean = raw.replace(/[^0-9:]/g, '');
@@ -65,7 +69,8 @@ export default function TimeInput({ value, onChange, style, disabled }: TimeInpu
 
   const handleBlur = () => {
     // Delay to allow click on dropdown item
-    setTimeout(() => {
+    clearTimeout(blurTimerRef.current);
+    blurTimerRef.current = setTimeout(() => {
       if (!containerRef.current?.contains(document.activeElement)) {
         setOpen(false);
         const normalized = normalize(display);
