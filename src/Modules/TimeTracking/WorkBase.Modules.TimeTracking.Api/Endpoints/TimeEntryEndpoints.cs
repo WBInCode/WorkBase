@@ -24,14 +24,14 @@ public static class TimeEntryEndpoints
 
         group.MapPost("/clock-in", ClockIn)
             .WithName("ClockIn")
-            .WithSummary("Rejestracja wejścia (clock-in)")
+            .WithSummary("Rejestracja wejścia (clock-in) — własna lub, dla kierownika, cudza")
             .RequirePermission("time.create")
             .Produces<Guid>(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status409Conflict);
 
         group.MapPost("/clock-out", ClockOut)
             .WithName("ClockOut")
-            .WithSummary("Rejestracja wyjścia (clock-out)")
+            .WithSummary("Rejestracja wyjścia (clock-out) — własna lub, dla kierownika, cudza")
             .RequirePermission("time.create")
             .Produces<Guid>(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status409Conflict);
@@ -96,15 +96,22 @@ public static class TimeEntryEndpoints
 
     private static async Task<IResult> ClockIn(
         ClockInRequest request,
+        ClaimsPrincipal caller,
+        ITimeManagementScopeService scope,
         ISender sender,
-        HttpContext httpContext)
+        HttpContext httpContext,
+        CancellationToken cancellationToken)
     {
+        var denied = await EnsureCanRecordFor(caller, scope, request.EmployeeId, cancellationToken);
+        if (denied is not null)
+            return denied;
+
         var command = new ClockInCommand(
             request.EmployeeId,
             request.Note,
             httpContext.Connection.RemoteIpAddress?.ToString());
 
-        var result = await sender.Send(command);
+        var result = await sender.Send(command, cancellationToken);
 
         return result.IsSuccess
             ? Results.Created($"/api/time/entries/{result.Value}", result.Value)
@@ -113,15 +120,22 @@ public static class TimeEntryEndpoints
 
     private static async Task<IResult> ClockOut(
         ClockOutRequest request,
+        ClaimsPrincipal caller,
+        ITimeManagementScopeService scope,
         ISender sender,
-        HttpContext httpContext)
+        HttpContext httpContext,
+        CancellationToken cancellationToken)
     {
+        var denied = await EnsureCanRecordFor(caller, scope, request.EmployeeId, cancellationToken);
+        if (denied is not null)
+            return denied;
+
         var command = new ClockOutCommand(
             request.EmployeeId,
             request.Note,
             httpContext.Connection.RemoteIpAddress?.ToString());
 
-        var result = await sender.Send(command);
+        var result = await sender.Send(command, cancellationToken);
 
         return result.IsSuccess
             ? Results.Created($"/api/time/entries/{result.Value}", result.Value)
@@ -130,13 +144,20 @@ public static class TimeEntryEndpoints
 
     private static async Task<IResult> StartBreak(
         StartBreakRequest request,
-        ISender sender)
+        ClaimsPrincipal caller,
+        ITimeManagementScopeService scope,
+        ISender sender,
+        CancellationToken cancellationToken)
     {
         if (!Enum.TryParse<BreakType>(request.BreakType, true, out var breakType))
             return Results.BadRequest("Nieprawidłowy typ przerwy. Dozwolone: Paid, Unpaid.");
 
+        var denied = await EnsureCanRecordFor(caller, scope, request.EmployeeId, cancellationToken);
+        if (denied is not null)
+            return denied;
+
         var command = new StartBreakCommand(request.EmployeeId, breakType, request.Note);
-        var result = await sender.Send(command);
+        var result = await sender.Send(command, cancellationToken);
 
         return result.IsSuccess
             ? Results.Created($"/api/time/entries/{result.Value}", result.Value)
@@ -145,10 +166,17 @@ public static class TimeEntryEndpoints
 
     private static async Task<IResult> EndBreak(
         EndBreakRequest request,
-        ISender sender)
+        ClaimsPrincipal caller,
+        ITimeManagementScopeService scope,
+        ISender sender,
+        CancellationToken cancellationToken)
     {
+        var denied = await EnsureCanRecordFor(caller, scope, request.EmployeeId, cancellationToken);
+        if (denied is not null)
+            return denied;
+
         var command = new EndBreakCommand(request.EmployeeId, request.Note);
-        var result = await sender.Send(command);
+        var result = await sender.Send(command, cancellationToken);
 
         return result.IsSuccess
             ? Results.Created($"/api/time/entries/{result.Value}", result.Value)
@@ -319,6 +347,25 @@ public static class TimeEntryEndpoints
                 statusCode: StatusCodes.Status403Forbidden,
                 title: "Forbidden",
                 detail: "Mozesz edytowac ewidencje czasu tylko wlasna i swojego zespolu.");
+    }
+
+    /// <summary>
+    /// Rejestracja wejscia, wyjscia i przerw. Samo time.create ma kazdy pracownik, wiec bez tego
+    /// wystarczylo podmienic employeeId w tresci zadania, zeby odbic karte za kolegę. Za kogos
+    /// innego moze to zrobic kierownik (time.edit, wlasny zespol i jednostka) albo HR/Admin
+    /// (time.manage, cala firma).
+    /// </summary>
+    private static async Task<IResult?> EnsureCanRecordFor(
+        ClaimsPrincipal caller,
+        ITimeManagementScopeService scope,
+        Guid employeeId,
+        CancellationToken cancellationToken)
+    {
+        // Terminal kioskowy z zalozenia rejestruje czas za innych — tozsamosc potwierdza badge/PIN.
+        if (caller.EmployeeId() == employeeId || caller.IsInRole("workbase-kiosk"))
+            return null;
+
+        return await EnsureCanManage(caller, scope, employeeId, cancellationToken);
     }
 }
 

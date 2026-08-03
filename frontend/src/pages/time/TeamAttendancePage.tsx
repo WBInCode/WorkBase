@@ -1,9 +1,10 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronLeft, ChevronRight, Download, AlertTriangle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download, AlertTriangle, Play, Square } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useTeamTimesheets, useAnomalies, useAdminCreateTimeEntry, useAdminDeleteTimeEntry } from '@/api/hooks/useTimeTracking';
+import { useTeamTimesheets, useAnomalies, useAdminCreateTimeEntry, useAdminDeleteTimeEntry, useClockIn, useClockOut } from '@/api/hooks/useTimeTracking';
 import { useEmployees, useOrgUnitTree } from '@/api/hooks/useOrganization';
+import { useCurrentUser } from '@/api/hooks/useIam';
 import type { TimeSheetPeriodDto, TimeAnomalyDto, TimeSheetEntryDto } from '@/api/types/time';
 import type { EmployeeDto, OrganizationUnitTreeNode } from '@/api/types/organization';
 import { useIsMobile } from '@/shared';
@@ -118,6 +119,16 @@ const ANOMALY_COLORS: Record<string, string> = {
   ExcessiveShift: '#ea580c',
 };
 
+/** Stan pracownika „teraz” wynika z ostatniego wpisu dnia — tak samo liczy to GetCurrentStatusHandler. */
+function currentWorkState(entries: TimeSheetEntryDto[]): 'working' | 'onBreak' | 'idle' {
+  if (entries.length === 0) return 'idle';
+  const sorted = [...entries].sort((a, b) => a.entryTime.localeCompare(b.entryTime));
+  const last = sorted[sorted.length - 1]!;
+  if (last.type === 'ClockIn' || last.type === 'BreakEnd') return 'working';
+  if (last.type === 'BreakStart') return 'onBreak';
+  return 'idle';
+}
+
 /* ── main component ── */
 
 interface BreakDraft {
@@ -158,6 +169,16 @@ export function TeamAttendancePage() {
   const createEntry = useAdminCreateTimeEntry();
   const deleteEntry = useAdminDeleteTimeEntry();
 
+  /* rejestracja czasu za pracownika (kierownik i wyzej) */
+  const clockIn = useClockIn();
+  const clockOut = useClockOut();
+  const [liveBusy, setLiveBusy] = useState<string | null>(null);
+  const [liveError, setLiveError] = useState<string | null>(null);
+  const { data: currentUser } = useCurrentUser();
+  const canRecordForOthers =
+    currentUser?.permissions?.some((p) => p === 'time.manage' || p === 'time.edit') ?? false;
+  const todayStr = useMemo(() => toDateString(new Date()), []);
+
   /* Tozsamosc edytowanej komorki. Fokus i nasluch klikniecia maja reagowac na
      OTWARCIE panelu, a nie na kazda zmiane tresci pol. */
   const editingCellKey = editState ? `${editState.employeeId}:${editState.date}` : null;
@@ -192,6 +213,10 @@ export function TeamAttendancePage() {
   }, [viewMode, dateRange]);
 
   const dates = useMemo(() => getDatesInRange(dateRange.from, dateRange.to), [dateRange]);
+
+  // Akcja dotyczy biezacej chwili, wiec ma sens tylko wtedy, gdy widok obejmuje dzisiaj —
+  // stan „pracuje / nie pracuje” czytamy z juz pobranej karty dnia, bez dodatkowych zapytan.
+  const showLiveActions = canRecordForOthers && dates.includes(todayStr);
 
   /* navigation */
   const navigate = (dir: number) => {
@@ -231,6 +256,21 @@ export function TeamAttendancePage() {
     queryClient.invalidateQueries({ queryKey: ['time', 'team-timesheets'] });
     queryClient.invalidateQueries({ queryKey: ['time', 'anomalies'] });
   }, [queryClient]);
+
+  const toggleWork = useCallback(async (employeeId: string, working: boolean) => {
+    setLiveError(null);
+    setLiveBusy(employeeId);
+    try {
+      const request = { employeeId, note: 'Raport zespołu' };
+      if (working) await clockOut.mutateAsync(request);
+      else await clockIn.mutateAsync(request);
+      refreshTeamTimesheets();
+    } catch (err: unknown) {
+      setLiveError(err instanceof Error ? err.message : 'Nie udało się zapisać wpisu.');
+    } finally {
+      setLiveBusy(null);
+    }
+  }, [clockIn, clockOut, refreshTeamTimesheets]);
 
   const startCellEdit = useCallback((employeeId: string, date: string, existingEntries: TimeSheetEntryDto[], anchor: HTMLElement) => {
     const rect = anchor.getBoundingClientRect();
@@ -645,13 +685,23 @@ export function TeamAttendancePage() {
         </div>
       )}
 
+      {liveError && (
+        <div style={{
+          marginBottom: '12px', padding: '8px 12px', backgroundColor: colors.danger[50],
+          border: `1px solid ${colors.danger[200]}`, borderRadius: '10px',
+          color: colors.danger[600], fontSize: '13px',
+        }}>
+          {liveError}
+        </div>
+      )}
+
       {/* Grid table */}
       {!tsLoading && employees.length > 0 && (
         <div style={{ overflowX: 'auto', border: `1px solid ${colors.gray[200]}`, borderRadius: '10px' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', minWidth: dates.length * 60 + 220 }}>
             <thead>
               <tr style={{ backgroundColor: colors.gray[50] }}>
-                <th style={{ ...thStyle, position: 'sticky', left: 0, backgroundColor: colors.gray[50], zIndex: 1, minWidth: '180px' }}>
+                <th style={{ ...thStyle, position: 'sticky', left: 0, backgroundColor: colors.gray[50], zIndex: 1, minWidth: showLiveActions ? '260px' : '180px' }}>
                   Pracownik
                 </th>
                 {dates.map((d) => {
@@ -691,7 +741,34 @@ export function TeamAttendancePage() {
                       ...tdStyle, fontWeight: 500, position: 'sticky', left: 0,
                       backgroundColor: colors.white, zIndex: 1, whiteSpace: 'nowrap',
                     }}>
-                      {emp.lastName} {emp.firstName}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+                        <span>{emp.lastName} {emp.firstName}</span>
+                        {showLiveActions && (() => {
+                          const state = currentWorkState(dayMap.get(todayStr)?.entries ?? []);
+                          const working = state !== 'idle';
+                          const busy = liveBusy === emp.id;
+                          return (
+                            <button
+                              onClick={() => { if (!busy) void toggleWork(emp.id, working); }}
+                              disabled={busy}
+                              title={working
+                                ? `Zakończ pracę teraz (${emp.firstName} ${emp.lastName})`
+                                : `Rozpocznij pracę teraz (${emp.firstName} ${emp.lastName})`}
+                              style={{
+                                display: 'flex', alignItems: 'center', gap: '4px',
+                                padding: '3px 9px', fontSize: '11px', fontWeight: 700, fontFamily: 'inherit',
+                                color: working ? colors.danger[600] : colors.success[800],
+                                backgroundColor: working ? colors.danger[50] : colors.success[50],
+                                border: 'none', borderRadius: '999px',
+                                cursor: busy ? 'wait' : 'pointer', opacity: busy ? 0.5 : 1,
+                              }}
+                            >
+                              {working ? <Square size={10} /> : <Play size={10} />}
+                              {working ? 'Zakończ' : 'Rozpocznij'}
+                            </button>
+                          );
+                        })()}
+                      </div>
                     </td>
                     {dates.map((d) => {
                       const cell = dayMap.get(d);

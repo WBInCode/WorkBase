@@ -7,12 +7,20 @@ import type { TimeSheetPeriodDto } from '@/api/types/time';
 
 const createMutate = vi.fn().mockResolvedValue({});
 const deleteMutate = vi.fn().mockResolvedValue({});
+const clockInMutate = vi.fn().mockResolvedValue({});
+const clockOutMutate = vi.fn().mockResolvedValue({});
 
 vi.mock('@/api/hooks/useTimeTracking', () => ({
   useTeamTimesheets: () => ({ data: [timesheet], isLoading: false }),
   useAnomalies: () => ({ data: [] }),
   useAdminCreateTimeEntry: () => ({ mutateAsync: createMutate, isPending: false }),
   useAdminDeleteTimeEntry: () => ({ mutateAsync: deleteMutate, isPending: false }),
+  useClockIn: () => ({ mutateAsync: clockInMutate, isPending: false }),
+  useClockOut: () => ({ mutateAsync: clockOutMutate, isPending: false }),
+}));
+
+vi.mock('@/api/hooks/useIam', () => ({
+  useCurrentUser: () => ({ data: { permissions: ['time.edit'] } }),
 }));
 
 vi.mock('@/api/hooks/useOrganization', () => ({
