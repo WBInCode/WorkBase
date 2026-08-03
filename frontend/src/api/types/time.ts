@@ -158,6 +158,17 @@ export interface GenerateBatchResult {
   createdCount: number;
 }
 
+export interface ClearSchedulesRequest {
+  employeeIds: string[];
+  from: string;
+  to: string;
+  includeOrgUnitGenerated?: boolean;
+}
+
+export interface ClearSchedulesResult {
+  deletedCount: number;
+}
+
 export interface OrgUnitScheduleDto {
   id: string;
   orgUnitId: string;

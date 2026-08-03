@@ -245,7 +245,7 @@ public static class IamSeeder
                 DataScope.Create(tenantId, superAdminRoleId.Value, module, DataScopeLevel.Organization)));
         }
         dataScopes.AddRange(Modules.All.Select(module => DataScope.Create(tenantId, adminRoleId, module, DataScopeLevel.Organization)));
-        dataScopes.AddRange(Modules.All.Select(module => DataScope.Create(tenantId, kierownikRoleId, module, DataScopeLevel.Department)));
+        dataScopes.AddRange(Modules.All.Select(module => DataScope.Create(tenantId, kierownikRoleId, module, KierownikScopeFor(module))));
         dataScopes.AddRange(Modules.All.Select(module => DataScope.Create(tenantId, pracownikRoleId, module, DataScopeLevel.Own)));
         dataScopes.AddRange(Modules.All.Select(module => DataScope.Create(tenantId, hrRoleId, module, DataScopeLevel.Organization)));
         dbContext.Set<DataScope>().AddRange(dataScopes);
@@ -512,8 +512,8 @@ public static class IamSeeder
             ..CreateDataScopesForRole(SuperAdminRoleId, DataScopeLevel.Organization, 1),
             ..CreateDataScopesForRole(AdminRoleId, DataScopeLevel.Organization, 100),
 
-            // Kierownik — Department scope
-            ..CreateDataScopesForRole(KierownikRoleId, DataScopeLevel.Department, 200),
+            // Kierownik — Department scope (poza modulem time, patrz KierownikScopeFor)
+            ..CreateDataScopesForRole(KierownikRoleId, KierownikScopeFor, 200),
 
             // Pracownik — Own scope
             ..CreateDataScopesForRole(PracownikRoleId, DataScopeLevel.Own, 300),
@@ -523,14 +523,21 @@ public static class IamSeeder
         ];
     }
 
+    /// <summary>Grafik ukladany jest dla calej firmy, wiec kierownik musi go widziec w calosci.</summary>
+    private static DataScopeLevel KierownikScopeFor(string module)
+        => module == Modules.Time ? DataScopeLevel.Organization : DataScopeLevel.Department;
+
     private static List<DataScope> CreateDataScopesForRole(Guid roleId, DataScopeLevel scopeLevel, int seedStart)
+        => CreateDataScopesForRole(roleId, _ => scopeLevel, seedStart);
+
+    private static List<DataScope> CreateDataScopesForRole(Guid roleId, Func<string, DataScopeLevel> levelFor, int seedStart)
     {
         var scopes = new List<DataScope>();
         var idx = seedStart;
         foreach (var module in Modules.All)
         {
             scopes.Add(SetId(
-                DataScope.Create(DefaultTenantId, roleId, module, scopeLevel),
+                DataScope.Create(DefaultTenantId, roleId, module, levelFor(module)),
                 Guid.Parse($"40000000-0000-0000-0000-{idx++:D12}")));
         }
         return scopes;

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api, ApiError } from '@/api/client';
-import type { TimeStatusDto, ClockRequest, StartBreakRequest, BreakPolicyDto, BreakAvailabilityDto, TimeSheetPeriodDto, TimeAnomalyDto, ScheduleDto, CreateScheduleRequest, UpdateScheduleRequest, ScheduleTemplateDto, AdminCreateTimeEntryRequest, AdminUpdateTimeEntryRequest, GenerateBatchSchedulesRequest, GenerateBatchResult, OrgUnitScheduleDto, CreateOrgUnitScheduleRequest, UpdateOrgUnitScheduleRequest } from '@/api/types/time';
+import type { TimeStatusDto, ClockRequest, StartBreakRequest, BreakPolicyDto, BreakAvailabilityDto, TimeSheetPeriodDto, TimeAnomalyDto, ScheduleDto, CreateScheduleRequest, UpdateScheduleRequest, ScheduleTemplateDto, AdminCreateTimeEntryRequest, AdminUpdateTimeEntryRequest, GenerateBatchSchedulesRequest, GenerateBatchResult, ClearSchedulesRequest, ClearSchedulesResult, OrgUnitScheduleDto, CreateOrgUnitScheduleRequest, UpdateOrgUnitScheduleRequest } from '@/api/types/time';
 
 export function useTimeStatus(employeeId: string | undefined) {
   return useQuery({
@@ -326,6 +326,19 @@ export function useGenerateBatchSchedules() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['time', 'schedules'] });
       qc.invalidateQueries({ queryKey: ['time', 'team-schedules'] });
+    },
+  });
+}
+
+export function useClearSchedules() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: ClearSchedulesRequest) =>
+      api.post<ClearSchedulesResult>('/api/time/schedules/clear', data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['time', 'schedules'] });
+      qc.invalidateQueries({ queryKey: ['time', 'team-schedules'] });
+      qc.invalidateQueries({ queryKey: ['time', 'team-schedules-grouped'] });
     },
   });
 }

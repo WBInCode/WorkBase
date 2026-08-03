@@ -1,14 +1,15 @@
 import { useState, useMemo, useCallback } from 'react';
 import {
-  ChevronLeft, ChevronRight, Plus, Pencil, Trash2, X, Zap, Building2,
+  ChevronLeft, ChevronRight, Plus, Pencil, Trash2, X, Zap, Building2, Eraser,
 } from 'lucide-react';
 import TimeInput from '@/components/shared/TimeInput';
 import {
   useTeamSchedules, useCreateSchedule, useUpdateSchedule, useDeleteSchedule,
-  useScheduleTemplates, useGenerateBatchSchedules,
+  useScheduleTemplates, useGenerateBatchSchedules, useClearSchedules,
   useOrgUnitSchedule, useCreateOrgUnitSchedule, useUpdateOrgUnitSchedule, useDeleteOrgUnitSchedule,
 } from '@/api/hooks/useTimeTracking';
 import { useEmployees, useOrgUnitTree } from '@/api/hooks/useOrganization';
+import { useCurrentUser } from '@/api/hooks/useIam';
 import type { ScheduleDto, ScheduleTemplateDto, DayShiftPattern } from '@/api/types/time';
 import type { EmployeeDto, OrganizationUnitTreeNode } from '@/api/types/organization';
 import { useIsMobile } from '@/shared';
@@ -113,7 +114,11 @@ export function SchedulePage() {
   const [modal, setModal] = useState<ModalState | null>(null);
   const [showOrgUnitPanel, setShowOrgUnitPanel] = useState(false);
   const [showGenerator, setShowGenerator] = useState(false);
+  const [showCleaner, setShowCleaner] = useState(false);
   const mobile = useIsMobile();
+
+  const { data: currentUser } = useCurrentUser();
+  const canManage = currentUser?.permissions?.includes('time.manage') ?? false;
 
   const dateRange = useMemo(() => {
     return viewMode === 'week' ? getWeekRange(currentDate) : getMonthRange(currentDate);
@@ -214,6 +219,19 @@ export function SchedulePage() {
             >
               <Building2 size={15} /> Grafik jednostki
             </button>
+            {canManage && (
+              <button
+                onClick={() => setShowCleaner(true)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '6px',
+                  padding: '9px 18px', fontSize: '13px', fontWeight: 700, fontFamily: 'inherit',
+                  color: colors.danger[600], backgroundColor: colors.danger[50],
+                  border: 'none', borderRadius: '999px', cursor: 'pointer',
+                }}
+              >
+                <Eraser size={15} /> Wyczyść grafik
+              </button>
+            )}
             <button
               onClick={() => setShowGenerator(true)}
               style={{
@@ -432,6 +450,17 @@ export function SchedulePage() {
           flatUnits={flatUnits}
           templates={templates ?? []}
           onClose={() => setShowGenerator(false)}
+        />
+      )}
+
+      {/* Clear Modal */}
+      {showCleaner && (
+        <ClearScheduleModal
+          flatUnits={flatUnits}
+          initialUnitId={unitId}
+          initialFrom={dateRange.from}
+          initialTo={dateRange.to}
+          onClose={() => setShowCleaner(false)}
         />
       )}
 
@@ -1063,6 +1092,214 @@ function GenerateScheduleModal({
               }}
             >
               <Zap size={14} /> {generateMut.isPending ? 'Generowanie...' : 'Generuj'}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Clear Schedule Modal ── */
+
+function ClearScheduleModal({
+  flatUnits,
+  initialUnitId,
+  initialFrom,
+  initialTo,
+  onClose,
+}: {
+  flatUnits: { id: string; name: string; depth: number }[];
+  initialUnitId: string;
+  initialFrom: string;
+  initialTo: string;
+  onClose: () => void;
+}) {
+  const [clearUnitId, setClearUnitId] = useState(initialUnitId);
+  const [from, setFrom] = useState(initialFrom);
+  const [to, setTo] = useState(initialTo);
+  const [includeOrgUnit, setIncludeOrgUnit] = useState(false);
+  const [confirmed, setConfirmed] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const clearMut = useClearSchedules();
+
+  const { data: empPage } = useEmployees({
+    organizationUnitId: clearUnitId || undefined,
+    page: 1,
+    pageSize: 500,
+    status: 'Active',
+  });
+  const employees = empPage?.items ?? [];
+  const employeeIds = useMemo(() => (empPage?.items ?? []).map((e) => e.id), [empPage]);
+
+  const rangeValid = !!from && !!to && from <= to;
+  const { data: preview, isFetching: previewLoading } = useTeamSchedules(
+    rangeValid ? employeeIds : [],
+    from,
+    to,
+  );
+  const affected = useMemo(
+    () => (preview ?? []).filter((s) => includeOrgUnit || s.source !== 'OrgUnit').length,
+    [preview, includeOrgUnit],
+  );
+
+  const handleClear = async () => {
+    setError('');
+    setSuccess('');
+
+    if (employeeIds.length === 0) {
+      setError('Brak pracowników w wybranej jednostce.');
+      return;
+    }
+    if (!rangeValid) {
+      setError('Podaj poprawny zakres dat.');
+      return;
+    }
+
+    try {
+      const result = await clearMut.mutateAsync({
+        employeeIds,
+        from,
+        to,
+        includeOrgUnitGenerated: includeOrgUnit,
+      });
+      setSuccess(`Usunięto ${result.deletedCount} wpisów grafiku.`);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Wystąpił błąd');
+    }
+  };
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, backgroundColor: 'rgba(20,25,43,0.45)', backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)', animation: 'wb-backdrop-in 0.18s ease both', zIndex: 1000,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+    }} onClick={onClose}>
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          backgroundColor: colors.white, borderRadius: '14px', padding: '28px',
+          width: '520px', maxWidth: '95vw', maxHeight: '90vh', overflowY: 'auto',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.25)',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: 700, color: colors.gray[900], margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Eraser size={20} color={colors.danger[600]} />
+            Wyczyść grafik
+          </h2>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: colors.gray[500], padding: '4px' }}>
+            <X size={20} />
+          </button>
+        </div>
+
+        <div style={{ marginBottom: '16px' }}>
+          <label style={labelStyle}>Jednostka / zespół</label>
+          <select
+            value={clearUnitId}
+            onChange={(e) => { setClearUnitId(e.target.value); setConfirmed(false); }}
+            style={{ ...inputStyle, cursor: 'pointer' }}
+          >
+            <option value="">Wszystkie jednostki</option>
+            {flatUnits.map((u) => (
+              <option key={u.id} value={u.id}>{'  '.repeat(u.depth)}{u.name}</option>
+            ))}
+          </select>
+          <div style={{ fontSize: '12px', color: colors.gray[500], marginTop: '4px' }}>
+            Pracowników: <strong>{employees.length}</strong>
+          </div>
+        </div>
+
+        <div style={{ marginBottom: '16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+          <div>
+            <label style={{ ...labelStyle, fontSize: '11px' }}>Od</label>
+            <input type="date" value={from} onChange={(e) => { setFrom(e.target.value); setConfirmed(false); }} style={inputStyle} />
+          </div>
+          <div>
+            <label style={{ ...labelStyle, fontSize: '11px' }}>Do</label>
+            <input type="date" value={to} onChange={(e) => { setTo(e.target.value); setConfirmed(false); }} style={inputStyle} />
+          </div>
+        </div>
+
+        <div style={{ marginBottom: '16px' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', color: colors.gray[700] }}>
+            <input
+              type="checkbox"
+              checked={includeOrgUnit}
+              onChange={(e) => { setIncludeOrgUnit(e.target.checked); setConfirmed(false); }}
+              style={{ accentColor: colors.danger[600] }}
+            />
+            <span>Usuń też wpisy z grafiku jednostki</span>
+          </label>
+          {includeOrgUnit && (
+            <div style={{ marginTop: '4px', padding: '6px 10px', backgroundColor: colors.warning[100], border: `1px solid ${colors.warning[200]}`, borderRadius: '10px', fontSize: '12px', color: colors.warning[800] }}>
+              Grafik jednostki jest odtwarzany co poniedziałek. Żeby wpisy nie wróciły, usuń albo
+              wyłącz sam grafik jednostki w panelu „Grafik jednostki”.
+            </div>
+          )}
+        </div>
+
+        <div style={{
+          marginBottom: '16px', padding: '10px 12px', borderRadius: '12px',
+          backgroundColor: colors.gray[50], border: `1px solid ${colors.gray[200]}`,
+          fontSize: '13px', color: colors.gray[700],
+        }}>
+          {!rangeValid
+            ? 'Podaj poprawny zakres dat.'
+            : previewLoading
+              ? 'Liczenie wpisów...'
+              : <>Do usunięcia: <strong style={{ color: colors.danger[600] }}>{affected}</strong> wpisów grafiku.</>}
+        </div>
+
+        {!success && (
+          <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', cursor: 'pointer', fontSize: '13px', color: colors.gray[700], marginBottom: '20px' }}>
+            <input
+              type="checkbox"
+              checked={confirmed}
+              onChange={(e) => setConfirmed(e.target.checked)}
+              style={{ accentColor: colors.danger[600], marginTop: '2px' }}
+            />
+            <span>Rozumiem, że usunięcia wpisów nie da się cofnąć.</span>
+          </label>
+        )}
+
+        {error && (
+          <div style={{ marginBottom: '12px', padding: '8px 12px', backgroundColor: colors.danger[50], border: `1px solid ${colors.danger[200]}`, borderRadius: '10px', color: colors.danger[600], fontSize: '13px' }}>
+            {error}
+          </div>
+        )}
+        {success && (
+          <div style={{ marginBottom: '12px', padding: '8px 12px', backgroundColor: colors.success[50], border: '1px solid #bbf7d0', borderRadius: '10px', color: colors.success[800], fontSize: '13px' }}>
+            {success}
+          </div>
+        )}
+
+        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+          <button
+            onClick={onClose}
+            style={{
+              padding: '8px 16px', fontSize: '13px', fontWeight: 500,
+              color: colors.gray[700], backgroundColor: colors.white,
+              border: `1px solid ${colors.gray[200]}`, borderRadius: '12px', cursor: 'pointer',
+            }}
+          >
+            {success ? 'Zamknij' : 'Anuluj'}
+          </button>
+          {!success && (
+            <button
+              onClick={handleClear}
+              disabled={!confirmed || !rangeValid || clearMut.isPending || affected === 0}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '6px',
+                padding: '8px 20px', fontSize: '13px', fontWeight: 600,
+                color: colors.white, backgroundColor: colors.danger[600],
+                border: 'none', borderRadius: '12px',
+                cursor: !confirmed || affected === 0 ? 'not-allowed' : 'pointer',
+                opacity: !confirmed || !rangeValid || clearMut.isPending || affected === 0 ? 0.5 : 1,
+              }}
+            >
+              <Trash2 size={14} /> {clearMut.isPending ? 'Usuwanie...' : 'Usuń wpisy'}
             </button>
           )}
         </div>

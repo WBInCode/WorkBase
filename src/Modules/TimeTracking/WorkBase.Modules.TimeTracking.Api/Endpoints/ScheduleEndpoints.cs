@@ -53,6 +53,13 @@ public static class ScheduleEndpoints
             .Produces<GenerateBatchResult>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest);
 
+        group.MapPost("/clear", ClearSchedules)
+            .WithName("ClearSchedules")
+            .WithSummary("Wyczyść grafik wielu pracowników w zadanym okresie")
+            .RequirePermission("time.manage")
+            .Produces<ClearSchedulesResult>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status400BadRequest);
+
         // Schedule Templates
         var templates = endpoints.MapGroup("/api/time/schedule-templates")
             .WithTags("TimeTracking – Schedule Templates")
@@ -212,6 +219,23 @@ public static class ScheduleEndpoints
             ? Results.Ok(new GenerateBatchResult(result.Value))
             : result.ToHttpResult();
     }
+
+    private static async Task<IResult> ClearSchedules(
+        ClearSchedulesRequest request,
+        ISender sender)
+    {
+        var command = new ClearSchedulesCommand(
+            request.EmployeeIds,
+            request.From,
+            request.To,
+            request.IncludeOrgUnitGenerated);
+
+        var result = await sender.Send(command);
+
+        return result.IsSuccess
+            ? Results.Ok(new ClearSchedulesResult(result.Value))
+            : result.ToHttpResult();
+    }
 }
 
 public sealed record ScheduleQueryParams(DateOnly? From, DateOnly? To);
@@ -254,3 +278,11 @@ public sealed record GenerateBatchSchedulesRequest(
     bool Overwrite = false);
 
 public sealed record GenerateBatchResult(int CreatedCount);
+
+public sealed record ClearSchedulesRequest(
+    List<Guid> EmployeeIds,
+    DateOnly From,
+    DateOnly To,
+    bool IncludeOrgUnitGenerated = false);
+
+public sealed record ClearSchedulesResult(int DeletedCount);
