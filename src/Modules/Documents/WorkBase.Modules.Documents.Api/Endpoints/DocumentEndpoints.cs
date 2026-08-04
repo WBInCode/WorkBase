@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using System.Security.Claims;
 using WorkBase.Modules.Documents.Application.Commands;
 using WorkBase.Modules.Documents.Application.Queries;
 using WorkBase.Shared.Api;
@@ -93,23 +94,24 @@ public static class DocumentEndpoints
         return result.ToHttpResult();
     }
 
-    private static async Task<IResult> UploadDocument(HttpRequest request, ISender sender)
+    private static async Task<IResult> UploadDocument(
+        HttpRequest request, ClaimsPrincipal user, ISender sender, CancellationToken cancellationToken)
     {
         if (!request.HasFormContentType || request.Form.Files.Count == 0)
-            return Results.BadRequest(new { message = "No file uploaded" });
+            return Results.BadRequest(new { message = "Nie przesłano pliku." });
 
         var file = request.Form.Files[0];
-        await using var stream = file.OpenReadStream();
+        await using var stream = await file.OpenSeekableStreamAsync(cancellationToken);
 
         var command = new UploadDocumentCommand(
             file.FileName, file.ContentType, file.Length, stream,
-            Guid.Empty, // will be overwritten by auth context if needed
+            user.EmployeeId() ?? Guid.Empty,
             request.Form.ContainsKey("categoryId") ? Guid.Parse(request.Form["categoryId"]!) : null,
             request.Form.ContainsKey("entityType") ? request.Form["entityType"].ToString() : null,
             request.Form.ContainsKey("entityId") ? Guid.Parse(request.Form["entityId"]!) : null,
             request.Form.ContainsKey("description") ? request.Form["description"].ToString() : null);
 
-        var result = await sender.Send(command);
+        var result = await sender.Send(command, cancellationToken);
         return result.ToHttpResult();
     }
 

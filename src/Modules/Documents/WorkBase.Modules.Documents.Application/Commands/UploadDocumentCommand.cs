@@ -1,6 +1,7 @@
 using WorkBase.Modules.Documents.Application.Contracts;
 using WorkBase.Shared.Cqrs;
 using WorkBase.Shared.Domain;
+using WorkBase.Shared.Security;
 using WorkBase.Shared.Storage;
 
 namespace WorkBase.Modules.Documents.Application.Commands;
@@ -15,7 +16,10 @@ public sealed record UploadDocumentCommand(
 }
 
 public sealed class UploadDocumentHandler(
-    IDocumentRepository repository, IFileStorage fileStorage, ITenantConfigService tenantConfig)
+    IDocumentRepository repository,
+    IFileStorage fileStorage,
+    ITenantConfigService tenantConfig,
+    IUploadScanGuard scanGuard)
     : ICommandHandler<UploadDocumentCommand, Guid>
 {
     private const string SettingsKey = "document_upload";
@@ -39,6 +43,11 @@ public sealed class UploadDocumentHandler(
         if (request.FileSizeBytes > settings.MaxFileSizeBytes)
             return Result.Failure<Guid>(Error.Validation("Document.TooLarge",
                 $"Plik przekracza maksymalny dozwolony rozmiar ({settings.MaxFileSizeBytes / (1024 * 1024)} MB)."));
+
+        // Skan przed zapisem: do magazynu nie trafia nic, czego nie sprawdzilismy.
+        var skan = await scanGuard.InspectAsync(request.Content, safeFileName, cancellationToken);
+        if (skan.IsFailure)
+            return Result.Failure<Guid>(skan.Error);
 
         var storagePath = $"documents/{request.TenantId}/{Guid.NewGuid()}/{safeFileName}";
 

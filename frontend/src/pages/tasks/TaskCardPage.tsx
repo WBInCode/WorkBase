@@ -220,7 +220,17 @@ export function TaskCardPage() {
             style={{ display: 'none' }}
             onChange={(e) => {
               const file = e.target.files?.[0];
-              if (file) uploadMutation.mutate(file);
+              if (file) {
+                uploadMutation.mutate(file, {
+                  onSuccess: () => addToast({ type: 'success', title: 'Plik dodany', message: file.name }),
+                  onError: (error) => addToast({
+                    type: 'error',
+                    title: 'Nie udało się dodać pliku',
+                    message: error instanceof Error && error.message ? error.message : undefined,
+                    duration: 8000,
+                  }),
+                });
+              }
               e.target.value = '';
             }}
           />

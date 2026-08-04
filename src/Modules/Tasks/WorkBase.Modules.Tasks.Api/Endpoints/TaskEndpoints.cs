@@ -115,7 +115,9 @@ public static class TaskEndpoints
 
         group.MapPost("/{id:guid}/attachments", AddAttachment)
             .WithName("AddTaskAttachment").WithSummary("Dodaj załącznik do zadania")
-            .RequirePermission("tasks.edit").Produces<Guid>(StatusCodes.Status201Created);
+            .RequirePermission("tasks.edit").DisableAntiforgery()
+            .Produces<Guid>(StatusCodes.Status201Created)
+            .Produces(StatusCodes.Status400BadRequest);
 
         group.MapGet("/{taskId:guid}/attachments/{attachmentId:guid}/download", DownloadAttachment)
             .WithName("DownloadTaskAttachment").WithSummary("Pobierz plik załącznika")
@@ -287,11 +289,20 @@ public static class TaskEndpoints
         return result.ToHttpResult();
     }
 
-    private static async Task<IResult> AddAttachment(Guid id, AddAttachmentBody body, ISender sender)
+    private static async Task<IResult> AddAttachment(
+        Guid id, HttpRequest request, ClaimsPrincipal user, ISender sender, CancellationToken cancellationToken)
     {
-        var result = await sender.Send(new AddTaskAttachmentCommand(
-            id, body.FileName, body.StoragePath, body.ContentType,
-            body.FileSizeBytes, body.UploadedById));
+        if (!request.HasFormContentType || request.Form.Files.Count == 0)
+            return Results.BadRequest(new { message = "Nie przesłano pliku." });
+
+        var file = request.Form.Files[0];
+        var uploadedById = user.EmployeeId() ?? Guid.Empty;
+
+        await using var content = await file.OpenSeekableStreamAsync(cancellationToken);
+
+        var result = await sender.Send(new UploadTaskAttachmentCommand(
+            id, file.FileName, file.ContentType, file.Length, content, uploadedById), cancellationToken);
+
         return result.IsSuccess
             ? Results.Created($"/api/tasks/{id}/attachments/{result.Value}", result.Value)
             : result.ToHttpResult();
@@ -299,18 +310,14 @@ public static class TaskEndpoints
 
     private static async Task<IResult> DownloadAttachment(
         Guid taskId, Guid attachmentId,
-        IFileStorage fileStorage, ISender sender)
+        IFileStorage fileStorage, ISender sender, CancellationToken cancellationToken)
     {
-        var result = await sender.Send(new GetTaskAttachmentsByTaskQuery(taskId));
+        var result = await sender.Send(new GetTaskAttachmentFileQuery(taskId, attachmentId), cancellationToken);
         if (!result.IsSuccess)
             return result.ToHttpResult();
 
-        var attachment = result.Value.FirstOrDefault(a => a.Id == attachmentId);
-        if (attachment is null)
-            return Results.NotFound();
-
-        var stream = await fileStorage.DownloadAsync("workbase", $"tasks/{taskId}/{attachment.FileName}");
-        return Results.File(stream, attachment.ContentType, attachment.FileName);
+        var stream = await fileStorage.DownloadAsync("workbase", result.Value.StoragePath, cancellationToken);
+        return Results.File(stream, result.Value.ContentType, result.Value.FileName);
     }
 }
 
@@ -329,10 +336,6 @@ public sealed record AssignTaskBody(Guid NewAssigneeId, IReadOnlyList<Guid>? Add
 public sealed record AddCommentBody(Guid AuthorId, string Content);
 
 public sealed record UpdateCommentBody(string Content);
-
-public sealed record AddAttachmentBody(
-    string FileName, string StoragePath, string ContentType,
-    long FileSizeBytes, Guid UploadedById);
 
 public sealed record CreateStatusBody(
     string Code, string Name, string? Color,

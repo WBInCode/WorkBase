@@ -7,6 +7,7 @@ import {
   useDeleteDocument,
   useDownloadDocument,
 } from '@/api/hooks/useDocuments';
+import { useToast } from '@/components/Notifications';
 import { useIsMobile } from '@/shared';
 import { colors } from '@/theme/tokens';
 
@@ -39,6 +40,7 @@ export function DocumentListPage() {
   const deleteMutation = useDeleteDocument();
   const downloadMutation = useDownloadDocument();
   const mobile = useIsMobile();
+  const { addToast } = useToast();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
@@ -80,7 +82,14 @@ export function DocumentListPage() {
           setUploadCategory('');
           setUploadDesc('');
           if (fileInputRef.current) fileInputRef.current.value = '';
+          addToast({ type: 'success', title: 'Dokument wgrany', message: uploadFile.name });
         },
+        onError: (error) => addToast({
+          type: 'error',
+          title: 'Nie udało się wgrać dokumentu',
+          message: error instanceof Error && error.message ? error.message : undefined,
+          duration: 8000,
+        }),
       },
     );
   }

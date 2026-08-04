@@ -92,8 +92,7 @@ public static class InfrastructureServiceCollectionExtensions
             client.Timeout = TimeSpan.FromSeconds(8);
         });
 
-        services.AddScoped<ICurrentTenantService, HttpContextTenantService>();
-        services.AddScoped<IDataScopeService, DataScopeService>();
+        services.AddScoped<ICurrentTenantService, HttpContextTenantService>();        services.AddScoped<IDataScopeService, DataScopeService>();
         services.AddScoped<IEmployeeScopeResolver, EmployeeScopeResolver>();
         services.AddScoped<ITenantConfigService, Services.TenantConfigService>();
         services.AddScoped<ITenantProvisioningService, Services.TenantProvisioningService>();
@@ -168,6 +167,14 @@ public static class InfrastructureServiceCollectionExtensions
         });
 
         services.AddSingleton<IFileStorage, MinioFileStorage>();
+
+        services.AddOptions<Security.ClamAvOptions>()
+            .Bind(configuration.GetSection(Security.ClamAvOptions.SectionName))
+            .Validate(options => !options.Enabled || (!string.IsNullOrWhiteSpace(options.Host) && options.Port > 0),
+                "ClamAv wymaga Host i Port, gdy jest wlaczony")
+            .ValidateOnStart();
+        services.AddSingleton<IMalwareScanner, Security.ClamAvScanner>();
+        services.AddSingleton<WorkBase.Shared.Security.IUploadScanGuard, Security.UploadScanGuard>();
 
         services.AddSingleton<ILogEventEnricher, UserContextEnricher>();
         services.AddTenantRateLimiting(configuration);
