@@ -68,7 +68,8 @@ SLADY=(
 for wpis in "${SLADY[@]}"; do
   plik=${wpis%%:*}
   wzor=${wpis#*:}
-  if ! grep -qF "$wzor" "/tmp/workbase-new/$plik" 2>/dev/null; then
+  # `-e` jest konieczne: wzorzec zaczynajacy sie od `--` grep wzialby za wlasna opcje.
+  if ! grep -qF -e "$wzor" "/tmp/workbase-new/$plik" 2>/dev/null; then
     echo "!! paczka nie zawiera oczekiwanej zmiany: $plik -> $wzor"
     exit 1
   fi
