@@ -1,5 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -20,6 +22,18 @@ public sealed class EcosystemSnapshotJob(
     ILogger<EcosystemSnapshotJob> logger)
 {
     private readonly EcosystemOptions _options = options.Value;
+
+    /// <summary>
+    /// Rytm opisuje pola opcjonalne jako „al​bo brak, albo tekst” — jawny <c>null</c> nie
+    /// przechodzi walidacji i odrzuca cala migawke. Puste wartosci trzeba pomijac.
+    /// </summary>
+    private static readonly JsonSerializerOptions FormatMigawki = new()
+    {
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+    };
+
+    /// <summary>Wystawione do testu, ktory pilnuje pomijania pustych wartosci.</summary>
+    public static JsonSerializerOptions FormatMigawkiDoTestu => FormatMigawki;
 
     public async Task ExecuteAsync(Guid tenantId, Guid employeeId)
     {
@@ -107,7 +121,7 @@ public sealed class EcosystemSnapshotJob(
                 hubOrgId = _options.HubOrgId,
                 events,
                 tasks = await BuildTasksAsync(tenantId, employeeId)
-            })
+            }, options: FormatMigawki)
         };
         request.Headers.TryAddWithoutValidation("x-ecosystem-secret", _options.Secret);
         using var response = await client.SendAsync(request);
