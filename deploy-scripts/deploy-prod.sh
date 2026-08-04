@@ -62,6 +62,8 @@ SLADY=(
   "src/Modules/TimeTracking/WorkBase.Modules.TimeTracking.Api/Endpoints/ScheduleEndpoints.cs:CanAccessEmployeeAsync"
   "src/Modules/TimeTracking/WorkBase.Modules.TimeTracking.Api/Endpoints/TimeCorrectionEndpoints.cs:CanAccessEmployeeAsync"
   "src/Modules/Organization/WorkBase.Modules.Organization.Application/Commands/Positions/ReapplyPositionPolicyCommand.cs:ReapplyPositionPolicyHandler"
+  "src/WorkBase.Infrastructure/Chat/ChatNoticeForwarder.cs:ChatNoticeJob"
+  "src/WorkBase.Host/Endpoints/EcosystemTaskEndpoints.cs:EcosystemTaskSearch"
 )
 for wpis in "${SLADY[@]}"; do
   plik=${wpis%%:*}
