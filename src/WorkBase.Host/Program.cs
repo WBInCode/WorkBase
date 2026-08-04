@@ -190,6 +190,7 @@ try
     app.MapDocumentSettingsEndpoints();
     app.MapTaskSettingsEndpoints();
     app.MapHubIntegrationEndpoints();
+    app.MapEcosystemTaskEndpoints();
     app.MapHub<NotificationHub>("/hubs/notifications");
 
     if (!app.Environment.IsEnvironment("Testing"))
