@@ -117,7 +117,15 @@ fi
 
 log "6/6 weryfikacja"
 log "    /health -> $(docker exec workbase-web wget -qO- "$ZDROWIE" 2>/dev/null | head -c 80)"
-log "    HTTPS   -> $(curl -s -o /dev/null -w '%{http_code}' --resolve workbase.wb-partners.pl:443:127.0.0.1 https://workbase.wb-partners.pl/ --max-time 15)"
+# Traefik potrzebuje chwili, zeby zauwazyc odtworzony kontener. Bez ponowienia ten pomiar
+# pokazywal 404 przy wdrozeniu samego frontu, mimo ze strona za chwile dzialala.
+kod_https=""
+for _ in $(seq 1 10); do
+  kod_https=$(curl -s -o /dev/null -w '%{http_code}' --resolve workbase.wb-partners.pl:443:127.0.0.1 https://workbase.wb-partners.pl/ --max-time 15)
+  [ "$kod_https" = "200" ] && break
+  sleep 3
+done
+log "    HTTPS   -> $kod_https"
 # Czy uzupelnianie slownika uprawnien wykonalo sie przy starcie.
 log "    uprawnien w slowniku: $(docker exec wb-postgres psql -U wbadmin -d workbase -tAc 'select count(*) from iam_permissions' 2>/dev/null | tr -d ' ')"
 # Blad tlumaczenia na SQL w module urlopow nie moze juz wystepowac.
