@@ -64,6 +64,15 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<IHubNotificationForwarder, HubPlatform.HubNotificationForwarder>();
         services.AddScoped<HubPlatform.HubNotificationJob>();
 
+        services.AddScoped<IChatNoticeForwarder, Chat.ChatNoticeForwarder>();
+        services.AddScoped<Chat.ChatNoticeJob>();
+        // Krótki limit czasu: powiadomienie do czatu jest dodatkiem, więc nie może
+        // blokować wątku roboczego kolejki, gdy czat nie odpowiada.
+        services.AddHttpClient("chat-notices", client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(8);
+        });
+
         services.AddOptions<EcosystemOptions>()
             .Bind(configuration.GetSection(EcosystemOptions.SectionName))
             .Validate(options => !options.Enabled || (
