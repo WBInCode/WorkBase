@@ -27,7 +27,7 @@ const DEFAULT_COLORS: Record<string, string> = {
   ANNUAL: colors.primary[500],
   ON_DEMAND: colors.warning[500],
   SICK: colors.danger[500],
-  CHILDCARE: '#2b55d4',
+  CHILDCARE: 'var(--wb-p-600, #2b55d4)',
 };
 
 export function EmployeeLeaveSection({ balances, requests, isLoading }: Props) {

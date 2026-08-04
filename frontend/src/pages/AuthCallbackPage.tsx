@@ -17,7 +17,7 @@ export function AuthCallbackPage() {
         }}
       >
         <div className="wb-spinner" />
-        <div style={{ fontSize: 13, fontWeight: 600, color: '#9aa3bc' }}>Finalizowanie logowania…</div>
+        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--wb-g-400, #9aa3bc)' }}>Finalizowanie logowania…</div>
       </div>
     );
   }
@@ -58,7 +58,7 @@ export function AuthCallbackPage() {
               fontWeight: 700,
               fontFamily: 'inherit',
               color: '#fff',
-              background: '#3d6df2',
+              background: 'var(--wb-p-500, #3d6df2)',
               border: 'none',
               borderRadius: 999,
               cursor: 'pointer',

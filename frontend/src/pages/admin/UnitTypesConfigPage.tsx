@@ -70,8 +70,8 @@ export function UnitTypesConfigPage() {
                   <Td>
                     <span style={{
                       padding: '2px 8px', borderRadius: 16, fontSize: 12, fontWeight: 500,
-                      backgroundColor: t.isActive ? '#d1fae5' : colors.gray[100],
-                      color: t.isActive ? '#065f46' : colors.gray[500],
+                      backgroundColor: t.isActive ? 'var(--wb-emr-100, #d1fae5)' : colors.gray[100],
+                      color: t.isActive ? 'var(--wb-emr-800, #065f46)' : colors.gray[500],
                     }}>
                       {t.isActive ? 'Aktywny' : 'Nieaktywny'}
                     </span>
@@ -180,7 +180,7 @@ function Td({ children, style }: { children?: React.ReactNode; style?: React.CSS
 }
 
 const iconBtnStyle: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', padding: '8px', border: `1px solid ${colors.gray[300]}`, borderRadius: 10, backgroundColor: colors.white, cursor: 'pointer', color: colors.gray[700] };
-const primaryBtnStyle: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', fontSize: 14, fontWeight: 500, color: colors.white, backgroundColor: colors.primary[500], border: 'none', borderRadius: 10, cursor: 'pointer' };
+const primaryBtnStyle: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', fontSize: 14, fontWeight: 500, color: colors.textOnAccent, backgroundColor: colors.primary[500], border: 'none', borderRadius: 10, cursor: 'pointer' };
 const smBtnStyle: React.CSSProperties = { padding: '4px 6px', background: 'none', border: `1px solid ${colors.gray[200]}`, borderRadius: 4, cursor: 'pointer', color: colors.gray[500], display: 'inline-flex', alignItems: 'center' };
 const errorStyle: React.CSSProperties = { padding: '12px 16px', marginBottom: 16, backgroundColor: colors.danger[50], border: `1px solid ${colors.danger[200]}`, borderRadius: 12, color: colors.danger[800], fontSize: 14 };
 const retryStyle: React.CSSProperties = { marginLeft: 8, color: colors.primary[500], background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', fontSize: 14 };
@@ -190,4 +190,4 @@ const formErrorStyle: React.CSSProperties = { padding: '10px 14px', marginBottom
 const labelStyle: React.CSSProperties = { display: 'block', marginBottom: 4, fontSize: 13, fontWeight: 500, color: colors.gray[700] };
 const inputStyle: React.CSSProperties = { width: '100%', padding: '8px 12px', fontSize: 14, border: `1px solid ${colors.gray[300]}`, borderRadius: 10, boxSizing: 'border-box' };
 const cancelBtnStyle: React.CSSProperties = { padding: '8px 16px', fontSize: 14, border: `1px solid ${colors.gray[300]}`, borderRadius: 10, backgroundColor: colors.white, cursor: 'pointer' };
-const submitBtnStyle: React.CSSProperties = { padding: '8px 20px', fontSize: 14, fontWeight: 500, color: colors.white, backgroundColor: colors.primary[500], border: 'none', borderRadius: 10, cursor: 'pointer' };
+const submitBtnStyle: React.CSSProperties = { padding: '8px 20px', fontSize: 14, fontWeight: 500, color: colors.textOnAccent, backgroundColor: colors.primary[500], border: 'none', borderRadius: 10, cursor: 'pointer' };

@@ -87,6 +87,12 @@ export const colors = {
 
   // ── Base ──
   white: 'var(--wb-surface, #ffffff)',
+  /**
+   * Tekst i ikony NA barwnym tle (przyciski, plakietki, awatary).
+   * Statyczna biel — `white` jest powierzchnią i w ciemnym motywie robi się granatowa,
+   * więc użyta jako kolor tekstu dawałaby granat na kolorze.
+   */
+  textOnAccent: '#ffffff',
   black: '#000000',
   transparent: 'transparent',
 } as const;
@@ -99,7 +105,7 @@ export const semantic = {
   textSecondary: colors.gray[500],
   textMuted: colors.gray[400],
   textBody: colors.gray[700],
-  textOnDark: colors.white,
+  textOnDark: colors.textOnAccent,
   textLink: colors.primary[600],
 
   // Backgrounds
@@ -152,14 +158,14 @@ export const statusColors = {
   // Task priority
   taskPriority: {
     critical: { bg: colors.danger[100], text: colors.danger[800] },
-    high: { bg: '#fff7ed', text: '#9a3412' }, // orange
+    high: { bg: 'var(--wb-org-50, #fff7ed)', text: 'var(--wb-org-800, #9a3412)' },
     medium: { bg: colors.warning[100], text: colors.warning[800] },
     low: { bg: colors.success[100], text: colors.success[800] },
   },
   // Shift types
   shift: {
     dzienna: { bg: colors.warning[100], text: colors.warning[800] },
-    nocna: { bg: '#ede9fe', text: '#5b21b6' }, // violet
+    nocna: { bg: 'var(--wb-vio-100, #ede9fe)', text: 'var(--wb-vio-800, #5b21b6)' },
     popoludniowa: { bg: colors.primary[50], text: colors.primary[700] },
   },
   // Generic

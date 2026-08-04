@@ -140,7 +140,7 @@ const toastStyles = {
   info: { icon: Info, iconColor: colors.primary[600], iconBg: colors.primary[100], border: colors.primary[200] },
   success: { icon: CheckCircle, iconColor: colors.success[600], iconBg: colors.success[100], border: colors.success[200] },
   error: { icon: AlertCircle, iconColor: colors.danger[600], iconBg: colors.danger[100], border: colors.danger[200] },
-  notification: { icon: Bell, iconColor: '#7c3aed', iconBg: '#f3e8ff', border: '#ddd6fe' },
+  notification: { icon: Bell, iconColor: 'var(--wb-vio-600, #7c3aed)', iconBg: 'var(--wb-pur-50, #f3e8ff)', border: 'var(--wb-vio-200, #ddd6fe)' },
 };
 
 // Keyframes (slideIn, wb-toast-run) są zdefiniowane globalnie w theme/workbase.css.

@@ -131,7 +131,7 @@ const TONES = {
   iris: { fg: colors.primary[600], bg: colors.primary[100] },
   warning: { fg: colors.warning[700], bg: colors.warning[100] },
   danger: { fg: colors.danger[600], bg: colors.danger[100] },
-  emerald: { fg: '#047857', bg: '#d1fae5' },
+  emerald: { fg: 'var(--wb-emr-700, #047857)', bg: 'var(--wb-emr-100, #d1fae5)' },
   neutral: { fg: colors.gray[500], bg: colors.gray[100] },
 } as const;
 

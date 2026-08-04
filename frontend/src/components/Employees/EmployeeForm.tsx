@@ -202,7 +202,7 @@ export function EmployeeForm({ onSubmit, onClose, isSubmitting, error }: Employe
                 padding: '8px 20px',
                 fontSize: '14px',
                 fontWeight: 500,
-                color: colors.white,
+                color: colors.textOnAccent,
                 backgroundColor: (!isValid || isSubmitting) ? colors.primary[300] : colors.primary[600],
                 border: 'none',
                 borderRadius: '10px',

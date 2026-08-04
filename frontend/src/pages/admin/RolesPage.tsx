@@ -22,7 +22,7 @@ const typeLabels: Record<string, string> = {
 const typeColors: Record<string, { bg: string; text: string }> = {
   System: { bg: colors.warning[100], text: colors.warning[800] },
   Organizational: { bg: colors.primary[100], text: colors.primary[800] },
-  Custom: { bg: '#f3e8ff', text: '#6b21a8' },
+  Custom: { bg: 'var(--wb-pur-50, #f3e8ff)', text: 'var(--wb-pur-800, #6b21a8)' },
 };
 
 export function RolesPage() {
@@ -669,7 +669,7 @@ const primaryBtnStyle: React.CSSProperties = {
   padding: '8px 16px',
   fontSize: '14px',
   fontWeight: 500,
-  color: colors.white,
+  color: colors.textOnAccent,
   backgroundColor: colors.primary[600],
   border: 'none',
   borderRadius: '10px',
@@ -692,7 +692,7 @@ const secondaryBtnStyle: React.CSSProperties = {
 
 const dangerBtnStyle: React.CSSProperties = {
   ...secondaryBtnStyle,
-  color: colors.white,
+  color: colors.textOnAccent,
   backgroundColor: colors.danger[600],
   borderColor: colors.danger[600],
 };

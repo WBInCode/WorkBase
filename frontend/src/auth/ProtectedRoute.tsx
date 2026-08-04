@@ -30,7 +30,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     return (
       <FullScreenCentered>
         <div className="wb-spinner" />
-        <div style={{ fontSize: 13, fontWeight: 600, color: '#9aa3bc' }}>Ładowanie…</div>
+        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--wb-g-400, #9aa3bc)' }}>Ładowanie…</div>
       </FullScreenCentered>
     );
   }
@@ -63,7 +63,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
               fontWeight: 700,
               fontFamily: 'inherit',
               color: '#fff',
-              background: '#3d6df2',
+              background: 'var(--wb-p-500, #3d6df2)',
               border: 'none',
               borderRadius: 999,
               cursor: 'pointer',
@@ -115,7 +115,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
                 fontWeight: 700,
                 fontFamily: 'inherit',
                 color: '#fff',
-                background: '#3d6df2',
+                background: 'var(--wb-p-500, #3d6df2)',
                 border: 'none',
                 borderRadius: 999,
                 cursor: 'pointer',
@@ -137,7 +137,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     return (
       <FullScreenCentered>
         <div className="wb-spinner" />
-        <div style={{ fontSize: 13, fontWeight: 600, color: '#9aa3bc' }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--wb-g-400, #9aa3bc)' }}>
           {ssoHint === 'wb-hub' ? 'Łączenie z platformą WB…' : 'Przekierowanie do logowania…'}
         </div>
       </FullScreenCentered>

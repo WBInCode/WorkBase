@@ -82,9 +82,9 @@ function flattenUnits(nodes: OrganizationUnitTreeNode[]): { id: string; name: st
 
 const SHIFT_COLORS: Record<string, { bg: string; border: string; text: string }> = {
   dzienna: { bg: colors.primary[100], border: colors.primary[300], text: colors.primary[800] },
-  nocna: { bg: '#ede9fe', border: '#c4b5fd', text: '#5b21b6' },
+  nocna: { bg: 'var(--wb-vio-100, #ede9fe)', border: 'var(--wb-vio-300, #c4b5fd)', text: 'var(--wb-vio-800, #5b21b6)' },
   popołudniowa: { bg: colors.warning[100], border: colors.warning[200], text: colors.warning[800] },
-  nieplanowana: { bg: '#ffedd5', border: '#fdba74', text: '#9a3412' },
+  nieplanowana: { bg: 'var(--wb-org-100, #ffedd5)', border: 'var(--wb-org-300, #fdba74)', text: 'var(--wb-org-800, #9a3412)' },
 };
 
 const SOURCE_INDICATOR = {
@@ -101,7 +101,7 @@ function getSourceIndicator(source: string | null | undefined) {
 }
 
 function getShiftStyle(shiftType: string | null) {
-  if (!shiftType) return { bg: colors.success[50], border: '#86efac', text: colors.success[800] };
+  if (!shiftType) return { bg: colors.success[50], border: 'var(--wb-suc-200, #86efac)', text: colors.success[800] };
   return SHIFT_COLORS[shiftType.toLowerCase()] ?? { bg: colors.gray[100], border: colors.gray[300], text: colors.gray[700] };
 }
 
@@ -213,7 +213,7 @@ export function SchedulePage() {
               style={{
                 display: 'flex', alignItems: 'center', gap: '6px',
                 padding: '9px 18px', fontSize: '13px', fontWeight: 700, fontFamily: 'inherit',
-                color: '#7c3aed', backgroundColor: '#f5f3ff',
+                color: 'var(--wb-vio-600, #7c3aed)', backgroundColor: 'var(--wb-vio-50, #f5f3ff)',
                 border: 'none', borderRadius: '999px', cursor: 'pointer',
               }}
             >
@@ -237,7 +237,7 @@ export function SchedulePage() {
               style={{
                 display: 'flex', alignItems: 'center', gap: '6px',
                 padding: '9px 18px', fontSize: '13px', fontWeight: 700, fontFamily: 'inherit',
-                color: '#ffffff', backgroundColor: '#7c3aed',
+                color: '#ffffff', backgroundColor: 'var(--wb-vio-600, #7c3aed)',
                 border: 'none', borderRadius: '999px', cursor: 'pointer',
                 boxShadow: '0 6px 14px -4px rgba(124,58,237,0.45)',
               }}
@@ -312,7 +312,7 @@ export function SchedulePage() {
           </span>
         ))}
         <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 3, backgroundColor: colors.success[50], border: '1px solid #86efac' }} />
+          <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 3, backgroundColor: colors.success[50], border: '1px solid var(--wb-suc-200, #86efac)' }} />
           Inna / brak typu
         </span>
         <span style={{ marginLeft: '16px', borderLeft: `1px solid ${colors.gray[200]}`, paddingLeft: '16px', display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -320,7 +320,7 @@ export function SchedulePage() {
           Z grafiku jednostki
         </span>
         <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 3, border: '1px dotted #fdba74', backgroundColor: '#ffedd5' }} />
+          <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 3, border: '1px dotted var(--wb-org-300, #fdba74)', backgroundColor: 'var(--wb-org-100, #ffedd5)' }} />
           Nieplanowana
         </span>
       </div>
@@ -354,7 +354,7 @@ export function SchedulePage() {
                       key={d}
                       style={{
                         ...thStyle, textAlign: 'center', minWidth: '80px',
-                        backgroundColor: isWeekend ? '#f1f5f9' : colors.gray[50], fontSize: '11px',
+                        backgroundColor: isWeekend ? 'var(--wb-g-100, #f1f5f9)' : colors.gray[50], fontSize: '11px',
                       }}
                     >
                       {formatWeekdayShort(d)}
@@ -381,7 +381,7 @@ export function SchedulePage() {
                       const style = getShiftStyle(sched.shiftType);
                       const src = getSourceIndicator(sched.source);
                       return (
-                        <td key={d} style={{ ...tdStyle, textAlign: 'center', padding: '4px', backgroundColor: isWeekend ? '#f8fafc' : undefined }}>
+                        <td key={d} style={{ ...tdStyle, textAlign: 'center', padding: '4px', backgroundColor: isWeekend ? 'var(--wb-g-50, #f8fafc)' : undefined }}>
                           <div
                             onClick={() => openEdit(sched)}
                             style={{
@@ -410,7 +410,7 @@ export function SchedulePage() {
                     }
 
                     return (
-                      <td key={d} style={{ ...tdStyle, textAlign: 'center', padding: '4px', backgroundColor: isWeekend ? '#f8fafc' : undefined }}>
+                      <td key={d} style={{ ...tdStyle, textAlign: 'center', padding: '4px', backgroundColor: isWeekend ? 'var(--wb-g-50, #f8fafc)' : undefined }}>
                         <button
                           onClick={() => openAdd(emp.id, d)}
                           style={{
@@ -690,7 +690,7 @@ function ScheduleModal({
             style={{
               display: 'flex', alignItems: 'center', gap: '4px',
               padding: '8px 16px', fontSize: '13px', fontWeight: 600,
-              color: colors.white, backgroundColor: colors.primary[500],
+              color: colors.textOnAccent, backgroundColor: colors.primary[500],
               border: 'none', borderRadius: '12px', cursor: 'pointer',
               opacity: saving ? 0.5 : 1,
             }}
@@ -887,7 +887,7 @@ function GenerateScheduleModal({
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <h2 style={{ fontSize: '20px', fontWeight: 700, color: colors.gray[900], margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Zap size={20} color="#7c3aed" />
+            <Zap size={20} color="var(--wb-vio-600, #7c3aed)" />
             Generuj grafik pracy
           </h2>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: colors.gray[500], padding: '4px' }}>
@@ -924,8 +924,8 @@ function GenerateScheduleModal({
                 style={{
                   padding: '5px 14px', fontSize: '12px', fontWeight: rangeMode === m ? 600 : 400,
                   color: rangeMode === m ? colors.white : colors.gray[700],
-                  backgroundColor: rangeMode === m ? '#7c3aed' : colors.gray[100],
-                  border: '1px solid ' + (rangeMode === m ? '#7c3aed' : colors.gray[200]),
+                  backgroundColor: rangeMode === m ? 'var(--wb-vio-600, #7c3aed)' : colors.gray[100],
+                  border: '1px solid ' + (rangeMode === m ? 'var(--wb-vio-600, #7c3aed)' : colors.gray[200]),
                   borderRadius: '10px', cursor: 'pointer',
                 }}
               >
@@ -997,7 +997,7 @@ function GenerateScheduleModal({
                     display: 'flex', alignItems: 'center', gap: '10px',
                     padding: '8px 12px',
                     borderTop: i > 0 ? `1px solid ${colors.gray[100]}` : undefined,
-                    backgroundColor: isWeekend ? '#fafafa' : colors.white,
+                    backgroundColor: isWeekend ? 'var(--wb-g-50, #fafafa)' : colors.white,
                     opacity: row.enabled ? 1 : 0.5,
                   }}
                 >
@@ -1006,7 +1006,7 @@ function GenerateScheduleModal({
                       type="checkbox"
                       checked={row.enabled}
                       onChange={(e) => updateRow(wd.dow, { enabled: e.target.checked })}
-                      style={{ accentColor: '#7c3aed' }}
+                      style={{ accentColor: 'var(--wb-vio-600, #7c3aed)' }}
                     />
                     {wd.label}
                   </label>
@@ -1062,7 +1062,7 @@ function GenerateScheduleModal({
           </div>
         )}
         {success && (
-          <div style={{ marginBottom: '12px', padding: '8px 12px', backgroundColor: colors.success[50], border: '1px solid #bbf7d0', borderRadius: '10px', color: colors.success[800], fontSize: '13px' }}>
+          <div style={{ marginBottom: '12px', padding: '8px 12px', backgroundColor: colors.success[50], border: '1px solid var(--wb-suc-200, #bbf7d0)', borderRadius: '10px', color: colors.success[800], fontSize: '13px' }}>
             {success}
           </div>
         )}
@@ -1086,7 +1086,7 @@ function GenerateScheduleModal({
               style={{
                 display: 'flex', alignItems: 'center', gap: '6px',
                 padding: '8px 20px', fontSize: '13px', fontWeight: 600,
-                color: colors.white, backgroundColor: '#7c3aed',
+                color: colors.textOnAccent, backgroundColor: 'var(--wb-vio-600, #7c3aed)',
                 border: 'none', borderRadius: '12px', cursor: 'pointer',
                 opacity: generateMut.isPending ? 0.5 : 1,
               }}
@@ -1270,7 +1270,7 @@ function ClearScheduleModal({
           </div>
         )}
         {success && (
-          <div style={{ marginBottom: '12px', padding: '8px 12px', backgroundColor: colors.success[50], border: '1px solid #bbf7d0', borderRadius: '10px', color: colors.success[800], fontSize: '13px' }}>
+          <div style={{ marginBottom: '12px', padding: '8px 12px', backgroundColor: colors.success[50], border: '1px solid var(--wb-suc-200, #bbf7d0)', borderRadius: '10px', color: colors.success[800], fontSize: '13px' }}>
             {success}
           </div>
         )}
@@ -1293,7 +1293,7 @@ function ClearScheduleModal({
               style={{
                 display: 'flex', alignItems: 'center', gap: '6px',
                 padding: '8px 20px', fontSize: '13px', fontWeight: 600,
-                color: colors.white, backgroundColor: colors.danger[600],
+                color: colors.textOnAccent, backgroundColor: colors.danger[600],
                 border: 'none', borderRadius: '12px',
                 cursor: !confirmed || affected === 0 ? 'not-allowed' : 'pointer',
                 opacity: !confirmed || !rangeValid || clearMut.isPending || affected === 0 ? 0.5 : 1,
@@ -1490,8 +1490,8 @@ function OrgUnitSchedulePanel({
 
         {/* Info about inheritance */}
         <div style={{
-          padding: '12px', backgroundColor: '#f0f9ff', border: '1px solid #bae6fd',
-          borderRadius: '12px', marginBottom: '20px', fontSize: '12px', color: '#0369a1',
+          padding: '12px', backgroundColor: 'var(--wb-sky-50, #f0f9ff)', border: '1px solid var(--wb-sky-200, #bae6fd)',
+          borderRadius: '12px', marginBottom: '20px', fontSize: '12px', color: 'var(--wb-sky-700, #0369a1)',
         }}>
           💡 Grafik jednostki zostanie automatycznie zastosowany do wszystkich pracowników w tej jednostce.
           Indywidualne wpisy (ręczne) nie zostaną nadpisane.
@@ -1500,7 +1500,7 @@ function OrgUnitSchedulePanel({
 
         {/* Status messages */}
         {isSuccess && (
-          <div style={{ padding: '10px', backgroundColor: colors.success[50], border: '1px solid #86efac', borderRadius: '10px', marginBottom: '16px', fontSize: '13px', color: colors.success[800] }}>
+          <div style={{ padding: '10px', backgroundColor: colors.success[50], border: '1px solid var(--wb-suc-200, #86efac)', borderRadius: '10px', marginBottom: '16px', fontSize: '13px', color: colors.success[800] }}>
             ✓ Grafik zapisany. Wpisy zostaną wygenerowane automatycznie.
           </div>
         )}
@@ -1535,7 +1535,7 @@ function OrgUnitSchedulePanel({
               disabled={isSaving || !orgUnitId || !name.trim()}
               style={{
                 padding: '10px 20px', fontSize: '13px', fontWeight: 600,
-                color: colors.white, backgroundColor: isSaving ? colors.gray[400] : '#7c3aed',
+                color: colors.textOnAccent, backgroundColor: isSaving ? colors.gray[400] : 'var(--wb-vio-600, #7c3aed)',
                 border: 'none', borderRadius: '12px', cursor: isSaving ? 'default' : 'pointer',
               }}
             >

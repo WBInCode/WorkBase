@@ -157,7 +157,7 @@ function LeaveTypeFormModal({ leaveType, isPending, error, onSubmit, onClose }: 
   const [isPaid, setIsPaid] = useState(leaveType?.isPaid ?? true);
   const [requiresApproval, setRequiresApproval] = useState(leaveType?.requiresApproval ?? true);
   const [defaultDays, setDefaultDays] = useState(leaveType?.defaultDaysPerYear?.toString() ?? '');
-  const [color, setColor] = useState(leaveType?.color ?? '#3d6df2');
+  const [color, setColor] = useState(leaveType?.color ?? 'var(--wb-p-500, #3d6df2)');
   const [sortOrder, setSortOrder] = useState(leaveType?.sortOrder?.toString() ?? '0');
   const mobile = useIsMobile();
 
@@ -255,7 +255,7 @@ const iconBtnStyle: React.CSSProperties = {
 const primaryBtnStyle: React.CSSProperties = {
   display: 'inline-flex', alignItems: 'center', gap: '6px',
   padding: '7px 16px', fontSize: '13px', fontWeight: 600,
-  color: colors.white, backgroundColor: '#3d6df2', border: 'none', borderRadius: '999px', cursor: 'pointer', boxShadow: '0 6px 14px -4px rgba(61,109,242,0.45)',
+  color: colors.textOnAccent, backgroundColor: 'var(--wb-p-500, #3d6df2)', border: 'none', borderRadius: '999px', cursor: 'pointer', boxShadow: '0 6px 14px -4px rgba(61,109,242,0.45)',
 };
 const cancelBtnStyle: React.CSSProperties = {
   padding: '7px 16px', fontSize: '13px', fontWeight: 500,
@@ -279,7 +279,7 @@ const modalStyle: React.CSSProperties = {
   backgroundColor: colors.white, borderRadius: '20px', animation: 'wb-modal-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both', padding: '24px', width: '100%', maxWidth: '520px', maxHeight: '90vh', overflow: 'auto',
   boxShadow: '0 24px 64px -12px rgba(20,25,43,0.28), 0 0 0 1px rgba(20,25,43,0.04)',
 };
-const labelStyle: React.CSSProperties = { display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px', fontWeight: 500, color: '#374151' };
+const labelStyle: React.CSSProperties = { display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px', fontWeight: 500, color: 'var(--wb-g-700, #374151)' };
 const inputStyle: React.CSSProperties = {
-  padding: '8px 10px', fontSize: '13px', border: '1px solid #d1d5db', borderRadius: '10px', outline: 'none',
+  padding: '8px 10px', fontSize: '13px', border: '1px solid var(--wb-g-200, #d1d5db)', borderRadius: '10px', outline: 'none',
 };

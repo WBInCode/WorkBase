@@ -291,17 +291,17 @@ export function PayrollPage() {
           </div>
           <div />
           <Stat label="Norma" value={fmtH(totals.normaH)} />
-          <Stat label="Czas pracy" value={fmtH(totals.workedH)} accent="#0f766e" />
+          <Stat label="Czas pracy" value={fmtH(totals.workedH)} accent="var(--wb-tea-700, #0f766e)" />
           <Stat label="Razem brutto" value={fmtPLN(totals.totalPay)} accent={colors.primary[700]} big />
         </div>
       </div>
 
       {isLoading ? (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#9aa3bc', fontSize: 14 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--wb-g-400, #9aa3bc)', fontSize: 14 }}>
           <div className="wb-spinner" /> Ładowanie…
         </div>
       ) : rows.length === 0 ? (
-        <div style={{ color: '#64748b' }}>Brak aktywnych pracowników.</div>
+        <div style={{ color: 'var(--wb-g-500, #64748b)' }}>Brak aktywnych pracowników.</div>
       ) : (
         <div style={{ overflowX: 'auto', border: '1px solid var(--wb-line, #e3e7f1)', borderRadius: 16, backgroundColor: 'var(--wb-panel, #fff)', boxShadow: '0 1px 2px rgba(20,25,43,0.04), 0 10px 30px -12px rgba(20,25,43,0.08)' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
@@ -317,7 +317,7 @@ export function PayrollPage() {
                 <th style={{ ...th, textAlign: 'right' }}>Nieobec. [dni]</th>
                 <th style={{ ...th, textAlign: 'right' }}>Zasadnicze</th>
                 <th style={{ ...th, textAlign: 'right' }}>Za nadgodziny</th>
-                <th style={{ ...th, textAlign: 'right', background: '#e0e7ff' }}>Całkowite</th>
+                <th style={{ ...th, textAlign: 'right', background: 'var(--wb-ind-100, #e0e7ff)' }}>Całkowite</th>
               </tr>
             </thead>
             <tbody>
@@ -328,9 +328,9 @@ export function PayrollPage() {
                     <tr
                       onClick={() => toggle(r.id)}
                       style={{
-                        borderTop: '1px solid #e2e8f0',
+                        borderTop: '1px solid var(--wb-g-200, #e2e8f0)',
                         cursor: 'pointer',
-                        background: isOpen ? '#f8fafc' : 'transparent',
+                        background: isOpen ? 'var(--wb-g-50, #f8fafc)' : 'transparent',
                       }}
                     >
                       <td style={td}>
@@ -338,7 +338,7 @@ export function PayrollPage() {
                       </td>
                       <td style={td}>
                         <div style={{ fontWeight: 600 }}>{r.name}</div>
-                        <div style={{ color: '#64748b', fontSize: 11 }}>{r.email}</div>
+                        <div style={{ color: 'var(--wb-g-500, #64748b)', fontSize: 11 }}>{r.email}</div>
                       </td>
                       <td style={{ ...td, textAlign: 'right' }}>
                         {r.hasRate ? (
@@ -353,7 +353,7 @@ export function PayrollPage() {
                         style={{
                           ...td,
                           textAlign: 'right',
-                          color: r.overtimeH > 0 ? '#ea580c' : '#64748b',
+                          color: r.overtimeH > 0 ? 'var(--wb-org-600, #ea580c)' : 'var(--wb-g-500, #64748b)',
                           fontWeight: r.overtimeH > 0 ? 600 : 400,
                         }}
                       >
@@ -372,7 +372,7 @@ export function PayrollPage() {
                           ...td,
                           textAlign: 'right',
                           fontWeight: 700,
-                          background: '#eef2ff',
+                          background: 'var(--wb-ind-50, #eef2ff)',
                         }}
                       >
                         {r.hasRate ? fmtPLN(r.totalPay) : '—'}
@@ -393,7 +393,7 @@ export function PayrollPage() {
         </div>
       )}
 
-      <p style={{ marginTop: 16, fontSize: 12, color: '#94a3b8' }}>
+      <p style={{ marginTop: 16, fontSize: 12, color: 'var(--wb-g-400, #94a3b8)' }}>
         Norma — z grafiku pracy. Czas pracy — netto z karty czasu (po odjęciu przerw). Nadgodziny — czas pracy ponad normę. Stawkę ustawiasz w karcie pracownika.
       </p>
     </div>
@@ -413,12 +413,12 @@ function DetailGrid({ row, from, to, overtimeMultiplier }: { row: Row; from: Dat
     >
       <DetailCard title="Czas pracy">
         <DetailLine label="Norma (grafik)" value={fmtH(row.normaH)} />
-        <DetailLine label="Czas pracy (netto)" value={fmtH(row.workedH)} accent="#0f766e" />
+        <DetailLine label="Czas pracy (netto)" value={fmtH(row.workedH)} accent="var(--wb-tea-700, #0f766e)" />
         <DetailLine label="Godziny zwykłe" value={fmtH(row.regularH)} />
         <DetailLine
           label="Nadgodziny"
           value={fmtH(row.overtimeH)}
-          accent={row.overtimeH > 0 ? '#ea580c' : undefined}
+          accent={row.overtimeH > 0 ? 'var(--wb-org-600, #ea580c)' : undefined}
         />
         <DetailLine
           label="Bilans"
@@ -472,10 +472,10 @@ function DetailCard({ title, children }: { title: string; children: React.ReactN
           fontSize: 11,
           textTransform: 'uppercase',
           letterSpacing: '0.05em',
-          color: '#475569',
+          color: 'var(--wb-g-600, #475569)',
           marginBottom: 8,
           paddingBottom: 6,
-          borderBottom: '1px solid #f1f5f9',
+          borderBottom: '1px solid var(--wb-g-100, #f1f5f9)',
         }}
       >
         {title}
@@ -498,7 +498,7 @@ function DetailLine({
 }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-      <span style={{ color: '#64748b' }}>{label}</span>
+      <span style={{ color: 'var(--wb-g-500, #64748b)' }}>{label}</span>
       <span
         style={{
           color: accent ?? colors.gray[900],
@@ -525,7 +525,7 @@ function Stat({
 }) {
   return (
     <div style={{ textAlign: 'right' }}>
-      <div style={{ fontSize: 11, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+      <div style={{ fontSize: 11, color: 'var(--wb-g-500, #64748b)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
         {label}
       </div>
       <div
@@ -546,7 +546,7 @@ const th: React.CSSProperties = {
   textAlign: 'left',
   fontSize: 11,
   fontWeight: 700,
-  color: '#475569',
+  color: 'var(--wb-g-600, #475569)',
   textTransform: 'uppercase',
   letterSpacing: '0.04em',
   whiteSpace: 'nowrap',
@@ -562,14 +562,14 @@ const lblStyle: React.CSSProperties = {
   fontSize: 11,
   fontWeight: 600,
   marginBottom: 4,
-  color: '#475569',
+  color: 'var(--wb-g-600, #475569)',
   textTransform: 'uppercase',
   letterSpacing: '0.05em',
 };
 
 const inputStyle: React.CSSProperties = {
   padding: '6px 10px',
-  border: '1px solid #cbd5e1',
+  border: '1px solid var(--wb-g-300, #cbd5e1)',
   borderRadius: 10,
   fontSize: 13,
 };
@@ -623,11 +623,11 @@ function PayrollSettingsButton() {
           gap: 6,
           padding: '8px 14px',
           background: 'var(--wb-panel, #fff)',
-          border: '1px solid #cbd5e1',
+          border: '1px solid var(--wb-g-300, #cbd5e1)',
           borderRadius: 10,
           fontSize: 13,
           fontWeight: 600,
-          color: '#334155',
+          color: 'var(--wb-g-700, #334155)',
           cursor: 'pointer',
         }}
       >
@@ -662,7 +662,7 @@ function PayrollSettingsButton() {
             <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, marginBottom: 4 }}>
               Ustawienia naliczania wynagrodzeń
             </h2>
-            <p style={{ margin: 0, color: '#64748b', fontSize: 12, marginBottom: 18 }}>
+            <p style={{ margin: 0, color: 'var(--wb-g-500, #64748b)', fontSize: 12, marginBottom: 18 }}>
               Mnożniki stosowane do stawki godzinowej pracownika.
             </p>
 
@@ -696,9 +696,9 @@ function PayrollSettingsButton() {
                 style={{
                   marginTop: 12,
                   padding: '8px 12px',
-                  background: '#fef2f2',
-                  color: '#b91c1c',
-                  border: '1px solid #fecaca',
+                  background: 'var(--wb-dan-50, #fef2f2)',
+                  color: 'var(--wb-dan-700, #b91c1c)',
+                  border: '1px solid var(--wb-dan-200, #fecaca)',
                   borderRadius: 10,
                   fontSize: 12,
                 }}
@@ -714,7 +714,7 @@ function PayrollSettingsButton() {
                 style={{
                   padding: '8px 14px',
                   background: 'var(--wb-panel, #fff)',
-                  border: '1px solid #cbd5e1',
+                  border: '1px solid var(--wb-g-300, #cbd5e1)',
                   borderRadius: 10,
                   fontSize: 13,
                   cursor: 'pointer',
@@ -761,7 +761,7 @@ function SettingField({
 }) {
   return (
     <div>
-      <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#334155', marginBottom: 4 }}>
+      <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--wb-g-700, #334155)', marginBottom: 4 }}>
         {label}
       </label>
       <input
@@ -774,13 +774,13 @@ function SettingField({
         style={{
           width: '100%',
           padding: '8px 10px',
-          border: '1px solid #cbd5e1',
+          border: '1px solid var(--wb-g-300, #cbd5e1)',
           borderRadius: 10,
           fontSize: 14,
           boxSizing: 'border-box',
         }}
       />
-      <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>{hint}</div>
+      <div style={{ fontSize: 11, color: 'var(--wb-g-400, #94a3b8)', marginTop: 2 }}>{hint}</div>
     </div>
   );
 }

@@ -198,11 +198,11 @@ export function LeaveRequestForm({
                   alignItems: 'center',
                   gap: '8px',
                   padding: '10px 14px',
-                  backgroundColor: '#f0f9ff',
-                  border: '1px solid #bae6fd',
+                  backgroundColor: 'var(--wb-sky-50, #f0f9ff)',
+                  border: '1px solid var(--wb-sky-200, #bae6fd)',
                   borderRadius: '10px',
                   fontSize: '13px',
-                  color: '#0369a1',
+                  color: 'var(--wb-sky-700, #0369a1)',
                 }}
               >
                 <span style={{ fontWeight: 600 }}>{totalDays}</span>
@@ -226,8 +226,8 @@ export function LeaveRequestForm({
                     style={{
                       marginLeft: 'auto',
                       fontSize: '11px',
-                      backgroundColor: '#d1fae5',
-                      color: '#065f46',
+                      backgroundColor: 'var(--wb-emr-100, #d1fae5)',
+                      color: 'var(--wb-emr-800, #065f46)',
                       padding: '2px 8px',
                       borderRadius: '4px',
                     }}
@@ -284,7 +284,7 @@ export function LeaveRequestForm({
                 padding: '8px 20px',
                 fontSize: '14px',
                 fontWeight: 500,
-                color: colors.white,
+                color: colors.textOnAccent,
                 backgroundColor: !isValid || isSubmitting ? colors.primary[300] : colors.primary[600],
                 border: 'none',
                 borderRadius: '10px',

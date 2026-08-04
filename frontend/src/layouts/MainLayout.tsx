@@ -296,7 +296,7 @@ export function MainLayout({ children }: MainLayoutProps) {
             <div style={{ fontSize: 15.5, fontWeight: 800, color: 'var(--wb-ink)', whiteSpace: 'nowrap', letterSpacing: '-0.02em' }}>
               {appName}
             </div>
-            <div style={{ fontSize: 10, fontWeight: 600, color: '#9aa3bc', letterSpacing: '0.06em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+            <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--wb-g-400, #9aa3bc)', letterSpacing: '0.06em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
               Platforma HR
             </div>
           </div>
@@ -389,7 +389,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                 <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--wb-ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {user.name}
                 </div>
-                <div style={{ fontSize: 11, color: '#9aa3bc', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <div style={{ fontSize: 11, color: 'var(--wb-g-400, #9aa3bc)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {user.email}
                 </div>
               </div>

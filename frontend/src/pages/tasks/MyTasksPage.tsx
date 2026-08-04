@@ -88,7 +88,7 @@ export function MyTasksPage() {
                       style={{
                         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                         padding: '12px 16px', backgroundColor: colors.white, borderRadius: '12px',
-                        border: isOverdue ? '1px solid #fca5a5' : `1px solid ${colors.gray[200]}`,
+                        border: isOverdue ? '1px solid var(--wb-dan-200, #fca5a5)' : `1px solid ${colors.gray[200]}`,
                         cursor: 'pointer', transition: 'box-shadow 0.15s',
                       }}
                       onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)'; }}

@@ -59,6 +59,8 @@ SLADY=(
   "frontend/src/pages/time/TeamAttendancePage.tsx:endMin !== null && endMin <= startMin"
   "frontend/src/pages/tasks/TaskCardPage.tsx:Status zmieniony"
   "frontend/src/theme/workbase.css:.wb-toasts"
+  "frontend/src/theme/workbase.css:--wb-vio-100"
+  "frontend/src/theme/tokens.ts:textOnAccent"
   "src/Modules/TimeTracking/WorkBase.Modules.TimeTracking.Api/Endpoints/ScheduleEndpoints.cs:CanAccessEmployeeAsync"
   "src/Modules/TimeTracking/WorkBase.Modules.TimeTracking.Api/Endpoints/TimeCorrectionEndpoints.cs:CanAccessEmployeeAsync"
   "src/Modules/Organization/WorkBase.Modules.Organization.Application/Commands/Positions/ReapplyPositionPolicyCommand.cs:ReapplyPositionPolicyHandler"

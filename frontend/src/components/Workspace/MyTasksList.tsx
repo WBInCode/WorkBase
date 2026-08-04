@@ -110,7 +110,7 @@ function Header({ count, completedToday }: { count: number; completedToday: numb
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <ListTodo size={18} color="#7c3aed" />
+        <ListTodo size={18} color="var(--wb-vio-600, #7c3aed)" />
         <span style={{ fontSize: '14px', fontWeight: 600, color: colors.gray[700] }}>Moje zadania</span>
         <span style={{ fontSize: '12px', color: colors.gray[400] }}>({count})</span>
       </div>

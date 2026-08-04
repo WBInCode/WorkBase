@@ -185,7 +185,7 @@ export default function TimeInput({ value, onChange, style, disabled }: TimeInpu
                 padding: '6px 12px',
                 fontSize: '13px',
                 cursor: 'pointer',
-                background: slot === value ? '#7c3aed' : 'transparent',
+                background: slot === value ? 'var(--wb-vio-600, #7c3aed)' : 'transparent',
                 color: slot === value ? colors.white : colors.gray[700],
                 fontWeight: slot === value ? 600 : 400,
               }}
@@ -195,7 +195,7 @@ export default function TimeInput({ value, onChange, style, disabled }: TimeInpu
                 }
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = slot === value ? '#7c3aed' : 'transparent';
+                e.currentTarget.style.background = slot === value ? 'var(--wb-vio-600, #7c3aed)' : 'transparent';
               }}
             >
               {slot}

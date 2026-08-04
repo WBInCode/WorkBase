@@ -16,7 +16,7 @@ export function TaskSummaryWidget({ data, isLoading }: Props) {
   return (
     <div style={cardStyle}>
       <div style={headerStyle}>
-        <ListTodo size={18} color="#7c3aed" />
+        <ListTodo size={18} color="var(--wb-vio-600, #7c3aed)" />
         <span style={titleStyle}>Zadania</span>
       </div>
 

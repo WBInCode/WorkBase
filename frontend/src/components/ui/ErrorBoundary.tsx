@@ -58,7 +58,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
           <div style={{ fontSize: '16px', fontWeight: 600, color: colors.danger[800] }}>
             Coś poszło nie tak
           </div>
-          <div style={{ fontSize: '14px', color: '#7f1d1d', maxWidth: '480px' }}>
+          <div style={{ fontSize: '14px', color: 'var(--wb-dan-800, #7f1d1d)', maxWidth: '480px' }}>
             Wystąpił nieoczekiwany błąd podczas wyświetlania tego widoku. Spróbuj odświeżyć stronę.
           </div>
           <button
@@ -70,7 +70,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               padding: '8px 16px',
               fontSize: '14px',
               fontWeight: 500,
-              color: colors.white,
+              color: colors.textOnAccent,
               backgroundColor: colors.danger[600],
               border: 'none',
               borderRadius: '10px',

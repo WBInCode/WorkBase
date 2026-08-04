@@ -10,6 +10,7 @@
     "lint": "eslint .",
     "type-check": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
+    "theme:contrast": "node scripts/kontrast-motywu.mjs",
     "cap:init": "cap init WorkBase pl.workbase.app --web-dir dist",
     "cap:add:android": "cap add android",
     "cap:add:ios": "cap add ios",

@@ -115,8 +115,8 @@ const ANOMALY_COLORS: Record<string, string> = {
   MissingClockOut: colors.danger[600],
   MissingClockIn: colors.danger[600],
   LateArrival: colors.warning[500],
-  DoubleClockIn: '#9333ea',
-  ExcessiveShift: '#ea580c',
+  DoubleClockIn: 'var(--wb-pur-600, #9333ea)',
+  ExcessiveShift: 'var(--wb-org-600, #ea580c)',
 };
 
 /** Stan pracownika „teraz” wynika z ostatniego wpisu dnia — tak samo liczy to GetCurrentStatusHandler. */
@@ -583,7 +583,7 @@ export function TeamAttendancePage() {
             style={{
               display: 'flex', alignItems: 'center', gap: '6px',
               padding: '9px 18px', fontSize: '13px', fontWeight: 700, fontFamily: 'inherit',
-              color: colors.white, backgroundColor: colors.emerald[600],
+              color: colors.textOnAccent, backgroundColor: colors.emerald[600],
               border: 'none', borderRadius: '999px', cursor: 'pointer',
               opacity: (!timesheets || employees.length === 0) ? 0.5 : 1,
               boxShadow: (!timesheets || employees.length === 0) ? 'none' : '0 6px 14px -4px rgba(5,150,105,0.45)',
@@ -715,7 +715,7 @@ export function TeamAttendancePage() {
                         ...thStyle,
                         textAlign: 'center',
                         minWidth: '52px',
-                        backgroundColor: isWeekend ? '#f1f5f9' : colors.gray[50],
+                        backgroundColor: isWeekend ? 'var(--wb-g-100, #f1f5f9)' : colors.gray[50],
                         fontSize: '11px',
                       }}
                     >
@@ -780,7 +780,7 @@ export function TeamAttendancePage() {
                       const isEditing = editState?.employeeId === emp.id && editState?.date === d;
                       const isSaving = savingCell === `${emp.id}:${d}`;
 
-                      let bg = isWeekend ? '#f8fafc' : colors.white;
+                      let bg = isWeekend ? 'var(--wb-g-50, #f8fafc)' : colors.white;
                       if (mins >= 480) bg = colors.success[100];
                       else if (mins > 0) bg = colors.warning[100];
                       else if (!isWeekend && !cell) bg = colors.gray[100];
@@ -957,7 +957,7 @@ export function TeamAttendancePage() {
               disabled={savingCell !== null}
               style={{
                 flex: 1, padding: '7px 0', fontSize: '12px', fontWeight: 700, fontFamily: 'inherit',
-                color: colors.white, backgroundColor: savingCell ? colors.gray[400] : colors.primary[500],
+                color: colors.textOnAccent, backgroundColor: savingCell ? colors.gray[400] : colors.primary[500],
                 border: 'none', borderRadius: '8px', cursor: savingCell ? 'progress' : 'pointer',
               }}
             >

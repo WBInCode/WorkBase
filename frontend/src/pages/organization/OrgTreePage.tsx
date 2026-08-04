@@ -106,7 +106,7 @@ export function OrgTreePage() {
               fontSize: '13px',
               fontWeight: 700,
               fontFamily: 'inherit',
-              color: colors.white,
+              color: colors.textOnAccent,
               backgroundColor: colors.primary[500],
               border: 'none',
               borderRadius: '999px',
@@ -202,7 +202,7 @@ export function OrgTreePage() {
               borderTop: mobile ? `1px solid ${colors.gray[200]}` : 'none',
               overflowY: 'auto',
               padding: mobile ? '16px' : '24px',
-              backgroundColor: '#fafafa',
+              backgroundColor: 'var(--wb-g-50, #fafafa)',
             }}
           >
             <UnitDetailPanel
@@ -257,7 +257,7 @@ function UnitDetailPanel({
             style={{
               display: 'inline-flex', alignItems: 'center', gap: '4px',
               padding: '6px 12px', fontSize: '13px', fontWeight: 500,
-              color: colors.white, backgroundColor: colors.primary[500], border: 'none',
+              color: colors.textOnAccent, backgroundColor: colors.primary[500], border: 'none',
               borderRadius: '4px', cursor: 'pointer',
             }}
           >
@@ -334,7 +334,7 @@ function UnitDetailPanel({
                 key={child.id}
                 style={{
                   padding: '10px 16px',
-                  borderTop: i > 0 ? '1px solid #f3f4f6' : 'none',
+                  borderTop: i > 0 ? '1px solid var(--wb-g-100, #f3f4f6)' : 'none',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
@@ -366,7 +366,7 @@ function DetailRow({
       style={{
         display: 'flex',
         padding: '10px 16px',
-        borderBottom: '1px solid #f3f4f6',
+        borderBottom: '1px solid var(--wb-g-100, #f3f4f6)',
         fontSize: '14px',
       }}
     >
@@ -482,7 +482,7 @@ function OrgUnitFormModal({
               disabled={isPending || !name || !typeId}
               style={{
                 padding: '8px 20px', fontSize: '14px', fontWeight: 500,
-                color: colors.white, backgroundColor: colors.primary[500], border: 'none',
+                color: colors.textOnAccent, backgroundColor: colors.primary[500], border: 'none',
                 borderRadius: '10px', cursor: isPending ? 'not-allowed' : 'pointer',
                 opacity: isPending ? 0.7 : 1,
               }}

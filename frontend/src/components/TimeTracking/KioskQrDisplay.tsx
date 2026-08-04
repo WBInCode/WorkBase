@@ -56,8 +56,8 @@ export function KioskQrDisplay({ locationId, ttlSeconds = 25 }: KioskQrDisplayPr
             padding: '10px 24px',
             borderRadius: '12px',
             border: 'none',
-            backgroundColor: '#3d6df2',
-            color: colors.white,
+            backgroundColor: 'var(--wb-p-500, #3d6df2)',
+            color: colors.textOnAccent,
             fontSize: '14px',
             cursor: 'pointer',
           }}
@@ -101,7 +101,7 @@ export function KioskQrDisplay({ locationId, ttlSeconds = 25 }: KioskQrDisplayPr
           <circle
             cx="20" cy="20" r="16"
             fill="none"
-            stroke={progress > 0.3 ? '#3d6df2' : colors.danger[500]}
+            stroke={progress > 0.3 ? 'var(--wb-p-500, #3d6df2)' : colors.danger[500]}
             strokeWidth="3"
             strokeDasharray={`${progress * 100.5} 100.5`}
             strokeLinecap="round"

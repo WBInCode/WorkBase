@@ -150,7 +150,7 @@ export function TaskCardPage() {
               </span>
             </span>
             {task.additionalAssigneeIds?.map((id) => (
-              <span key={id} style={{ padding: '2px 8px', fontSize: '12px', backgroundColor: '#eef2ff', color: '#4338ca', borderRadius: '999px' }}>
+              <span key={id} style={{ padding: '2px 8px', fontSize: '12px', backgroundColor: 'var(--wb-ind-50, #eef2ff)', color: 'var(--wb-ind-700, #4338ca)', borderRadius: '999px' }}>
                 + {employeeMap.get(id) ?? '—'}
               </span>
             ))}
@@ -321,7 +321,7 @@ export function TaskCardPage() {
             style={{
               display: 'inline-flex', alignItems: 'center', gap: '6px',
               padding: '8px 16px', fontSize: '14px', fontWeight: 500,
-              color: colors.white, backgroundColor: colors.primary[600], border: 'none',
+              color: colors.textOnAccent, backgroundColor: colors.primary[600], border: 'none',
               borderRadius: '999px', cursor: 'pointer', boxShadow: '0 6px 14px -4px rgba(61,109,242,0.45)',
             }}
           >
@@ -373,7 +373,7 @@ const actionCardStyle: React.CSSProperties = {
   borderRadius: '12px', border: `1px solid ${colors.gray[200]}`,
 };
 const actionBtnStyle: React.CSSProperties = {
-  padding: '7px 14px', fontSize: '14px', fontWeight: 500, color: colors.white,
+  padding: '7px 14px', fontSize: '14px', fontWeight: 500, color: colors.textOnAccent,
   backgroundColor: colors.primary[600], border: 'none', borderRadius: '10px', cursor: 'pointer',
 };
 

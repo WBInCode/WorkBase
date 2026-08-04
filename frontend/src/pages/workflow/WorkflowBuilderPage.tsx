@@ -16,11 +16,11 @@ const NODE_WIDTH = 180;
 const NODE_HEIGHT = 70;
 
 const STEP_COLORS: Record<string, string> = {
-  action: '#4a90d9',
-  approval: '#e6a817',
-  end: '#d94a4a',
-  parallel_gateway: '#7b4ad9',
-  condition_gateway: '#4ad98a',
+  action: 'var(--wb-sky-700, #4a90d9)',
+  approval: 'var(--wb-yel-800, #e6a817)',
+  end: 'var(--wb-dan-500, #d94a4a)',
+  parallel_gateway: 'var(--wb-vio-600, #7b4ad9)',
+  condition_gateway: 'var(--wb-emr-500, #4ad98a)',
 };
 
 function emptyDefinition(): WorkflowDefinitionModel {
@@ -233,7 +233,7 @@ export function WorkflowBuilderPage() {
       <div
         style={{
           padding: 12,
-          borderBottom: '1px solid #ddd',
+          borderBottom: '1px solid var(--wb-g-200, #ddd)',
           display: 'flex',
           gap: 8,
           alignItems: 'center',
@@ -243,7 +243,7 @@ export function WorkflowBuilderPage() {
         <select
           value={selectedDefId ?? ''}
           onChange={(e) => setSelectedDefId(e.target.value || null)}
-          style={{ padding: '6px 10px', borderRadius: 4, border: '1px solid #ccc' }}
+          style={{ padding: '6px 10px', borderRadius: 4, border: '1px solid var(--wb-g-300, #ccc)' }}
         >
           <option value="">-- Wybierz definicję --</option>
           {definitions?.map((d) => (
@@ -255,7 +255,7 @@ export function WorkflowBuilderPage() {
         <button onClick={handleNew} style={btnStyle}>
           Nowy
         </button>
-        <span style={{ borderLeft: '1px solid #ccc', height: 24 }} />
+        <span style={{ borderLeft: '1px solid var(--wb-g-300, #ccc)', height: 24 }} />
         <span style={{ fontWeight: 600, fontSize: 13 }}>Dodaj krok:</span>
         {(['action', 'approval', 'end', 'parallel_gateway', 'condition_gateway'] as const).map((t) => (
           <button
@@ -266,14 +266,14 @@ export function WorkflowBuilderPage() {
             {t.replace('_', ' ')}
           </button>
         ))}
-        <span style={{ borderLeft: '1px solid #ccc', height: 24 }} />
+        <span style={{ borderLeft: '1px solid var(--wb-g-300, #ccc)', height: 24 }} />
         <input
           placeholder="Nazwa"
           value={defName}
           onChange={(e) => setDefName(e.target.value)}
-          style={{ padding: '6px 10px', borderRadius: 4, border: '1px solid #ccc', width: 160 }}
+          style={{ padding: '6px 10px', borderRadius: 4, border: '1px solid var(--wb-g-300, #ccc)', width: 160 }}
         />
-        <button onClick={handleSave} style={{ ...btnStyle, background: '#28a745', color: '#fff' }}>
+        <button onClick={handleSave} style={{ ...btnStyle, background: 'var(--wb-suc-600, #28a745)', color: '#fff' }}>
           Zapisz
         </button>
       </div>
@@ -287,7 +287,7 @@ export function WorkflowBuilderPage() {
           style={{
             flex: 1,
             position: 'relative',
-            background: '#f8f9fa',
+            background: 'var(--wb-g-50, #f8f9fa)',
             overflow: 'auto',
             cursor: connecting ? 'crosshair' : dragging ? 'grabbing' : 'default',
           }}
@@ -309,7 +309,7 @@ export function WorkflowBuilderPage() {
                   <g key={`${step.name}-${idx}`}>
                     <line
                       x1={x1} y1={y1} x2={x2} y2={y2}
-                      stroke="#666" strokeWidth={2}
+                      stroke="var(--wb-g-600, #666)" strokeWidth={2}
                       markerEnd="url(#arrowhead)"
                     />
                     {t.condition && (
@@ -317,7 +317,7 @@ export function WorkflowBuilderPage() {
                         x={(x1 + x2) / 2}
                         y={(y1 + y2) / 2 - 6}
                         fontSize={10}
-                        fill="#888"
+                        fill="var(--wb-g-400, #888)"
                         textAnchor="middle"
                       >
                         {t.condition}
@@ -327,7 +327,7 @@ export function WorkflowBuilderPage() {
                       x={(x1 + x2) / 2}
                       y={(y1 + y2) / 2 + 8}
                       fontSize={11}
-                      fill="#333"
+                      fill="var(--wb-g-700, #333)"
                       textAnchor="middle"
                     >
                       {t.outcome}
@@ -338,7 +338,7 @@ export function WorkflowBuilderPage() {
             )}
             <defs>
               <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
-                <polygon points="0 0, 10 3.5, 0 7" fill="#666" />
+                <polygon points="0 0, 10 3.5, 0 7" fill="var(--wb-g-600, #666)" />
               </marker>
             </defs>
           </svg>
@@ -359,7 +359,7 @@ export function WorkflowBuilderPage() {
                   width: NODE_WIDTH,
                   minHeight: NODE_HEIGHT,
                   background: 'var(--wb-panel, #fff)',
-                  border: `2px solid ${isSelected ? '#007bff' : STEP_COLORS[step.type] ?? '#999'}`,
+                  border: `2px solid ${isSelected ? 'var(--wb-inf-600, #007bff)' : STEP_COLORS[step.type] ?? 'var(--wb-g-400, #999)'}`,
                   borderRadius: 12,
                   cursor: connecting ? 'crosshair' : 'grab',
                   boxShadow: isSelected ? '0 0 0 3px rgba(0,123,255,0.3)' : '0 1px 4px rgba(0,0,0,0.12)',
@@ -369,7 +369,7 @@ export function WorkflowBuilderPage() {
               >
                 <div
                   style={{
-                    background: STEP_COLORS[step.type] ?? '#999',
+                    background: STEP_COLORS[step.type] ?? 'var(--wb-g-400, #999)',
                     color: '#fff',
                     padding: '4px 8px',
                     borderRadius: '6px 6px 0 0',
@@ -390,7 +390,7 @@ export function WorkflowBuilderPage() {
                       e.stopPropagation();
                       setConnecting(step.name);
                     }}
-                    style={{ ...tinyBtnStyle, background: '#17a2b8', color: '#fff' }}
+                    style={{ ...tinyBtnStyle, background: 'var(--wb-tea-700, #17a2b8)', color: '#fff' }}
                     title="Połącz z innym krokiem"
                   >
                     →
@@ -400,7 +400,7 @@ export function WorkflowBuilderPage() {
                       e.stopPropagation();
                       removeStep(step.name);
                     }}
-                    style={{ ...tinyBtnStyle, background: '#dc3545', color: '#fff' }}
+                    style={{ ...tinyBtnStyle, background: 'var(--wb-dan-600, #dc3545)', color: '#fff' }}
                     title="Usuń krok"
                   >
                     ✕
@@ -416,7 +416,7 @@ export function WorkflowBuilderPage() {
           <div
             style={{
               width: 300,
-              borderLeft: '1px solid #ddd',
+              borderLeft: '1px solid var(--wb-g-200, #ddd)',
               padding: 16,
               overflowY: 'auto',
               background: 'var(--wb-panel, #fff)',
@@ -553,7 +553,7 @@ export function WorkflowBuilderPage() {
 
             <h4 style={{ margin: '12px 0 8px' }}>Przejścia</h4>
             {selectedStep.transitions.map((t, idx) => (
-              <div key={idx} style={{ marginBottom: 8, padding: 8, background: '#f4f4f4', borderRadius: 4 }}>
+              <div key={idx} style={{ marginBottom: 8, padding: 8, background: 'var(--wb-g-50, #f4f4f4)', borderRadius: 4 }}>
                 <div style={{ display: 'flex', gap: 4, marginBottom: 4 }}>
                   <input
                     value={t.outcome}
@@ -594,7 +594,7 @@ export function WorkflowBuilderPage() {
 const btnStyle: React.CSSProperties = {
   padding: '6px 12px',
   borderRadius: 4,
-  border: '1px solid #ccc',
+  border: '1px solid var(--wb-g-300, #ccc)',
   background: 'var(--wb-panel, #fff)',
   cursor: 'pointer',
   fontSize: 12,
@@ -622,7 +622,7 @@ const inputStyle: React.CSSProperties = {
   width: '100%',
   padding: '6px 8px',
   borderRadius: 4,
-  border: '1px solid #ccc',
+  border: '1px solid var(--wb-g-300, #ccc)',
   marginBottom: 8,
   fontSize: 13,
   boxSizing: 'border-box',

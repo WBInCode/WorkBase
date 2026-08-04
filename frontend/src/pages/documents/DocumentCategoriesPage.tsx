@@ -84,7 +84,7 @@ export function DocumentCategoriesPage() {
             gap: 8,
             padding: '9px 18px',
             background: colors.primary[600],
-            color: colors.white,
+            color: colors.textOnAccent,
             border: 'none',
             borderRadius: 999,
             cursor: 'pointer',
@@ -150,7 +150,7 @@ export function DocumentCategoriesPage() {
               style={{
                 padding: '8px 20px',
                 background: colors.primary[600],
-                color: colors.white,
+                color: colors.textOnAccent,
                 border: 'none',
                 borderRadius: 12,
                 cursor: 'pointer',
@@ -184,7 +184,7 @@ export function DocumentCategoriesPage() {
 
       {/* Categories list */}
       {isLoading ? (
-        <p style={{ color: '#64748b' }}>Ładowanie...</p>
+        <p style={{ color: 'var(--wb-g-500, #64748b)' }}>Ładowanie...</p>
       ) : categories.length === 0 ? (
         <div style={{ textAlign: 'center', padding: 48, color: colors.slate[400] }}>
           <FolderOpen size={48} style={{ marginBottom: 12, opacity: 0.5 }} />
@@ -213,7 +213,7 @@ export function DocumentCategoriesPage() {
                     style={{
                       flex: 1,
                       padding: '6px 10px',
-                      border: '1px solid #cbd5e1',
+                      border: '1px solid var(--wb-g-300, #cbd5e1)',
                       borderRadius: 10,
                       fontSize: 14,
                       outline: 'none',
@@ -226,7 +226,7 @@ export function DocumentCategoriesPage() {
                     style={{
                       flex: 1,
                       padding: '6px 10px',
-                      border: '1px solid #cbd5e1',
+                      border: '1px solid var(--wb-g-300, #cbd5e1)',
                       borderRadius: 10,
                       fontSize: 14,
                       outline: 'none',
@@ -243,7 +243,7 @@ export function DocumentCategoriesPage() {
                       borderRadius: 10,
                       cursor: 'pointer',
                       display: 'flex',
-                      color: colors.white,
+                      color: colors.textOnAccent,
                     }}
                   >
                     <Check size={14} />
@@ -269,7 +269,7 @@ export function DocumentCategoriesPage() {
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 600, fontSize: 15 }}>{cat.name}</div>
                     {cat.description && (
-                      <div style={{ color: '#64748b', fontSize: 13, marginTop: 2 }}>
+                      <div style={{ color: 'var(--wb-g-500, #64748b)', fontSize: 13, marginTop: 2 }}>
                         {cat.description}
                       </div>
                     )}
@@ -286,7 +286,7 @@ export function DocumentCategoriesPage() {
                       display: 'flex',
                     }}
                   >
-                    <Pencil size={14} style={{ color: '#64748b' }} />
+                    <Pencil size={14} style={{ color: 'var(--wb-g-500, #64748b)' }} />
                   </button>
                   <button
                     onClick={() => handleDelete(cat.id, cat.name)}

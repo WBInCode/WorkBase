@@ -152,7 +152,7 @@ function StatusFormModal({ status, isPending, error, onSubmit, onClose }: {
 }) {
   const [code, setCode] = useState(status?.code ?? '');
   const [name, setName] = useState(status?.name ?? '');
-  const [color, setColor] = useState(status?.color ?? '#3d6df2');
+  const [color, setColor] = useState(status?.color ?? 'var(--wb-p-500, #3d6df2)');
   const [isFinal, setIsFinal] = useState(status?.isFinal ?? false);
   const [isDefault, setIsDefault] = useState(status?.isDefault ?? false);
   const [sortOrder, setSortOrder] = useState(status?.sortOrder?.toString() ?? '0');
@@ -242,7 +242,7 @@ const iconBtnStyle: React.CSSProperties = {
 const primaryBtnStyle: React.CSSProperties = {
   display: 'inline-flex', alignItems: 'center', gap: '6px',
   padding: '7px 16px', fontSize: '13px', fontWeight: 600,
-  color: colors.white, backgroundColor: '#3d6df2', border: 'none', borderRadius: '999px', cursor: 'pointer', boxShadow: '0 6px 14px -4px rgba(61,109,242,0.45)',
+  color: colors.textOnAccent, backgroundColor: 'var(--wb-p-500, #3d6df2)', border: 'none', borderRadius: '999px', cursor: 'pointer', boxShadow: '0 6px 14px -4px rgba(61,109,242,0.45)',
 };
 const cancelBtnStyle: React.CSSProperties = {
   padding: '7px 16px', fontSize: '13px', fontWeight: 500,

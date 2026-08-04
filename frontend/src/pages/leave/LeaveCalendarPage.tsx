@@ -36,7 +36,7 @@ const DEFAULT_COLORS: Record<string, string> = {
   ANNUAL: colors.primary[500],
   ON_DEMAND: colors.warning[500],
   SICK: colors.danger[500],
-  CHILDCARE: '#2b55d4',
+  CHILDCARE: 'var(--wb-p-600, #2b55d4)',
 };
 
 export function LeaveCalendarPage() {
@@ -258,7 +258,7 @@ export function LeaveCalendarPage() {
                         fontSize: '10px',
                         fontWeight: 500,
                         color: we ? colors.gray[300] : isToday ? colors.primary[600] : colors.gray[400],
-                        backgroundColor: isToday ? colors.primary[50] : we ? '#fafafa' : colors.gray[50],
+                        backgroundColor: isToday ? colors.primary[50] : we ? 'var(--wb-g-50, #fafafa)' : colors.gray[50],
                         minWidth: '32px',
                         borderBottom: `1px solid ${colors.gray[200]}`,
                       }}
@@ -281,7 +281,7 @@ export function LeaveCalendarPage() {
                     key={emp.id}
                     style={{
                       borderBottom: `1px solid ${colors.gray[100]}`,
-                      backgroundColor: isCurrentUser ? '#fefce8' : undefined,
+                      backgroundColor: isCurrentUser ? 'var(--wb-yel-50, #fefce8)' : undefined,
                     }}
                   >
                     <td
@@ -289,7 +289,7 @@ export function LeaveCalendarPage() {
                         position: 'sticky',
                         left: 0,
                         zIndex: 1,
-                        backgroundColor: isCurrentUser ? '#fefce8' : colors.white,
+                        backgroundColor: isCurrentUser ? 'var(--wb-yel-50, #fefce8)' : colors.white,
                         padding: '6px 14px',
                         fontSize: '13px',
                         fontWeight: isCurrentUser ? 600 : 400,
@@ -306,7 +306,7 @@ export function LeaveCalendarPage() {
                       const entries = empDayMap?.get(dateKey);
                       const isToday = dateKey === formatDateKey(now);
 
-                      let cellBg = we ? '#fafafa' : isToday ? colors.primary[50] : 'transparent';
+                      let cellBg = we ? 'var(--wb-g-50, #fafafa)' : isToday ? colors.primary[50] : 'transparent';
                       let cellColor: string | undefined;
                       let title = '';
 

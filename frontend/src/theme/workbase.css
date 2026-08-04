@@ -27,6 +27,45 @@
   --wb-mono: 'Spline Sans Mono', ui-monospace, 'Cascadia Code', Consolas, monospace;
   --wb-bg-grad-1: rgba(61, 109, 242, 0.07);
   --wb-bg-grad-2: rgba(139, 92, 246, 0.05);
+
+  /* Odcienie akcentowe spoza palety tokenów — używane w plakietkach i legendach.
+     Nazwy skrócone: vio=fiolet, ind=indygo, org=pomarańcz, emr=szmaragd,
+     sky=błękit, pur=purpura, yel=żółty, pnk=róż, tea=morski. */
+  --wb-vio-50: #f5f3ff;
+  --wb-vio-100: #ede9fe;
+  --wb-vio-200: #ddd6fe;
+  --wb-vio-300: #c4b5fd;
+  --wb-vio-600: #7c3aed;
+  --wb-vio-800: #5b21b6;
+  --wb-ind-50: #eef2ff;
+  --wb-ind-100: #e0e7ff;
+  --wb-ind-700: #4338ca;
+  --wb-ind-800: #1e40af;
+  --wb-org-50: #fff7ed;
+  --wb-org-100: #ffedd5;
+  --wb-org-300: #fdba74;
+  --wb-org-600: #ea580c;
+  --wb-org-700: #c2410c;
+  --wb-org-800: #9a3412;
+  --wb-emr-50: #ecfdf5;
+  --wb-emr-100: #d1fae5;
+  --wb-emr-200: #a7f3d0;
+  --wb-emr-300: #6ee7b7;
+  --wb-emr-500: #10b981;
+  --wb-emr-700: #047857;
+  --wb-emr-800: #065f46;
+  --wb-sky-50: #f0f9ff;
+  --wb-sky-200: #bae6fd;
+  --wb-sky-700: #0369a1;
+  --wb-pur-50: #f3e8ff;
+  --wb-pur-600: #9333ea;
+  --wb-pur-800: #6b21a8;
+  --wb-yel-50: #fefce8;
+  --wb-yel-100: #fef9c3;
+  --wb-yel-800: #854d0e;
+  --wb-pnk-50: #fce7f3;
+  --wb-pnk-600: #db2777;
+  --wb-tea-700: #0f766e;
   color-scheme: light;
 }
 
@@ -117,6 +156,43 @@ html[data-theme='dark'] {
   --wb-inf-600: #79b0f9;
 
   --wb-eme-600: #2dd4a0;
+
+  /* Odcienie akcentowe — tła przygaszone, teksty rozjaśnione. */
+  --wb-vio-50: #1f1b38;
+  --wb-vio-100: #262046;
+  --wb-vio-200: #322a5c;
+  --wb-vio-300: #4a3d85;
+  --wb-vio-600: #a78bfa;
+  --wb-vio-800: #ddd6fe;
+  --wb-ind-50: #1c2247;
+  --wb-ind-100: #232a58;
+  --wb-ind-700: #a5b4fc;
+  --wb-ind-800: #c7d2fe;
+  --wb-org-50: #2a1c10;
+  --wb-org-100: #362314;
+  --wb-org-300: #6d431c;
+  --wb-org-600: #fb923c;
+  --wb-org-700: #fdba74;
+  --wb-org-800: #fed7aa;
+  --wb-emr-50: #0f2a22;
+  --wb-emr-100: #14352b;
+  --wb-emr-200: #1b4739;
+  --wb-emr-300: #2a6b55;
+  --wb-emr-500: #34d399;
+  --wb-emr-700: #6ee7b7;
+  --wb-emr-800: #a7f3d0;
+  --wb-sky-50: #10243a;
+  --wb-sky-200: #1d3b5c;
+  --wb-sky-700: #7dd3fc;
+  --wb-pur-50: #2a1a3d;
+  --wb-pur-600: #c084fc;
+  --wb-pur-800: #e9d5ff;
+  --wb-yel-50: #2a2612;
+  --wb-yel-100: #383115;
+  --wb-yel-800: #fde047;
+  --wb-pnk-50: #3a1a2c;
+  --wb-pnk-600: #f472b6;
+  --wb-tea-700: #5eead4;
 }
 
 /* ── Fundament ─────────────────────────────────────────── */

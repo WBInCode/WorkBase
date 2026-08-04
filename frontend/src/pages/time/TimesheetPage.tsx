@@ -221,7 +221,7 @@ export function TimesheetPage() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '12px', marginBottom: '18px' }}>
           <SummaryCard icon={<Briefcase size={17} />} label="Czas pracy" value={formatDuration(data.totalWorked)} fg={colors.primary[600]} bg={colors.primary[100]} />
           <SummaryCard icon={<Coffee size={17} />} label="Przerwy" value={formatDuration(data.totalBreaks)} fg={colors.warning[700]} bg={colors.warning[100]} />
-          <SummaryCard icon={<Clock size={17} />} label="Netto" value={formatDuration(data.netWorked)} fg="#047857" bg="#d1fae5" />
+          <SummaryCard icon={<Clock size={17} />} label="Netto" value={formatDuration(data.netWorked)} fg="var(--wb-emr-700, #047857)" bg="var(--wb-emr-100, #d1fae5)" />
           <SummaryCard icon={<AlertCircle size={17} />} label="Dni przepracowane" value={`${data.daysWorked} / ${data.daysWorked + data.daysIncomplete}`} fg={colors.primary[600]} bg={colors.primary[100]} />
         </div>
       )}
@@ -467,7 +467,7 @@ function MonthView({ days }: { days: TimeSheetDayDto[] }) {
                 key={day.date}
                 style={{
                   borderTop: `1px solid ${colors.gray[100]}`,
-                  backgroundColor: isEmpty ? '#fafafa' : undefined,
+                  backgroundColor: isEmpty ? 'var(--wb-g-50, #fafafa)' : undefined,
                 }}
               >
                 <td style={{ ...tdStyle, padding: '6px 16px' }}>

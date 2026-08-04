@@ -45,7 +45,7 @@ export function SsoBridgePage() {
       }}
     >
       <div className="wb-spinner" />
-      <div style={{ fontSize: 13, fontWeight: 600, color: '#9aa3bc' }}>Łączenie z platformą WB…</div>
+      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--wb-g-400, #9aa3bc)' }}>Łączenie z platformą WB…</div>
     </div>
   );
 }

@@ -118,7 +118,7 @@ export function DocumentListPage() {
               gap: 8,
               padding: '9px 18px',
               background: colors.primary[600],
-              color: colors.white,
+              color: colors.textOnAccent,
               borderRadius: 999,
               cursor: 'pointer',
               fontWeight: 700,
@@ -160,7 +160,7 @@ export function DocumentListPage() {
             />
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Filter size={15} style={{ color: '#6b7490' }} />
+            <Filter size={15} style={{ color: 'var(--wb-g-500, #6b7490)' }} />
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
@@ -241,7 +241,7 @@ export function DocumentListPage() {
               style={{
                 padding: '8px 20px',
                 background: colors.primary[600],
-                color: colors.white,
+                color: colors.textOnAccent,
                 border: 'none',
                 borderRadius: 12,
                 cursor: 'pointer',
@@ -275,7 +275,7 @@ export function DocumentListPage() {
 
       {/* Document table */}
       {isLoading ? (
-        <p style={{ color: '#64748b' }}>Ładowanie...</p>
+        <p style={{ color: 'var(--wb-g-500, #64748b)' }}>Ładowanie...</p>
       ) : filtered.length === 0 ? (
         <div
           style={{
@@ -297,13 +297,13 @@ export function DocumentListPage() {
             }}
           >
             <thead>
-              <tr style={{ borderBottom: '2px solid #e2e8f0', textAlign: 'left' }}>
-                <th style={{ padding: '10px 12px', fontWeight: 600, color: '#475569' }}>Nazwa pliku</th>
-                <th style={{ padding: '10px 12px', fontWeight: 600, color: '#475569' }}>Kategoria</th>
-                <th style={{ padding: '10px 12px', fontWeight: 600, color: '#475569' }}>Opis</th>
-                <th style={{ padding: '10px 12px', fontWeight: 600, color: '#475569' }}>Rozmiar</th>
-                <th style={{ padding: '10px 12px', fontWeight: 600, color: '#475569' }}>Data</th>
-                <th style={{ padding: '10px 12px', fontWeight: 600, color: '#475569', width: 100 }}>Akcje</th>
+              <tr style={{ borderBottom: '2px solid var(--wb-g-200, #e2e8f0)', textAlign: 'left' }}>
+                <th style={{ padding: '10px 12px', fontWeight: 600, color: 'var(--wb-g-600, #475569)' }}>Nazwa pliku</th>
+                <th style={{ padding: '10px 12px', fontWeight: 600, color: 'var(--wb-g-600, #475569)' }}>Kategoria</th>
+                <th style={{ padding: '10px 12px', fontWeight: 600, color: 'var(--wb-g-600, #475569)' }}>Opis</th>
+                <th style={{ padding: '10px 12px', fontWeight: 600, color: 'var(--wb-g-600, #475569)' }}>Rozmiar</th>
+                <th style={{ padding: '10px 12px', fontWeight: 600, color: 'var(--wb-g-600, #475569)' }}>Data</th>
+                <th style={{ padding: '10px 12px', fontWeight: 600, color: 'var(--wb-g-600, #475569)', width: 100 }}>Akcje</th>
               </tr>
             </thead>
             <tbody>
@@ -312,24 +312,24 @@ export function DocumentListPage() {
                 return (
                   <tr
                     key={doc.id}
-                    style={{ borderBottom: '1px solid #f1f5f9' }}
+                    style={{ borderBottom: '1px solid var(--wb-g-100, #f1f5f9)' }}
                   >
                     <td style={{ padding: '10px 12px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <FileText size={16} style={{ color: '#64748b', flexShrink: 0 }} />
+                        <FileText size={16} style={{ color: 'var(--wb-g-500, #64748b)', flexShrink: 0 }} />
                         <span style={{ fontWeight: 500 }}>{doc.fileName}</span>
                       </div>
                     </td>
-                    <td style={{ padding: '10px 12px', color: '#64748b' }}>
+                    <td style={{ padding: '10px 12px', color: 'var(--wb-g-500, #64748b)' }}>
                       {cat?.name ?? '—'}
                     </td>
-                    <td style={{ padding: '10px 12px', color: '#64748b', maxWidth: 250, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <td style={{ padding: '10px 12px', color: 'var(--wb-g-500, #64748b)', maxWidth: 250, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {doc.description ?? '—'}
                     </td>
-                    <td style={{ padding: '10px 12px', color: '#64748b', whiteSpace: 'nowrap' }}>
+                    <td style={{ padding: '10px 12px', color: 'var(--wb-g-500, #64748b)', whiteSpace: 'nowrap' }}>
                       {formatFileSize(doc.fileSizeBytes)}
                     </td>
-                    <td style={{ padding: '10px 12px', color: '#64748b', whiteSpace: 'nowrap' }}>
+                    <td style={{ padding: '10px 12px', color: 'var(--wb-g-500, #64748b)', whiteSpace: 'nowrap' }}>
                       {formatDate(doc.createdAt)}
                     </td>
                     <td style={{ padding: '10px 12px' }}>

@@ -15,8 +15,8 @@ export function BrandingConfigPage() {
   const [appName, setAppName] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
   const [faviconUrl, setFaviconUrl] = useState('');
-  const [primaryColor, setPrimaryColor] = useState('#3b82f6');
-  const [secondaryColor, setSecondaryColor] = useState('#1e40af');
+  const [primaryColor, setPrimaryColor] = useState('var(--wb-inf-500, #3b82f6)');
+  const [secondaryColor, setSecondaryColor] = useState('var(--wb-ind-800, #1e40af)');
   const [accentColor, setAccentColor] = useState('');
   const [fontFamily, setFontFamily] = useState('');
   const [loginBackgroundUrl, setLoginBackgroundUrl] = useState('');
@@ -26,8 +26,8 @@ export function BrandingConfigPage() {
     setAppName(branding.appName ?? '');
     setLogoUrl(branding.logoUrl ?? '');
     setFaviconUrl(branding.faviconUrl ?? '');
-    setPrimaryColor(branding.primaryColor ?? '#3b82f6');
-    setSecondaryColor(branding.secondaryColor ?? '#1e40af');
+    setPrimaryColor(branding.primaryColor ?? 'var(--wb-inf-500, #3b82f6)');
+    setSecondaryColor(branding.secondaryColor ?? 'var(--wb-ind-800, #1e40af)');
     setAccentColor(branding.accentColor ?? '');
     setFontFamily(branding.fontFamily ?? '');
     setLoginBackgroundUrl(branding.loginBackgroundUrl ?? '');
@@ -128,11 +128,11 @@ export function BrandingConfigPage() {
           <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr 1fr', gap: '12px' }}>
             <label style={labelStyle}>
               Kolor główny
-              <input type="color" value={primaryValid ? primaryColor : '#3b82f6'} onChange={(e) => setPrimaryColor(e.target.value)} style={{ ...inputStyle, height: '36px', padding: '2px' }} />
+              <input type="color" value={primaryValid ? primaryColor : 'var(--wb-inf-500, #3b82f6)'} onChange={(e) => setPrimaryColor(e.target.value)} style={{ ...inputStyle, height: '36px', padding: '2px' }} />
             </label>
             <label style={labelStyle}>
               Kolor drugorzędny
-              <input type="color" value={secondaryValid ? secondaryColor : '#1e40af'} onChange={(e) => setSecondaryColor(e.target.value)} style={{ ...inputStyle, height: '36px', padding: '2px' }} />
+              <input type="color" value={secondaryValid ? secondaryColor : 'var(--wb-ind-800, #1e40af)'} onChange={(e) => setSecondaryColor(e.target.value)} style={{ ...inputStyle, height: '36px', padding: '2px' }} />
             </label>
             <label style={labelStyle}>
               Kolor akcentu (opcjonalnie)
@@ -177,7 +177,7 @@ export function BrandingConfigPage() {
               disabled={!canSave || updateMutation.isPending}
               style={{
                 padding: '9px 22px', fontSize: '14px', fontWeight: 500,
-                color: colors.white, backgroundColor: colors.primary[600], border: 'none',
+                color: colors.textOnAccent, backgroundColor: colors.primary[600], border: 'none',
                 borderRadius: '999px', cursor: canSave && !updateMutation.isPending ? 'pointer' : 'not-allowed',
                 opacity: !canSave || updateMutation.isPending ? 0.6 : 1,
               }}

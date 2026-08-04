@@ -56,7 +56,7 @@ export function OrgTreeNode({ node, level, onSelect, selectedId }: OrgTreeNodePr
           paddingLeft: `${Math.min(level * 24, 120) + 8}px`,
           cursor: 'pointer',
           borderRadius: '10px',
-          backgroundColor: isSelected ? '#e0edff' : 'transparent',
+          backgroundColor: isSelected ? 'var(--wb-p-100, #e0edff)' : 'transparent',
           transition: 'background-color 0.15s',
           userSelect: 'none',
           opacity: node.isActive ? 1 : 0.5,

@@ -12,7 +12,7 @@ type TimeStatus = 'not-started' | 'working' | 'on-break' | 'ended';
 
 const STATUS_CONFIG: Record<TimeStatus, { label: string; color: string; bg: string; dot: string }> = {
   'not-started': { label: 'Nierozpoczęty', color: colors.gray[500], bg: colors.gray[100], dot: colors.gray[400] },
-  'working': { label: 'W pracy', color: colors.emerald[600], bg: '#ecfdf5', dot: '#10b981' },
+  'working': { label: 'W pracy', color: colors.emerald[600], bg: 'var(--wb-emr-50, #ecfdf5)', dot: 'var(--wb-emr-500, #10b981)' },
   'on-break': { label: 'Przerwa', color: colors.warning[600], bg: colors.warning[50], dot: colors.warning[500] },
   'ended': { label: 'Zakończony', color: colors.gray[500], bg: colors.gray[100], dot: colors.gray[400] },
 };
@@ -212,8 +212,8 @@ export function ClockButton({ employeeId }: ClockButtonProps) {
             icon={<Play size={14} />}
             label="Rozpocznij"
             color={colors.emerald[600]}
-            bg="#d1fae5"
-            hoverBg="#a7f3d0"
+            bg="var(--wb-emr-100, #d1fae5)"
+            hoverBg="var(--wb-emr-200, #a7f3d0)"
           />
         )}
 
@@ -250,8 +250,8 @@ export function ClockButton({ employeeId }: ClockButtonProps) {
             icon={<CoffeeIcon size={14} />}
             label="Wróć"
             color={colors.emerald[600]}
-            bg="#d1fae5"
-            hoverBg="#a7f3d0"
+            bg="var(--wb-emr-100, #d1fae5)"
+            hoverBg="var(--wb-emr-200, #a7f3d0)"
           />
         )}
 
@@ -263,8 +263,8 @@ export function ClockButton({ employeeId }: ClockButtonProps) {
             icon={<RotateCcw size={14} />}
             label="Wznów"
             color={colors.emerald[600]}
-            bg="#d1fae5"
-            hoverBg="#a7f3d0"
+            bg="var(--wb-emr-100, #d1fae5)"
+            hoverBg="var(--wb-emr-200, #a7f3d0)"
           />
         )}
       </div>
@@ -314,7 +314,7 @@ export function ClockButton({ employeeId }: ClockButtonProps) {
                 className="wb-action-btn"
                 onClick={confirmAction.onConfirm}
                 style={{
-                  color: colors.white,
+                  color: colors.textOnAccent,
                   backgroundColor: colors.danger[600],
                   border: `1px solid ${colors.danger[600]}`,
                 }}
@@ -360,7 +360,7 @@ export function ClockButton({ employeeId }: ClockButtonProps) {
               {breakAvail?.options.map((opt) => {
                 const isPaid = opt.breakType === 'Paid';
                 const color = isPaid ? colors.emerald[600] : colors.warning[600];
-                const bg = isPaid ? '#d1fae5' : colors.warning[100];
+                const bg = isPaid ? 'var(--wb-emr-100, #d1fae5)' : colors.warning[100];
                 const disabledBg = colors.gray[100];
                 return (
                   <button
@@ -437,9 +437,9 @@ export function ClockButton({ employeeId }: ClockButtonProps) {
             whiteSpace: 'nowrap',
             zIndex: 50,
             boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-            color: flash.type === 'ok' ? '#065f46' : colors.danger[800],
-            backgroundColor: flash.type === 'ok' ? '#d1fae5' : colors.danger[100],
-            border: `1px solid ${flash.type === 'ok' ? '#6ee7b7' : '#fca5a5'}`,
+            color: flash.type === 'ok' ? 'var(--wb-emr-800, #065f46)' : colors.danger[800],
+            backgroundColor: flash.type === 'ok' ? 'var(--wb-emr-100, #d1fae5)' : colors.danger[100],
+            border: `1px solid ${flash.type === 'ok' ? 'var(--wb-emr-300, #6ee7b7)' : 'var(--wb-dan-200, #fca5a5)'}`,
             animation: 'wb-fadeIn 0.2s ease-out',
           }}
         >

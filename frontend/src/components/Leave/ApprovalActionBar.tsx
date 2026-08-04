@@ -82,7 +82,7 @@ export function ApprovalActionBar({ onDecide, isPending }: ApprovalActionBarProp
               padding: '8px 16px',
               fontSize: '14px',
               fontWeight: 500,
-              color: colors.white,
+              color: colors.textOnAccent,
               backgroundColor: bg,
               border: 'none',
               borderRadius: '10px',

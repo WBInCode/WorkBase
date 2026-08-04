@@ -480,7 +480,7 @@ function DropZone({ onFile }: { onFile: (file: File) => void }) {
         padding: '48px 32px',
         textAlign: 'center',
         cursor: 'pointer',
-        backgroundColor: dragOver ? colors.primary[50] : '#fafafa',
+        backgroundColor: dragOver ? colors.primary[50] : 'var(--wb-g-50, #fafafa)',
         transition: 'all 0.15s',
       }}
       role="button"
@@ -547,7 +547,7 @@ function StepIndicator({ current }: { current: Step }) {
                 fontWeight: isActive ? 600 : 400,
                 backgroundColor: isActive ? colors.primary[50] : isDone ? colors.success[50] : colors.gray[50],
                 color: isActive ? colors.primary[600] : isDone ? colors.success[600] : colors.gray[400],
-                border: `1px solid ${isActive ? colors.primary[200] : isDone ? '#bbf7d0' : colors.gray[200]}`,
+                border: `1px solid ${isActive ? colors.primary[200] : isDone ? 'var(--wb-suc-200, #bbf7d0)' : colors.gray[200]}`,
               }}
             >
               {isDone ? <CheckCircle2 size={12} /> : null}
@@ -625,7 +625,7 @@ function primaryBtnStyle(disabled: boolean): React.CSSProperties {
     padding: '8px 20px',
     fontSize: '14px',
     fontWeight: 500,
-    color: colors.white,
+    color: colors.textOnAccent,
     backgroundColor: disabled ? colors.primary[300] : colors.primary[600],
     border: 'none',
     borderRadius: '10px',

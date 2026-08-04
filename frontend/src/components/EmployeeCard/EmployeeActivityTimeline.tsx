@@ -99,8 +99,8 @@ export function EmployeeActivityTimeline({ tasks, leaveRequests, isLoading }: Pr
                   borderRadius: '4px',
                   fontSize: '10px',
                   fontWeight: 600,
-                  backgroundColor: entry.type === 'task' ? '#ede9fe' : '#fce7f3',
-                  color: entry.type === 'task' ? '#7c3aed' : '#db2777',
+                  backgroundColor: entry.type === 'task' ? 'var(--wb-vio-100, #ede9fe)' : 'var(--wb-pnk-50, #fce7f3)',
+                  color: entry.type === 'task' ? 'var(--wb-vio-600, #7c3aed)' : 'var(--wb-pnk-600, #db2777)',
                 }}>
                   {entry.type === 'task' ? 'Zadanie' : 'Urlop'}
                 </span>
@@ -141,5 +141,5 @@ const headingStyle: React.CSSProperties = {
   margin: '0 0 14px',
   fontSize: '16px',
   fontWeight: 700,
-  color: '#111827',
+  color: 'var(--wb-g-900, #111827)',
 };

@@ -120,7 +120,7 @@ export function FormBuilderPage() {
           ))}
         </select>
         <button onClick={handleNew} style={btnStyle}>Nowy</button>
-        {selectedDefId && <button onClick={handleDelete} style={{ ...btnStyle, background: '#dc3545', color: '#fff' }}>Usuń</button>}
+        {selectedDefId && <button onClick={handleDelete} style={{ ...btnStyle, background: 'var(--wb-dan-600, #dc3545)', color: '#fff' }}>Usuń</button>}
       </div>
 
       {/* Tabs */}
@@ -131,9 +131,9 @@ export function FormBuilderPage() {
             onClick={() => setTab(t)}
             style={{
               padding: '8px 16px',
-              border: '1px solid #ccc',
-              background: tab === t ? '#007bff' : '#fff',
-              color: tab === t ? '#fff' : '#333',
+              border: '1px solid var(--wb-g-300, #ccc)',
+              background: tab === t ? 'var(--wb-inf-600, #007bff)' : 'var(--wb-panel, #fff)',
+              color: tab === t ? '#fff' : 'var(--wb-g-700, #333)',
               cursor: 'pointer',
               fontWeight: 600,
               borderRadius: t === 'builder' ? '4px 0 0 4px' : '0 4px 4px 0',
@@ -170,9 +170,9 @@ export function FormBuilderPage() {
               style={{
                 padding: 12,
                 marginBottom: 8,
-                border: '1px solid #ddd',
+                border: '1px solid var(--wb-g-200, #ddd)',
                 borderRadius: 10,
-                background: '#fafafa',
+                background: 'var(--wb-g-50, #fafafa)',
               }}
             >
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -202,7 +202,7 @@ export function FormBuilderPage() {
                 </label>
                 <button onClick={() => moveField(idx, -1)} style={tinyBtn} disabled={idx === 0}>↑</button>
                 <button onClick={() => moveField(idx, 1)} style={tinyBtn} disabled={idx === fields.length - 1}>↓</button>
-                <button onClick={() => removeField(idx)} style={{ ...tinyBtn, color: '#dc3545' }}>✕</button>
+                <button onClick={() => removeField(idx)} style={{ ...tinyBtn, color: 'var(--wb-dan-600, #dc3545)' }}>✕</button>
               </div>
               <div style={{ display: 'flex', gap: 8, marginTop: 6, flexWrap: 'wrap' }}>
                 <input
@@ -231,7 +231,7 @@ export function FormBuilderPage() {
           <button onClick={addField} style={{ ...btnStyle, marginTop: 8 }}>+ Dodaj pole</button>
 
           <div style={{ marginTop: 16 }}>
-            <button onClick={handleSave} style={{ ...btnStyle, background: '#28a745', color: '#fff', padding: '10px 24px' }}>
+            <button onClick={handleSave} style={{ ...btnStyle, background: 'var(--wb-suc-600, #28a745)', color: '#fff', padding: '10px 24px' }}>
               Zapisz formularz
             </button>
           </div>
@@ -241,11 +241,11 @@ export function FormBuilderPage() {
       {tab === 'submissions' && (
         <div>
           <h3>Zgłoszenia</h3>
-          {!submissions?.length && <p style={{ color: '#888' }}>Brak zgłoszeń.</p>}
+          {!submissions?.length && <p style={{ color: 'var(--wb-g-400, #888)' }}>Brak zgłoszeń.</p>}
           <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
             <thead>
-              <tr style={{ background: '#f0f0f0' }}>
+              <tr style={{ background: 'var(--wb-g-100, #f0f0f0)' }}>
                 <th style={thStyle}>ID</th>
                 <th style={thStyle}>Status</th>
                 <th style={thStyle}>Zgłoszono przez</th>
@@ -270,10 +270,10 @@ export function FormBuilderPage() {
   );
 }
 
-const btnStyle: React.CSSProperties = { padding: '6px 14px', borderRadius: 4, border: '1px solid #ccc', background: 'var(--wb-panel, #fff)', cursor: 'pointer', fontWeight: 600, fontSize: 13 };
-const tinyBtn: React.CSSProperties = { padding: '2px 8px', borderRadius: 3, border: '1px solid #ccc', background: 'var(--wb-panel, #fff)', cursor: 'pointer', fontSize: 12 };
-const inputStyle: React.CSSProperties = { padding: '6px 10px', borderRadius: 4, border: '1px solid #ccc', fontSize: 13, width: '100%', boxSizing: 'border-box' as const, marginBottom: 4 };
-const selectStyle: React.CSSProperties = { padding: '6px 10px', borderRadius: 4, border: '1px solid #ccc', fontSize: 13 };
+const btnStyle: React.CSSProperties = { padding: '6px 14px', borderRadius: 4, border: '1px solid var(--wb-g-300, #ccc)', background: 'var(--wb-panel, #fff)', cursor: 'pointer', fontWeight: 600, fontSize: 13 };
+const tinyBtn: React.CSSProperties = { padding: '2px 8px', borderRadius: 3, border: '1px solid var(--wb-g-300, #ccc)', background: 'var(--wb-panel, #fff)', cursor: 'pointer', fontSize: 12 };
+const inputStyle: React.CSSProperties = { padding: '6px 10px', borderRadius: 4, border: '1px solid var(--wb-g-300, #ccc)', fontSize: 13, width: '100%', boxSizing: 'border-box' as const, marginBottom: 4 };
+const selectStyle: React.CSSProperties = { padding: '6px 10px', borderRadius: 4, border: '1px solid var(--wb-g-300, #ccc)', fontSize: 13 };
 const labelStyle: React.CSSProperties = { fontWeight: 600, fontSize: 12, marginBottom: 4, display: 'block' };
-const thStyle: React.CSSProperties = { padding: '8px 12px', textAlign: 'left' as const, borderBottom: '2px solid #ddd' };
-const tdStyle: React.CSSProperties = { padding: '8px 12px', borderBottom: '1px solid #eee' };
+const thStyle: React.CSSProperties = { padding: '8px 12px', textAlign: 'left' as const, borderBottom: '2px solid var(--wb-g-200, #ddd)' };
+const tdStyle: React.CSSProperties = { padding: '8px 12px', borderBottom: '1px solid var(--wb-g-100, #eee)' };

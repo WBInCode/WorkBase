@@ -162,7 +162,7 @@ export function PlatformTenantsPage() {
                 display: 'inline-flex', alignItems: 'center', gap: '6px', width: '100%',
                 justifyContent: 'center',
                 padding: '8px 12px', fontSize: '13px', fontWeight: 500, borderRadius: '10px',
-                border: 'none', backgroundColor: colors.primary[600], color: colors.white,
+                border: 'none', backgroundColor: colors.primary[600], color: colors.textOnAccent,
                 cursor: !newName.trim() || !newAdminEmail.trim() || createTenantMutation.isPending ? 'not-allowed' : 'pointer',
                 opacity: !newName.trim() || !newAdminEmail.trim() || createTenantMutation.isPending ? 0.6 : 1,
               }}

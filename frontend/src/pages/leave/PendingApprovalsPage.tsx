@@ -11,9 +11,9 @@ import { colors } from '@/theme/tokens';
 
 const STATUS_CONFIG: Record<string, { label: string; bg: string; color: string }> = {
   Pending: { label: 'Oczekuje', bg: colors.warning[100], color: colors.warning[800] },
-  Approved: { label: 'Zaakceptowany', bg: '#d1fae5', color: '#065f46' },
+  Approved: { label: 'Zaakceptowany', bg: 'var(--wb-emr-100, #d1fae5)', color: 'var(--wb-emr-800, #065f46)' },
   Rejected: { label: 'Odrzucony', bg: colors.danger[50], color: colors.danger[600] },
-  Returned: { label: 'Cofnięty', bg: '#fff7ed', color: '#c2410c' },
+  Returned: { label: 'Cofnięty', bg: 'var(--wb-org-50, #fff7ed)', color: 'var(--wb-org-700, #c2410c)' },
 };
 
 const ENTITY_TYPE_LABEL: Record<string, string> = {

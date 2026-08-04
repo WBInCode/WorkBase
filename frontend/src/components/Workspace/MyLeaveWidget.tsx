@@ -11,7 +11,7 @@ interface Props {
 const STATUS_CFG: Record<LeaveRequestStatus, { label: string; bg: string; color: string }> = {
   Draft: { label: 'Szkic', bg: colors.gray[100], color: colors.gray[500] },
   Pending: { label: 'Oczekuje', bg: colors.warning[100], color: colors.warning[800] },
-  Approved: { label: 'Zaakceptowany', bg: '#d1fae5', color: '#065f46' },
+  Approved: { label: 'Zaakceptowany', bg: 'var(--wb-emr-100, #d1fae5)', color: 'var(--wb-emr-800, #065f46)' },
   Rejected: { label: 'Odrzucony', bg: colors.danger[50], color: colors.danger[600] },
   Cancelled: { label: 'Anulowany', bg: colors.gray[100], color: colors.gray[500] },
 };

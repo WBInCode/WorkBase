@@ -492,7 +492,7 @@ export function EmployeeTimesheetSection({ timeStatus, timesheet, isLoading, emp
                 disabled={createEntry.isPending || updateEntry.isPending}
                 style={{
                   padding: '8px 16px', fontSize: '13px', fontWeight: typography.fontWeight.semibold,
-                  color: colors.white, backgroundColor: colors.primary[500],
+                  color: colors.textOnAccent, backgroundColor: colors.primary[500],
                   border: 'none', borderRadius: '12px', cursor: 'pointer',
                   opacity: (createEntry.isPending || updateEntry.isPending) ? 0.6 : 1,
                 }}

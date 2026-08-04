@@ -100,7 +100,7 @@ export function BreakPoliciesConfigPage() {
                       borderRadius: '16px',
                       fontSize: '12px',
                       fontWeight: 600,
-                      backgroundColor: p.breakType === 'Paid' ? '#d1fae5' : colors.warning[100],
+                      backgroundColor: p.breakType === 'Paid' ? 'var(--wb-emr-100, #d1fae5)' : colors.warning[100],
                       color: p.breakType === 'Paid' ? colors.emerald[600] : colors.warning[600],
                     }}>
                       {p.breakType === 'Paid' ? 'Płatna' : 'Bezpłatna'}
@@ -115,7 +115,7 @@ export function BreakPoliciesConfigPage() {
                       width: '8px',
                       height: '8px',
                       borderRadius: '50%',
-                      backgroundColor: p.isActive ? '#10b981' : colors.gray[300],
+                      backgroundColor: p.isActive ? 'var(--wb-emr-500, #10b981)' : colors.gray[300],
                     }} />
                     {' '}{p.isActive ? 'Tak' : 'Nie'}
                   </Td>
@@ -307,7 +307,7 @@ const iconBtnStyle: React.CSSProperties = {
 const primaryBtnStyle: React.CSSProperties = {
   display: 'inline-flex', alignItems: 'center', gap: '6px',
   padding: '7px 16px', fontSize: '13px', fontWeight: 600,
-  color: colors.white, backgroundColor: '#3d6df2', border: 'none', borderRadius: '999px', cursor: 'pointer', boxShadow: '0 6px 14px -4px rgba(61,109,242,0.45)',
+  color: colors.textOnAccent, backgroundColor: 'var(--wb-p-500, #3d6df2)', border: 'none', borderRadius: '999px', cursor: 'pointer', boxShadow: '0 6px 14px -4px rgba(61,109,242,0.45)',
 };
 const cancelBtnStyle: React.CSSProperties = {
   padding: '7px 16px', fontSize: '13px', fontWeight: 500,

@@ -54,7 +54,7 @@ export function NotificationBell({ userId }: NotificationBellProps) {
               top: '1px',
               right: '1px',
               backgroundColor: colors.danger[500],
-              color: colors.white,
+              color: colors.textOnAccent,
               fontSize: '10px',
               fontWeight: 700,
               borderRadius: '9999px',

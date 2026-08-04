@@ -20,7 +20,7 @@ const statusLabels: Record<EmployeeStatus, string> = {
 const statusColors: Record<EmployeeStatus, { bg: string; text: string }> = {
   Active: { bg: colors.success[100], text: colors.success[800] },
   Inactive: { bg: colors.gray[100], text: colors.gray[500] },
-  OnLeave: { bg: '#fef9c3', text: '#854d0e' },
+  OnLeave: { bg: 'var(--wb-yel-100, #fef9c3)', text: 'var(--wb-yel-800, #854d0e)' },
 };
 
 const accessLabels: Record<EmployeeAccessState, string> = {
@@ -173,18 +173,18 @@ export function EmployeeInfoSection({ employee }: Props) {
                   step="0.01"
                   value={rateInput}
                   onChange={(e) => setRateInput(e.target.value)}
-                  style={{ width: 100, padding: '4px 8px', border: '1px solid #cbd5e1', borderRadius: 4 }}
+                  style={{ width: 100, padding: '4px 8px', border: '1px solid var(--wb-g-300, #cbd5e1)', borderRadius: 4 }}
                 />
                 <button
                   onClick={saveRate}
                   disabled={setRate.isPending}
-                  style={{ padding: '4px 10px', border: 'none', background: colors.primary[600], color: colors.white, borderRadius: 4, cursor: 'pointer', fontSize: 12 }}
+                  style={{ padding: '4px 10px', border: 'none', background: colors.primary[600], color: colors.textOnAccent, borderRadius: 4, cursor: 'pointer', fontSize: 12 }}
                 >
                   Zapisz
                 </button>
                 <button
                   onClick={() => { setEditingRate(false); setRateInput(employee.hourlyRate != null ? String(employee.hourlyRate) : ''); }}
-                  style={{ padding: '4px 10px', border: '1px solid #cbd5e1', background: colors.white, borderRadius: 4, cursor: 'pointer', fontSize: 12 }}
+                  style={{ padding: '4px 10px', border: '1px solid var(--wb-g-300, #cbd5e1)', background: colors.white, borderRadius: 4, cursor: 'pointer', fontSize: 12 }}
                 >
                   Anuluj
                 </button>
@@ -260,7 +260,7 @@ export function EmployeeInfoSection({ employee }: Props) {
                   disabled={deactivate.isPending}
                   style={{
                     padding: '8px 20px', fontSize: '13px', fontWeight: 600,
-                    color: colors.white, backgroundColor: colors.danger[600],
+                    color: colors.textOnAccent, backgroundColor: colors.danger[600],
                     border: 'none', borderRadius: '10px', cursor: 'pointer',
                     opacity: deactivate.isPending ? 0.6 : 1,
                   }}
@@ -316,7 +316,7 @@ const avatarStyle: React.CSSProperties = {
   width: '58px',
   height: '58px',
   borderRadius: '50%',
-  background: 'linear-gradient(135deg, #3d6df2, #2b55d4)',
+  background: 'linear-gradient(135deg, var(--wb-p-500, #3d6df2), var(--wb-p-600, #2b55d4))',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',

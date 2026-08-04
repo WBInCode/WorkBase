@@ -144,7 +144,7 @@ export function TimeTrackingSettingsPage() {
               disabled={updateMutation.isPending}
               style={{
                 padding: '9px 22px', fontSize: '14px', fontWeight: 500,
-                color: colors.white, backgroundColor: colors.primary[600], border: 'none',
+                color: colors.textOnAccent, backgroundColor: colors.primary[600], border: 'none',
                 borderRadius: '999px', cursor: updateMutation.isPending ? 'not-allowed' : 'pointer',
                 opacity: updateMutation.isPending ? 0.6 : 1,
               }}

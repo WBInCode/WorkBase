@@ -35,7 +35,7 @@ const statusLabels: Record<EmployeeStatus, string> = {
 const statusColors: Record<EmployeeStatus, { bg: string; text: string }> = {
   Active: { bg: colors.success[100], text: colors.success[800] },
   Inactive: { bg: colors.gray[100], text: colors.gray[500] },
-  OnLeave: { bg: '#fef9c3', text: '#854d0e' },
+  OnLeave: { bg: 'var(--wb-yel-100, #fef9c3)', text: 'var(--wb-yel-800, #854d0e)' },
 };
 
 export function EmployeeListPage() {
@@ -109,7 +109,7 @@ export function EmployeeListPage() {
                 fontSize: '13.5px',
                 fontWeight: 700,
                 fontFamily: 'inherit',
-                color: colors.white,
+                color: colors.textOnAccent,
                 backgroundColor: colors.primary[600],
                 border: 'none',
                 borderRadius: '999px',
@@ -486,11 +486,11 @@ function EmployeeDetailPanel({
                 width: '48px',
                 height: '48px',
                 borderRadius: '50%',
-                backgroundColor: '#e0e7ff',
+                backgroundColor: 'var(--wb-ind-100, #e0e7ff)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#4338ca',
+                color: 'var(--wb-ind-700, #4338ca)',
                 fontWeight: 600,
                 fontSize: '16px',
                 flexShrink: 0,
@@ -549,7 +549,7 @@ function EmployeeDetailPanel({
               padding: '8px 14px',
               fontSize: '13px',
               fontWeight: 500,
-              color: colors.white,
+              color: colors.textOnAccent,
               backgroundColor: colors.primary[600],
               border: 'none',
               borderRadius: '10px',
@@ -658,7 +658,7 @@ function EmployeeDetailPanel({
                       disabled={deactivate.isPending}
                       style={{
                         flex: 1, padding: '7px', fontSize: '12px', fontWeight: 600,
-                        color: colors.white, backgroundColor: colors.danger[600],
+                        color: colors.textOnAccent, backgroundColor: colors.danger[600],
                         border: 'none', borderRadius: '10px', cursor: 'pointer',
                         opacity: deactivate.isPending ? 0.6 : 1,
                       }}
@@ -770,7 +770,7 @@ function AssignEmployeeForm({ employeeId, onClose }: { employeeId: string; onClo
           disabled={!unitId || !positionId || assignMutation.isPending}
           style={{
             flex: 1, padding: '7px', fontSize: '13px', fontWeight: 600,
-            color: colors.white, backgroundColor: (!unitId || !positionId) ? colors.primary[300] : colors.primary[500],
+            color: colors.textOnAccent, backgroundColor: (!unitId || !positionId) ? colors.primary[300] : colors.primary[500],
             border: 'none', borderRadius: '10px', cursor: 'pointer',
           }}
         >
