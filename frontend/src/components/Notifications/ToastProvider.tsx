@@ -50,20 +50,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
 function ToastContainer({ toasts, onRemove }: { toasts: Toast[]; onRemove: (id: string) => void }) {
   return (
-    <div
-      style={{
-        position: 'fixed',
-        top: '16px',
-        right: '16px',
-        left: '16px',
-        zIndex: 9999,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'flex-end',
-        gap: '8px',
-        pointerEvents: 'none',
-      }}
-    >
+    <div className="wb-toasts">
       {toasts.map((toast) => (
         <ToastItem key={toast.id} toast={toast} onRemove={onRemove} />
       ))}
