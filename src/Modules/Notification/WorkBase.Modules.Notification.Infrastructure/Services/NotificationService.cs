@@ -8,7 +8,8 @@ namespace WorkBase.Modules.Notification.Infrastructure.Services;
 public sealed class NotificationService(
     WorkBaseDbContext db,
     IHubContext<NotificationHub> hubContext,
-    IHubNotificationForwarder hubForwarder)
+    IHubNotificationForwarder hubForwarder,
+    IChatNoticeForwarder chatForwarder)
     : INotificationService
 {
     public async Task SendAsync(Guid tenantId, Guid recipientUserId, string title, string body,
@@ -32,5 +33,6 @@ public sealed class NotificationService(
         }, ct);
 
         hubForwarder.Enqueue(tenantId, notification.Id);
+        chatForwarder.Enqueue(tenantId, notification.Id);
     }
 }
