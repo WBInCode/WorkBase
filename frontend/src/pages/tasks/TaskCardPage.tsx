@@ -15,6 +15,7 @@ import {
   useDownloadTaskAttachment,
 } from '@/api/hooks/useTasks';
 import { useEmployees } from '@/api/hooks/useOrganization';
+import { useToast } from '@/components/Notifications';
 import { useIsMobile } from '@/shared';
 import { colors } from '@/theme/tokens';
 
@@ -43,6 +44,7 @@ export function TaskCardPage() {
   const [commentText, setCommentText] = useState('');
   const [newStatusId, setNewStatusId] = useState('');
   const mobile = useIsMobile();
+  const { addToast } = useToast();
 
   const employeeMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -69,9 +71,29 @@ export function TaskCardPage() {
 
   const handleChangeStatus = () => {
     if (!newStatusId || !user?.employeeId) return;
+    // Nazwy czytamy przed wyslaniem, bo po powodzeniu czyscimy wybor, a kafelek juz pokazuje nowy status.
+    const poprzedni = task.statusName;
+    const docelowy = statuses.find((s) => s.id === newStatusId)?.name ?? 'nowy status';
     changeStatusMutation.mutate(
       { newStatusId, changedById: user.employeeId },
-      { onSuccess: () => setNewStatusId('') },
+      {
+        onSuccess: () => {
+          setNewStatusId('');
+          addToast({
+            type: 'success',
+            title: 'Status zmieniony',
+            message: `Z „${poprzedni}” na „${docelowy}”.`,
+          });
+        },
+        onError: (error) => {
+          addToast({
+            type: 'error',
+            title: 'Nie udało się zmienić statusu',
+            message: error instanceof Error && error.message ? error.message : undefined,
+            duration: 8000,
+          });
+        },
+      },
     );
   };
 
@@ -169,9 +191,6 @@ export function TaskCardPage() {
               {changeStatusMutation.isPending ? '...' : 'Zmień'}
             </button>
           </div>
-          {changeStatusMutation.error && (
-            <div style={errorStyle}>{changeStatusMutation.error.message}</div>
-          )}
         </div>
       </div>
 
@@ -356,9 +375,6 @@ const actionCardStyle: React.CSSProperties = {
 const actionBtnStyle: React.CSSProperties = {
   padding: '7px 14px', fontSize: '14px', fontWeight: 500, color: colors.white,
   backgroundColor: colors.primary[600], border: 'none', borderRadius: '10px', cursor: 'pointer',
-};
-const errorStyle: React.CSSProperties = {
-  marginTop: '6px', fontSize: '12px', color: colors.danger[600],
 };
 
 function formatFileSize(bytes: number): string {
