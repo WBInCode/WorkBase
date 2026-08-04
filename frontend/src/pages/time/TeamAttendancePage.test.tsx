@@ -110,7 +110,7 @@ describe('Raport zespolu — wpisywanie godzin', () => {
     await waitFor(() => expect(od.value).toBe('09:30'));
   });
 
-  it('niepelny zakres nie zapisuje po cichu, tylko tlumaczy dlaczego', async () => {
+  it('sama godzina rozpoczecia zapisuje wejscie i zostawia dzien otwarty', async () => {
     const { od } = await otworzPanel();
 
     fireEvent.focus(od);
@@ -119,8 +119,23 @@ describe('Raport zespolu — wpisywanie godzin', () => {
 
     fireEvent.click(screen.getByText('Zapisz'));
 
+    await waitFor(() => expect(createMutate).toHaveBeenCalled());
+    const typy = createMutate.mock.calls.map((wywolanie) => wywolanie[0].type);
+    expect(typy).toContain('ClockIn');
+    expect(typy).not.toContain('ClockOut');
+  });
+
+  it('sama godzina zakonczenia nie zapisuje po cichu, tylko tlumaczy dlaczego', async () => {
+    const { doPola } = await otworzPanel();
+
+    fireEvent.focus(doPola);
+    fireEvent.change(doPola, { target: { value: '17:00' } });
+    fireEvent.blur(doPola);
+
+    fireEvent.click(screen.getByText('Zapisz'));
+
     await waitFor(() => expect(screen.getByRole('alert')).toBeTruthy());
-    expect(screen.getByRole('alert').textContent).toContain('Do');
+    expect(screen.getByRole('alert').textContent).toContain('Od');
     expect(createMutate).not.toHaveBeenCalled();
   });
 

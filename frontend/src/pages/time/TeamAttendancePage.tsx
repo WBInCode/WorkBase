@@ -335,14 +335,13 @@ export function TeamAttendancePage() {
     };
     const startMin = start ? toMinutes(start) : null;
     const endMin = end ? toMinutes(end) : null;
-    // Wymagamy pelnego zakresu od-do, albo obu pol pustych (czyszczenie dnia).
-    // Wczesniej niespelniony warunek konczyl sie cichym `return` — przycisk
-    // nie robil nic i wygladalo to na zepsuty zapis.
+    // Puste „Do” jest poprawne: dzien zostaje otwarty, a czas pracy leci dalej od poprawionej
+    // godziny. Wczesniej korekta rozpoczecia wymuszala podanie zakonczenia, czyli zamkniecie
+    // trwajacej pracy. Oba pola puste nadal czyszcza dzien.
     setEditError(null);
     if (start || end) {
       if (startMin === null) { setEditError('Uzupełnij godzinę „Od”.'); return; }
-      if (endMin === null) { setEditError('Uzupełnij godzinę „Do”.'); return; }
-      if (endMin <= startMin) { setEditError('Godzina „Do” musi być późniejsza niż „Od”.'); return; }
+      if (endMin !== null && endMin <= startMin) { setEditError('Godzina „Do” musi być późniejsza niż „Od”.'); return; }
     }
     const odrzuconePrzerwy = breaks.filter(
       (b) => (b.start || b.end) && !(toMinutes(b.start) !== null && toMinutes(b.end) !== null && toMinutes(b.end)! > toMinutes(b.start)!),
@@ -365,7 +364,7 @@ export function TeamAttendancePage() {
         // eslint-disable-next-line no-await-in-loop
         await deleteEntry.mutateAsync(entry.id);
       }
-      if (startMin !== null && endMin !== null) {
+      if (startMin !== null) {
         const toIso = (minutes: number) => {
           const d = new Date(`${date}T00:00:00`);
           d.setMinutes(minutes);
@@ -395,12 +394,14 @@ export function TeamAttendancePage() {
             note: 'Edycja z raportu zespołu',
           });
         }
-        await createEntry.mutateAsync({
-          employeeId,
-          entryTime: toIso(endMin),
-          type: 'ClockOut',
-          note: 'Edycja z raportu zespołu',
-        });
+        if (endMin !== null) {
+          await createEntry.mutateAsync({
+            employeeId,
+            entryTime: toIso(endMin),
+            type: 'ClockOut',
+            note: 'Edycja z raportu zespołu',
+          });
+        }
       }
       refreshTeamTimesheets();
       setEditState(null);
@@ -863,7 +864,7 @@ export function TeamAttendancePage() {
               </div>
             </label>
             <label style={{ flex: 1, fontSize: '11px', fontWeight: 600, color: colors.gray[500] }}>
-              Do
+              Do <span style={{ fontWeight: 400 }}>(opcjonalne)</span>
               <div style={{ marginTop: '4px' }}>
                 <TimeInput
                   value={editState.end}
@@ -873,6 +874,12 @@ export function TeamAttendancePage() {
               </div>
             </label>
           </div>
+
+          {editState.start && !editState.end && (
+            <div style={{ marginBottom: '10px', fontSize: '11px', color: colors.gray[500], lineHeight: 1.4 }}>
+              Bez godziny „Do” dzień zostaje otwarty — czas pracy liczy się dalej od godziny „Od”.
+            </div>
+          )}
 
           {editState.breaks.map((b, idx) => (
             <div key={idx} style={{ marginBottom: '8px', padding: '6px', backgroundColor: colors.gray[50], borderRadius: '8px' }}>
