@@ -19,7 +19,7 @@ docker exec workbase-api printenv ClamAv__Enabled ClamAv__Host ClamAv__Port 2>/d
 
 echo
 echo "== 4. clamd odpowiada z sieci wb-net =="
-docker run --rm --network wb-net busybox sh -c 'printf "zPING\0" | nc -w 5 wb-chat-clamav 3310' | tr -d '\0'
+docker run --rm --network wb-net busybox sh -c 'printf "zPING\0" | nc -w 5 wb-clamav 3310' | tr -d '\0'
 echo
 
 echo "== 5. clamd wykrywa wzorzec testowy EICAR =="
@@ -33,7 +33,7 @@ docker run --rm --network wb-net -v /tmp/eicar.txt:/probka:ro busybox sh -c '
     printf "$(printf "\\\\%03o\\\\%03o\\\\%03o\\\\%03o" $((ROZMIAR>>24&255)) $((ROZMIAR>>16&255)) $((ROZMIAR>>8&255)) $((ROZMIAR&255)))"
     cat /probka
     printf "\\000\\000\\000\\000"
-  } | nc -w 10 wb-chat-clamav 3310' | tr -d '\0'
+  } | nc -w 10 wb-clamav 3310' | tr -d '\0'
 echo
 rm -f /tmp/eicar.txt
 
