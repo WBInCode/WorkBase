@@ -609,8 +609,9 @@ public static class DemoDataSeeder
     private static async Task<(Dictionary<string, Guid> Statusy, Dictionary<string, Guid> Priorytety)>
         ZapewnijSlownikZadanAsync(WorkBaseDbContext db, Guid tenantId, CancellationToken ct)
     {
-        var statusy = (await db.Set<TaskStatus>().IgnoreQueryFilters()
-            .Where(s => s.TenantId == tenantId).ToListAsync(ct)).ToDictionary(s => s.Code, s => s.Id);
+        var statusyEncje = await db.Set<TaskStatus>().IgnoreQueryFilters()
+            .Where(s => s.TenantId == tenantId).ToListAsync(ct);
+        var statusy = statusyEncje.ToDictionary(s => s.Code, s => s.Id);
 
         (string Kod, string Nazwa, bool Koncowy, bool Domyslny, string Kolor, int Kolejnosc)[] def =
         [
@@ -624,12 +625,20 @@ public static class DemoDataSeeder
         ];
         foreach (var s in def)
         {
-            if (statusy.ContainsKey(s.Kod)) continue;
+            var istniejacy = statusyEncje.FirstOrDefault(x => x.Code == s.Kod);
+            if (istniejacy is not null)
+            {
+                // Dołożenie statusu w środku listy przesuwa kolejność pozostałych,
+                // więc porządek odświeżamy także dla tych, które już były.
+                istniejacy.Update(s.Nazwa, s.Kolor, s.Koncowy, s.Kolejnosc);
+                continue;
+            }
             var status = TaskStatus.Create(tenantId, s.Kod, s.Nazwa, s.Koncowy, s.Domyslny, s.Kolor, s.Kolejnosc);
             db.Set<TaskStatus>().Add(status);
             await db.SaveChangesAsync(ct);
             statusy[s.Kod] = status.Id;
         }
+        await db.SaveChangesAsync(ct);
 
         var priorytety = (await db.Set<TaskPriority>().IgnoreQueryFilters()
             .Where(p => p.TenantId == tenantId).ToListAsync(ct)).ToDictionary(p => p.Code, p => p.Id);
