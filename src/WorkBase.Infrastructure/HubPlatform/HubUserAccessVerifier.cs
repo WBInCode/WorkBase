@@ -23,6 +23,14 @@ public sealed class HubUserAccessVerifier(
     private static readonly TimeSpan PositiveLifetime = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan NegativeLifetime = TimeSpan.FromSeconds(10);
 
+    /// <summary>
+    /// Jak długo po utracie łączności z HUB honorujemy ostatnią pozytywną odpowiedź.
+    /// Bez tego restart HUB (np. wdrożenie) odbiera dostęp WSZYSTKIM zalogowanym:
+    /// wyjątek transportowy oznaczał „brak dostępu", więc każde żądanie kończyło się 401.
+    /// Odebranie dostępu w HUB nadal działa — najpóźniej po tym oknie.
+    /// </summary>
+    private static readonly TimeSpan OknoAwarii = TimeSpan.FromMinutes(15);
+
     public async Task<HubUserAccessDecision> VerifyAsync(
         string instanceId,
         string hubUserId,
@@ -31,6 +39,7 @@ public sealed class HubUserAccessVerifier(
     {
         var normalizedEmail = email.Trim().ToLowerInvariant();
         var cacheKey = $"hub-user-access:{instanceId}:{hubUserId}";
+        var kluczAwaryjny = $"hub-user-access-ostatni-ok:{instanceId}:{hubUserId}";
         if (cache.TryGetValue<HubUserAccessDecision>(cacheKey, out var cached) && cached is not null)
             return cached;
 
@@ -59,7 +68,10 @@ public sealed class HubUserAccessVerifier(
                 logger.LogWarning(
                     "HUB user access check failed for instance {InstanceId}: HTTP {StatusCode}",
                     instanceId, (int)response.StatusCode);
-                return new HubUserAccessDecision(false, null);
+                // 5xx to awaria HUB, nie decyzja o odebraniu dostępu — traktujemy jak brak łączności.
+                return (int)response.StatusCode >= 500
+                    ? DecyzjaAwaryjna(kluczAwaryjny, instanceId)
+                    : new HubUserAccessDecision(false, null);
             }
 
             var result = await response.Content.ReadFromJsonAsync<HubAccessResponse>(cancellationToken: cancellationToken);
@@ -69,12 +81,29 @@ public sealed class HubUserAccessVerifier(
                     HubSsoService.MapHubRole(result.OrgRole ?? "", result.InstanceRole ?? ""))
                 : new HubUserAccessDecision(false, null);
             cache.Set(cacheKey, decision, decision.Active ? PositiveLifetime : NegativeLifetime);
+            if (decision.Active) cache.Set(kluczAwaryjny, decision, OknoAwarii);
+            else cache.Remove(kluczAwaryjny);
             return decision;
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             logger.LogWarning(ex, "HUB user access check failed for instance {InstanceId}", instanceId);
-            return new HubUserAccessDecision(false, null);
+            return DecyzjaAwaryjna(kluczAwaryjny, instanceId);
         }
+    }
+
+    /// <summary>
+    /// Gdy HUB nie odpowiada: honorujemy ostatnią pozytywną odpowiedź z okna awarii.
+    /// Kto nie miał wcześniej dostępu, nadal go nie dostaje.
+    /// </summary>
+    private HubUserAccessDecision DecyzjaAwaryjna(string kluczAwaryjny, string instanceId)
+    {
+        if (cache.TryGetValue<HubUserAccessDecision>(kluczAwaryjny, out var ostatni) && ostatni is not null)
+        {
+            logger.LogWarning(
+                "HUB niedostępny — utrzymuję ostatni znany dostęp dla instancji {InstanceId}", instanceId);
+            return ostatni;
+        }
+        return new HubUserAccessDecision(false, null);
     }
 }
