@@ -1,8 +1,13 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using WorkBase.Infrastructure.Persistence;
+using WorkBase.Infrastructure.Persistence.Entities;
+using WorkBase.Modules.Leave.Domain.Entities;
 using WorkBase.Modules.Organization.Domain.Entities;
+using WorkBase.Modules.Tasks.Domain.Entities;
 using WorkBase.Modules.TimeTracking.Domain.Entities;
+using TaskStatus = WorkBase.Modules.Tasks.Domain.Entities.TaskStatus;
 
 namespace WorkBase.Infrastructure.Seeding;
 
@@ -105,9 +110,18 @@ public static class DemoDataSeeder
         var grafikow = await ZapewnijGrafikiAsync(db, tenantId, pracownicy, ct);
         var wejsc = await ZapewnijCzasPracyAsync(db, tenantId, pracownicy, ct);
 
+        // Slowniki: provisioning najemcy ich NIE tworzy (seedery slownikowe zasilaja
+        // wylacznie najemce domyslnego), wiec bez tego moduly Urlopy i Zadania sa nieuzywalne.
+        var typyUrlopu = await ZapewnijTypyUrlopuAsync(db, tenantId, ct);
+        var (statusy, priorytety) = await ZapewnijSlownikZadanAsync(db, tenantId, ct);
+
+        var urlopow = await ZapewnijUrlopyAsync(db, tenantId, pracownicy, typyUrlopu, ct);
+        var zadan = await ZapewnijZadaniaAsync(db, tenantId, pracownicy, statusy, priorytety, ct);
+        await ZapewnijUstawieniaAsync(db, tenantId, ct);
+
         logger.LogInformation(
-            "Gotowe: {Jednostki} jednostek, {Stanowiska} stanowisk, {Pracownicy} pracowników, {Grafiki} dni grafiku, {Wejscia} wpisów czasu pracy",
-            jednostki.Count, stanowiska.Count, pracownicy.Count, grafikow, wejsc);
+            "Gotowe: {Jednostki} jednostek, {Stanowiska} stanowisk, {Pracownicy} pracowników, {Grafiki} dni grafiku, {Wejscia} wpisów czasu pracy, {Urlopy} wniosków urlopowych, {Zadania} zadań",
+            jednostki.Count, stanowiska.Count, pracownicy.Count, grafikow, wejsc, urlopow, zadan);
     }
 
     private static async Task<Dictionary<string, Guid>> ZapewnijJednostkiAsync(
@@ -360,5 +374,330 @@ public static class DemoDataSeeder
                 .Where(char.IsLetter).ToArray());
 
         return $"{Bez(o.Imie)}.{Bez(o.Nazwisko)}@{DomenaDemo}";
+    }
+
+    /// <summary>Słownik nieobecności — te same wartości co dla najemcy domyślnego.</summary>
+    private static async Task<Dictionary<string, Guid>> ZapewnijTypyUrlopuAsync(
+        WorkBaseDbContext db, Guid tenantId, CancellationToken ct)
+    {
+        var istniejace = await db.Set<LeaveType>().IgnoreQueryFilters()
+            .Where(t => t.TenantId == tenantId).ToListAsync(ct);
+        var mapa = istniejace.ToDictionary(t => t.Code, t => t.Id);
+
+        (string Kod, string Nazwa, bool Platny, bool Akceptacja, int? Dni, string Opis, string Kolor, int Kolejnosc)[] typy =
+        [
+            ("ANNUAL", "Urlop wypoczynkowy", true, true, 26, "Roczny urlop wypoczynkowy", "#4CAF50", 1),
+            ("ON_DEMAND", "Urlop na żądanie", true, false, 4, "Wliczany w pulę urlopu wypoczynkowego", "#FF9800", 2),
+            ("SICK", "Zwolnienie lekarskie (L4)", true, false, null, "Bez limitu dni, wymagane zaświadczenie", "#F44336", 3),
+            ("CHILDCARE", "Opieka nad dzieckiem", true, true, 2, "Opieka nad dzieckiem do lat 14 (art. 188 KP)", "#9C27B0", 4),
+            ("UNPAID", "Urlop bezpłatny", false, true, null, "Urlop bezpłatny na wniosek pracownika", "#607D8B", 5),
+        ];
+
+        foreach (var t in typy)
+        {
+            if (mapa.ContainsKey(t.Kod)) continue;
+            var typ = LeaveType.Create(tenantId, t.Kod, t.Nazwa, t.Platny, t.Akceptacja, t.Dni, t.Opis, t.Kolor, t.Kolejnosc);
+            db.Set<LeaveType>().Add(typ);
+            await db.SaveChangesAsync(ct);
+            mapa[t.Kod] = typ.Id;
+        }
+
+        return mapa;
+    }
+
+    /// <summary>Statusy, priorytety i dozwolone przejścia statusów zadań.</summary>
+    private static async Task<(Dictionary<string, Guid> Statusy, Dictionary<string, Guid> Priorytety)>
+        ZapewnijSlownikZadanAsync(WorkBaseDbContext db, Guid tenantId, CancellationToken ct)
+    {
+        var statusy = (await db.Set<TaskStatus>().IgnoreQueryFilters()
+            .Where(s => s.TenantId == tenantId).ToListAsync(ct)).ToDictionary(s => s.Code, s => s.Id);
+
+        (string Kod, string Nazwa, bool Koncowy, bool Domyslny, string Kolor, int Kolejnosc)[] def =
+        [
+            ("NEW", "Nowe", false, true, "#2196F3", 1),
+            ("IN_PROGRESS", "W toku", false, false, "#FF9800", 2),
+            ("REVIEW", "Do akceptacji", false, false, "#9C27B0", 3),
+            ("CLOSED", "Zamknięte", true, false, "#4CAF50", 4),
+        ];
+        foreach (var s in def)
+        {
+            if (statusy.ContainsKey(s.Kod)) continue;
+            var status = TaskStatus.Create(tenantId, s.Kod, s.Nazwa, s.Koncowy, s.Domyslny, s.Kolor, s.Kolejnosc);
+            db.Set<TaskStatus>().Add(status);
+            await db.SaveChangesAsync(ct);
+            statusy[s.Kod] = status.Id;
+        }
+
+        var priorytety = (await db.Set<TaskPriority>().IgnoreQueryFilters()
+            .Where(p => p.TenantId == tenantId).ToListAsync(ct)).ToDictionary(p => p.Code, p => p.Id);
+
+        (string Kod, string Nazwa, string Kolor, int Kolejnosc)[] prio =
+        [
+            ("LOW", "Niski", "#8BC34A", 1),
+            ("NORMAL", "Normalny", "#2196F3", 2),
+            ("HIGH", "Wysoki", "#FF9800", 3),
+            ("CRITICAL", "Krytyczny", "#F44336", 4),
+        ];
+        foreach (var p in prio)
+        {
+            if (priorytety.ContainsKey(p.Kod)) continue;
+            var priorytet = TaskPriority.Create(tenantId, p.Kod, p.Nazwa, p.Kolor, p.Kolejnosc);
+            db.Set<TaskPriority>().Add(priorytet);
+            await db.SaveChangesAsync(ct);
+            priorytety[p.Kod] = priorytet.Id;
+        }
+
+        // Pusty słownik przejść znaczy „nie skonfigurowano" (wtedy wolno wszystko),
+        // ale demo ma pokazać działającą kontrolę obiegu, więc wypełniamy go jawnie.
+        var maPrzejscia = await db.Set<TaskStatusTransition>().IgnoreQueryFilters()
+            .AnyAsync(t => t.TenantId == tenantId, ct);
+        if (!maPrzejscia)
+        {
+            (string Z, string Do)[] przejscia =
+            [
+                ("NEW", "IN_PROGRESS"), ("NEW", "CLOSED"),
+                ("IN_PROGRESS", "REVIEW"), ("IN_PROGRESS", "CLOSED"), ("IN_PROGRESS", "NEW"),
+                ("REVIEW", "CLOSED"), ("REVIEW", "IN_PROGRESS"),
+                ("CLOSED", "IN_PROGRESS"),
+            ];
+            foreach (var (z, doStatusu) in przejscia)
+            {
+                db.Set<TaskStatusTransition>().Add(
+                    TaskStatusTransition.Create(tenantId, statusy[z], statusy[doStatusu]));
+            }
+            await db.SaveChangesAsync(ct);
+        }
+
+        return (statusy, priorytety);
+    }
+
+    /// <summary>Pule urlopowe na bieżący rok i wnioski w różnych stanach obiegu.</summary>
+    private static async Task<int> ZapewnijUrlopyAsync(
+        WorkBaseDbContext db,
+        Guid tenantId,
+        Dictionary<string, (Guid Id, OsobaDemo Dane)> pracownicy,
+        Dictionary<string, Guid> typy,
+        CancellationToken ct)
+    {
+        var rok = DateTime.UtcNow.Year;
+
+        var maBilans = (await db.Set<LeaveBalance>().IgnoreQueryFilters()
+            .Where(b => b.TenantId == tenantId && b.Year == rok)
+            .Select(b => new { b.EmployeeId, b.LeaveTypeId }).ToListAsync(ct))
+            .Select(x => (x.EmployeeId, x.LeaveTypeId)).ToHashSet();
+
+        var los = new Random(20260806);
+        var bilanse = new Dictionary<Guid, LeaveBalance>();
+
+        foreach (var (_, (id, _)) in pracownicy)
+        {
+            foreach (var kod in new[] { "ANNUAL", "ON_DEMAND", "CHILDCARE" })
+            {
+                if (maBilans.Contains((id, typy[kod]))) continue;
+                var pula = kod switch { "ANNUAL" => 26m, "ON_DEMAND" => 4m, _ => 2m };
+                var przeniesione = kod == "ANNUAL" ? los.Next(0, 6) : 0;
+                var bilans = LeaveBalance.Create(tenantId, id, typy[kod], rok, pula, przeniesione);
+                db.Set<LeaveBalance>().Add(bilans);
+                if (kod == "ANNUAL") bilanse[id] = bilans;
+            }
+        }
+        await db.SaveChangesAsync(ct);
+
+        var maWnioski = await db.Set<LeaveRequest>().IgnoreQueryFilters()
+            .AnyAsync(r => r.TenantId == tenantId, ct);
+        if (maWnioski) return 0;
+
+        var dzis = DateTime.UtcNow.Date;
+        var dodane = 0;
+
+        foreach (var (_, (id, dane)) in pracownicy)
+        {
+            // Urlop zakonczony w zeszlym miesiacu.
+            var odPrzeszly = dzis.AddDays(-los.Next(25, 50));
+            var doPrzeszly = odPrzeszly.AddDays(los.Next(2, 6));
+            var dniPrzeszly = LiczDniRobocze(odPrzeszly, doPrzeszly);
+            var wniosek = LeaveRequest.Create(tenantId, id, typy["ANNUAL"],
+                odPrzeszly, doPrzeszly, dniPrzeszly, "Wypoczynek");
+            wniosek.Submit();
+            wniosek.Approve();
+            db.Set<LeaveRequest>().Add(wniosek);
+            if (bilanse.TryGetValue(id, out var b1)) { b1.AddPending(dniPrzeszly); b1.ConfirmUsed(dniPrzeszly); }
+            dodane++;
+
+            // Co trzecia osoba ma wniosek czekajacy na decyzje przelozonego.
+            if (los.Next(0, 3) == 0)
+            {
+                var odPrzyszly = dzis.AddDays(los.Next(7, 40));
+                var doPrzyszly = odPrzyszly.AddDays(los.Next(3, 10));
+                var dniPrzyszly = LiczDniRobocze(odPrzyszly, doPrzyszly);
+                var oczekujacy = LeaveRequest.Create(tenantId, id, typy["ANNUAL"],
+                    odPrzyszly, doPrzyszly, dniPrzyszly, "Urlop letni");
+                oczekujacy.Submit();
+                db.Set<LeaveRequest>().Add(oczekujacy);
+                if (bilanse.TryGetValue(id, out var b2)) b2.AddPending(dniPrzyszly);
+                dodane++;
+            }
+
+            // Pojedyncze zwolnienia lekarskie, zeby kalendarz nieobecnosci nie byl jednorodny.
+            if (los.Next(0, 5) == 0)
+            {
+                var odL4 = dzis.AddDays(-los.Next(3, 20));
+                var l4 = LeaveRequest.Create(tenantId, id, typy["SICK"],
+                    odL4, odL4.AddDays(los.Next(1, 4)), los.Next(1, 4), "Zwolnienie lekarskie");
+                l4.Submit();
+                l4.Approve();
+                db.Set<LeaveRequest>().Add(l4);
+                dodane++;
+            }
+
+            _ = dane;
+        }
+
+        await db.SaveChangesAsync(ct);
+        return dodane;
+    }
+
+    private static decimal LiczDniRobocze(DateTime od, DateTime doDnia)
+    {
+        var dni = 0;
+        for (var d = od; d <= doDnia; d = d.AddDays(1))
+        {
+            if (d.DayOfWeek is not (DayOfWeek.Saturday or DayOfWeek.Sunday)) dni++;
+        }
+        return dni;
+    }
+
+    /// <summary>Zadania rozłożone po działach, z komentarzami i różnymi statusami.</summary>
+    private static async Task<int> ZapewnijZadaniaAsync(
+        WorkBaseDbContext db,
+        Guid tenantId,
+        Dictionary<string, (Guid Id, OsobaDemo Dane)> pracownicy,
+        Dictionary<string, Guid> statusy,
+        Dictionary<string, Guid> priorytety,
+        CancellationToken ct)
+    {
+        if (await db.Set<TaskItem>().IgnoreQueryFilters().AnyAsync(t => t.TenantId == tenantId, ct))
+            return 0;
+
+        (string Dzial, string Tytul, string Opis)[] szablony =
+        [
+            ("PROD", "Przegląd okresowy tokarki CNC-3", "Przegląd zgodnie z kartą serwisową, wymiana filtrów i oleju."),
+            ("PROD", "Wdrożenie nowej karty technologicznej", "Aktualizacja parametrów obróbki dla serii 400-Z."),
+            ("PROD", "Analiza braków z partii 2026/07", "Ustalić przyczynę odchyłek wymiarowych i opisać działania naprawcze."),
+            ("PROD", "Szkolenie BHP przy obrabiarkach", "Powtórka instruktażu stanowiskowego dla operatorów."),
+            ("SPRZ", "Przygotować ofertę dla Metalpol sp. z o.o.", "Zapytanie na 1200 szt. korpusów, termin odpowiedzi 5 dni."),
+            ("SPRZ", "Kontakt z klientem po wysyłce próbek", "Zebrać opinię i ustalić dalsze kroki."),
+            ("SPRZ", "Aktualizacja cennika na III kwartał", "Uwzględnić wzrost cen materiału i kosztów energii."),
+            ("SPRZ", "Podsumowanie sprzedaży za lipiec", "Zestawienie realizacji planu w podziale na handlowców."),
+            ("MAG", "Inwentaryzacja strefy A", "Spis z natury regałów A1-A12, zgłosić rozbieżności."),
+            ("MAG", "Reklamacja dostawy od Stalexport", "Braki ilościowe w dostawie 2026/1187."),
+            ("MAG", "Przegląd wózków widłowych", "Terminy UDT i stan techniczny."),
+            ("IT", "Wymiana stacji roboczych w księgowości", "4 komputery, migracja danych i konfiguracja drukarek."),
+            ("IT", "Wdrożenie kopii zapasowych offsite", "Kopie poza siedzibą, test odtworzenia raz w miesiącu."),
+            ("IT", "Przegląd uprawnień w systemach", "Weryfikacja dostępów po zmianach kadrowych."),
+            ("KSIE", "Zamknięcie miesiąca lipiec", "Uzgodnienie kont, rozliczenie międzyokresowe."),
+            ("KSIE", "Rozliczenie delegacji handlowców", "Zebrać dokumenty i rozliczyć zaliczki."),
+            ("KSIE", "Przygotowanie danych do JPK", "Weryfikacja rejestrów VAT za lipiec."),
+            ("HR", "Nabór na stanowisko operatora CNC", "Publikacja ogłoszenia i wstępna selekcja kandydatów."),
+            ("HR", "Przegląd terminów badań okresowych", "Lista osób z badaniami wygasającymi w tym kwartale."),
+            ("HR", "Ocena okresowa pracowników produkcji", "Rozmowy podsumowujące pierwsze półrocze."),
+            ("ZARZ", "Plan inwestycji na 2027", "Zebrać potrzeby działów i oszacować budżet."),
+            ("ZARZ", "Przegląd wyników kwartalnych", "Analiza marży i realizacji planu sprzedaży."),
+        ];
+
+        var los = new Random(20260806);
+        var dzis = DateTime.UtcNow.Date;
+        var poDzialach = pracownicy.Values.GroupBy(p => p.Dane.KodDzialu)
+            .ToDictionary(g => g.Key, g => g.ToList());
+        var dodane = 0;
+
+        foreach (var szablon in szablony)
+        {
+            if (!poDzialach.TryGetValue(szablon.Dzial, out var zespol) || zespol.Count == 0) continue;
+
+            var kierownik = zespol.FirstOrDefault(p => p.Dane.Kierownik);
+            var wykonawca = zespol[los.Next(zespol.Count)];
+            var kodStatusu = los.Next(0, 10) switch
+            {
+                < 3 => "NEW",
+                < 6 => "IN_PROGRESS",
+                < 8 => "REVIEW",
+                _ => "CLOSED",
+            };
+            var kodPriorytetu = los.Next(0, 10) switch
+            {
+                < 2 => "LOW",
+                < 7 => "NORMAL",
+                < 9 => "HIGH",
+                _ => "CRITICAL",
+            };
+
+            var zadanie = TaskItem.Create(
+                tenantId, szablon.Tytul, statusy[kodStatusu], priorytety[kodPriorytetu],
+                wykonawca.Id, kierownik.Id == Guid.Empty ? null : kierownik.Id,
+                szablon.Opis, dzis.AddDays(los.Next(-10, 25)));
+            db.Set<TaskItem>().Add(zadanie);
+            await db.SaveChangesAsync(ct);
+            dodane++;
+
+            if (kodStatusu != "NEW" && kierownik.Id != Guid.Empty)
+            {
+                db.Set<TaskComment>().Add(TaskComment.Create(
+                    tenantId, zadanie.Id, kierownik.Id,
+                    kodStatusu == "CLOSED"
+                        ? "Zamykam, wynik zgodny z ustaleniami."
+                        : "Proszę o informację o postępach do końca tygodnia."));
+                await db.SaveChangesAsync(ct);
+            }
+        }
+
+        return dodane;
+    }
+
+    /// <summary>Ustawienia modułów, żeby panel konfiguracji nie był pusty.</summary>
+    private static async Task ZapewnijUstawieniaAsync(
+        WorkBaseDbContext db, Guid tenantId, CancellationToken ct)
+    {
+        var istniejace = await db.Set<TenantConfig>()
+            .Where(c => c.TenantId == tenantId).Select(c => c.Key).ToListAsync(ct);
+
+        (string Klucz, string Wartosc)[] ustawienia =
+        [
+            ("document_upload", JsonSerializer.Serialize(new
+            {
+                MaxFileSizeBytes = 25L * 1024 * 1024,
+                AllowedExtensions = new[] { ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".png", ".jpg", ".jpeg", ".zip" },
+            })),
+            ("task_overdue", JsonSerializer.Serialize(new { GracePeriodHours = 24, NotifyOnOverdue = true })),
+            ("anomaly_detection", JsonSerializer.Serialize(new
+            {
+                LateArrivalThreshold = "00:10:00",
+                ExcessiveShiftThreshold = "11:00:00",
+                DetectMissingClockOut = true,
+                DetectLateArrival = true,
+                DetectDoubleClockIn = true,
+                DetectExcessiveShift = true,
+                DetectMissingClockIn = true,
+                DetectWorkOnDayOff = true,
+            })),
+            ("payroll.overtime_multiplier", "1.5"),
+            ("payroll.night_multiplier", "1.2"),
+            ("payroll.holiday_multiplier", "2.0"),
+        ];
+
+        foreach (var (klucz, wartosc) in ustawienia)
+        {
+            if (istniejace.Contains(klucz)) continue;
+            db.Set<TenantConfig>().Add(new TenantConfig
+            {
+                Id = Guid.CreateVersion7(),
+                TenantId = tenantId,
+                Key = klucz,
+                Value = wartosc,
+                UpdatedAt = DateTime.UtcNow,
+            });
+        }
+
+        await db.SaveChangesAsync(ct);
     }
 }
