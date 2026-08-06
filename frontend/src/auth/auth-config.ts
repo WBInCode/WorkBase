@@ -66,9 +66,13 @@ export const oidcConfig: AuthProviderProps = {
   response_type: 'code',
   scope: 'openid profile email',
   automaticSilentRenew: true,
-  ...(configuredKcIdpHint && !isKioskAuth
-    ? { extraQueryParams: { kc_idp_hint: configuredKcIdpHint } }
-    : {}),
+  // Pusty kc_idp_hint to jedyny sposób ominięcia domyślnego dostawcy skonfigurowanego
+  // w Keycloaku — bez niego terminal trafiłby na logowanie Huba, którego konta nie ma.
+  ...(isKioskAuth
+    ? { extraQueryParams: { kc_idp_hint: '' } }
+    : configuredKcIdpHint
+      ? { extraQueryParams: { kc_idp_hint: configuredKcIdpHint } }
+      : {}),
   // sessionStorage keeps OIDC state across redirects but clears on tab close
   userStore: new WebStorageStateStore({ store: sessionStorage }),
   onSigninCallback: () => {
