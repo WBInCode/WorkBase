@@ -69,6 +69,8 @@ SLADY=(
   "src/Modules/Organization/WorkBase.Modules.Organization.Application/Commands/Positions/ReapplyPositionPolicyCommand.cs:ReapplyPositionPolicyHandler"
   "src/WorkBase.Infrastructure/Chat/ChatNoticeForwarder.cs:ChatNoticeJob"
   "src/WorkBase.Host/Endpoints/EcosystemTaskEndpoints.cs:EcosystemTaskSearch"
+  "src/WorkBase.Infrastructure/Seeding/DemoDataSeeder.cs:DemoDataSeeder"
+  "src/WorkBase.Host/Program.cs:--seed-demo"
 )
 for wpis in "${SLADY[@]}"; do
   plik=${wpis%%:*}

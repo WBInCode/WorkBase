@@ -129,6 +129,35 @@ try
         return;
     }
 
+    // Dane pokazowe dla srodowiska demonstracyjnego: struktura dzialow, pracownicy,
+    // stawki, grafiki i czas pracy. Celowo poza rozruchem aplikacji — uruchamiane recznie.
+    // Uzycie: --seed-demo <id-firmy>
+    if (args.Contains("--seed-demo", StringComparer.OrdinalIgnoreCase))
+    {
+        var indeks = Array.FindIndex(args, a => a.Equals("--seed-demo", StringComparison.OrdinalIgnoreCase));
+        if (indeks + 1 >= args.Length || !Guid.TryParse(args[indeks + 1], out var firmaId))
+        {
+            Console.Error.WriteLine("Podaj identyfikator firmy: --seed-demo <guid>");
+            Environment.ExitCode = 1;
+            return;
+        }
+
+        using var zakres = app.Services.CreateScope();
+        var db = zakres.ServiceProvider.GetRequiredService<WorkBase.Infrastructure.Persistence.WorkBaseDbContext>();
+        var dziennik = zakres.ServiceProvider
+            .GetRequiredService<ILoggerFactory>().CreateLogger("SeedDemo");
+        try
+        {
+            await WorkBase.Infrastructure.Seeding.DemoDataSeeder.SeedAsync(db, firmaId, dziennik);
+        }
+        catch (Exception blad)
+        {
+            Console.Error.WriteLine($"Nie powiodlo sie: {blad.Message}");
+            Environment.ExitCode = 1;
+        }
+        return;
+    }
+
     app.MapOpenApi();
 
     if (app.Environment.IsDevelopment())
