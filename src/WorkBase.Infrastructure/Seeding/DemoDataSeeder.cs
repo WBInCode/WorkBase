@@ -118,10 +118,12 @@ public static class DemoDataSeeder
         var urlopow = await ZapewnijUrlopyAsync(db, tenantId, pracownicy, typyUrlopu, ct);
         var zadan = await ZapewnijZadaniaAsync(db, tenantId, pracownicy, statusy, priorytety, ct);
         await ZapewnijUstawieniaAsync(db, tenantId, ct);
+        await ZapewnijPolitykiAsync(db, tenantId, typyUrlopu, jednostki, ct);
+        var wpisowKalendarza = await ZapewnijKalendarzNieobecnosciAsync(db, tenantId, ct);
 
         logger.LogInformation(
-            "Gotowe: {Jednostki} jednostek, {Stanowiska} stanowisk, {Pracownicy} pracowników, {Grafiki} dni grafiku, {Wejscia} wpisów czasu pracy, {Urlopy} wniosków urlopowych, {Zadania} zadań",
-            jednostki.Count, stanowiska.Count, pracownicy.Count, grafikow, wejsc, urlopow, zadan);
+            "Gotowe: {Jednostki} jednostek, {Stanowiska} stanowisk, {Pracownicy} pracowników, {Grafiki} dni grafiku, {Wejscia} wpisów czasu pracy, {Urlopy} wniosków urlopowych, {Zadania} zadań, {Kalendarz} wpisów w kalendarzu nieobecności",
+            jednostki.Count, stanowiska.Count, pracownicy.Count, grafikow, wejsc, urlopow, zadan, wpisowKalendarza);
     }
 
     private static async Task<Dictionary<string, Guid>> ZapewnijJednostkiAsync(
@@ -325,7 +327,9 @@ public static class DemoDataSeeder
         CancellationToken ct)
     {
         var dzis = DateTime.UtcNow.Date;
-        var od = dzis.AddDays(-30);
+        // Zakres od pierwszego dnia poprzedniego miesiąca, żeby raporty miesięczne
+        // miały komplet dni, a nie urwany początek.
+        var od = new DateTime(dzis.Year, dzis.Month, 1, 0, 0, 0, DateTimeKind.Utc).AddMonths(-1);
 
         var maJuz = await db.Set<TimeEntry>().IgnoreQueryFilters()
             .Where(e => e.TenantId == tenantId && e.EntryTime >= od)
@@ -358,6 +362,149 @@ public static class DemoDataSeeder
                     TimeEntry.Create(tenantId, id, przerwaOd.AddMinutes(30), TimeEntryType.BreakEnd, ClockMethod.Kiosk),
                     TimeEntry.Create(tenantId, id, wyjscie, TimeEntryType.ClockOut, ClockMethod.Qr));
                 dodane += 4;
+            }
+        }
+
+        await db.SaveChangesAsync(ct);
+        return dodane;
+    }
+
+    /// <summary>Polityki urlopowe, polityki przerw, szablony i grafik jednostek.</summary>
+    private static async Task ZapewnijPolitykiAsync(
+        WorkBaseDbContext db,
+        Guid tenantId,
+        Dictionary<string, Guid> typy,
+        Dictionary<string, Guid> jednostki,
+        CancellationToken ct)
+    {
+        // --- Polityki urlopowe ---
+        var maPolityki = await db.Set<LeavePolicy>().IgnoreQueryFilters()
+            .Where(p => p.TenantId == tenantId).Select(p => p.Name).ToListAsync(ct);
+
+        (string Typ, string Nazwa, int Dni, bool Przenoszenie, int MaxPrzeniesienia, int? MaxPodRzad, int? Wyprzedzenie)[] polityki =
+        [
+            ("ANNUAL", "Urlop wypoczynkowy — staż do 10 lat", 20, true, 10, 14, 7),
+            ("ANNUAL", "Urlop wypoczynkowy — staż powyżej 10 lat", 26, true, 10, 21, 7),
+            ("ON_DEMAND", "Urlop na żądanie", 4, false, 0, 1, 0),
+            ("SICK", "Zwolnienie lekarskie", 0, false, 0, null, 0),
+            ("CHILDCARE", "Opieka nad dzieckiem (art. 188 KP)", 2, false, 0, 2, 0),
+            ("UNPAID", "Urlop bezpłatny", 0, false, 0, 30, 14),
+        ];
+
+        foreach (var p in polityki)
+        {
+            if (maPolityki.Contains(p.Nazwa) || !typy.TryGetValue(p.Typ, out var typId)) continue;
+            db.Set<LeavePolicy>().Add(LeavePolicy.Create(
+                tenantId, typId, p.Nazwa, p.Dni, p.Przenoszenie, p.MaxPrzeniesienia, p.MaxPodRzad, p.Wyprzedzenie));
+        }
+        await db.SaveChangesAsync(ct);
+
+        // --- Polityki przerw ---
+        var maPrzerwy = await db.Set<BreakPolicy>().IgnoreQueryFilters()
+            .Where(p => p.TenantId == tenantId).Select(p => p.Name).ToListAsync(ct);
+
+        (string Nazwa, BreakType Rodzaj, int? NaDzien, int? MinutNaPrzerwe, int? MinutNaDzien)[] przerwy =
+        [
+            ("Przerwa śniadaniowa (płatna, 15 min)", BreakType.Paid, 1, 15, 15),
+            ("Przerwa obiadowa (płatna, 30 min)", BreakType.Paid, 1, 30, 30),
+            ("Przerwa dodatkowa (bezpłatna)", BreakType.Unpaid, 2, 20, 40),
+            ("Przerwa przy monitorze (5 min na godzinę)", BreakType.Paid, 8, 5, 40),
+        ];
+
+        foreach (var p in przerwy)
+        {
+            if (maPrzerwy.Contains(p.Nazwa)) continue;
+            db.Set<BreakPolicy>().Add(BreakPolicy.Create(
+                tenantId, p.Nazwa, p.Rodzaj, p.NaDzien, p.MinutNaPrzerwe, p.MinutNaDzien));
+        }
+        await db.SaveChangesAsync(ct);
+
+        // --- Szablony grafiku ---
+        var maSzablony = await db.Set<ScheduleTemplate>().IgnoreQueryFilters()
+            .Where(t => t.TenantId == tenantId).Select(t => t.Name).ToListAsync(ct);
+
+        (string Nazwa, string Opis, TimeOnly Od, TimeOnly Do)[] szablony =
+        [
+            ("Zmiana dzienna 7:00-15:00", "Standardowa zmiana biurowa", new TimeOnly(7, 0), new TimeOnly(15, 0)),
+            ("Zmiana produkcyjna I 6:00-14:00", "Pierwsza zmiana na hali", new TimeOnly(6, 0), new TimeOnly(14, 0)),
+            ("Zmiana produkcyjna II 14:00-22:00", "Druga zmiana na hali", new TimeOnly(14, 0), new TimeOnly(22, 0)),
+            ("Skrócony piątek 7:00-13:00", "Piątek w skróconym wymiarze", new TimeOnly(7, 0), new TimeOnly(13, 0)),
+        ];
+
+        foreach (var s in szablony)
+        {
+            if (maSzablony.Contains(s.Nazwa)) continue;
+            var wzor = JsonSerializer.Serialize(
+                Enumerable.Range(1, 5).Select(d => new
+                {
+                    DayOfWeek = d,
+                    PlannedStart = s.Od.ToString("HH:mm:ss"),
+                    PlannedEnd = s.Do.ToString("HH:mm:ss"),
+                    ShiftType = s.Nazwa,
+                }));
+            db.Set<ScheduleTemplate>().Add(ScheduleTemplate.Create(tenantId, s.Nazwa, wzor, s.Opis));
+        }
+        await db.SaveChangesAsync(ct);
+
+        // --- Grafik jednostek: wzorzec tygodnia dla działów ---
+        var maGrafikJednostek = await db.Set<OrgUnitSchedule>().IgnoreQueryFilters()
+            .Where(o => o.TenantId == tenantId).Select(o => o.Name).ToListAsync(ct);
+
+        (string Kod, string Nazwa, int Od, int Do)[] grafiki =
+        [
+            ("PROD", "Produkcja — pierwsza zmiana", 6, 14),
+            ("MAG", "Magazyn — zmiana dzienna", 6, 14),
+            ("SPRZ", "Sprzedaż — zmiana dzienna", 7, 15),
+            ("KSIE", "Księgowość — zmiana dzienna", 7, 15),
+            ("IT", "IT — zmiana dzienna", 8, 16),
+            ("HR", "Kadry — zmiana dzienna", 7, 15),
+        ];
+
+        foreach (var g in grafiki)
+        {
+            if (maGrafikJednostek.Contains(g.Nazwa) || !jednostki.TryGetValue(g.Kod, out var jednostkaId)) continue;
+            var wzor = JsonSerializer.Serialize(
+                Enumerable.Range(1, 5).Select(d => new
+                {
+                    DayOfWeek = d,
+                    PlannedStart = $"{g.Od:D2}:00:00",
+                    PlannedEnd = $"{g.Do:D2}:00:00",
+                    ShiftType = "Zmiana dzienna",
+                }));
+            db.Set<OrgUnitSchedule>().Add(OrgUnitSchedule.Create(
+                tenantId, jednostkaId, g.Nazwa, wzor,
+                DateOnly.FromDateTime(DateTime.UtcNow).AddMonths(-1)));
+        }
+        await db.SaveChangesAsync(ct);
+    }
+
+    /// <summary>
+    /// Kalendarz nieobecności. Wpisy powstają z zatwierdzonych wniosków — w aplikacji
+    /// nie ma jeszcze obsługi zdarzenia, która by je tworzyła, więc bez tego kroku
+    /// widok nieobecności zostaje pusty mimo istniejących wniosków.
+    /// </summary>
+    private static async Task<int> ZapewnijKalendarzNieobecnosciAsync(
+        WorkBaseDbContext db, Guid tenantId, CancellationToken ct)
+    {
+        var zatwierdzone = await db.Set<LeaveRequest>().IgnoreQueryFilters()
+            .Where(r => r.TenantId == tenantId && r.Status == LeaveRequestStatus.Approved)
+            .ToListAsync(ct);
+
+        var maJuz = (await db.Set<LeaveCalendarEntry>().IgnoreQueryFilters()
+            .Where(e => e.TenantId == tenantId)
+            .Select(e => e.LeaveRequestId).ToListAsync(ct)).ToHashSet();
+
+        var dodane = 0;
+        foreach (var wniosek in zatwierdzone)
+        {
+            if (maJuz.Contains(wniosek.Id)) continue;
+            for (var d = wniosek.StartDate.Date; d <= wniosek.EndDate.Date; d = d.AddDays(1))
+            {
+                if (d.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday) continue;
+                db.Set<LeaveCalendarEntry>().Add(LeaveCalendarEntry.Create(
+                    tenantId, wniosek.EmployeeId, wniosek.Id, wniosek.LeaveTypeId,
+                    DateTime.SpecifyKind(d, DateTimeKind.Utc)));
+                dodane++;
             }
         }
 
@@ -415,9 +562,12 @@ public static class DemoDataSeeder
         (string Kod, string Nazwa, bool Koncowy, bool Domyslny, string Kolor, int Kolejnosc)[] def =
         [
             ("NEW", "Nowe", false, true, "#2196F3", 1),
-            ("IN_PROGRESS", "W toku", false, false, "#FF9800", 2),
-            ("REVIEW", "Do akceptacji", false, false, "#9C27B0", 3),
-            ("CLOSED", "Zamknięte", true, false, "#4CAF50", 4),
+            ("ANALYSIS", "W analizie", false, false, "#00BCD4", 2),
+            ("IN_PROGRESS", "W toku", false, false, "#FF9800", 3),
+            ("BLOCKED", "Wstrzymane", false, false, "#795548", 4),
+            ("REVIEW", "Do akceptacji", false, false, "#9C27B0", 5),
+            ("CLOSED", "Zamknięte", true, false, "#4CAF50", 6),
+            ("REJECTED", "Odrzucone", true, false, "#F44336", 7),
         ];
         foreach (var s in def)
         {
@@ -455,8 +605,10 @@ public static class DemoDataSeeder
         {
             (string Z, string Do)[] przejscia =
             [
-                ("NEW", "IN_PROGRESS"), ("NEW", "CLOSED"),
-                ("IN_PROGRESS", "REVIEW"), ("IN_PROGRESS", "CLOSED"), ("IN_PROGRESS", "NEW"),
+                ("NEW", "ANALYSIS"), ("NEW", "IN_PROGRESS"), ("NEW", "REJECTED"),
+                ("ANALYSIS", "IN_PROGRESS"), ("ANALYSIS", "BLOCKED"), ("ANALYSIS", "REJECTED"),
+                ("IN_PROGRESS", "REVIEW"), ("IN_PROGRESS", "BLOCKED"), ("IN_PROGRESS", "CLOSED"), ("IN_PROGRESS", "NEW"),
+                ("BLOCKED", "IN_PROGRESS"), ("BLOCKED", "REJECTED"),
                 ("REVIEW", "CLOSED"), ("REVIEW", "IN_PROGRESS"),
                 ("CLOSED", "IN_PROGRESS"),
             ];
