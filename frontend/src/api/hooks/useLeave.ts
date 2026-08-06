@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/api/client';
+import { mapujZOgraniczeniem } from '@/api/rownoleglosc';
 import type {
   LeaveTypeDto,
   LeaveBalanceDto,
@@ -51,10 +52,8 @@ export function useTeamLeaveRequests(employeeIds: string[], year: number) {
   return useQuery({
     queryKey: ['leave', 'team-requests', employeeIds, year],
     queryFn: () =>
-      Promise.all(
-        employeeIds.map((id) =>
-          api.get<LeaveRequestDto[]>(`/api/leave/requests/${id}?year=${year}`),
-        ),
+      mapujZOgraniczeniem(employeeIds, (id) =>
+        api.get<LeaveRequestDto[]>(`/api/leave/requests/${id}?year=${year}`),
       ),
     enabled: employeeIds.length > 0,
   });

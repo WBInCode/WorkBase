@@ -71,6 +71,7 @@ SLADY=(
   "src/WorkBase.Host/Endpoints/EcosystemTaskEndpoints.cs:EcosystemTaskSearch"
   "src/WorkBase.Infrastructure/Seeding/DemoDataSeeder.cs:DemoDataSeeder"
   "src/WorkBase.Host/Program.cs:--seed-demo"
+  "frontend/src/api/rownoleglosc.ts:mapujZOgraniczeniem"
 )
 for wpis in "${SLADY[@]}"; do
   plik=${wpis%%:*}

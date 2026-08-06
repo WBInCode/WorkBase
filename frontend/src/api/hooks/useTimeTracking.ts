@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api, ApiError } from '@/api/client';
+import { mapujZOgraniczeniem } from '@/api/rownoleglosc';
 import type { TimeStatusDto, ClockRequest, StartBreakRequest, BreakPolicyDto, BreakAvailabilityDto, TimeSheetPeriodDto, TimeAnomalyDto, ScheduleDto, CreateScheduleRequest, UpdateScheduleRequest, ScheduleTemplateDto, AdminCreateTimeEntryRequest, AdminUpdateTimeEntryRequest, GenerateBatchSchedulesRequest, GenerateBatchResult, ClearSchedulesRequest, ClearSchedulesResult, OrgUnitScheduleDto, CreateOrgUnitScheduleRequest, UpdateOrgUnitScheduleRequest } from '@/api/types/time';
 
 export function useTimeStatus(employeeId: string | undefined) {
@@ -157,12 +158,10 @@ export function useTeamTimesheets(
   return useQuery({
     queryKey: ['time', 'team-timesheets', employeeIds, from, to, period],
     queryFn: () =>
-      Promise.all(
-        employeeIds.map((id) => {
-          const params = new URLSearchParams({ from, to, period });
-          return api.get<TimeSheetPeriodDto>(`/api/time/timesheet/${id}?${params}`);
-        }),
-      ),
+      mapujZOgraniczeniem(employeeIds, (id) => {
+        const params = new URLSearchParams({ from, to, period });
+        return api.get<TimeSheetPeriodDto>(`/api/time/timesheet/${id}?${params}`);
+      }),
     enabled: employeeIds.length > 0,
   });
 }
@@ -173,15 +172,13 @@ export function useTeamTimesheets(
 // a nie awaria. W Promise.all jedno takie 403 odrzucało całe zapytanie i grafik robił się pusty
 // nawet w wierszu samego kierownika.
 function fetchSchedulesPerEmployee(employeeIds: string[], from: string, to: string) {
-  return Promise.all(
-    employeeIds.map((id) => {
-      const params = new URLSearchParams({ from, to });
-      return api.get<ScheduleDto[]>(`/api/time/schedules/${id}?${params}`).catch((error) => {
-        if (error instanceof ApiError && error.status === 403) return [] as ScheduleDto[];
-        throw error;
-      });
-    }),
-  );
+  return mapujZOgraniczeniem(employeeIds, (id) => {
+    const params = new URLSearchParams({ from, to });
+    return api.get<ScheduleDto[]>(`/api/time/schedules/${id}?${params}`).catch((error) => {
+      if (error instanceof ApiError && error.status === 403) return [] as ScheduleDto[];
+      throw error;
+    });
+  });
 }
 
 export function useSchedules(employeeId: string, from: string, to: string) {
