@@ -173,10 +173,44 @@ a,
 
 .alert,
 .pf-c-alert {
-  border: 1px solid #f4c7c7;
+  border: 1px solid var(--wb-line);
   border-radius: 10px;
+  background: #f6f8fc;
+  color: var(--wb-ink);
+}
+
+/* Keycloak oznacza wariant tylko klasa — bez tego komunikat informacyjny wyglada jak blad. */
+.alert-error,
+.pf-c-alert.pf-m-danger {
+  border-color: #f4c7c7;
   background: #fff5f5;
   color: #9f2d2d;
+}
+
+.alert-warning,
+.pf-c-alert.pf-m-warning {
+  border-color: #f2ddb0;
+  background: #fffaf0;
+  color: #8a5a10;
+}
+
+.alert-success,
+.pf-c-alert.pf-m-success {
+  border-color: #bfe5cd;
+  background: #f2fbf5;
+  color: #1d6b3d;
+}
+
+.alert-info,
+.pf-c-alert.pf-m-info {
+  border-color: #c3d5fb;
+  background: #f2f6ff;
+  color: #27407e;
+}
+
+.pf-c-alert__title,
+.pf-c-alert__icon {
+  color: inherit;
 }
 
 #kc-info-wrapper,
@@ -190,6 +224,15 @@ a,
 #kc-content,
 #kc-info {
   color: var(--wb-muted);
+}
+
+.pf-c-form__helper-text.pf-m-error,
+.kc-feedback-text.pf-m-error,
+#input-error,
+[id^="input-error"] {
+  color: #c02626;
+  font-size: 12.5px;
+  font-weight: 600;
 }
 
 .pf-c-input-group .pf-c-form-control {

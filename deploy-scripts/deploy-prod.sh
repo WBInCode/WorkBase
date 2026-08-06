@@ -84,6 +84,15 @@ for wpis in "${SLADY[@]}"; do
 done
 rm -rf "$BASE/src" && mv /tmp/workbase-new "$BASE/src"
 
+# Motyw Keycloaka jest montowany z KATALOGU STALEGO poza src. Podmiana src tworzy nowy
+# inode, a kontener trzymalby stary (usuniety) katalog i motyw znikalby z bramki logowania.
+if ! diff -rq "$BASE/src/docker/keycloak/themes" "$BASE/keycloak-themes" >/dev/null 2>&1; then
+  log "    motyw Keycloaka sie zmienil — synchronizuje i restartuje bramke"
+  rm -rf "$BASE/keycloak-themes"
+  cp -a "$BASE/src/docker/keycloak/themes" "$BASE/keycloak-themes"
+  docker compose -f "$BASE/docker-compose.yml" --project-directory "$BASE" restart keycloak
+fi
+
 restore() {
   log "!! wycofywanie"
   rm -rf "$BASE/src"
