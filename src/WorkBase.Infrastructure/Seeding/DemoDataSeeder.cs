@@ -7,6 +7,7 @@ using WorkBase.Modules.Leave.Domain.Entities;
 using WorkBase.Modules.Organization.Domain.Entities;
 using WorkBase.Modules.Tasks.Domain.Entities;
 using WorkBase.Modules.TimeTracking.Domain.Entities;
+using WorkBase.Modules.Workflow.Domain.Entities;
 using TaskStatus = WorkBase.Modules.Tasks.Domain.Entities.TaskStatus;
 
 namespace WorkBase.Infrastructure.Seeding;
@@ -120,10 +121,11 @@ public static class DemoDataSeeder
         await ZapewnijUstawieniaAsync(db, tenantId, ct);
         await ZapewnijPolitykiAsync(db, tenantId, typyUrlopu, jednostki, ct);
         var wpisowKalendarza = await ZapewnijKalendarzNieobecnosciAsync(db, tenantId, ct);
+        var doAkceptacji = await ZapewnijObiegAkceptacjiAsync(db, tenantId, ct);
 
         logger.LogInformation(
-            "Gotowe: {Jednostki} jednostek, {Stanowiska} stanowisk, {Pracownicy} pracowników, {Grafiki} dni grafiku, {Wejscia} wpisów czasu pracy, {Urlopy} wniosków urlopowych, {Zadania} zadań, {Kalendarz} wpisów w kalendarzu nieobecności",
-            jednostki.Count, stanowiska.Count, pracownicy.Count, grafikow, wejsc, urlopow, zadan, wpisowKalendarza);
+            "Gotowe: {Jednostki} jednostek, {Stanowiska} stanowisk, {Pracownicy} pracowników, {Grafiki} dni grafiku, {Wejscia} wpisów czasu pracy, {Urlopy} wniosków urlopowych, {Zadania} zadań, {Kalendarz} wpisów w kalendarzu nieobecności, {Akceptacje} wniosków do akceptacji",
+            jednostki.Count, stanowiska.Count, pracownicy.Count, grafikow, wejsc, urlopow, zadan, wpisowKalendarza, doAkceptacji);
     }
 
     private static async Task<Dictionary<string, Guid>> ZapewnijJednostkiAsync(
@@ -512,6 +514,57 @@ public static class DemoDataSeeder
         return dodane;
     }
 
+    /// <summary>
+    /// Obieg akceptacji dla wniosków oczekujących. Ekran „Oczekujące akceptacje" czyta
+    /// <c>wf_approval_requests</c>, a nie sam status wniosku urlopowego — bez instancji
+    /// obiegu przełożony nie zobaczy niczego do zatwierdzenia.
+    /// </summary>
+    private static async Task<int> ZapewnijObiegAkceptacjiAsync(
+        WorkBaseDbContext db, Guid tenantId, CancellationToken ct)
+    {
+        await WorkflowSeeder.SeedTenantAsync(db, tenantId, ct);
+
+        var definicja = await db.Set<WorkflowDefinition>().IgnoreQueryFilters()
+            .FirstOrDefaultAsync(d => d.TenantId == tenantId && d.Name == "leave-request-v1", ct);
+        if (definicja is null) return 0;
+
+        var oczekujace = await db.Set<LeaveRequest>().IgnoreQueryFilters()
+            .Where(r => r.TenantId == tenantId
+                        && r.Status == LeaveRequestStatus.Pending
+                        && r.WorkflowInstanceId == null)
+            .ToListAsync(ct);
+        if (oczekujace.Count == 0) return 0;
+
+        var przelozeni = await db.Set<SupervisorRelation>().IgnoreQueryFilters()
+            .Where(r => r.TenantId == tenantId && r.EndDate == null)
+            .ToDictionaryAsync(r => r.SubordinateEmployeeId, r => r.SupervisorEmployeeId, ct);
+
+        var dodane = 0;
+        foreach (var wniosek in oczekujace)
+        {
+            if (!przelozeni.TryGetValue(wniosek.EmployeeId, out var przelozony)) continue;
+
+            var instancja = WorkflowInstance.Create(
+                tenantId, definicja.Id, "LeaveRequest", wniosek.Id, "SupervisorApproval", wniosek.EmployeeId);
+            db.Set<WorkflowInstance>().Add(instancja);
+            await db.SaveChangesAsync(ct);
+
+            var krok = WorkflowStep.Create(tenantId, instancja.Id, "SupervisorApproval");
+            db.Set<WorkflowStep>().Add(krok);
+            await db.SaveChangesAsync(ct);
+
+            db.Set<ApprovalRequest>().Add(ApprovalRequest.Create(
+                tenantId, krok.Id, instancja.Id, wniosek.EmployeeId, przelozony,
+                wniosek.StartDate.AddDays(-1)));
+
+            wniosek.LinkWorkflow(instancja.Id);
+            await db.SaveChangesAsync(ct);
+            dodane++;
+        }
+
+        return dodane;
+    }
+
     private static string Adres(OsobaDemo o)
     {
         static string Bez(string s) => new string(
@@ -599,26 +652,30 @@ public static class DemoDataSeeder
 
         // Pusty słownik przejść znaczy „nie skonfigurowano" (wtedy wolno wszystko),
         // ale demo ma pokazać działającą kontrolę obiegu, więc wypełniamy go jawnie.
-        var maPrzejscia = await db.Set<TaskStatusTransition>().IgnoreQueryFilters()
-            .AnyAsync(t => t.TenantId == tenantId, ct);
-        if (!maPrzejscia)
+        // Uzupełniamy brakujące pary, a nie „wszystko albo nic" — inaczej dołożenie
+        // nowego statusu zostawiłoby go bez żadnego dozwolonego przejścia.
+        var istniejacePrzejscia = (await db.Set<TaskStatusTransition>().IgnoreQueryFilters()
+            .Where(t => t.TenantId == tenantId)
+            .Select(t => new { t.FromStatusId, t.ToStatusId })
+            .ToListAsync(ct))
+            .Select(x => (x.FromStatusId, x.ToStatusId)).ToHashSet();
+
+        (string Z, string Do)[] przejscia =
+        [
+            ("NEW", "ANALYSIS"), ("NEW", "IN_PROGRESS"), ("NEW", "REJECTED"),
+            ("ANALYSIS", "IN_PROGRESS"), ("ANALYSIS", "BLOCKED"), ("ANALYSIS", "REJECTED"),
+            ("IN_PROGRESS", "REVIEW"), ("IN_PROGRESS", "BLOCKED"), ("IN_PROGRESS", "CLOSED"), ("IN_PROGRESS", "NEW"),
+            ("BLOCKED", "IN_PROGRESS"), ("BLOCKED", "REJECTED"),
+            ("REVIEW", "CLOSED"), ("REVIEW", "IN_PROGRESS"),
+            ("CLOSED", "IN_PROGRESS"),
+        ];
+        foreach (var (z, doStatusu) in przejscia)
         {
-            (string Z, string Do)[] przejscia =
-            [
-                ("NEW", "ANALYSIS"), ("NEW", "IN_PROGRESS"), ("NEW", "REJECTED"),
-                ("ANALYSIS", "IN_PROGRESS"), ("ANALYSIS", "BLOCKED"), ("ANALYSIS", "REJECTED"),
-                ("IN_PROGRESS", "REVIEW"), ("IN_PROGRESS", "BLOCKED"), ("IN_PROGRESS", "CLOSED"), ("IN_PROGRESS", "NEW"),
-                ("BLOCKED", "IN_PROGRESS"), ("BLOCKED", "REJECTED"),
-                ("REVIEW", "CLOSED"), ("REVIEW", "IN_PROGRESS"),
-                ("CLOSED", "IN_PROGRESS"),
-            ];
-            foreach (var (z, doStatusu) in przejscia)
-            {
-                db.Set<TaskStatusTransition>().Add(
-                    TaskStatusTransition.Create(tenantId, statusy[z], statusy[doStatusu]));
-            }
-            await db.SaveChangesAsync(ct);
+            if (!statusy.TryGetValue(z, out var zId) || !statusy.TryGetValue(doStatusu, out var doId)) continue;
+            if (istniejacePrzejscia.Contains((zId, doId))) continue;
+            db.Set<TaskStatusTransition>().Add(TaskStatusTransition.Create(tenantId, zId, doId));
         }
+        await db.SaveChangesAsync(ct);
 
         return (statusy, priorytety);
     }

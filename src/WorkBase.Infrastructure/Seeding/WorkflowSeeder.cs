@@ -21,8 +21,8 @@ public static class WorkflowSeeder
 
         var definitions = new List<WorkflowDefinition>
         {
-            CreateLeaveRequestDefinition(),
-            CreateTaskAcceptanceDefinition(),
+            CreateLeaveRequestDefinition(DefaultTenantId),
+            CreateTaskAcceptanceDefinition(DefaultTenantId),
         };
 
         dbContext.Set<WorkflowDefinition>().AddRange(definitions);
@@ -31,7 +31,35 @@ public static class WorkflowSeeder
         logger.LogInformation("Workflow seeding completed: {Count} definitions.", definitions.Count);
     }
 
-    private static WorkflowDefinition CreateLeaveRequestDefinition()
+    /// <summary>
+    /// Definicje obiegów dla wskazanego najemcy. <see cref="SeedAsync"/> obsługuje wyłącznie
+    /// najemcę domyślnego, więc bez tego każda nowa firma zostaje bez obiegu akceptacji.
+    /// </summary>
+    public static async Task SeedTenantAsync(
+        WorkBaseDbContext dbContext,
+        Guid tenantId,
+        CancellationToken cancellationToken = default)
+    {
+        var istniejace = await dbContext.Set<WorkflowDefinition>()
+            .IgnoreQueryFilters()
+            .Where(d => d.TenantId == tenantId)
+            .Select(d => d.Name)
+            .ToListAsync(cancellationToken);
+
+        foreach (var definicja in new[]
+                 {
+                     CreateLeaveRequestDefinition(tenantId),
+                     CreateTaskAcceptanceDefinition(tenantId),
+                 })
+        {
+            if (istniejace.Contains(definicja.Name)) continue;
+            dbContext.Set<WorkflowDefinition>().Add(definicja);
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private static WorkflowDefinition CreateLeaveRequestDefinition(Guid tenantId)
     {
         const string json = """
         {
@@ -77,13 +105,13 @@ public static class WorkflowSeeder
         """;
 
         return WorkflowDefinition.Create(
-            DefaultTenantId,
+            tenantId,
             "leave-request-v1",
             json,
             "Wniosek urlopowy: Draft → SupervisorApproval → Approved/Rejected");
     }
 
-    private static WorkflowDefinition CreateTaskAcceptanceDefinition()
+    private static WorkflowDefinition CreateTaskAcceptanceDefinition(Guid tenantId)
     {
         const string json = """
         {
@@ -127,7 +155,7 @@ public static class WorkflowSeeder
         """;
 
         return WorkflowDefinition.Create(
-            DefaultTenantId,
+            tenantId,
             "task-acceptance-v1",
             json,
             "Akceptacja zadania: Pending → Accepted/Returned → Reassigned/Cancelled");
