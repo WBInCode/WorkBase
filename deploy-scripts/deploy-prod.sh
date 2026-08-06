@@ -40,6 +40,8 @@ tar xzf /tmp/workbase-src.tar.gz -C /tmp/workbase-new
 # Bramka: paczka musi zawierac slady tego, co wlasnie wdrazamy. Liste aktualizujemy przy
 # kazdym wdrozeniu — chodzi o wylapanie sytuacji, w ktorej podlozylo sie starsze zrodlo.
 SLADY=(
+  "src/Modules/Workflow/WorkBase.Modules.Workflow.Application/WorkflowEngine.cs:WejdzDoKrokuAsync"
+  "src/WorkBase.Infrastructure/Leave/ZamknijWniosekUrlopowyPoObiegu.cs:ZamknijWniosekUrlopowyPoObiegu"
   "src/WorkBase.Infrastructure/Auth/EmployeeScopeResolver.cs:Select(scope => scope.ScopeLevel)"
   "src/WorkBase.Infrastructure/Auth/EmployeeScopeResolver.cs:DataScopeLevelValue.Department"
   "frontend/src/api/hooks/useTimeTracking.ts:fetchSchedulesPerEmployee"

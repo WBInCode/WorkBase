@@ -57,16 +57,19 @@ public class SubmitLeaveRequestHandlerTests
         _balanceRepo.GetAsync(TenantId, EmployeeId, typeId, 2025, Arg.Any<CancellationToken>()).Returns(balance);
         _calculator.ValidateBalance(balance, 5).Returns(Result.Success());
         _workflowService.CreateInstanceAsync(
-            TenantId, "leave-request-v1", "LeaveRequest", Arg.Any<Guid>(), EmployeeId, Arg.Any<CancellationToken>())
+            TenantId, "leave-request-v1", "LeaveRequest", Arg.Any<Guid>(), EmployeeId,
+            Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(workflowId);
 
         var command = CreateCommand(typeId);
         var result = await _handler.Handle(command, CancellationToken.None);
 
         Assert.True(result.IsSuccess);
+        // "submitted" wyprowadza obieg z kroku Draft do kroku akceptacji — bez tego
+        // przelozony nie dostaje wniosku do decyzji.
         await _workflowService.Received(1).CreateInstanceAsync(
             TenantId, "leave-request-v1", "LeaveRequest",
-            Arg.Any<Guid>(), EmployeeId, Arg.Any<CancellationToken>());
+            Arg.Any<Guid>(), EmployeeId, "submitted", Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -86,7 +89,7 @@ public class SubmitLeaveRequestHandlerTests
         Assert.True(result.IsSuccess);
         await _workflowService.DidNotReceive().CreateInstanceAsync(
             Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<string>(),
-            Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+            Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -144,7 +147,7 @@ public class SubmitLeaveRequestHandlerTests
         _calculator.ValidateBalance(Arg.Any<LeaveBalance>(), 5).Returns(Result.Success());
         _workflowService.CreateInstanceAsync(
             Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<string>(),
-            Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(Guid.NewGuid());
 
         var command = CreateCommand(leaveType.Id);
@@ -189,7 +192,7 @@ public class SubmitLeaveRequestHandlerTests
         _calculator.ValidateBalance(balance, 5).Returns(Result.Success());
         _workflowService.CreateInstanceAsync(
             Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<string>(),
-            Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(Guid.NewGuid());
 
         var command = CreateCommand(leaveType.Id);

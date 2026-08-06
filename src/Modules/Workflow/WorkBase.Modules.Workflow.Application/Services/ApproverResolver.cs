@@ -38,12 +38,13 @@ public sealed class ApproverResolver(ISupervisorLookupService supervisorLookup) 
         Guid initiatedByUserId,
         CancellationToken cancellationToken)
     {
-        var employeeId = await supervisorLookup.GetEmployeeIdByUserIdAsync(initiatedByUserId, cancellationToken);
-        if (employeeId is null)
-            return Result.Failure<Guid>(Error.NotFound("Approval.EmployeeNotFound",
-                "Nie znaleziono pracownika powiązanego z użytkownikiem inicjującym workflow."));
+        // Inicjator bywa identyfikatorem konta (obieg z API), a bywa identyfikatorem
+        // pracownika (wniosek urlopowy) — bez tego drugiego przypadku wnioski urlopowe
+        // nigdy nie znajdowały przelozonego.
+        var employeeId = await supervisorLookup.GetEmployeeIdByUserIdAsync(initiatedByUserId, cancellationToken)
+            ?? initiatedByUserId;
 
-        var supervisorId = await supervisorLookup.GetSupervisorEmployeeIdAsync(employeeId.Value, cancellationToken);
+        var supervisorId = await supervisorLookup.GetSupervisorEmployeeIdAsync(employeeId, cancellationToken);
         if (supervisorId is null)
             return Result.Failure<Guid>(Error.NotFound("Approval.SupervisorNotFound",
                 "Nie znaleziono przełożonego dla pracownika inicjującego workflow."));

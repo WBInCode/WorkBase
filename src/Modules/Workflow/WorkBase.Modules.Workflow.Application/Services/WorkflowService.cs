@@ -16,6 +16,7 @@ public sealed class WorkflowService(
         string entityType,
         Guid entityId,
         Guid initiatedByUserId,
+        string? initialOutcome = null,
         CancellationToken cancellationToken = default)
     {
         var definition = await definitionRepository.GetByNameAsync(tenantId, definitionName, cancellationToken);
@@ -23,7 +24,7 @@ public sealed class WorkflowService(
             return null;
 
         var result = await workflowEngine.CreateInstanceAsync(
-            tenantId, definition.Id, entityType, entityId, initiatedByUserId, cancellationToken);
+            tenantId, definition.Id, entityType, entityId, initiatedByUserId, initialOutcome, cancellationToken);
 
         return result.IsSuccess ? result.Value : null;
     }

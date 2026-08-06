@@ -32,15 +32,19 @@ public class ApproverResolverTests
     }
 
     [Fact]
-    public async Task Supervisor_ReturnsFailureWhenEmployeeNotFound()
+    public async Task Supervisor_TraktujeInicjatoraJakoPracownikaGdyBrakKonta()
     {
-        var userId = Guid.NewGuid();
-        _supervisorLookup.GetEmployeeIdByUserIdAsync(userId, Arg.Any<CancellationToken>()).Returns((Guid?)null);
+        // Wniosek urlopowy podaje identyfikator PRACOWNIKA, nie konta — wtedy lookup po
+        // koncie zwraca null, a identyfikator trzeba użyć wprost.
+        var employeeId = Guid.NewGuid();
+        var supervisorId = Guid.NewGuid();
+        _supervisorLookup.GetEmployeeIdByUserIdAsync(employeeId, Arg.Any<CancellationToken>()).Returns((Guid?)null);
+        _supervisorLookup.GetSupervisorEmployeeIdAsync(employeeId, Arg.Any<CancellationToken>()).Returns(supervisorId);
 
-        var result = await _resolver.ResolveApproverAsync("supervisor", userId);
+        var result = await _resolver.ResolveApproverAsync("supervisor", employeeId);
 
-        Assert.True(result.IsFailure);
-        Assert.Equal("Approval.EmployeeNotFound", result.Error.Code);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(supervisorId, result.Value);
     }
 
     [Fact]

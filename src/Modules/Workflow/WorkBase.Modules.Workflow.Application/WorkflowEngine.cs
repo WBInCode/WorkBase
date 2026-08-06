@@ -23,6 +23,7 @@ public interface IWorkflowEngine
         string entityType,
         Guid entityId,
         Guid initiatedBy,
+        string? initialOutcome = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -117,6 +118,7 @@ public sealed class WorkflowEngine(
         string entityType,
         Guid entityId,
         Guid initiatedBy,
+        string? initialOutcome = null,
         CancellationToken cancellationToken = default)
     {
         var definition = await definitionRepository.GetByIdAsync(definitionId, cancellationToken);
@@ -147,17 +149,49 @@ public sealed class WorkflowEngine(
 
         await instanceRepository.AddAsync(instance, cancellationToken);
 
-        var step = WorkflowStep.Create(tenantId, instance.Id, model.InitialStep);
+        var wejscie = await WejdzDoKrokuAsync(instance, model, model.InitialStep, cancellationToken);
+        if (wejscie.IsFailure)
+            return Result.Failure<Guid>(wejscie.Error);
+
+        // Krok startowy bywa tylko przejsciowy (np. "Draft" wniosku urlopowego). Modul
+        // zglaszajacy podaje rozstrzygniecie, ktorym ma od razu przejsc dalej — bez tego
+        // obieg utknalby przed krokiem akceptacji i przelozony nie dostalby nic do decyzji.
+        if (!string.IsNullOrWhiteSpace(initialOutcome))
+        {
+            var krokStartowy = model.Steps.FirstOrDefault(s => s.Name == model.InitialStep);
+            var przejscie = krokStartowy?.Transitions?.FirstOrDefault(t =>
+                string.Equals(t.Outcome, initialOutcome, StringComparison.OrdinalIgnoreCase));
+            if (przejscie is not null)
+            {
+                instance.AdvanceTo(przejscie.TargetStep);
+                instanceRepository.Update(instance);
+
+                var dalej = await WejdzDoKrokuAsync(instance, model, przejscie.TargetStep, cancellationToken);
+                if (dalej.IsFailure)
+                    return Result.Failure<Guid>(dalej.Error);
+            }
+        }
+
+        return instance.Id;
+    }
+
+    /// <summary>Tworzy krok, wykonuje akcje on_enter i zaklada wnioski do akceptacji.</summary>
+    private async Task<Result> WejdzDoKrokuAsync(
+        WorkflowInstance instance,
+        WorkflowDefinitionModel model,
+        string stepName,
+        CancellationToken cancellationToken)
+    {
+        var step = WorkflowStep.Create(instance.TenantId, instance.Id, stepName);
         await stepRepository.AddAsync(step, cancellationToken);
 
-        // Execute on_enter actions for the initial step
-        var stepDef = model.Steps.FirstOrDefault(s => s.Name == model.InitialStep);
+        var stepDef = model.Steps.FirstOrDefault(s => s.Name == stepName);
         if (stepDef?.Actions is not null)
         {
             foreach (var actionDef in stepDef.Actions.Where(a => a.Trigger == "on_enter"))
             {
                 var action = WorkflowAction.Create(
-                    tenantId, step.Id, instance.Id, actionDef.Type,
+                    instance.TenantId, step.Id, instance.Id, actionDef.Type,
                     actionDef.Payload is not null
                         ? System.Text.Json.JsonSerializer.Serialize(actionDef.Payload)
                         : null);
@@ -166,21 +200,24 @@ public sealed class WorkflowEngine(
             }
         }
 
-        // Create approval request if initial step is an approval step
         if (stepDef?.Type == "approval" && stepDef.ApproverStrategy is not null)
         {
-            var approverResult = await approverResolver.ResolveApproverAsync(
-                stepDef.ApproverStrategy, initiatedBy, cancellationToken);
-            if (approverResult is null || approverResult.IsFailure)
-                return Result.Failure<Guid>(approverResult?.Error
-                    ?? new Error("Approval.ResolverFailed", "Nie udało się rozwiązać akceptanta."));
+            var poziomy = stepDef.ApproverLevels ?? 1;
+            for (var poziom = 0; poziom < poziomy; poziom++)
+            {
+                var approverResult = await approverResolver.ResolveApproverAsync(
+                    stepDef.ApproverStrategy, instance.InitiatedBy, cancellationToken);
+                if (approverResult is null || approverResult.IsFailure)
+                    return Result.Failure(approverResult?.Error
+                        ?? new Error("Approval.ResolverFailed", "Nie udało się rozwiązać akceptanta."));
 
-            var approvalRequest = ApprovalRequest.Create(
-                tenantId, step.Id, instance.Id, initiatedBy, approverResult.Value);
-            await approvalRequestRepository.AddAsync(approvalRequest, cancellationToken);
+                var approvalRequest = ApprovalRequest.Create(
+                    instance.TenantId, step.Id, instance.Id, instance.InitiatedBy, approverResult.Value, order: poziom);
+                await approvalRequestRepository.AddAsync(approvalRequest, cancellationToken);
+            }
         }
 
-        return instance.Id;
+        return Result.Success();
     }
 
     public async Task<Result<string>> AdvanceStepAsync(

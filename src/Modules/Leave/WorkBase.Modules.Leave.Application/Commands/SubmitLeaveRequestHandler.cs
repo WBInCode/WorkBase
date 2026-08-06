@@ -87,6 +87,7 @@ public sealed class SubmitLeaveRequestHandler(
                 "LeaveRequest",
                 leaveRequest.Id,
                 request.EmployeeId,
+                initialOutcome: "submitted",
                 cancellationToken);
 
             if (workflowInstanceId.HasValue)
