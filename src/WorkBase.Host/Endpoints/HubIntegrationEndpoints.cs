@@ -82,10 +82,12 @@ public static class HubIntegrationEndpoints
         .WithName("HubManualSync")
         .WithSummary("Ręczny resync modułów z Hub Entitlements API");
 
-        // Poza grupą /api/hub — Hub konstruuje URL callbacku jako {baseUrl}/sso/callback
-        // (zgodnie z innymi produktami: dziennik-v2, chatv2). nginx musi go proxować do API
-        // (patrz frontend/nginx.conf — dopasowanie DOKŁADNE, żeby nie połknąć /auth/sso-bridge SPA).
-        endpoints.MapGet("/sso/callback", async (
+        // Hub buduje adres callbacku jako {baseUrl}/sso/callback. Trasa w korzeniu jest
+        // nawigacją SPA, więc nieżywy service worker PWA potrafi ją obsłużyć z cache i bilet
+        // nigdy nie dociera do API. Dlatego ten sam handler wisi też pod /api/hub, gdzie
+        // service worker ma stały wyjątek (navigateFallbackDenylist) — i to ten adres
+        // ustawiamy jako baseUrl instancji, tak jak robi dziennik-v2.
+        var obsluzHandoff = async (
             string? token,
             HubSsoService sso,
             HubEntitlementsSyncService entitlements,
@@ -206,10 +208,18 @@ public static class HubIntegrationEndpoints
             // nie leci w URL. Konto już istnieje i ma właściwą rolę, więc to już tylko hasło.
             return Results.Redirect(
                 $"{frontendUrl}/auth/sso-bridge?realm=&email={Uri.EscapeDataString(claims.Email)}");
-        })
-        .AllowAnonymous()
-        .WithName("HubSsoCallback")
-        .WithSummary("Handoff SSO z Huba: weryfikacja + JIT provisioning konta Keycloak, potem redirect do logowania z podpowiedzią e-maila");
+        };
+
+        endpoints.MapGet("/api/hub/sso/callback", obsluzHandoff)
+            .AllowAnonymous()
+            .WithName("HubSsoCallback")
+            .WithSummary("Handoff SSO z Huba: weryfikacja + JIT provisioning konta Keycloak, potem redirect do logowania z podpowiedzią e-maila");
+
+        // Stary adres zostaje dla instancji, które mają jeszcze baseUrl bez /api/hub.
+        endpoints.MapGet("/sso/callback", obsluzHandoff)
+            .AllowAnonymous()
+            .WithName("HubSsoCallbackKorzen")
+            .ExcludeFromDescription();
 
         return endpoints;
     }
