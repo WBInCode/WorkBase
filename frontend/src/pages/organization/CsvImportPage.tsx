@@ -80,8 +80,8 @@ export function CsvImportPage() {
         firstName: ['imię', 'imie', 'first name', 'firstname', 'first_name', 'name'],
         lastName: ['nazwisko', 'last name', 'lastname', 'last_name', 'surname'],
         email: ['email', 'e-mail', 'mail'],
-        employeeNumber: ['nr pracownika', 'numer', 'employee number', 'employeenumber', 'employee_number', 'emp_no'],
-        hireDate: ['data zatrudnienia', 'hire date', 'hiredate', 'hire_date', 'data'],
+        employeeNumber: ['nr pracownika', 'nr_pracownika', 'numer', 'numer_pracownika', 'employee number', 'employeenumber', 'employee_number', 'emp_no'],
+        hireDate: ['data zatrudnienia', 'data_zatrudnienia', 'datazatrudnienia', 'hire date', 'hiredate', 'hire_date', 'data'],
       };
       parsed.headers.forEach((h, idx) => {
         const lower = h.toLowerCase().trim();
@@ -160,6 +160,7 @@ export function CsvImportPage() {
   }, [getMappedRows]);
 
   const requiredMapped = EMPLOYEE_FIELDS.filter((f) => f.required).every((f) => mapping[f.key] !== null);
+  const brakujacePola = EMPLOYEE_FIELDS.filter((f) => f.required && mapping[f.key] === null).map((f) => f.label);
 
   /* ── Render ── */
   return (
@@ -246,10 +247,15 @@ export function CsvImportPage() {
             </table>
           </div>
 
-          <div style={{ display: 'flex', gap: '10px', marginTop: '20px', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', gap: '10px', marginTop: '20px', justifyContent: 'space-between', alignItems: 'center' }}>
             <button onClick={() => { setStep('upload'); setCsv(null); }} style={secondaryBtnStyle}>
               <ArrowLeft size={16} /> Wróć
             </button>
+            {brakujacePola.length > 0 && (
+              <span style={{ fontSize: '13px', color: colors.warning[700] }}>
+                Przypisz kolumny do pól: {brakujacePola.join(', ')}
+              </span>
+            )}
             <button
               disabled={!requiredMapped}
               onClick={() => setStep('preview')}
