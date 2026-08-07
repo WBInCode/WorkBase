@@ -118,6 +118,8 @@ public static class InfrastructureServiceCollectionExtensions
             Leave.ZamknijWniosekUrlopowyPoObiegu>();
         services.AddScoped<MediatR.INotificationHandler<Modules.Workflow.Domain.Events.WorkflowInstanceRejectedEvent>,
             Leave.ZamknijWniosekUrlopowyPoObiegu>();
+        services.AddScoped<MediatR.INotificationHandler<Modules.Workflow.Domain.Events.ApprovalRequestCreatedEvent>,
+            Leave.ZamknijWniosekUrlopowyPoObiegu>();
 
         services.AddScoped<DomainEventInterceptor>();
         services.AddScoped<AuditSaveChangesInterceptor>();

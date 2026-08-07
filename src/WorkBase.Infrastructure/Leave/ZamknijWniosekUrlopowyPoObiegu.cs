@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using WorkBase.Infrastructure.Persistence;
 using WorkBase.Modules.Leave.Domain.Entities;
+using WorkBase.Modules.Workflow.Domain.Entities;
 using WorkBase.Modules.Workflow.Domain.Events;
 
 namespace WorkBase.Infrastructure.Leave;
@@ -17,9 +18,28 @@ public sealed class ZamknijWniosekUrlopowyPoObiegu(
     WorkBaseDbContext dbContext,
     ILogger<ZamknijWniosekUrlopowyPoObiegu> logger)
     : INotificationHandler<WorkflowInstanceCompletedEvent>,
-      INotificationHandler<WorkflowInstanceRejectedEvent>
+      INotificationHandler<WorkflowInstanceRejectedEvent>,
+      INotificationHandler<ApprovalRequestCreatedEvent>
 {
     private const string TypEncji = "LeaveRequest";
+
+    /// <summary>
+    /// Terminem decyzji jest początek urlopu — silnik obiegu tego nie wie, więc kolumna
+    /// „Termin” na liście akceptacji świeciła pustym myślnikiem.
+    /// </summary>
+    public async Task Handle(ApprovalRequestCreatedEvent notification, CancellationToken cancellationToken)
+    {
+        var wniosek = await PobierzAsync(notification.InstanceId, cancellationToken);
+        if (wniosek is null) return;
+
+        var zadanie = await dbContext.Set<ApprovalRequest>()
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(r => r.Id == notification.RequestId, cancellationToken);
+        if (zadanie is null || zadanie.DueDate is not null) return;
+
+        zadanie.SetDueDate(wniosek.StartDate);
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
 
     public async Task Handle(WorkflowInstanceCompletedEvent notification, CancellationToken cancellationToken)
     {

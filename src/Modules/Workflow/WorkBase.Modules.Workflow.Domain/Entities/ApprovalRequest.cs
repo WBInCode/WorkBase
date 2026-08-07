@@ -43,6 +43,9 @@ public sealed class ApprovalRequest : AuditableEntity<Guid>, ITenantScoped, IAud
         return request;
     }
 
+    /// <summary>Termin decyzji — moduł zgłaszający zna go dopiero po utworzeniu wniosku.</summary>
+    public void SetDueDate(DateTime dueDate) => DueDate = dueDate;
+
     public void Approve()
     {
         Status = "Approved";

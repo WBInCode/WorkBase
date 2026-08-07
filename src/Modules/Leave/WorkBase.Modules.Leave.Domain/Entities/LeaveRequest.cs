@@ -32,6 +32,9 @@ public sealed class LeaveRequest : AuditableEntity<Guid>, ITenantScoped, IAudita
     {
         return new LeaveRequest
         {
+            // Identyfikator nadajemy od razu, a nie dopiero przy zapisie: obieg akceptacji
+            // tworzony jest w tej samej komendzie i musi znać, do czego się odnosi.
+            Id = Guid.CreateVersion7(),
             TenantId = tenantId,
             EmployeeId = employeeId,
             LeaveTypeId = leaveTypeId,
