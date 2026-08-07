@@ -37,6 +37,7 @@ public sealed class SubmitLeaveRequestHandler(
                 $"Istnieje już wniosek urlopowy w podanym okresie ({request.StartDate:d} – {request.EndDate:d})."));
 
         // Validate balance (only for types with limits)
+        LeaveBalance? zatwierdzoneSaldo = null;
         if (leaveType.DefaultDaysPerYear.HasValue)
         {
             var year = request.StartDate.Year;
@@ -64,6 +65,8 @@ public sealed class SubmitLeaveRequestHandler(
             balance!.AddPending(request.TotalDays);
             if (!isNewBalance)
                 leaveBalanceRepository.Update(balance);
+
+            zatwierdzoneSaldo = balance;
         }
 
         // Create and submit the leave request
@@ -98,6 +101,10 @@ public sealed class SubmitLeaveRequestHandler(
             // Auto-approve for types that don't require approval
             leaveRequest.Submit();
             leaveRequest.Approve();
+
+            // Dni zostały wcześniej zarezerwowane jako oczekujące. Bez tego przeksięgowania
+            // wniosek był zatwierdzony, a saldo do końca roku pokazywało go jako oczekujący.
+            zatwierdzoneSaldo?.ConfirmUsed(request.TotalDays);
         }
 
         await leaveRequestRepository.AddAsync(leaveRequest, cancellationToken);

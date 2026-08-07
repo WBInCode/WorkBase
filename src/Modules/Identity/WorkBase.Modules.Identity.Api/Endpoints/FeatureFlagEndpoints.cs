@@ -16,10 +16,11 @@ public static class FeatureFlagEndpoints
             .WithTags("IAM – Feature Flags")
             .RequireAuthorization();
 
+        // Flagi sterują widocznymi modułami, więc czyta je każdy zalogowany — wymaganie
+        // "identity.view" (tylko Admin/HR) dawało 403 przy każdym wejściu zwykłego pracownika.
         group.MapGet("/", GetFeatureFlags)
             .WithName("GetFeatureFlags")
             .WithSummary("Pobierz flagi funkcjonalności")
-            .RequirePermission("identity.view")
             .Produces<List<FeatureFlagDto>>();
 
         group.MapPut("/{module}/toggle", ToggleFeatureFlag)

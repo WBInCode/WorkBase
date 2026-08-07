@@ -175,6 +175,16 @@ public sealed class UserProvisioningService
             // and a fresh SPA session fires several in parallel — each sees "no user yet" and
             // tries to insert. One wins, the rest hit the unique index on keycloak_id. The
             // user exists now, which is all we need.
+            // Odłączamy nieudane wpisy: inaczej zostają w stanie Added i KOLEJNY zapis w tym
+            // samym żądaniu (UnitOfWorkBehavior) powtarza wstawienie, tym razem bez obsługi.
+            _dbContext.Entry(user).State = EntityState.Detached;
+            foreach (var wpis in _dbContext.ChangeTracker.Entries<UserRole>()
+                         .Where(e => e.State == EntityState.Added && e.Entity.UserId == user.Id)
+                         .ToList())
+            {
+                wpis.State = EntityState.Detached;
+            }
+
             _logger.LogDebug("User {KeycloakId} was provisioned concurrently by another request, skipping.", keycloakId);
             return;
         }
