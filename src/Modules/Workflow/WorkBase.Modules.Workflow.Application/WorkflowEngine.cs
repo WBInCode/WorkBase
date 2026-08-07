@@ -24,6 +24,7 @@ public interface IWorkflowEngine
         Guid entityId,
         Guid initiatedBy,
         string? initialOutcome = null,
+        DateTime? approvalDueDate = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -119,6 +120,7 @@ public sealed class WorkflowEngine(
         Guid entityId,
         Guid initiatedBy,
         string? initialOutcome = null,
+        DateTime? approvalDueDate = null,
         CancellationToken cancellationToken = default)
     {
         var definition = await definitionRepository.GetByIdAsync(definitionId, cancellationToken);
@@ -149,7 +151,7 @@ public sealed class WorkflowEngine(
 
         await instanceRepository.AddAsync(instance, cancellationToken);
 
-        var wejscie = await WejdzDoKrokuAsync(instance, model, model.InitialStep, cancellationToken);
+        var wejscie = await WejdzDoKrokuAsync(instance, model, model.InitialStep, approvalDueDate, cancellationToken);
         if (wejscie.IsFailure)
             return Result.Failure<Guid>(wejscie.Error);
 
@@ -167,7 +169,7 @@ public sealed class WorkflowEngine(
                 // do tego samego INSERT-a. Update() wymusilby UPDATE nieistniejacego wiersza.
                 instance.AdvanceTo(przejscie.TargetStep);
 
-                var dalej = await WejdzDoKrokuAsync(instance, model, przejscie.TargetStep, cancellationToken);
+                var dalej = await WejdzDoKrokuAsync(instance, model, przejscie.TargetStep, approvalDueDate, cancellationToken);
                 if (dalej.IsFailure)
                     return Result.Failure<Guid>(dalej.Error);
             }
@@ -181,6 +183,7 @@ public sealed class WorkflowEngine(
         WorkflowInstance instance,
         WorkflowDefinitionModel model,
         string stepName,
+        DateTime? approvalDueDate,
         CancellationToken cancellationToken)
     {
         var step = WorkflowStep.Create(instance.TenantId, instance.Id, stepName);
@@ -213,7 +216,8 @@ public sealed class WorkflowEngine(
                         ?? new Error("Approval.ResolverFailed", "Nie udało się rozwiązać akceptanta."));
 
                 var approvalRequest = ApprovalRequest.Create(
-                    instance.TenantId, step.Id, instance.Id, instance.InitiatedBy, approverResult.Value, order: poziom);
+                    instance.TenantId, step.Id, instance.Id, instance.InitiatedBy, approverResult.Value,
+                    dueDate: approvalDueDate, order: poziom);
                 await approvalRequestRepository.AddAsync(approvalRequest, cancellationToken);
             }
         }

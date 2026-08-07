@@ -15,6 +15,7 @@ public sealed class CreateWorkflowInstanceHandler(IWorkflowEngine workflowEngine
             request.EntityId,
             request.InitiatedBy,
             initialOutcome: null,
+            approvalDueDate: null,
             cancellationToken);
     }
 }

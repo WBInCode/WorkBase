@@ -14,6 +14,7 @@ public interface IWorkflowService
     /// Rozstrzygnięcie, którym obieg ma od razu opuścić krok startowy (np. "submitted").
     /// Bez niego obieg zatrzyma się przed krokiem akceptacji.
     /// </param>
+    /// <param name="approvalDueDate">Termin decyzji pokazywany akceptantowi (np. początek urlopu).</param>
     Task<Guid?> CreateInstanceAsync(
         Guid tenantId,
         string definitionName,
@@ -21,5 +22,6 @@ public interface IWorkflowService
         Guid entityId,
         Guid initiatedByUserId,
         string? initialOutcome = null,
+        DateTime? approvalDueDate = null,
         CancellationToken cancellationToken = default);
 }
