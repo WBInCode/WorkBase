@@ -1,5 +1,6 @@
 using WorkBase.Modules.TimeTracking.Application.Contracts;
 using WorkBase.Modules.TimeTracking.Domain.Entities;
+using WorkBase.Modules.TimeTracking.Domain.Services;
 using WorkBase.Shared.Cqrs;
 using WorkBase.Shared.Domain;
 
@@ -43,10 +44,11 @@ public sealed class ClockOutHandler(
 
         // Recalculate timesheet for today
         var today = DateOnly.FromDateTime(now);
-        var entries = await timeEntryRepository.GetEntriesForDateAsync(
+        var entries = await timeEntryRepository.GetEntriesAroundDateAsync(
             request.TenantId, request.EmployeeId, today, cancellationToken);
+        entries.Add(entry);
 
-        var (totalWorked, totalBreaks) = CalculateWorkedTime(entries);
+        var wynik = WorkedTimeCalculator.ForDate(entries, today, now);
 
         var timeSheet = await timeSheetRepository.GetByDateAsync(
             request.TenantId, request.EmployeeId, today, cancellationToken);
@@ -54,13 +56,34 @@ public sealed class ClockOutHandler(
         if (timeSheet is null)
         {
             timeSheet = TimeSheet.Create(request.TenantId, request.EmployeeId, today);
-            timeSheet.Recalculate(totalWorked, totalBreaks);
+            timeSheet.Recalculate(wynik.Worked, wynik.Breaks);
             await timeSheetRepository.AddAsync(timeSheet, cancellationToken);
         }
         else
         {
-            timeSheet.Recalculate(totalWorked, totalBreaks);
+            timeSheet.Recalculate(wynik.Worked, wynik.Breaks);
             timeSheetRepository.Update(timeSheet);
+        }
+
+        // Zmiana nocna: wejście było wczoraj, więc tamta doba też wymaga przeliczenia.
+        var wczoraj = today.AddDays(-1);
+        if (entries.Any(e => DateOnly.FromDateTime(e.EntryTime) == wczoraj))
+        {
+            var wynikWczoraj = WorkedTimeCalculator.ForDate(entries, wczoraj, now);
+            var kartaWczoraj = await timeSheetRepository.GetByDateAsync(
+                request.TenantId, request.EmployeeId, wczoraj, cancellationToken);
+
+            if (kartaWczoraj is null)
+            {
+                kartaWczoraj = TimeSheet.Create(request.TenantId, request.EmployeeId, wczoraj);
+                kartaWczoraj.Recalculate(wynikWczoraj.Worked, wynikWczoraj.Breaks);
+                await timeSheetRepository.AddAsync(kartaWczoraj, cancellationToken);
+            }
+            else
+            {
+                kartaWczoraj.Recalculate(wynikWczoraj.Worked, wynikWczoraj.Breaks);
+                timeSheetRepository.Update(kartaWczoraj);
+            }
         }
 
         // Update PlannedEnd on Unplanned schedules
@@ -74,48 +97,5 @@ public sealed class ClockOutHandler(
         }
 
         return entry.Id;
-    }
-
-    private static (TimeSpan TotalWorked, TimeSpan TotalBreaks) CalculateWorkedTime(List<TimeEntry> entries)
-    {
-        var ordered = entries.OrderBy(e => e.EntryTime).ToList();
-
-        var totalWorked = TimeSpan.Zero;
-        var totalBreaks = TimeSpan.Zero;
-
-        DateTime? clockInTime = null;
-        DateTime? breakStartTime = null;
-
-        foreach (var entry in ordered)
-        {
-            switch (entry.Type)
-            {
-                case TimeEntryType.ClockIn:
-                    clockInTime = entry.EntryTime;
-                    break;
-
-                case TimeEntryType.BreakStart:
-                    breakStartTime = entry.EntryTime;
-                    break;
-
-                case TimeEntryType.BreakEnd:
-                    if (breakStartTime.HasValue)
-                    {
-                        totalBreaks += entry.EntryTime - breakStartTime.Value;
-                        breakStartTime = null;
-                    }
-                    break;
-
-                case TimeEntryType.ClockOut:
-                    if (clockInTime.HasValue)
-                    {
-                        totalWorked += entry.EntryTime - clockInTime.Value;
-                        clockInTime = null;
-                    }
-                    break;
-            }
-        }
-
-        return (totalWorked, totalBreaks);
     }
 }

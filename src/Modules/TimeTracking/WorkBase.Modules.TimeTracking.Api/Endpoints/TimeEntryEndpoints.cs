@@ -91,6 +91,15 @@ public static class TimeEntryEndpoints
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound);
 
+        // Porzadkowanie ewidencji: karty zapisane przed poprawka kalkulatora
+        // trzymaja sumy dluzsze niz doba i same sie nie naprawia.
+        group.MapPost("/recalculate", RecalculateSheets)
+            .WithName("RecalculateTimeSheets")
+            .WithSummary("Przelicz karty czasu pracy na nowo z odbic")
+            .RequirePermission("time.manage")
+            .Produces<RecalculateTimeSheetsResult>()
+            .Produces(StatusCodes.Status400BadRequest);
+
         return endpoints;
     }
 
@@ -263,6 +272,17 @@ public static class TimeEntryEndpoints
             : result.ToHttpResult();
     }
 
+    private static async Task<IResult> RecalculateSheets(
+        RecalculateTimeSheetsRequest request,
+        ISender sender,
+        CancellationToken cancellationToken)
+    {
+        var command = new RecalculateTimeSheetsCommand(request.From, request.To, request.EmployeeId);
+        var result = await sender.Send(command, cancellationToken);
+
+        return result.IsSuccess ? Results.Ok(result.Value) : result.ToHttpResult();
+    }
+
     private static async Task<IResult> AdminUpdateEntry(
         Guid entryId,
         AdminUpdateTimeEntryRequest request,
@@ -376,3 +396,4 @@ public sealed record EndBreakRequest(Guid EmployeeId, string? Note = null);
 public sealed record TimeSheetRequest(DateOnly? From, DateOnly? To, string? Period);
 public sealed record AdminCreateTimeEntryRequest(Guid EmployeeId, DateTime EntryTime, string Type, string? BreakType = null, string? Note = null);
 public sealed record AdminUpdateTimeEntryRequest(DateTime EntryTime, string Type, string? BreakType = null, string? Note = null);
+public sealed record RecalculateTimeSheetsRequest(DateOnly From, DateOnly To, Guid? EmployeeId = null);

@@ -44,6 +44,21 @@ public sealed class TimeEntryRepository(WorkBaseDbContext dbContext) : ITimeEntr
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<List<TimeEntry>> GetEntriesAroundDateAsync(
+        Guid tenantId, Guid employeeId, DateOnly date, CancellationToken cancellationToken = default)
+    {
+        var startUtc = date.AddDays(-1).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+        var endUtc = date.AddDays(2).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+
+        return await dbContext.Set<TimeEntry>()
+            .Where(e => e.TenantId == tenantId
+                && e.EmployeeId == employeeId
+                && e.EntryTime >= startUtc
+                && e.EntryTime < endUtc)
+            .OrderBy(e => e.EntryTime)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task AddAsync(TimeEntry entry, CancellationToken cancellationToken = default)
     {
         await dbContext.Set<TimeEntry>().AddAsync(entry, cancellationToken);

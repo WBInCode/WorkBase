@@ -1,6 +1,7 @@
 using WorkBase.Modules.TimeTracking.Application.Contracts;
 using WorkBase.Modules.TimeTracking.Application.Dtos;
 using WorkBase.Modules.TimeTracking.Domain.Entities;
+using WorkBase.Modules.TimeTracking.Domain.Services;
 using WorkBase.Shared.Cqrs;
 using WorkBase.Shared.Domain;
 
@@ -48,77 +49,43 @@ public sealed class GetTimeSheetHandler(
 
         for (var date = request.From; date <= request.To; date = date.AddDays(1))
         {
-            // Always recalculate today from live entries (persisted sheet may be stale)
-            if (date == today || !sheetsByDate.TryGetValue(date, out var sheet))
+            // Liczymy z żywych wpisów zawsze: zapisana karta bywa nieaktualna, a te
+            // sprzed poprawki kalkulatora zawierają sumy dłuższe niż doba.
+            var entries = await timeEntryRepository.GetEntriesAroundDateAsync(
+                request.TenantId, request.EmployeeId, date, cancellationToken);
+            var wpisyDnia = entries.Where(e => DateOnly.FromDateTime(e.EntryTime) == date).ToList();
+            sheetsByDate.TryGetValue(date, out var sheet);
+
+            if (entries.Count > 0)
             {
-                var entries = await timeEntryRepository.GetEntriesForDateAsync(
-                    request.TenantId, request.EmployeeId, date, cancellationToken);
+                var wynik = WorkedTimeCalculator.ForDate(entries, date, DateTime.UtcNow);
+                var entryDtos = MapEntries(wpisyDnia);
 
-                if (entries.Count > 0)
+                var status = wynik.HasOpenSession
+                    ? "incomplete"
+                    : sheet is not null && wpisyDnia.Count == 0
+                        ? sheet.Status.ToString().ToLowerInvariant()
+                        : "complete";
+
+                if (wynik.Worked == TimeSpan.Zero && wpisyDnia.Count == 0)
                 {
-                    var (worked, breaks) = CalculateWorkedTime(entries);
-                    var entryDtos = MapEntries(entries);
-
-                    var lastEntry = entries.OrderByDescending(e => e.EntryTime).First();
-                    var hasClockOut = lastEntry.Type == TimeEntryType.ClockOut;
-                    var status = hasClockOut ? "complete" : "incomplete";
-
-                    days.Add(new TimeSheetDayDto(date, worked, breaks, worked - breaks, status, null, entryDtos));
-
-                    totalWorked += worked;
-                    totalBreaks += breaks;
-
-                    if (hasClockOut)
-                        daysWorked++;
-                    else
-                        daysIncomplete++;
-                }
-                else
-                {
-                    days.Add(new TimeSheetDayDto(date, TimeSpan.Zero, TimeSpan.Zero, TimeSpan.Zero, "empty", null, []));
-                }
-            }
-            else
-            {
-                // For persisted sheets (past days), also load entries for the timeline
-                var entries = await timeEntryRepository.GetEntriesForDateAsync(
-                    request.TenantId, request.EmployeeId, date, cancellationToken);
-                var entryDtos = MapEntries(entries);
-
-                // Recalculate from live entries if available (persisted sheet may be stale)
-                TimeSpan worked, breaks;
-                string status;
-
-                if (entries.Count > 0)
-                {
-                    (worked, breaks) = CalculateWorkedTime(entries);
-                    var lastEntry = entries.OrderByDescending(e => e.EntryTime).First();
-                    var hasClockOut = lastEntry.Type == TimeEntryType.ClockOut;
-                    status = hasClockOut ? "complete" : "incomplete";
-                }
-                else
-                {
-                    worked = sheet.TotalWorked;
-                    breaks = sheet.TotalBreaks;
-                    status = sheet.Status.ToString().ToLowerInvariant();
+                    days.Add(new TimeSheetDayDto(date, TimeSpan.Zero, TimeSpan.Zero, TimeSpan.Zero, "empty", sheet?.Note, []));
+                    continue;
                 }
 
-                days.Add(new TimeSheetDayDto(
-                    sheet.Date,
-                    worked,
-                    breaks,
-                    worked - breaks,
-                    status,
-                    sheet.Note,
-                    entryDtos));
+                days.Add(new TimeSheetDayDto(date, wynik.Worked, wynik.Breaks, wynik.Net, status, sheet?.Note, entryDtos));
 
-                totalWorked += worked;
-                totalBreaks += breaks;
+                totalWorked += wynik.Worked;
+                totalBreaks += wynik.Breaks;
 
                 if (status is "complete" or "approved")
                     daysWorked++;
                 else
                     daysIncomplete++;
+            }
+            else
+            {
+                days.Add(new TimeSheetDayDto(date, TimeSpan.Zero, TimeSpan.Zero, TimeSpan.Zero, "empty", sheet?.Note, []));
             }
         }
 
@@ -147,57 +114,5 @@ public sealed class GetTimeSheetHandler(
                 e.Type.ToString(),
                 e.BreakType?.ToString()))
             .ToList();
-    }
-
-    private static (TimeSpan TotalWorked, TimeSpan TotalBreaks) CalculateWorkedTime(List<TimeEntry> entries)
-    {
-        var ordered = entries.OrderBy(e => e.EntryTime).ToList();
-        var now = DateTime.UtcNow;
-
-        var totalWorked = TimeSpan.Zero;
-        var totalBreaks = TimeSpan.Zero;
-
-        DateTime? clockInTime = null;
-        DateTime? breakStartTime = null;
-
-        foreach (var entry in ordered)
-        {
-            switch (entry.Type)
-            {
-                case TimeEntryType.ClockIn:
-                    clockInTime = entry.EntryTime;
-                    break;
-
-                case TimeEntryType.BreakStart:
-                    breakStartTime = entry.EntryTime;
-                    break;
-
-                case TimeEntryType.BreakEnd:
-                    if (breakStartTime.HasValue)
-                    {
-                        totalBreaks += entry.EntryTime - breakStartTime.Value;
-                        breakStartTime = null;
-                    }
-                    break;
-
-                case TimeEntryType.ClockOut:
-                    if (clockInTime.HasValue)
-                    {
-                        totalWorked += entry.EntryTime - clockInTime.Value;
-                        clockInTime = null;
-                    }
-                    break;
-            }
-        }
-
-        // If still on break, count up to now
-        if (breakStartTime.HasValue)
-            totalBreaks += now - breakStartTime.Value;
-
-        // If still working (no clock-out yet), count up to now
-        if (clockInTime.HasValue)
-            totalWorked += now - clockInTime.Value;
-
-        return (totalWorked, totalBreaks);
     }
 }

@@ -313,6 +313,27 @@ export function useAdminDeleteTimeEntry() {
   });
 }
 
+export interface RecalculateSheetsResult {
+  sprawdzonychKart: number;
+  poprawionychKart: number;
+  odjetychGodzin: number;
+  poprawione: { employeeId: string; date: string; przedGodzin: number; poGodzin: number }[];
+}
+
+/** Przelicza karty czasu na nowo z odbić — porządkuje ewidencję po błędnych sumach. */
+export function useRecalculateTimeSheets() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { from: string; to: string; employeeId?: string }) =>
+      api.post<RecalculateSheetsResult>('/api/time/recalculate', data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['time', 'timesheet'] });
+      qc.invalidateQueries({ queryKey: ['time', 'team-timesheets'] });
+      qc.invalidateQueries({ queryKey: ['time', 'anomalies'] });
+    },
+  });
+}
+
 // --- Batch Schedule Generation ---
 
 export function useGenerateBatchSchedules() {

@@ -1,5 +1,6 @@
 using WorkBase.Modules.TimeTracking.Application.Contracts;
 using WorkBase.Modules.TimeTracking.Domain.Entities;
+using WorkBase.Modules.TimeTracking.Domain.Services;
 using WorkBase.Shared.Cqrs;
 using WorkBase.Shared.Domain;
 
@@ -20,6 +21,10 @@ public sealed class AdminUpdateTimeEntryHandler(
             return Result.Failure(Error.Validation(
                 "TimeEntry.InvalidType",
                 "Nieprawidłowy typ wpisu. Dozwolone: ClockIn, ClockOut, BreakStart, BreakEnd."));
+
+        var bladCzasu = TimeEntryRules.ValidateEntryTime(request.EntryTime, DateTime.UtcNow);
+        if (bladCzasu is not null)
+            return Result.Failure(bladCzasu);
 
         BreakType? breakType = null;
         if (!string.IsNullOrEmpty(request.BreakType))
@@ -48,7 +53,7 @@ public sealed class AdminUpdateTimeEntryHandler(
 
     private async Task RecalculateTimeSheet(Guid tenantId, Guid employeeId, DateOnly date, CancellationToken cancellationToken)
     {
-        var entries = await timeEntryRepository.GetEntriesForDateAsync(
+        var entries = await timeEntryRepository.GetEntriesAroundDateAsync(
             tenantId, employeeId, date, cancellationToken);
 
         var timeSheet = await timeSheetRepository.GetByDateAsync(
@@ -65,65 +70,18 @@ public sealed class AdminUpdateTimeEntryHandler(
             return;
         }
 
-        var (totalWorked, totalBreaks) = CalculateWorkedTime(entries);
+        var wynik = WorkedTimeCalculator.ForDate(entries, date, DateTime.UtcNow);
 
         if (timeSheet is null)
         {
             timeSheet = TimeSheet.Create(tenantId, employeeId, date);
-            timeSheet.Recalculate(totalWorked, totalBreaks);
+            timeSheet.Recalculate(wynik.Worked, wynik.Breaks);
             await timeSheetRepository.AddAsync(timeSheet, cancellationToken);
         }
         else
         {
-            timeSheet.Recalculate(totalWorked, totalBreaks);
+            timeSheet.Recalculate(wynik.Worked, wynik.Breaks);
             timeSheetRepository.Update(timeSheet);
         }
-    }
-
-    private static (TimeSpan TotalWorked, TimeSpan TotalBreaks) CalculateWorkedTime(List<TimeEntry> entries)
-    {
-        var ordered = entries.OrderBy(e => e.EntryTime).ToList();
-        var now = DateTime.UtcNow;
-
-        var totalWorked = TimeSpan.Zero;
-        var totalBreaks = TimeSpan.Zero;
-
-        DateTime? clockInTime = null;
-        DateTime? breakStartTime = null;
-
-        foreach (var entry in ordered)
-        {
-            switch (entry.Type)
-            {
-                case TimeEntryType.ClockIn:
-                    clockInTime = entry.EntryTime;
-                    break;
-                case TimeEntryType.BreakStart:
-                    breakStartTime = entry.EntryTime;
-                    break;
-                case TimeEntryType.BreakEnd:
-                    if (breakStartTime.HasValue)
-                    {
-                        totalBreaks += entry.EntryTime - breakStartTime.Value;
-                        breakStartTime = null;
-                    }
-                    break;
-                case TimeEntryType.ClockOut:
-                    if (clockInTime.HasValue)
-                    {
-                        totalWorked += entry.EntryTime - clockInTime.Value;
-                        clockInTime = null;
-                    }
-                    break;
-            }
-        }
-
-        if (breakStartTime.HasValue)
-            totalBreaks += now - breakStartTime.Value;
-
-        if (clockInTime.HasValue)
-            totalWorked += now - clockInTime.Value;
-
-        return (totalWorked, totalBreaks);
     }
 }

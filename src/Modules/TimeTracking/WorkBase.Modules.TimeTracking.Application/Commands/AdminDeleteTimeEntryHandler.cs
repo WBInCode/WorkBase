@@ -1,5 +1,6 @@
 using WorkBase.Modules.TimeTracking.Application.Contracts;
 using WorkBase.Modules.TimeTracking.Domain.Entities;
+using WorkBase.Modules.TimeTracking.Domain.Services;
 using WorkBase.Shared.Cqrs;
 using WorkBase.Shared.Domain;
 
@@ -22,7 +23,7 @@ public sealed class AdminDeleteTimeEntryHandler(
         timeEntryRepository.Delete(entry);
 
         // Recalculate timesheet for the affected day
-        var entries = await timeEntryRepository.GetEntriesForDateAsync(
+        var entries = await timeEntryRepository.GetEntriesAroundDateAsync(
             request.TenantId, employeeId, date, cancellationToken);
 
         // Exclude the deleted entry (may still be tracked before SaveChanges)
@@ -42,68 +43,21 @@ public sealed class AdminDeleteTimeEntryHandler(
         }
         else
         {
-            var (totalWorked, totalBreaks) = CalculateWorkedTime(entries);
+            var wynik = WorkedTimeCalculator.ForDate(entries, date, DateTime.UtcNow);
 
             if (timeSheet is null)
             {
                 timeSheet = TimeSheet.Create(request.TenantId, employeeId, date);
-                timeSheet.Recalculate(totalWorked, totalBreaks);
+                timeSheet.Recalculate(wynik.Worked, wynik.Breaks);
                 await timeSheetRepository.AddAsync(timeSheet, cancellationToken);
             }
             else
             {
-                timeSheet.Recalculate(totalWorked, totalBreaks);
+                timeSheet.Recalculate(wynik.Worked, wynik.Breaks);
                 timeSheetRepository.Update(timeSheet);
             }
         }
 
         return Result.Success();
-    }
-
-    private static (TimeSpan TotalWorked, TimeSpan TotalBreaks) CalculateWorkedTime(List<TimeEntry> entries)
-    {
-        var ordered = entries.OrderBy(e => e.EntryTime).ToList();
-        var now = DateTime.UtcNow;
-
-        var totalWorked = TimeSpan.Zero;
-        var totalBreaks = TimeSpan.Zero;
-
-        DateTime? clockInTime = null;
-        DateTime? breakStartTime = null;
-
-        foreach (var entry in ordered)
-        {
-            switch (entry.Type)
-            {
-                case TimeEntryType.ClockIn:
-                    clockInTime = entry.EntryTime;
-                    break;
-                case TimeEntryType.BreakStart:
-                    breakStartTime = entry.EntryTime;
-                    break;
-                case TimeEntryType.BreakEnd:
-                    if (breakStartTime.HasValue)
-                    {
-                        totalBreaks += entry.EntryTime - breakStartTime.Value;
-                        breakStartTime = null;
-                    }
-                    break;
-                case TimeEntryType.ClockOut:
-                    if (clockInTime.HasValue)
-                    {
-                        totalWorked += entry.EntryTime - clockInTime.Value;
-                        clockInTime = null;
-                    }
-                    break;
-            }
-        }
-
-        if (breakStartTime.HasValue)
-            totalBreaks += now - breakStartTime.Value;
-
-        if (clockInTime.HasValue)
-            totalWorked += now - clockInTime.Value;
-
-        return (totalWorked, totalBreaks);
     }
 }

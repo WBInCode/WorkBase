@@ -1,8 +1,8 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronLeft, ChevronRight, Download, AlertTriangle, Play, Square } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download, AlertTriangle, Play, Square, RefreshCw } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useTeamTimesheets, useAnomalies, useAdminCreateTimeEntry, useAdminDeleteTimeEntry, useClockIn, useClockOut } from '@/api/hooks/useTimeTracking';
+import { useTeamTimesheets, useAnomalies, useAdminCreateTimeEntry, useAdminDeleteTimeEntry, useClockIn, useClockOut, useRecalculateTimeSheets } from '@/api/hooks/useTimeTracking';
 import { useEmployees, useOrgUnitTree } from '@/api/hooks/useOrganization';
 import { useCurrentUser } from '@/api/hooks/useIam';
 import type { TimeSheetPeriodDto, TimeAnomalyDto, TimeSheetEntryDto } from '@/api/types/time';
@@ -177,7 +177,12 @@ export function TeamAttendancePage() {
   const { data: currentUser } = useCurrentUser();
   const canRecordForOthers =
     currentUser?.permissions?.some((p) => p === 'time.manage' || p === 'time.edit') ?? false;
+  const canRecalculate = currentUser?.permissions?.includes('time.manage') ?? false;
   const todayStr = useMemo(() => toDateString(new Date()), []);
+
+  /* porzadkowanie ewidencji po blednych sumach */
+  const recalculate = useRecalculateTimeSheets();
+  const [recalcInfo, setRecalcInfo] = useState<string | null>(null);
 
   /* Tozsamosc edytowanej komorki. Fokus i nasluch klikniecia maja reagowac na
      OTWARCIE panelu, a nie na kazda zmiane tresci pol. */
@@ -577,21 +582,64 @@ export function TeamAttendancePage() {
               {periodLabel}
             </p>
           </div>
-          <button
-            onClick={exportExcel}
-            disabled={!timesheets || employees.length === 0}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            {canRecalculate && (
+              <button
+                onClick={async () => {
+                  setRecalcInfo(null);
+                  try {
+                    const r = await recalculate.mutateAsync({ from: dateRange.from, to: dateRange.to });
+                    setRecalcInfo(
+                      r.poprawionychKart === 0
+                        ? 'Ewidencja w tym okresie jest już policzona poprawnie.'
+                        : `Poprawiono ${r.poprawionychKart} z ${r.sprawdzonychKart} kart, zdjęto ${r.odjetychGodzin} h błędnych godzin.`,
+                    );
+                  } catch {
+                    setRecalcInfo('Nie udało się przeliczyć ewidencji.');
+                  }
+                }}
+                disabled={recalculate.isPending}
+                title="Przelicza godziny na nowo z odbić. Nie usuwa wejść ani wyjść."
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '6px',
+                  padding: '9px 16px', fontSize: '13px', fontWeight: 700, fontFamily: 'inherit',
+                  color: colors.gray[700], backgroundColor: colors.white,
+                  border: `1px solid ${colors.gray[300]}`, borderRadius: '999px',
+                  cursor: recalculate.isPending ? 'wait' : 'pointer',
+                  opacity: recalculate.isPending ? 0.6 : 1,
+                }}
+              >
+                <RefreshCw size={15} /> {recalculate.isPending ? 'Liczę…' : 'Przelicz godziny'}
+              </button>
+            )}
+            <button
+              onClick={exportExcel}
+              disabled={!timesheets || employees.length === 0}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '6px',
+                padding: '9px 18px', fontSize: '13px', fontWeight: 700, fontFamily: 'inherit',
+                color: colors.textOnAccent, backgroundColor: colors.emerald[600],
+                border: 'none', borderRadius: '999px', cursor: 'pointer',
+                opacity: (!timesheets || employees.length === 0) ? 0.5 : 1,
+                boxShadow: (!timesheets || employees.length === 0) ? 'none' : '0 6px 14px -4px rgba(5,150,105,0.45)',
+              }}
+            >
+              <Download size={15} /> Eksport Excel
+            </button>
+          </div>
+        </div>
+
+        {recalcInfo && (
+          <div
             style={{
-              display: 'flex', alignItems: 'center', gap: '6px',
-              padding: '9px 18px', fontSize: '13px', fontWeight: 700, fontFamily: 'inherit',
-              color: colors.textOnAccent, backgroundColor: colors.emerald[600],
-              border: 'none', borderRadius: '999px', cursor: 'pointer',
-              opacity: (!timesheets || employees.length === 0) ? 0.5 : 1,
-              boxShadow: (!timesheets || employees.length === 0) ? 'none' : '0 6px 14px -4px rgba(5,150,105,0.45)',
+              marginTop: '12px', padding: '9px 14px', borderRadius: '10px',
+              backgroundColor: colors.gray[50], border: `1px solid ${colors.gray[200]}`,
+              fontSize: '13px', fontWeight: 600, color: colors.gray[700],
             }}
           >
-            <Download size={15} /> Eksport Excel
-          </button>
-        </div>
+            {recalcInfo}
+          </div>
+        )}
 
         {/* Kontrolki */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '14px', flexWrap: 'wrap' }}>

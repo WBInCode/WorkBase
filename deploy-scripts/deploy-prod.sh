@@ -74,6 +74,10 @@ SLADY=(
   "src/WorkBase.Infrastructure/Seeding/DemoDataSeeder.cs:DemoDataSeeder"
   "src/WorkBase.Host/Program.cs:--seed-demo"
   "frontend/src/api/rownoleglosc.ts:mapujZOgraniczeniem"
+  "src/Modules/TimeTracking/WorkBase.Modules.TimeTracking.Domain/Services/WorkedTimeCalculator.cs:MaxSessionHours"
+  "src/Modules/TimeTracking/WorkBase.Modules.TimeTracking.Application/Commands/RecalculateTimeSheetsHandler.cs:RecalculateTimeSheetsHandler"
+  "src/Modules/TimeTracking/WorkBase.Modules.TimeTracking.Application/Contracts/ITimeEntryRepository.cs:GetEntriesAroundDateAsync"
+  "frontend/src/pages/time/TeamAttendancePage.tsx:Przelicz godziny"
 )
 for wpis in "${SLADY[@]}"; do
   plik=${wpis%%:*}

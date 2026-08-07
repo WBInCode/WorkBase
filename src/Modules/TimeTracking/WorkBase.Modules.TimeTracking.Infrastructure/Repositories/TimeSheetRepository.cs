@@ -5,8 +5,21 @@ using WorkBase.Modules.TimeTracking.Domain.Entities;
 
 namespace WorkBase.Modules.TimeTracking.Infrastructure.Repositories;
 
-public sealed class TimeSheetRepository(WorkBaseDbContext dbContext) : ITimeSheetRepository
+public sealed class TimeSheetRepository(WorkBaseDbContext dbContext) : ITimeSheetRepository, ITimeSheetBulkReader
 {
+    public async Task<List<TimeSheet>> GetSheetsAsync(
+        Guid tenantId, Guid? employeeId, DateOnly from, DateOnly to, CancellationToken cancellationToken = default)
+    {
+        return await dbContext.Set<TimeSheet>()
+            .Where(ts =>
+                ts.TenantId == tenantId
+                && (employeeId == null || ts.EmployeeId == employeeId)
+                && ts.Date >= from
+                && ts.Date <= to)
+            .OrderBy(ts => ts.EmployeeId).ThenBy(ts => ts.Date)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<TimeSheet?> GetByDateAsync(
         Guid tenantId, Guid employeeId, DateOnly date, CancellationToken cancellationToken = default)
     {
