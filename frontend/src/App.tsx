@@ -14,7 +14,6 @@ import { SsoBridgePage } from '@/pages/SsoBridgePage';
 import { LoggedOutPage } from '@/pages/LoggedOutPage';
 import { ToastProvider } from '@/components/Notifications';
 import { colors } from '@/theme/tokens';
-import { useCurrentUser } from '@/api/hooks/useIam';
 
 // Route-level code splitting: each page is loaded on demand instead of being
 // bundled into the initial chunk. Keeps the first paint fast for a large,
