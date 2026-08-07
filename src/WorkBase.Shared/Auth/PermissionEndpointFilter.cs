@@ -71,7 +71,7 @@ internal sealed class AnyPermissionEndpointFilter(string[] permissions) : IEndpo
         return Results.Problem(
             statusCode: StatusCodes.Status403Forbidden,
             title: "Forbidden",
-            detail: $"Missing required permission: one of {string.Join(", ", permissions)}");
+            detail: $"Brak wymaganego uprawnienia: jednego z {string.Join(", ", permissions)}.");
     }
 }
 
@@ -126,7 +126,7 @@ internal sealed class PermissionEndpointFilter(string[] permissions) : IEndpoint
                 return Results.Problem(
                     statusCode: StatusCodes.Status403Forbidden,
                     title: "Forbidden",
-                    detail: $"Missing required permission: {required}");
+                    detail: $"Brak wymaganego uprawnienia: {required}.");
             }
         }
 

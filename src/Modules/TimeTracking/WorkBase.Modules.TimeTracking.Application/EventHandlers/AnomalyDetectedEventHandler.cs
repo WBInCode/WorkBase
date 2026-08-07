@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.Extensions.Logging;
 using WorkBase.Contracts;
+using WorkBase.Modules.TimeTracking.Domain.Entities;
 using WorkBase.Modules.TimeTracking.Domain.Events;
 
 namespace WorkBase.Modules.TimeTracking.Application.EventHandlers;
@@ -40,11 +41,15 @@ public sealed class AnomalyDetectedEventHandler(
             return;
         }
 
+        var pracownik = await organizationLookup.GetEmployeeFullNameAsync(
+            notification.EmployeeId, cancellationToken) ?? notification.EmployeeId.ToString();
+        var rodzaj = OpisRodzaju(notification.AnomalyType);
+
         await notificationService.SendAsync(
             notification.TenantId,
             supervisorUserId.Value,
-            $"Anomalia: {notification.AnomalyType}",
-            $"Wykryto anomalię typu {notification.AnomalyType} dla pracownika {notification.EmployeeId} w dniu {notification.Date:yyyy-MM-dd}.",
+            $"Anomalia: {rodzaj}",
+            $"{pracownik}: {rodzaj} w dniu {notification.Date:dd.MM.yyyy}.",
             "anomaly_detected",
             "anomaly",
             notification.AnomalyId,
@@ -54,4 +59,15 @@ public sealed class AnomalyDetectedEventHandler(
             "Anomaly notification sent: type={AnomalyType}, employee={EmployeeId}, date={Date}, supervisor={SupervisorId}",
             notification.AnomalyType, notification.EmployeeId, notification.Date, supervisorId.Value);
     }
+
+    private static string OpisRodzaju(string typ) => typ switch
+    {
+        nameof(AnomalyType.MissingClockOut) => "brak wyjścia",
+        nameof(AnomalyType.MissingClockIn) => "brak wejścia",
+        nameof(AnomalyType.LateArrival) => "spóźnienie",
+        nameof(AnomalyType.DoubleClockIn) => "podwójne wejście",
+        nameof(AnomalyType.ExcessiveShift) => "za długa zmiana",
+        nameof(AnomalyType.WorkOnDayOff) => "praca w dniu wolnym",
+        _ => typ,
+    };
 }

@@ -78,9 +78,6 @@ function AppRoutes() {
   const auth = useAuth();
   const navigate = useNavigate();
 
-  // Wire API client token provider
-  setTokenProvider(() => auth.user?.access_token);
-
   const roles = (auth.user?.profile?.['roles'] as string[] | undefined) ?? [];
   // isAdmin is sourced from the app's own Role/Permission data (GET /api/auth/me), NOT the
   // Keycloak "roles" claim — assigning an admin role via the in-app Roles screen has no effect
@@ -158,12 +155,21 @@ function AppRouter({ children }: { children: React.ReactNode }) {
   return <Router>{children}</Router>;
 }
 
+// Musi stac ponad Routes: /kiosk jest osobna trasa i nie przechodzi przez AppRoutes,
+// wiec podpiecie tokenu tylko tam zostawialo kiosk bez naglowka Authorization (401).
+function TokenProviderBridge() {
+  const auth = useAuth();
+  setTokenProvider(() => auth.user?.access_token);
+  return null;
+}
+
 function App() {
   return (
     <ErrorBoundary>
       <AuthProvider {...oidcConfig}>
         <QueryClientProvider client={queryClient}>
           <ToastProvider>
+          <TokenProviderBridge />
           <AppRouter>
             <Suspense fallback={<RouteLoadingFallback />}>
             <Routes>

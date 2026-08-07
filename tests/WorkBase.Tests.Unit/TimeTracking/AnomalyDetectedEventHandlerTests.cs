@@ -47,6 +47,32 @@ public class AnomalyDetectedEventHandlerTests
     }
 
     [Fact]
+    public async Task Handle_UzywaNazwiskaIPolskiegoOpisuRodzaju()
+    {
+        var employeeId = Guid.NewGuid();
+        var supervisorId = Guid.NewGuid();
+        var supervisorUserId = Guid.NewGuid();
+        var tenantId = Guid.NewGuid();
+        _supervisorLookup.GetSupervisorEmployeeIdAsync(employeeId, Arg.Any<CancellationToken>())
+            .Returns(supervisorId);
+        _organizationLookup.GetUserIdByEmployeeIdAsync(supervisorId, Arg.Any<CancellationToken>())
+            .Returns(supervisorUserId);
+        _organizationLookup.GetEmployeeFullNameAsync(employeeId, Arg.Any<CancellationToken>())
+            .Returns("Ewa Adamczyk");
+
+        var evt = new AnomalyDetectedEvent(Guid.NewGuid(), tenantId, employeeId, "MissingClockIn", new DateOnly(2026, 4, 16));
+
+        await _handler.Handle(evt, CancellationToken.None);
+
+        await _notificationService.Received(1).SendAsync(
+            tenantId, supervisorUserId,
+            "Anomalia: brak wejścia",
+            "Ewa Adamczyk: brak wejścia w dniu 16.04.2026.",
+            "anomaly_detected", "anomaly", evt.AnomalyId,
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task Handle_SupervisorWithoutAccount_SkipsNotification()
     {
         var employeeId = Guid.NewGuid();

@@ -60,7 +60,7 @@ internal sealed class PlatformOperatorEndpointFilter : IEndpointFilter
             return Results.Problem(
                 statusCode: StatusCodes.Status403Forbidden,
                 title: "Forbidden",
-                detail: $"Missing required permission: {PlatformConstants.ManageTenantsPermission}");
+                detail: $"Brak wymaganego uprawnienia: {PlatformConstants.ManageTenantsPermission}.");
         }
 
         return await next(context);
