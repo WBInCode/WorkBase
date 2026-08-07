@@ -163,8 +163,9 @@ public sealed class WorkflowEngine(
                 string.Equals(t.Outcome, initialOutcome, StringComparison.OrdinalIgnoreCase));
             if (przejscie is not null)
             {
+                // Bez Update() — instancja jest dopiero dodawana, wiec zmiana kroku wejdzie
+                // do tego samego INSERT-a. Update() wymusilby UPDATE nieistniejacego wiersza.
                 instance.AdvanceTo(przejscie.TargetStep);
-                instanceRepository.Update(instance);
 
                 var dalej = await WejdzDoKrokuAsync(instance, model, przejscie.TargetStep, cancellationToken);
                 if (dalej.IsFailure)
