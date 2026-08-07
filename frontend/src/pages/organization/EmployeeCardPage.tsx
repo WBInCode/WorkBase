@@ -7,6 +7,7 @@ import { useLeaveBalances, useLeaveRequests } from '@/api/hooks/useLeave';
 import { useTasks } from '@/api/hooks/useTasks';
 import {
   EmployeeInfoSection,
+  EmployeeAssignmentSection,
   EmployeeTeamSection,
   EmployeeTimesheetSection,
   EmployeeLeaveSection,
@@ -32,7 +33,7 @@ export function EmployeeCardPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const { data: employee, isLoading: empLoading, error } = useEmployeeDetail(id ?? null);
+  const { data: employee, isLoading: empLoading, error, refetch: refetchEmployee } = useEmployeeDetail(id ?? null);
 
   // Time tracking — date range (defaults to current week)
   const [dateRange, setDateRange] = useState(getCurrentWeekRange);
@@ -139,6 +140,8 @@ export function EmployeeCardPage() {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', minWidth: 0 }}>
+          <EmployeeAssignmentSection employee={employee} onZmiana={() => refetchEmployee()} />
+
           <EmployeeTeamSection
             employeeId={employee.id}
             primaryUnitId={employee.assignments.find(a => a.isPrimary)?.organizationUnitId ?? employee.assignments[0]?.organizationUnitId ?? null}
