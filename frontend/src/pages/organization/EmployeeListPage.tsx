@@ -23,6 +23,7 @@ import { ApiError } from '@/api/client';
 import { useIsMobile } from '@/shared';
 import { colors } from '@/theme/tokens';
 import { useCurrentUser } from '@/api/hooks/useIam';
+import { useUprawnienia } from '@/auth/useUprawnienia';
 
 const PAGE_SIZE = 20;
 
@@ -39,6 +40,8 @@ const statusColors: Record<EmployeeStatus, { bg: string; text: string }> = {
 };
 
 export function EmployeeListPage() {
+  const { moze } = useUprawnienia();
+  const mozeDodawac = moze('org.create');
   const [filter, setFilter] = useState<EmployeesFilter>({
     page: 1,
     pageSize: PAGE_SIZE,
@@ -99,6 +102,7 @@ export function EmployeeListPage() {
             <button onClick={() => refetch()} style={iconBtnStyle} title="Odśwież" aria-label="Odśwież">
               <RefreshCw size={16} style={isFetching ? { animation: 'spin 1s linear infinite' } : undefined} />
             </button>
+            {mozeDodawac && (
             <button
               onClick={() => setShowForm(true)}
               style={{
@@ -120,6 +124,7 @@ export function EmployeeListPage() {
               <Plus size={15} />
               Nowy pracownik
             </button>
+            )}
           </div>
         </div>
 

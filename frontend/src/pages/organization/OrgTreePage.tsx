@@ -4,9 +4,11 @@ import { useOrgUnitTree, useUnitTypes, useCreateOrgUnit, useUpdateOrgUnit, useDe
 import { OrgTree } from '@/components/OrgTree';
 import type { OrganizationUnitTreeNode } from '@/api/types/organization';
 import { useIsMobile } from '@/shared';
+import { useUprawnienia } from '@/auth/useUprawnienia';
 import { colors } from '@/theme/tokens';
 
 export function OrgTreePage() {
+  const { moze } = useUprawnienia();
   const { data: tree, isLoading, error, refetch } = useOrgUnitTree();
   const [selectedNode, setSelectedNode] = useState<OrganizationUnitTreeNode | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -96,6 +98,7 @@ export function OrgTreePage() {
             <RefreshCw size={15} style={{ animation: isLoading ? 'spin 1s linear infinite' : 'none' }} />
             Odśwież
           </button>
+          {moze('org.create') && (
           <button
             onClick={handleAddRoot}
             style={{
@@ -116,6 +119,7 @@ export function OrgTreePage() {
           >
             <Plus size={15} /> Dodaj jednostkę
           </button>
+          )}
         </div>
       </div>
 
@@ -241,6 +245,7 @@ function UnitDetailPanel({
   onDelete: (n: OrganizationUnitTreeNode) => void;
   onAddChild: (parentId: string) => void;
 }) {
+  const { moze } = useUprawnienia();
   return (
     <div style={{ width: '100%', minWidth: 0, boxSizing: 'border-box' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '20px' }}>
@@ -251,6 +256,7 @@ function UnitDetailPanel({
           </h2>
         </div>
         <div style={{ display: 'flex', gap: '6px', flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+          {moze('org.create') && (
           <button
             onClick={() => onAddChild(node.id)}
             title="Dodaj podjednostkę"
@@ -263,6 +269,8 @@ function UnitDetailPanel({
           >
             <Plus size={14} /> Podjednostka
           </button>
+          )}
+          {moze('org.edit') && (
           <button
             onClick={() => onEdit(node)}
             title="Edytuj"
@@ -273,6 +281,8 @@ function UnitDetailPanel({
           >
             <Edit2 size={14} />
           </button>
+          )}
+          {moze('org.delete') && (
           <button
             onClick={() => onDelete(node)}
             title="Usuń"
@@ -283,6 +293,7 @@ function UnitDetailPanel({
           >
             <Trash2 size={14} />
           </button>
+          )}
           <button
             onClick={onClose}
             style={{

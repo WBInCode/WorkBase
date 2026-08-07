@@ -208,6 +208,7 @@ export function SchedulePage() {
             </p>
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
+            {canManage && (
             <button
               onClick={() => setShowOrgUnitPanel(true)}
               style={{
@@ -219,6 +220,7 @@ export function SchedulePage() {
             >
               <Building2 size={15} /> Grafik jednostki
             </button>
+            )}
             {canManage && (
               <button
                 onClick={() => setShowCleaner(true)}
@@ -232,6 +234,7 @@ export function SchedulePage() {
                 <Eraser size={15} /> Wyczyść grafik
               </button>
             )}
+            {canManage && (
             <button
               onClick={() => setShowGenerator(true)}
               style={{
@@ -244,6 +247,7 @@ export function SchedulePage() {
             >
               <Zap size={15} /> Generuj grafik
             </button>
+            )}
           </div>
         </div>
 

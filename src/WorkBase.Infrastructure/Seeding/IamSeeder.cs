@@ -74,6 +74,7 @@ public static class IamSeeder
         "documents.view", "documents.create", "documents.export",
         "ai.use",
         "forms.submit", "reports.view",
+        "payroll.view", "payroll.view-team",
     ];
 
     private static readonly HashSet<string> PracownikPermissionCodes =
@@ -88,6 +89,7 @@ public static class IamSeeder
         "documents.view", "documents.create",
         "ai.use",
         "forms.submit",
+        "payroll.view",
     ];
 
     private static readonly HashSet<string> HrPermissionCodes =
@@ -423,6 +425,10 @@ public static class IamSeeder
         // więc nie dostają automatycznego kompletu CRUD.
         permissions.Add(CreatePermission(permissionId++, "reports", Actions.View, description: "Przeglądanie raportów"));
         permissions.Add(CreatePermission(permissionId++, "reports", Actions.Manage, description: "Definiowanie i eksport raportów"));
+        // Wynagrodzenia nie mialy zadnego uprawnienia — ekran /payroll byl w nawigacji kazdego
+        // zalogowanego, a zakres danych ograniczal wylacznie DataScope.
+        permissions.Add(CreatePermission(permissionId++, "payroll", Actions.View, description: "Podgląd własnego rozliczenia wynagrodzenia"));
+        permissions.Add(CreatePermission(permissionId++, "payroll", "view-team", description: "Podgląd rozliczeń wynagrodzeń zespołu i firmy"));
 
         return permissions;
     }

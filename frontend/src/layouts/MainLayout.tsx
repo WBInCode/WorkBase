@@ -4,6 +4,8 @@ import { useAuth } from 'react-oidc-context';
 import { useTranslation } from 'react-i18next';
 import { FolderTree, Users, FileUp, LogOut, Menu, X, Shield, Grid3X3, CalendarDays, UsersRound, CalendarClock, Palmtree, CalendarRange, ClipboardCheck, ListTodo, ClipboardList, LayoutDashboard, Briefcase, Clock, MoreHorizontal, FileArchive, FolderOpen, Flag, CircleDot, Coffee, Layers, Wallet, Building2, Palette, Type, Bell, AlarmClockCheck, ChevronDown, Sun, Moon, type LucideIcon } from 'lucide-react';
 import { mapUserClaims } from '@/auth';
+import { uprawnieniaDlaSciezki } from '@/auth/dostepDoWidokow';
+import { useUprawnienia } from '@/auth/useUprawnienia';
 import { useFeatureFlags, useCurrentUser } from '@/api/hooks/useIam';
 import { useBranding } from '@/api/hooks/useBranding';
 import { ClockButton } from '@/components/TimeTracking';
@@ -180,7 +182,14 @@ export function MainLayout({ children }: MainLayoutProps) {
   const { data: currentUser } = useCurrentUser();
   const isAdmin = !!currentUser?.isAdmin;
   const isOperator = user?.tenantId === OPERATOR_TENANT_ID;
-  const visibleAdminNavItems = adminNavItems.filter((item) => !item.operatorOnly || isOperator);
+  // Kafelek pokazujemy tylko wtedy, gdy uzytkownik faktycznie wejdzie na te trase — ta sama
+  // mapa steruje StrazWidoku, wiec menu i dostep nie moga sie rozjechac.
+  const { mozeKtorekolwiek, znane: uprawnieniaZnane } = useUprawnienia();
+  const widocznaTrasa = (sciezka: string) =>
+    !uprawnieniaZnane || mozeKtorekolwiek(uprawnieniaDlaSciezki(sciezka) ?? []);
+  const visibleAdminNavItems = adminNavItems
+    .filter((item) => !item.operatorOnly || isOperator)
+    .filter((item) => widocznaTrasa(item.path));
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
 
@@ -218,6 +227,7 @@ export function MainLayout({ children }: MainLayoutProps) {
   };
   const visibleNavSections = navSections
     .filter((section) => isModuleEnabled(section.module))
+    .map((section) => ({ ...section, items: section.items.filter((item) => widocznaTrasa(item.path)) }))
     .filter((section) => section.items.length > 0);
 
   useEffect(() => {
@@ -335,8 +345,9 @@ export function MainLayout({ children }: MainLayoutProps) {
             );
           })}
 
-          {/* Admin section */}
-          {isAdmin && (
+          {/* Administracja — sekcja pojawia sie, gdy zostal chocby jeden dostepny ekran.
+              Nie `isAdmin`: pojedyncze uprawnienie (np. org.manage) tez ma odslonic swoj slownik. */}
+          {visibleAdminNavItems.length > 0 && (
             <div style={{ marginTop: 6, paddingTop: 6, borderTop: '1px solid var(--wb-line)' }}>
               <button
                 type="button"

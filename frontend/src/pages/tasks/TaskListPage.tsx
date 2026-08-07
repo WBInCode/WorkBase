@@ -7,9 +7,11 @@ import { useTasks, useTaskStatuses, useTaskPriorities, useCreateTask, useDeleteT
 import { useEmployees } from '@/api/hooks/useOrganization';
 import type { CreateTaskRequest } from '@/api/types/tasks';
 import { useIsMobile } from '@/shared';
+import { useUprawnienia } from '@/auth/useUprawnienia';
 import { colors } from '@/theme/tokens';
 
 export function TaskListPage() {
+  const { moze } = useUprawnienia();
   const auth = useAuth();
   const user = auth.user ? mapUserClaims(auth.user) : null;
   const navigate = useNavigate();
@@ -157,6 +159,7 @@ export function TaskListPage() {
               Wszystkie zadania w organizacji
             </p>
           </div>
+          {moze('tasks.create') && (
           <button
             onClick={() => setShowForm(true)}
             style={{
@@ -169,6 +172,7 @@ export function TaskListPage() {
           >
             <Plus size={15} /> Nowe zadanie
           </button>
+          )}
         </div>
 
         {/* Filters */}
@@ -228,6 +232,7 @@ export function TaskListPage() {
           animation: 'wb-fadeIn 0.2s ease both',
         }}>
           <span style={{ fontWeight: 600 }}>Zaznaczono: {selected.size}</span>
+          {moze('tasks.delete') && (
           <button
             onClick={handleDeleteSelected}
             disabled={deleteMutation.isPending}
@@ -240,6 +245,7 @@ export function TaskListPage() {
           >
             <Trash2 size={14} /> {deleteMutation.isPending ? 'Usuwanie...' : 'Usuń zaznaczone'}
           </button>
+          )}
           <button
             onClick={() => setSelected(new Set())}
             style={{

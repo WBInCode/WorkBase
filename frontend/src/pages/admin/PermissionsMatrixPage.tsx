@@ -317,16 +317,30 @@ function ModuleSection({
 
 /* ---- Helpers ---- */
 
+// Klucze musza sie zgadzac z ModuleCatalog.All (src/WorkBase.Shared/Modules/ModuleCatalog.cs)
+// oraz z modulami rzekomymi z IamSeeder (config, platform, reports, payroll). Wczesniej byly tu
+// skroty 'task'/'doc'/'iam'/'report', ktore nie odpowiadaly niczemu, wiec wiekszosc sekcji
+// matrycy wyswietlala surowy angielski klucz.
 const moduleDisplayNames: Record<string, string> = {
   org: 'Organizacja',
-  employee: 'Pracownicy',
+  identity: 'Zarządzanie dostępem',
   time: 'Czas pracy',
   leave: 'Urlopy',
-  task: 'Zadania',
+  tasks: 'Zadania',
   workflow: 'Procesy',
-  doc: 'Dokumenty',
-  report: 'Raporty',
-  iam: 'Zarządzanie dostępem',
+  dashboard: 'Dashboard',
+  notification: 'Powiadomienia',
+  documents: 'Dokumenty',
+  integration: 'Integracje',
+  forms: 'Formularze',
+  cases: 'Sprawy',
+  contacts: 'Kontakty',
+  sales: 'Sprzedaż',
+  ai: 'AI',
+  reports: 'Raporty',
+  payroll: 'Wynagrodzenia',
+  config: 'Konfiguracja systemu',
+  platform: 'Platforma (operator)',
 };
 
 function moduleDisplayName(module: string): string {

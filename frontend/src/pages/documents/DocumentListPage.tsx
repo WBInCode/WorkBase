@@ -9,6 +9,7 @@ import {
 } from '@/api/hooks/useDocuments';
 import { useToast } from '@/components/Notifications';
 import { useIsMobile } from '@/shared';
+import { useUprawnienia } from '@/auth/useUprawnienia';
 import { colors } from '@/theme/tokens';
 
 function formatFileSize(bytes: number): string {
@@ -28,6 +29,7 @@ function formatDate(iso: string): string {
 }
 
 export function DocumentListPage() {
+  const { moze } = useUprawnienia();
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [showUpload, setShowUpload] = useState(false);
@@ -120,6 +122,7 @@ export function DocumentListPage() {
               Pliki firmowe i dokumenty pracownicze
             </p>
           </div>
+          {moze('documents.create') && (
           <label
             style={{
               display: 'inline-flex',
@@ -144,6 +147,7 @@ export function DocumentListPage() {
               onChange={handleFileChange}
             />
           </label>
+          )}
         </div>
 
         {/* Filters */}
@@ -362,6 +366,7 @@ export function DocumentListPage() {
                         >
                           <Download size={14} style={{ color: colors.primary[600] }} />
                         </button>
+                        {moze('documents.delete') && (
                         <button
                           onClick={() => handleDelete(doc.id, doc.fileName)}
                           title="Usuń"
@@ -376,6 +381,7 @@ export function DocumentListPage() {
                         >
                           <Trash2 size={14} style={{ color: colors.danger[500] }} />
                         </button>
+                        )}
                       </div>
                     </td>
                   </tr>

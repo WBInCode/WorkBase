@@ -3,6 +3,8 @@ import { AuthProvider, useAuth } from 'react-oidc-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Suspense, lazy, useEffect } from 'react';
 import { oidcConfig, ProtectedRoute } from '@/auth';
+import { StrazWidoku } from '@/auth/StrazWidoku';
+import { uprawnieniaDlaSciezki } from '@/auth/dostepDoWidokow';
 import { setTokenProvider } from '@/api/client';
 import { getRouterMode } from '@/shared';
 import { MainLayout } from '@/layouts/MainLayout';
@@ -79,14 +81,6 @@ function AppRoutes() {
   const navigate = useNavigate();
 
   const roles = (auth.user?.profile?.['roles'] as string[] | undefined) ?? [];
-  // isAdmin is sourced from the app's own Role/Permission data (GET /api/auth/me), NOT the
-  // Keycloak "roles" claim — assigning an admin role via the in-app Roles screen has no effect
-  // on Keycloak, so gating on the Keycloak claim could show a broken admin panel to a real
-  // admin (see docs/AUDIT-KNOWLEDGE-MAP.md — role system consistency).
-  const { data: currentUser } = useCurrentUser();
-  const isAdmin = !!currentUser?.isAdmin;
-  // Keep in sync with PlatformConstants.OperatorTenantId — operator panel is only for our own company.
-  const isOperator = (auth.user?.profile?.['tenant_id'] as string | undefined) === '00000000-0000-0000-0000-000000000001';
 
   // Auto-redirect kiosk accounts to /kiosk
   useEffect(() => {
@@ -99,48 +93,54 @@ function AppRoutes() {
 
   const location = useLocation();
 
+  // Kazda trasa dostaje wymagania z jednej mapy (dostepDoWidokow.ts), z ktorej korzysta tez
+  // nawigacja. Dzieki temu ukrycie kafelka i blokada wejscia nie moga sie rozjechac.
+  const chroniona = (sciezka: string, element: React.ReactNode) => (
+    <StrazWidoku wymagane={uprawnieniaDlaSciezki(sciezka) ?? []}>{element}</StrazWidoku>
+  );
+
   return (
     <MainLayout>
       <ErrorBoundary key={location.pathname}>
       <Suspense fallback={<RouteLoadingFallback />}>
       <Routes>
         <Route path="/workspace" element={<WorkspacePage />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/org/tree" element={<OrgTreePage />} />
-        <Route path="/org/employees" element={<EmployeeListPage />} />
-        <Route path="/org/employees/import" element={<CsvImportPage />} />
-        <Route path="/org/employees/:id" element={<EmployeeCardPage />} />
-        <Route path="/time/timesheet" element={<TimesheetPage />} />
-        <Route path="/time/team-report" element={<TeamAttendancePage />} />
-        <Route path="/time/schedule" element={<SchedulePage />} />
-        <Route path="/payroll" element={<PayrollPage />} />
-        <Route path="/leave/request" element={<LeaveRequestPage />} />
-        <Route path="/leave/approvals" element={<PendingApprovalsPage />} />
-        <Route path="/leave/calendar" element={<LeaveCalendarPage />} />
-        <Route path="/tasks" element={<TaskListPage />} />
-        <Route path="/tasks/my" element={<MyTasksPage />} />
-        <Route path="/tasks/:id" element={<TaskCardPage />} />
-        <Route path="/documents" element={<DocumentListPage />} />
-        <Route path="/documents/categories" element={<DocumentCategoriesPage />} />
-        <Route path="/workflow/builder" element={<WorkflowBuilderPage />} />
-        <Route path="/forms/builder" element={<FormBuilderPage />} />
-        <Route path="/admin/roles" element={isAdmin ? <RolesPage /> : <Navigate to="/workspace" replace />} />
-        <Route path="/admin/permissions" element={isAdmin ? <PermissionsMatrixPage /> : <Navigate to="/workspace" replace />} />
-        <Route path="/admin/feature-flags" element={isAdmin ? <FeatureFlagsPage /> : <Navigate to="/workspace" replace />} />
-        <Route path="/admin/branding" element={isAdmin ? <BrandingConfigPage /> : <Navigate to="/workspace" replace />} />
-        <Route path="/admin/terminology" element={isAdmin ? <TerminologyConfigPage /> : <Navigate to="/workspace" replace />} />
-        <Route path="/admin/time-tracking-settings" element={isAdmin ? <TimeTrackingSettingsPage /> : <Navigate to="/workspace" replace />} />
-        <Route path="/admin/notification-templates" element={isAdmin ? <NotificationTemplatesConfigPage /> : <Navigate to="/workspace" replace />} />
-        <Route path="/admin/leave-policies" element={isAdmin ? <LeavePolicyConfigPage /> : <Navigate to="/workspace" replace />} />
-        <Route path="/admin/escalation-rules" element={isAdmin ? <EscalationRulesConfigPage /> : <Navigate to="/workspace" replace />} />
-        <Route path="/admin/document-settings" element={isAdmin ? <DocumentSettingsConfigPage /> : <Navigate to="/workspace" replace />} />
-        <Route path="/admin/task-settings" element={isAdmin ? <TaskSettingsConfigPage /> : <Navigate to="/workspace" replace />} />
-        <Route path="/admin/tenants" element={isAdmin && isOperator ? <PlatformTenantsPage /> : <Navigate to="/workspace" replace />} />
-        <Route path="/admin/leave-types" element={isAdmin ? <LeaveTypesConfigPage /> : <Navigate to="/workspace" replace />} />
-        <Route path="/admin/task-statuses" element={isAdmin ? <TaskStatusConfigPage /> : <Navigate to="/workspace" replace />} />
-        <Route path="/admin/break-policies" element={isAdmin ? <BreakPoliciesConfigPage /> : <Navigate to="/workspace" replace />} />
-        <Route path="/admin/positions" element={isAdmin ? <PositionsConfigPage /> : <Navigate to="/workspace" replace />} />
-        <Route path="/admin/unit-types" element={isAdmin ? <UnitTypesConfigPage /> : <Navigate to="/workspace" replace />} />
+        <Route path="/dashboard" element={chroniona('/dashboard', <DashboardPage />)} />
+        <Route path="/org/tree" element={chroniona('/org/tree', <OrgTreePage />)} />
+        <Route path="/org/employees" element={chroniona('/org/employees', <EmployeeListPage />)} />
+        <Route path="/org/employees/import" element={chroniona('/org/employees/import', <CsvImportPage />)} />
+        <Route path="/org/employees/:id" element={chroniona('/org/employees/:id', <EmployeeCardPage />)} />
+        <Route path="/time/timesheet" element={chroniona('/time/timesheet', <TimesheetPage />)} />
+        <Route path="/time/team-report" element={chroniona('/time/team-report', <TeamAttendancePage />)} />
+        <Route path="/time/schedule" element={chroniona('/time/schedule', <SchedulePage />)} />
+        <Route path="/payroll" element={chroniona('/payroll', <PayrollPage />)} />
+        <Route path="/leave/request" element={chroniona('/leave/request', <LeaveRequestPage />)} />
+        <Route path="/leave/approvals" element={chroniona('/leave/approvals', <PendingApprovalsPage />)} />
+        <Route path="/leave/calendar" element={chroniona('/leave/calendar', <LeaveCalendarPage />)} />
+        <Route path="/tasks" element={chroniona('/tasks', <TaskListPage />)} />
+        <Route path="/tasks/my" element={chroniona('/tasks/my', <MyTasksPage />)} />
+        <Route path="/tasks/:id" element={chroniona('/tasks/:id', <TaskCardPage />)} />
+        <Route path="/documents" element={chroniona('/documents', <DocumentListPage />)} />
+        <Route path="/documents/categories" element={chroniona('/documents/categories', <DocumentCategoriesPage />)} />
+        <Route path="/workflow/builder" element={chroniona('/workflow/builder', <WorkflowBuilderPage />)} />
+        <Route path="/forms/builder" element={chroniona('/forms/builder', <FormBuilderPage />)} />
+        <Route path="/admin/roles" element={chroniona('/admin/roles', <RolesPage />)} />
+        <Route path="/admin/permissions" element={chroniona('/admin/permissions', <PermissionsMatrixPage />)} />
+        <Route path="/admin/feature-flags" element={chroniona('/admin/feature-flags', <FeatureFlagsPage />)} />
+        <Route path="/admin/branding" element={chroniona('/admin/branding', <BrandingConfigPage />)} />
+        <Route path="/admin/terminology" element={chroniona('/admin/terminology', <TerminologyConfigPage />)} />
+        <Route path="/admin/time-tracking-settings" element={chroniona('/admin/time-tracking-settings', <TimeTrackingSettingsPage />)} />
+        <Route path="/admin/notification-templates" element={chroniona('/admin/notification-templates', <NotificationTemplatesConfigPage />)} />
+        <Route path="/admin/leave-policies" element={chroniona('/admin/leave-policies', <LeavePolicyConfigPage />)} />
+        <Route path="/admin/escalation-rules" element={chroniona('/admin/escalation-rules', <EscalationRulesConfigPage />)} />
+        <Route path="/admin/document-settings" element={chroniona('/admin/document-settings', <DocumentSettingsConfigPage />)} />
+        <Route path="/admin/task-settings" element={chroniona('/admin/task-settings', <TaskSettingsConfigPage />)} />
+        <Route path="/admin/tenants" element={chroniona('/admin/tenants', <PlatformTenantsPage />)} />
+        <Route path="/admin/leave-types" element={chroniona('/admin/leave-types', <LeaveTypesConfigPage />)} />
+        <Route path="/admin/task-statuses" element={chroniona('/admin/task-statuses', <TaskStatusConfigPage />)} />
+        <Route path="/admin/break-policies" element={chroniona('/admin/break-policies', <BreakPoliciesConfigPage />)} />
+        <Route path="/admin/positions" element={chroniona('/admin/positions', <PositionsConfigPage />)} />
+        <Route path="/admin/unit-types" element={chroniona('/admin/unit-types', <UnitTypesConfigPage />)} />
         <Route path="*" element={<Navigate to="/workspace" replace />} />
       </Routes>
       </Suspense>
