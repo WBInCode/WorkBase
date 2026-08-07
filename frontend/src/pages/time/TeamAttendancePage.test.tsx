@@ -9,6 +9,12 @@ const createMutate = vi.fn().mockResolvedValue({});
 const deleteMutate = vi.fn().mockResolvedValue({});
 const clockInMutate = vi.fn().mockResolvedValue({});
 const clockOutMutate = vi.fn().mockResolvedValue({});
+const recalculateMutate = vi.fn().mockResolvedValue({
+  sprawdzonychKart: 0,
+  poprawionychKart: 0,
+  odjetychGodzin: 0,
+  poprawione: [],
+});
 
 vi.mock('@/api/hooks/useTimeTracking', () => ({
   useTeamTimesheets: () => ({ data: [timesheet], isLoading: false }),
@@ -17,6 +23,7 @@ vi.mock('@/api/hooks/useTimeTracking', () => ({
   useAdminDeleteTimeEntry: () => ({ mutateAsync: deleteMutate, isPending: false }),
   useClockIn: () => ({ mutateAsync: clockInMutate, isPending: false }),
   useClockOut: () => ({ mutateAsync: clockOutMutate, isPending: false }),
+  useRecalculateTimeSheets: () => ({ mutateAsync: recalculateMutate, isPending: false }),
 }));
 
 vi.mock('@/api/hooks/useIam', () => ({
