@@ -112,6 +112,13 @@ public static class InfrastructureServiceCollectionExtensions
 
         services.AddValidatorsFromAssemblies(moduleApplicationAssemblies, includeInternalTypes: true);
 
+        // Handlery spinające dwa moduły mieszkają w Infrastructure, którego MediatR nie skanuje
+        // (skanuje tylko zestawy *.Application), więc rejestrujemy je wprost.
+        services.AddScoped<MediatR.INotificationHandler<Modules.Workflow.Domain.Events.WorkflowInstanceCompletedEvent>,
+            Leave.ZamknijWniosekUrlopowyPoObiegu>();
+        services.AddScoped<MediatR.INotificationHandler<Modules.Workflow.Domain.Events.WorkflowInstanceRejectedEvent>,
+            Leave.ZamknijWniosekUrlopowyPoObiegu>();
+
         services.AddScoped<DomainEventInterceptor>();
         services.AddScoped<AuditSaveChangesInterceptor>();
 
@@ -210,10 +217,6 @@ public static class InfrastructureServiceCollectionExtensions
 
     private static IEnumerable<Assembly> GetModuleApplicationAssemblies()
     {
-        // Infrastructure też zawiera handlery zdarzeń — te, które łączą dwa moduły
-        // i nie mogą mieszkać w żadnym z nich bez tworzenia zależności między nimi.
-        yield return typeof(InfrastructureServiceCollectionExtensions).Assembly;
-
         var moduleNames = new[]
         {
             "WorkBase.Modules.Identity.Application",
