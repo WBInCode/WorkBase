@@ -105,6 +105,7 @@ public static class IamSeeder
         "documents.view", "documents.create", "documents.export", "documents.import",
         "ai.use",
         "forms.submit", "reports.view",
+        "payroll.view", "payroll.view-team",
     ];
 
     public static async Task SeedAsync(WorkBaseDbContext dbContext, ILogger logger)
