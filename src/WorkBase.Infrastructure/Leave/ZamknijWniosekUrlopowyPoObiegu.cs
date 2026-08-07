@@ -23,17 +23,10 @@ public sealed class ZamknijWniosekUrlopowyPoObiegu(
 
     public async Task Handle(WorkflowInstanceCompletedEvent notification, CancellationToken cancellationToken)
     {
-        logger.LogInformation("Domkniecie wniosku: zdarzenie zakonczenia obiegu dla {TypEncji} {EntityId}",
-            notification.EntityType, notification.EntityId);
         if (!string.Equals(notification.EntityType, TypEncji, StringComparison.OrdinalIgnoreCase)) return;
 
-        var wniosek = await PobierzAsync(notification.EntityId, cancellationToken);
-        if (wniosek is null || wniosek.Status != LeaveRequestStatus.Pending)
-        {
-            logger.LogWarning("Domkniecie wniosku pominiete: wniosek={Znaleziony}, status={Status}",
-                wniosek is not null, wniosek?.Status.ToString() ?? "-");
-            return;
-        }
+        var wniosek = await PobierzAsync(notification.InstanceId, cancellationToken);
+        if (wniosek is null || wniosek.Status != LeaveRequestStatus.Pending) return;
 
         wniosek.Approve();
         await PrzeniesSaldoAsync(wniosek, zatwierdzony: true, cancellationToken);
@@ -47,7 +40,7 @@ public sealed class ZamknijWniosekUrlopowyPoObiegu(
     {
         if (!string.Equals(notification.EntityType, TypEncji, StringComparison.OrdinalIgnoreCase)) return;
 
-        var wniosek = await PobierzAsync(notification.EntityId, cancellationToken);
+        var wniosek = await PobierzAsync(notification.InstanceId, cancellationToken);
         if (wniosek is null || wniosek.Status != LeaveRequestStatus.Pending) return;
 
         wniosek.Reject();
@@ -57,8 +50,11 @@ public sealed class ZamknijWniosekUrlopowyPoObiegu(
         logger.LogInformation("Wniosek urlopowy {RequestId} odrzucony po decyzji w obiegu", wniosek.Id);
     }
 
-    private Task<LeaveRequest?> PobierzAsync(Guid id, CancellationToken ct) =>
-        dbContext.Set<LeaveRequest>().IgnoreQueryFilters().FirstOrDefaultAsync(r => r.Id == id, ct);
+    // Szukamy po identyfikatorze OBIEGU, nie po EntityId ze zdarzenia: identyfikator wniosku
+    // nadaje dopiero zapis do bazy, wiec w chwili tworzenia obiegu jest jeszcze pusty.
+    private Task<LeaveRequest?> PobierzAsync(Guid instanceId, CancellationToken ct) =>
+        dbContext.Set<LeaveRequest>().IgnoreQueryFilters()
+            .FirstOrDefaultAsync(r => r.WorkflowInstanceId == instanceId, ct);
 
     private async Task PrzeniesSaldoAsync(LeaveRequest wniosek, bool zatwierdzony, CancellationToken ct)
     {
