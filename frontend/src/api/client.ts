@@ -70,7 +70,9 @@ export const api = {
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({ message: response.statusText }));
-      throw new ApiError(response.status, error.message ?? response.statusText, error);
+      // Backend zwraca ProblemDetails z polem `detail` — bez tego użytkownik dostawał samo
+      // „Nie udało się” zamiast konkretnej przyczyny (np. niedozwolone rozszerzenie pliku).
+      throw new ApiError(response.status, error.message ?? error.detail ?? error.title ?? response.statusText, error);
     }
 
     if (response.status === 204) return undefined as T;
@@ -82,7 +84,10 @@ export const api = {
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
     const response = await fetch(`${API_BASE}${path}`, { method: 'GET', headers });
-    if (!response.ok) throw new ApiError(response.status, response.statusText);
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new ApiError(response.status, error.message ?? error.detail ?? error.title ?? response.statusText, error);
+    }
     return response.blob();
   },
 };

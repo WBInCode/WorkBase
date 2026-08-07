@@ -87,7 +87,9 @@ export function TaskListPage() {
       assigneeId: formAssignee,
       additionalAssigneeIds: additionalIds.length > 0 ? additionalIds : undefined,
       description: formDesc || undefined,
-      dueDate: formDueDate || undefined,
+      // input[type=datetime-local] podaje lokalny czas bez strefy. Bez konwersji backend
+      // traktował go jak UTC i termin wyświetlał się przesunięty o offset (12:00 -> 14:00).
+      dueDate: formDueDate ? new Date(formDueDate).toISOString() : undefined,
       reporterId: user?.employeeId ?? undefined,
     };
     createMutation.mutate(data, {
