@@ -42,6 +42,7 @@ public sealed class DomainEventInterceptor(IPublisher publisher, ILogger<DomainE
         {
             try
             {
+                logger.LogInformation("Rozsylam zdarzenie domenowe {EventType}", domainEvent.GetType().Name);
                 await publisher.Publish(domainEvent, cancellationToken);
             }
             catch (Exception ex)

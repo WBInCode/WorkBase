@@ -23,10 +23,17 @@ public sealed class ZamknijWniosekUrlopowyPoObiegu(
 
     public async Task Handle(WorkflowInstanceCompletedEvent notification, CancellationToken cancellationToken)
     {
+        logger.LogInformation("Domkniecie wniosku: zdarzenie zakonczenia obiegu dla {TypEncji} {EntityId}",
+            notification.EntityType, notification.EntityId);
         if (!string.Equals(notification.EntityType, TypEncji, StringComparison.OrdinalIgnoreCase)) return;
 
         var wniosek = await PobierzAsync(notification.EntityId, cancellationToken);
-        if (wniosek is null || wniosek.Status != LeaveRequestStatus.Pending) return;
+        if (wniosek is null || wniosek.Status != LeaveRequestStatus.Pending)
+        {
+            logger.LogWarning("Domkniecie wniosku pominiete: wniosek={Znaleziony}, status={Status}",
+                wniosek is not null, wniosek?.Status.ToString() ?? "-");
+            return;
+        }
 
         wniosek.Approve();
         await PrzeniesSaldoAsync(wniosek, zatwierdzony: true, cancellationToken);
