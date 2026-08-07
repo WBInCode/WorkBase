@@ -152,10 +152,13 @@ public static class WorkflowEndpoints
             .RequirePermission("workflow.view")
             .Produces<ApprovalRequestDto>();
 
+        // BEZ RequirePermission: decyzję podejmuje wyłącznie akceptant wskazany we wniosku,
+        // co handler sprawdza po employee_id z tokenu (Approval.NotAuthorized). Globalne
+        // uprawnienie „workflow.approve" ma tylko Admin/Kierownik/HR, więc zwykły przełożony
+        // widział wniosek na liście i dostawał 403 przy próbie rozpatrzenia go.
         group.MapPost("/approvals/{id:guid}/decide", SubmitApprovalDecision)
             .WithName("SubmitApprovalDecision")
             .WithSummary("Zatwierdź, odrzuć lub zwróć wniosek o akceptację")
-            .RequirePermission("workflow.approve")
             .Produces(StatusCodes.Status204NoContent);
 
         return endpoints;
