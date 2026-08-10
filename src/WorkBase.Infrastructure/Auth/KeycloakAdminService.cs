@@ -1092,4 +1092,37 @@ public sealed class KeycloakAdminService(
 
         return true;
     }
+
+    public async Task<bool> LogoutUserSessionsAsync(
+        string realmName,
+        string email,
+        CancellationToken cancellationToken = default)
+    {
+        var token = await GetAdminTokenAsync(cancellationToken);
+        if (token is null) return false;
+
+        var client = httpClientFactory.CreateClient();
+        var baseUrl = GetAdminBaseUrl();
+
+        var userId = await FindUserIdByEmailAsync(client, baseUrl, realmName, token, email, cancellationToken);
+        if (userId is null)
+        {
+            logger.LogInformation("Single logout: no Keycloak account matched, nothing to close");
+            return false;
+        }
+
+        using var request = new HttpRequestMessage(HttpMethod.Post,
+            $"{baseUrl}/admin/realms/{realmName}/users/{userId}/logout");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        using var response = await client.SendAsync(request, cancellationToken);
+        if (!response.IsSuccessStatusCode)
+        {
+            logger.LogError("Failed to close Keycloak sessions for user {UserId}: {Status}",
+                userId, response.StatusCode);
+            return false;
+        }
+
+        return true;
+    }
 }

@@ -9,7 +9,10 @@ COPY . .
 # UWAGA: NIE ustawiamy VITE_POST_LOGOUT_REDIRECT_URI — inaczej nadpisałoby single-logout
 # przez Hub (auth-config.ts kieruje wylogowanie na /api/v1/auth/logout-redirect, co kończy
 # też sesję Huba i zapobiega natychmiastowemu ponownemu logowaniu przez globalny kc_idp_hint).
-RUN printf 'VITE_API_URL=\nVITE_KEYCLOAK_AUTHORITY=https://auth.wb-partners.pl/realms/workbase\nVITE_KEYCLOAK_CLIENT_ID=workbase-web\nVITE_REDIRECT_URI=https://workbase.wb-partners.pl/auth/callback\n' > .env.production
+# NIE ustawiamy też VITE_REDIRECT_URI: auth-config.ts składa go z window.location.origin,
+# dzięki czemu ta sama paczka działa na każdej domenie (wb-platform.pl i wb-partners.pl
+# w okresie migracji). Wpisany na sztywno adres odsyłałby z powrotem na starą domenę.
+RUN printf 'VITE_API_URL=\nVITE_KEYCLOAK_AUTHORITY=https://auth.wb-platform.pl/realms/workbase\nVITE_KEYCLOAK_CLIENT_ID=workbase-web\n' > .env.production
 RUN npm run build
 
 FROM nginx:1.27-alpine
