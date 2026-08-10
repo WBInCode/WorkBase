@@ -68,13 +68,14 @@
       "directAccessGrantsEnabled": false,
       "serviceAccountsEnabled": false,
       "protocol": "openid-connect",
-      "rootUrl": "https://workbase.wb-partners.pl",
-      "baseUrl": "https://workbase.wb-partners.pl/",
+      "rootUrl": "https://workbase.wb-platform.pl",
+      "baseUrl": "https://workbase.wb-platform.pl/",
       "redirectUris": [
         "http://localhost:5173/*",
         "http://localhost:5174/*",
         "http://localhost:5175/*",
         "https://work-base-roan.vercel.app/*",
+        "https://workbase.wb-platform.pl/*",
         "https://workbase.wb-partners.pl/*"
       ],
       "webOrigins": [
@@ -82,11 +83,12 @@
         "http://localhost:5174",
         "http://localhost:5175",
         "https://work-base-roan.vercel.app",
+        "https://workbase.wb-platform.pl",
         "https://workbase.wb-partners.pl"
       ],
       "attributes": {
         "pkce.code.challenge.method": "S256",
-        "post.logout.redirect.uris": "http://localhost:5173/*##http://localhost:5175/*##https://work-base-roan.vercel.app/*##https://workbase.wb-partners.pl/*##https://wb-partners.pl/*"
+        "post.logout.redirect.uris": "http://localhost:5173/*##http://localhost:5175/*##https://work-base-roan.vercel.app/*##https://workbase.wb-platform.pl/*##https://wb-platform.pl/*##https://workbase.wb-partners.pl/*##https://wb-partners.pl/*"
       },
       "defaultClientScopes": [
         "openid",
