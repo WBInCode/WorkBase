@@ -95,7 +95,7 @@ function AppRoutes() {
   // Kazda trasa dostaje wymagania z jednej mapy (dostepDoWidokow.ts), z ktorej korzysta tez
   // nawigacja. Dzieki temu ukrycie kafelka i blokada wejscia nie moga sie rozjechac.
   const chroniona = (sciezka: string, element: React.ReactNode) => (
-    <StrazWidoku wymagane={uprawnieniaDlaSciezki(sciezka) ?? []}>{element}</StrazWidoku>
+    <StrazWidoku sciezka={sciezka} wymagane={uprawnieniaDlaSciezki(sciezka) ?? []}>{element}</StrazWidoku>
   );
 
   return (

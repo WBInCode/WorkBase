@@ -22,4 +22,10 @@ public sealed class SupervisorLookupService(WorkBaseDbContext dbContext) : ISupe
             .Select(e => (Guid?)e.Id)
             .FirstOrDefaultAsync(cancellationToken);
     }
+
+    public async Task<bool> HasSubordinatesAsync(Guid supervisorEmployeeId, CancellationToken cancellationToken = default)
+    {
+        return await dbContext.Set<SupervisorRelation>()
+            .AnyAsync(r => r.SupervisorEmployeeId == supervisorEmployeeId && r.EndDate == null, cancellationToken);
+    }
 }
