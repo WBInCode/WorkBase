@@ -30,6 +30,8 @@ export const WIDOKI_DLA_PRZELOZONEGO: ReadonlySet<string> = new Set([
 export const DOSTEP_DO_WIDOKOW: ReadonlyArray<readonly [string, WymaganeUprawnienia]> = [
   // Pulpit pracownika — dostepny zawsze, to strona startowa po zalogowaniu.
   ['/workspace', []],
+  // Pomoc — dostepna zawsze, tresc sama filtruje sie po uprawnieniach.
+  ['/pomoc', []],
   ['/dashboard', ['dashboard.view']],
 
   ['/org/tree', ['org.view']],

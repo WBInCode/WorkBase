@@ -27,6 +27,7 @@ const pl = {
   nav: {
     myDay: 'Mój dzień',
     dashboard: 'Dashboard',
+    help: 'Pomoc',
     organization: 'Organizacja',
     structure: 'Struktura',
     employees: 'Pracownicy',

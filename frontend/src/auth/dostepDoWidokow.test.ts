@@ -20,6 +20,11 @@ describe('uprawnieniaDlaSciezki', () => {
     expect(uprawnieniaDlaSciezki('/nie-ma-takiej')).toBeNull();
   });
 
+  it('pomoc jest otwarta dla kazdego zalogowanego', () => {
+    // Ekran sam filtruje tresc po uprawnieniach, wiec brama na trasie tylko by przeszkadzala.
+    expect(uprawnieniaDlaSciezki('/pomoc')).toEqual([]);
+  });
+
   it('ignoruje koncowy ukosnik', () => {
     expect(uprawnieniaDlaSciezki('/documents/')).toEqual(['documents.view']);
   });

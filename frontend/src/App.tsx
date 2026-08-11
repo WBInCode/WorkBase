@@ -43,6 +43,7 @@ const TaskCardPage = lazy(() => import('@/pages/tasks/TaskCardPage').then((m) =>
 const MyTasksPage = lazy(() => import('@/pages/tasks/MyTasksPage').then((m) => ({ default: m.MyTasksPage })));
 const DashboardPage = lazy(() => import('@/pages/DashboardPage').then((m) => ({ default: m.DashboardPage })));
 const WorkspacePage = lazy(() => import('@/pages/WorkspacePage').then((m) => ({ default: m.WorkspacePage })));
+const PomocPage = lazy(() => import('@/pages/PomocPage').then((m) => ({ default: m.PomocPage })));
 const KioskPage = lazy(() => import('@/pages/KioskPage').then((m) => ({ default: m.KioskPage })));
 const DocumentListPage = lazy(() => import('@/pages/documents/DocumentListPage').then((m) => ({ default: m.DocumentListPage })));
 const DocumentCategoriesPage = lazy(() => import('@/pages/documents/DocumentCategoriesPage').then((m) => ({ default: m.DocumentCategoriesPage })));
@@ -104,6 +105,7 @@ function AppRoutes() {
       <Suspense fallback={<RouteLoadingFallback />}>
       <Routes>
         <Route path="/workspace" element={<WorkspacePage />} />
+        <Route path="/pomoc" element={<PomocPage />} />
         <Route path="/dashboard" element={chroniona('/dashboard', <DashboardPage />)} />
         <Route path="/org/tree" element={chroniona('/org/tree', <OrgTreePage />)} />
         <Route path="/org/employees" element={chroniona('/org/employees', <EmployeeListPage />)} />
