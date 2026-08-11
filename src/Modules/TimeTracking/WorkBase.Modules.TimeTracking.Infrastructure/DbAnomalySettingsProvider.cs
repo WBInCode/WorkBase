@@ -20,9 +20,12 @@ public sealed class DbAnomalySettingsProvider(
     {
         try
         {
+            // EF Core nazywa kolumne wyniku skalarnego "Value" i cytuje ja w wygenerowanym
+            // zapytaniu zewnetrznym. Bez aliasu Postgres zwraca "value" i odczyt pada, a najemca
+            // po cichu dostaje ustawienia domyslne mimo zapisanej konfiguracji.
             var configValue = await dbContext.Database
                 .SqlQueryRaw<string>(
-                    "SELECT value FROM cfg_tenant_configs WHERE tenant_id = {0} AND key = {1} LIMIT 1",
+                    "SELECT value AS \"Value\" FROM cfg_tenant_configs WHERE tenant_id = {0} AND key = {1} LIMIT 1",
                     tenantId, ConfigKey)
                 .FirstOrDefaultAsync(cancellationToken);
 
@@ -35,9 +38,10 @@ public sealed class DbAnomalySettingsProvider(
         }
         catch (Exception ex)
         {
-            // Table may not exist yet — fall back to defaults
-            logger.LogDebug(ex,
-                "Could not load anomaly settings for tenant {TenantId} — using defaults", tenantId);
+            // Ostrzezenie, nie debug: zejscie na ustawienia domyslne zmienia wyniki wykrywania
+            // anomalii, wiec musi byc widoczne. Poprzedni poziom ukrywal blad przez tygodnie.
+            logger.LogWarning(ex,
+                "Nie udalo sie odczytac ustawien wykrywania anomalii dla najemcy {TenantId}, uzywam domyslnych", tenantId);
         }
 
         return new AnomalyDetectionSettings();
