@@ -60,35 +60,7 @@ public sealed class HubSsoService(
         var opts = Options;
         if (!opts.Enabled) throw new InvalidOperationException("Hub integration disabled");
 
-        if (string.IsNullOrWhiteSpace(token) || token.Length > 16_384)
-            throw new SecurityTokenException("Malformed handoff token");
-        var parts = token.Split('.');
-        if (parts.Length != 3)
-            throw new SecurityTokenException("Malformed handoff token");
-
-        using var header = ParseSegment(parts[0], "header");
-        using var payload = ParseSegment(parts[1], "payload");
-        EnsureUniqueProperties(header.RootElement);
-        EnsureUniqueProperties(payload.RootElement);
-
-        var algorithm = RequiredString(header.RootElement, "alg");
-        var keyId = RequiredString(header.RootElement, "kid");
-        if (algorithm != "EdDSA")
-            throw new SecurityTokenInvalidAlgorithmException($"Unexpected HUB JWT algorithm '{algorithm}'.");
-
-        var publicKey = await GetSigningKeyAsync(opts, keyId, forceRefresh: false, ct)
-            ?? await GetSigningKeyAsync(opts, keyId, forceRefresh: true, ct)
-            ?? throw new SecurityTokenSignatureKeyNotFoundException($"HUB signing key '{keyId}' was not found.");
-        var signature = DecodeSegment(parts[2], "signature");
-        if (signature.Length != 64)
-            throw new SecurityTokenInvalidSignatureException("Invalid Ed25519 signature length.");
-
-        var signingInput = Encoding.ASCII.GetBytes($"{parts[0]}.{parts[1]}");
-        var verifier = new Ed25519Signer();
-        verifier.Init(false, new Ed25519PublicKeyParameters(publicKey, 0));
-        verifier.BlockUpdate(signingInput, 0, signingInput.Length);
-        if (!verifier.VerifySignature(signature))
-            throw new SecurityTokenInvalidSignatureException("HUB handoff signature is invalid.");
+        using var payload = await VerifySignatureAsync(token, opts, ct);
 
         ValidateClaims(payload.RootElement, opts);
         var modules = payload.RootElement.TryGetProperty("modules", out var modulesElement)
@@ -112,6 +84,71 @@ public sealed class HubSsoService(
             EmployeeReference: OptionalString(payload.RootElement, "employee_ref"),
             Modules: modules,
             Jti: RequiredString(payload.RootElement, "jti"));
+    }
+
+    /// <summary>
+    /// Weryfikuje token back-channel logout (typ "logout") i zwraca e-mail użytkownika,
+    /// którego sesje należy zamknąć. Token nie ma "jti" ani danych organizacji, więc
+    /// sprawdzamy tylko podpis, wystawcę, odbiorcę, ważność i typ.
+    /// </summary>
+    public async Task<string> VerifyLogoutAsync(string token, CancellationToken ct = default)
+    {
+        var opts = Options;
+        if (!opts.Enabled) throw new InvalidOperationException("Hub integration disabled");
+
+        using var payload = await VerifySignatureAsync(token, opts, ct);
+        if (RequiredString(payload.RootElement, "typ") != "logout")
+            throw new SecurityTokenException("Not a logout token.");
+
+        ValidateEnvelope(payload.RootElement, opts);
+        return RequiredString(payload.RootElement, "email");
+    }
+
+    /// <summary>
+    /// Wspólna część dla wszystkich tokenów Huba: budowa, algorytm i podpis Ed25519
+    /// kluczem z JWKS. Zwraca ładunek — zwalnia go wywołujący.
+    /// </summary>
+    private async Task<JsonDocument> VerifySignatureAsync(string token, HubOptions opts, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(token) || token.Length > 16_384)
+            throw new SecurityTokenException("Malformed HUB token");
+        var parts = token.Split('.');
+        if (parts.Length != 3)
+            throw new SecurityTokenException("Malformed HUB token");
+
+        using var header = ParseSegment(parts[0], "header");
+        var payload = ParseSegment(parts[1], "payload");
+        try
+        {
+            EnsureUniqueProperties(header.RootElement);
+            EnsureUniqueProperties(payload.RootElement);
+
+            var algorithm = RequiredString(header.RootElement, "alg");
+            var keyId = RequiredString(header.RootElement, "kid");
+            if (algorithm != "EdDSA")
+                throw new SecurityTokenInvalidAlgorithmException($"Unexpected HUB JWT algorithm '{algorithm}'.");
+
+            var publicKey = await GetSigningKeyAsync(opts, keyId, forceRefresh: false, ct)
+                ?? await GetSigningKeyAsync(opts, keyId, forceRefresh: true, ct)
+                ?? throw new SecurityTokenSignatureKeyNotFoundException($"HUB signing key '{keyId}' was not found.");
+            var signature = DecodeSegment(parts[2], "signature");
+            if (signature.Length != 64)
+                throw new SecurityTokenInvalidSignatureException("Invalid Ed25519 signature length.");
+
+            var signingInput = Encoding.ASCII.GetBytes($"{parts[0]}.{parts[1]}");
+            var verifier = new Ed25519Signer();
+            verifier.Init(false, new Ed25519PublicKeyParameters(publicKey, 0));
+            verifier.BlockUpdate(signingInput, 0, signingInput.Length);
+            if (!verifier.VerifySignature(signature))
+                throw new SecurityTokenInvalidSignatureException("HUB handoff signature is invalid.");
+
+            return payload;
+        }
+        catch
+        {
+            payload.Dispose();
+            throw;
+        }
     }
 
     private async Task<byte[]?> GetSigningKeyAsync(
@@ -246,6 +283,23 @@ public sealed class HubSsoService(
     {
         if (RequiredString(payload, "typ") != "handoff")
             throw new SecurityTokenException("Not a handoff token.");
+
+        ValidateEnvelope(payload, options);
+
+        _ = RequiredString(payload, "jti");
+        _ = RequiredString(payload, "sub");
+        _ = RequiredString(payload, "email");
+        _ = RequiredString(payload, "name");
+        _ = RequiredString(payload, "org_id");
+        _ = RequiredString(payload, "org_role");
+        _ = RequiredString(payload, "instance_id");
+        _ = RequiredString(payload, "instance_role");
+        _ = RequiredString(payload, "product_key");
+    }
+
+    /// <summary>Wystawca, odbiorca i ważność — wspólne dla biletu handoff i tokenu logout.</summary>
+    private static void ValidateEnvelope(JsonElement payload, HubOptions options)
+    {
         if (RequiredString(payload, "iss") != options.Issuer)
             throw new SecurityTokenInvalidIssuerException("HUB token issuer is invalid.");
 
@@ -277,16 +331,6 @@ public sealed class HubSsoService(
         {
             throw new SecurityTokenException("HUB handoff issued-at claim is invalid.");
         }
-
-        _ = RequiredString(payload, "jti");
-        _ = RequiredString(payload, "sub");
-        _ = RequiredString(payload, "email");
-        _ = RequiredString(payload, "name");
-        _ = RequiredString(payload, "org_id");
-        _ = RequiredString(payload, "org_role");
-        _ = RequiredString(payload, "instance_id");
-        _ = RequiredString(payload, "instance_role");
-        _ = RequiredString(payload, "product_key");
     }
 
     private static bool AudienceContains(JsonElement audience, string expected)

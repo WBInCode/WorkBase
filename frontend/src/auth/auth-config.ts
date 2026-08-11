@@ -16,7 +16,7 @@ const isKioskAuth = sessionStorage.getItem(KIOSK_AUTH_STORAGE_KEY) === 'true';
 // Wylogowanie z produktu kończy też sesję Huba (single logout ekosystemu). Inaczej
 // globalny kc_idp_hint natychmiast zalogowałby użytkownika z powrotem przez żywą sesję
 // Huba. Po zakończeniu sesji Huba wracamy na ekran „Wylogowano".
-const hubUrl = import.meta.env.VITE_HUB_URL || 'https://wb-partners.pl';
+const hubUrl = import.meta.env.VITE_HUB_URL || 'https://wb-platform.pl';
 const postLogoutRedirectUri = isKioskAuth
   ? `${window.location.origin}/kiosk?realm=`
   : import.meta.env.VITE_POST_LOGOUT_REDIRECT_URI ||

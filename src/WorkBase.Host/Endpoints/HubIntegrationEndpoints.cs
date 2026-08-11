@@ -12,6 +12,9 @@ using WorkBase.Shared.Auth;
 
 namespace WorkBase.Host.Endpoints;
 
+/// <summary>Ciało żądania back-channel logout wysyłanego przez Hub.</summary>
+public sealed record HubLogoutRequest(string? Token);
+
 /// <summary>
 /// Endpoint webhooków Huba ekosystemu (wb-platform). Hub podpisuje ładunek
 /// HMAC-SHA256 (nagłówek <c>x-wb-signature</c>: "sha256=&lt;hex&gt;") — podpis
@@ -219,6 +222,52 @@ public static class HubIntegrationEndpoints
         endpoints.MapGet("/sso/callback", obsluzHandoff)
             .AllowAnonymous()
             .WithName("HubSsoCallbackKorzen")
+            .ExcludeFromDescription();
+
+        // Back-channel single logout. Hub po wylogowaniu użytkownika woła {baseUrl}/sso/logout
+        // z tokenem podpisanym swoim kluczem (weryfikacja przez JWKS, bez wspólnego sekretu).
+        // Sesje WorkBase żyją w Keycloaku, więc zamykamy je przez Admin API — inaczej
+        // wylogowanie z Huba zostawiłoby tu czynną sesję aż do wygaśnięcia tokenu.
+        var obsluzWylogowanie = async (
+            HubLogoutRequest? body,
+            HubSsoService sso,
+            HubEntitlementsSyncService entitlements,
+            IKeycloakAdminService keycloak,
+            IConfiguration configuration,
+            ILoggerFactory loggerFactory,
+            CancellationToken ct) =>
+        {
+            var logger = loggerFactory.CreateLogger("HubSsoLogout");
+            if (!entitlements.Options.Enabled) return Results.NotFound();
+
+            if (string.IsNullOrWhiteSpace(body?.Token))
+                return Results.BadRequest(new { error = "MISSING_TOKEN" });
+
+            string email;
+            try
+            {
+                email = await sso.VerifyLogoutAsync(body.Token, ct);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Odrzucony token wylogowania z Huba");
+                return Results.Unauthorized();
+            }
+
+            var realm = configuration["Keycloak:Realm"] ?? "workbase";
+            var zamkniete = await keycloak.LogoutUserSessionsAsync(realm, email, ct);
+            logger.LogInformation("Single logout z Huba: sesje zamknięte = {Zamkniete}", zamkniete);
+            return Results.Ok(new { ok = true });
+        };
+
+        endpoints.MapPost("/api/hub/sso/logout", obsluzWylogowanie)
+            .AllowAnonymous()
+            .WithName("HubSsoLogout")
+            .WithSummary("Back-channel single logout z Huba: zamyka sesje Keycloaka użytkownika");
+
+        endpoints.MapPost("/sso/logout", obsluzWylogowanie)
+            .AllowAnonymous()
+            .WithName("HubSsoLogoutKorzen")
             .ExcludeFromDescription();
 
         return endpoints;

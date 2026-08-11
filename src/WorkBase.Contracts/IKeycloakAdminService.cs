@@ -90,6 +90,17 @@ public interface IKeycloakAdminService
         string[] managedRoleNames,
         string[] assignedRoleNames,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Terminates every active Keycloak session of the user with the given e-mail, so a
+    /// central logout in the ecosystem Hub also ends the WorkBase session. Returns false
+    /// when the account cannot be resolved or Keycloak rejects the request; an unknown
+    /// e-mail is not an error for the caller (no such user, nothing to close).
+    /// </summary>
+    Task<bool> LogoutUserSessionsAsync(
+        string realmName,
+        string email,
+        CancellationToken cancellationToken = default);
 }
 
     public sealed record KeycloakKioskAccountResult(string UserId, bool CredentialsIssued);

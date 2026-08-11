@@ -17,4 +17,7 @@ public interface ISupervisorLookupService
     /// or null if no employee is linked to that user.
     /// </summary>
     Task<Guid?> GetEmployeeIdByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
+
+    /// <summary>Czy pracownik ma aktywnych podwładnych. Bycie przełożonym to relacja, nie rola.</summary>
+    Task<bool> HasSubordinatesAsync(Guid supervisorEmployeeId, CancellationToken cancellationToken = default);
 }

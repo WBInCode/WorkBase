@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
+using WorkBase.Contracts;
 using WorkBase.Shared.Auth;
 
 namespace WorkBase.Modules.Identity.Api.Endpoints;
@@ -26,6 +27,7 @@ public static class AuthEndpoints
 
     private static async Task<IResult> GetCurrentUser(
         ClaimsPrincipal user, IPermissionService permissionService, IRoleManagementService roleService,
+        ISupervisorLookupService supervisorLookup,
         ILogger<CurrentUserResponse> logger)
     {
         if (user.Identity?.IsAuthenticated != true)
@@ -75,6 +77,23 @@ public static class AuthEndpoints
             isAdmin = keycloakRoles.Any(r => r is "workbase-admin" or "Admin" or "Super Admin");
         }
 
+        // Bycie przelozonym to relacja w strukturze, nie rola: obieg akceptacji wyznacza
+        // akceptanta z org_supervisor_relations, a nikt nie musi miec przy tym roli Kierownik.
+        // Bez tego pola interfejs chowalby kolejke akceptacji przed osoba, ktora ma tam wnioski.
+        var isSupervisor = false;
+        var employeeIdClaim = user.FindFirstValue("employee_id") ?? "";
+        if (Guid.TryParse(employeeIdClaim, out var employeeId))
+        {
+            try
+            {
+                isSupervisor = await supervisorLookup.HasSubordinatesAsync(employeeId);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Nie udalo sie ustalic, czy {EmployeeId} jest przelozonym.", employeeId);
+            }
+        }
+
         var response = new CurrentUserResponse
         {
             UserId = sub,
@@ -83,10 +102,11 @@ public static class AuthEndpoints
                 ?? user.FindFirstValue("preferred_username")
                 ?? "",
             TenantId = tenantIdClaim,
-            EmployeeId = user.FindFirstValue("employee_id") ?? "",
+            EmployeeId = employeeIdClaim,
             Roles = keycloakRoles,
             Permissions = permissions,
             IsAdmin = isAdmin,
+            IsSupervisor = isSupervisor,
             OrgUnitIds = [],
             ScopeLevel = "self"
         };
@@ -105,6 +125,7 @@ public sealed class CurrentUserResponse
     public required string[] Roles { get; init; }
     public required string[] Permissions { get; init; }
     public required bool IsAdmin { get; init; }
+    public required bool IsSupervisor { get; init; }
     public required string[] OrgUnitIds { get; init; }
     public required string ScopeLevel { get; init; }
 }

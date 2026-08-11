@@ -6,6 +6,7 @@ import { useUprawnienia } from './useUprawnienia';
 import type { WymaganeUprawnienia } from './dostepDoWidokow';
 
 interface StrazWidokuProps {
+  sciezka: string;
   wymagane: WymaganeUprawnienia;
   children: ReactNode;
 }
@@ -18,13 +19,13 @@ interface StrazWidokuProps {
  * Swiadomie NIE przekierowujemy po cichu: czyste przekierowanie na /workspace wyglada jak
  * zepsuty odsylacz. Lepiej powiedziec wprost, czego brakuje.
  */
-export function StrazWidoku({ wymagane, children }: StrazWidokuProps) {
-  const { mozeKtorekolwiek, znane } = useUprawnienia();
+export function StrazWidoku({ sciezka, wymagane, children }: StrazWidokuProps) {
+  const { mozeWejscNa, znane } = useUprawnienia();
 
   // Dopoki nie znamy uprawnien, nie pokazujemy ani ekranu, ani odmowy — inaczej przy kazdym
   // odswiezeniu mignelaby informacja o braku dostepu.
   if (!znane) return null;
-  if (mozeKtorekolwiek(wymagane)) return <>{children}</>;
+  if (mozeWejscNa(sciezka)) return <>{children}</>;
 
   return (
     <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '64px' }}>

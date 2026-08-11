@@ -72,6 +72,61 @@ public sealed class HubSsoEdDsaTests
             () => fixture.Service.VerifyHandoffAsync(token));
     }
 
+    [Fact]
+    public async Task Verifies_valid_logout_token_and_returns_email()
+    {
+        var fixture = CreateFixture();
+        var token = CreateLogoutToken(fixture.PrivateKey);
+
+        var email = await fixture.Service.VerifyLogoutAsync(token);
+
+        Assert.Equal("owner@example.test", email);
+    }
+
+    [Fact]
+    public async Task Rejects_handoff_token_passed_to_logout()
+    {
+        var fixture = CreateFixture();
+        var token = CreateToken(fixture.PrivateKey);
+
+        await Assert.ThrowsAsync<SecurityTokenException>(
+            () => fixture.Service.VerifyLogoutAsync(token));
+    }
+
+    [Fact]
+    public async Task Rejects_logout_token_passed_to_handoff()
+    {
+        var fixture = CreateFixture();
+        var token = CreateLogoutToken(fixture.PrivateKey);
+
+        await Assert.ThrowsAsync<SecurityTokenException>(
+            () => fixture.Service.VerifyHandoffAsync(token));
+    }
+
+    [Fact]
+    public async Task Rejects_logout_token_for_another_product()
+    {
+        var fixture = CreateFixture();
+        var token = CreateLogoutToken(fixture.PrivateKey, audience: "another-product");
+
+        await Assert.ThrowsAsync<SecurityTokenInvalidAudienceException>(
+            () => fixture.Service.VerifyLogoutAsync(token));
+    }
+
+    [Fact]
+    public async Task Rejects_tampered_logout_signature()
+    {
+        var fixture = CreateFixture();
+        var token = CreateLogoutToken(fixture.PrivateKey);
+        var parts = token.Split('.');
+        var signature = Base64UrlEncoder.DecodeBytes(parts[2]);
+        signature[0] ^= 0x01;
+        var tampered = $"{parts[0]}.{parts[1]}.{Base64UrlEncoder.Encode(signature)}";
+
+        await Assert.ThrowsAsync<SecurityTokenInvalidSignatureException>(
+            () => fixture.Service.VerifyLogoutAsync(tampered));
+    }
+
     private static TestFixture CreateFixture()
     {
         var privateKey = new Ed25519PrivateKeyParameters(new SecureRandom());
@@ -145,11 +200,39 @@ public sealed class HubSsoEdDsaTests
         return $"{header}.{payload}.{Base64UrlEncoder.Encode(signer.GenerateSignature())}";
     }
 
+    /// <summary>Odwzorowuje ładunek `signLogoutToken` z hub-api: bez jti, name i danych organizacji.</summary>
+    private static string CreateLogoutToken(
+        Ed25519PrivateKeyParameters privateKey,
+        string audience = Audience,
+        long? expiresAt = null)
+    {
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var header = Base64UrlEncoder.Encode(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new
+        {
+            alg = "EdDSA",
+            kid = KeyId,
+        })));
+        var payload = Base64UrlEncoder.Encode(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new
+        {
+            typ = "logout",
+            iss = Issuer,
+            aud = audience,
+            iat = now,
+            exp = expiresAt ?? now + 60,
+            sub = "hub-user-1",
+            email = "owner@example.test",
+        })));
+        var signingInput = Encoding.ASCII.GetBytes($"{header}.{payload}");
+        var signer = new Ed25519Signer();
+        signer.Init(true, privateKey);
+        signer.BlockUpdate(signingInput, 0, signingInput.Length);
+        return $"{header}.{payload}.{Base64UrlEncoder.Encode(signer.GenerateSignature())}";
+    }
+
     private sealed record TestFixture(
         HubSsoService Service,
         Ed25519PrivateKeyParameters PrivateKey,
         RecordingHandler Handler);
-
     private sealed class StubHttpClientFactory(HttpMessageHandler handler) : IHttpClientFactory
     {
         public HttpClient CreateClient(string name) => new(handler, disposeHandler: false);

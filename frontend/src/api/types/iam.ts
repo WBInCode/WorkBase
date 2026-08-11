@@ -24,6 +24,9 @@ export interface CurrentUserDto {
   roles: string[];
   permissions: string[];
   isAdmin: boolean;
+  /** Ma podwładnych. Bycie przełożonym to relacja w strukturze, nie rola — akceptant wniosku
+   *  urlopowego zwykle ma rolę „Pracownik”. */
+  isSupervisor: boolean;
   orgUnitIds: string[];
   scopeLevel: string;
 }

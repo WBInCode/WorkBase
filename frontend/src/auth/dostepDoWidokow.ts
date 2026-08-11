@@ -12,6 +12,17 @@
 export type WymaganeUprawnienia = readonly string[];
 
 /**
+ * Trasy, na ktore wpuszczamy takze przelozonego bez odpowiedniego uprawnienia.
+ * Akceptanta wniosku wyznacza relacja w strukturze (org_supervisor_relations), a nie rola —
+ * osoba z rolą „Pracownik” realnie ma wnioski do rozpatrzenia. Bez tego wyjatku kolejka
+ * akceptacji znikala przelozonym i caly obieg urlopowy stawal.
+ */
+export const WIDOKI_DLA_PRZELOZONEGO: ReadonlySet<string> = new Set([
+  '/leave/approvals',
+  '/time/team-report',
+]);
+
+/**
  * Wzorce tras. Segment `:cos` dopasowuje dowolna wartosc.
  * Kolejnosc ma znaczenie: pierwsze trafienie wygrywa, wiec trasy konkretne stoja przed
  * tymi z parametrem (`/org/employees/import` przed `/org/employees/:id`).
@@ -19,6 +30,8 @@ export type WymaganeUprawnienia = readonly string[];
 export const DOSTEP_DO_WIDOKOW: ReadonlyArray<readonly [string, WymaganeUprawnienia]> = [
   // Pulpit pracownika — dostepny zawsze, to strona startowa po zalogowaniu.
   ['/workspace', []],
+  // Pomoc — dostepna zawsze, tresc sama filtruje sie po uprawnieniach.
+  ['/pomoc', []],
   ['/dashboard', ['dashboard.view']],
 
   ['/org/tree', ['org.view']],
@@ -78,4 +91,10 @@ export function uprawnieniaDlaSciezki(sciezka: string): WymaganeUprawnienia | nu
   const bezUkosnika = sciezka.length > 1 ? sciezka.replace(/\/+$/, '') : sciezka;
   const trafienie = DOSTEP_DO_WIDOKOW.find(([wzorzec]) => pasuje(wzorzec, bezUkosnika));
   return trafienie ? trafienie[1] : null;
+}
+
+/** Czy sciezka jest dostepna dla przelozonego mimo braku uprawnienia. */
+export function dostepnaDlaPrzelozonego(sciezka: string): boolean {
+  const bezUkosnika = sciezka.length > 1 ? sciezka.replace(/\/+$/, '') : sciezka;
+  return WIDOKI_DLA_PRZELOZONEGO.has(bezUkosnika);
 }

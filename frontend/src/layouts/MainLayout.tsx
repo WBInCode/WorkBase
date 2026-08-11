@@ -2,9 +2,8 @@ import { useState, useEffect, useMemo, useCallback, type ReactNode } from 'react
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from 'react-oidc-context';
 import { useTranslation } from 'react-i18next';
-import { FolderTree, Users, FileUp, LogOut, Menu, X, Shield, Grid3X3, CalendarDays, UsersRound, CalendarClock, Palmtree, CalendarRange, ClipboardCheck, ListTodo, ClipboardList, LayoutDashboard, Briefcase, Clock, MoreHorizontal, FileArchive, FolderOpen, Flag, CircleDot, Coffee, Layers, Wallet, Building2, Palette, Type, Bell, AlarmClockCheck, ChevronDown, Sun, Moon, type LucideIcon } from 'lucide-react';
+import { FolderTree, Users, FileUp, LogOut, Menu, X, Shield, Grid3X3, CalendarDays, UsersRound, CalendarClock, Palmtree, CalendarRange, ClipboardCheck, ListTodo, ClipboardList, LayoutDashboard, Briefcase, Clock, MoreHorizontal, FileArchive, FolderOpen, Flag, CircleDot, Coffee, Layers, Wallet, Building2, Palette, Type, Bell, AlarmClockCheck, ChevronDown, Sun, Moon, LifeBuoy, type LucideIcon } from 'lucide-react';
 import { mapUserClaims } from '@/auth';
-import { uprawnieniaDlaSciezki } from '@/auth/dostepDoWidokow';
 import { useUprawnienia } from '@/auth/useUprawnienia';
 import { useFeatureFlags, useCurrentUser } from '@/api/hooks/useIam';
 import { useBranding } from '@/api/hooks/useBranding';
@@ -73,6 +72,7 @@ const navSections: NavSection[] = [
     items: [
       { path: '/workspace', labelKey: 'nav.myDay', icon: Briefcase },
       { path: '/dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard },
+      { path: '/pomoc', labelKey: 'nav.help', icon: LifeBuoy },
     ],
   },
   {
@@ -184,9 +184,8 @@ export function MainLayout({ children }: MainLayoutProps) {
   const isOperator = user?.tenantId === OPERATOR_TENANT_ID;
   // Kafelek pokazujemy tylko wtedy, gdy uzytkownik faktycznie wejdzie na te trase — ta sama
   // mapa steruje StrazWidoku, wiec menu i dostep nie moga sie rozjechac.
-  const { mozeKtorekolwiek, znane: uprawnieniaZnane } = useUprawnienia();
-  const widocznaTrasa = (sciezka: string) =>
-    !uprawnieniaZnane || mozeKtorekolwiek(uprawnieniaDlaSciezki(sciezka) ?? []);
+  const { mozeWejscNa, znane: uprawnieniaZnane } = useUprawnienia();
+  const widocznaTrasa = (sciezka: string) => !uprawnieniaZnane || mozeWejscNa(sciezka);
   const visibleAdminNavItems = adminNavItems
     .filter((item) => !item.operatorOnly || isOperator)
     .filter((item) => widocznaTrasa(item.path));

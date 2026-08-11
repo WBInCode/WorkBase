@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useCurrentUser } from '@/api/hooks/useIam';
+import { dostepnaDlaPrzelozonego, uprawnieniaDlaSciezki } from './dostepDoWidokow';
 import type { WymaganeUprawnienia } from './dostepDoWidokow';
 
 /**
@@ -10,6 +11,7 @@ import type { WymaganeUprawnienia } from './dostepDoWidokow';
 export function useUprawnienia() {
   const { data: currentUser, isLoading } = useCurrentUser();
   const kody = currentUser?.permissions;
+  const jestPrzelozonym = currentUser?.isSupervisor ?? false;
 
   const moze = useCallback(
     (kod: string) => kody?.includes(kod) ?? false,
@@ -23,9 +25,22 @@ export function useUprawnienia() {
     [kody],
   );
 
+  const mozeWejscNa = useCallback(
+    (sciezka: string) => {
+      const wymagane = uprawnieniaDlaSciezki(sciezka) ?? [];
+      if (wymagane.length === 0) return true;
+      if (wymagane.some((kod) => kody?.includes(kod) ?? false)) return true;
+      return jestPrzelozonym && dostepnaDlaPrzelozonego(sciezka);
+    },
+    [kody, jestPrzelozonym],
+  );
+
   return {
     moze,
     mozeKtorekolwiek,
+    /** Czy wolno wejsc na trase: uprawnienie albo wyjatek dla przelozonego. */
+    mozeWejscNa,
+    jestPrzelozonym,
     /** Dopoki false, nie wiadomo jeszcze czego uzytkownikowi wolno — nie chowac na sile UI. */
     znane: !isLoading && kody !== undefined,
   };
