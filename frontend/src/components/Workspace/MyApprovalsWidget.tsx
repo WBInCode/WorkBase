@@ -8,6 +8,14 @@ interface Props {
   isLoading: boolean;
 }
 
+/** Nazwa encji obiegu przychodzi z API technicznie ("LeaveRequest"), a widget pokazuje ja uzytkownikowi. */
+const NAZWY_ENCJI: Record<string, string> = {
+  LeaveRequest: 'Wniosek urlopowy',
+  Case: 'Sprawa',
+  Document: 'Dokument',
+  Form: 'Formularz',
+};
+
 export function MyApprovalsWidget({ approvals, isLoading }: Props) {
   const navigate = useNavigate();
   const pending = approvals.filter((a) => a.status === 'Pending');
@@ -51,7 +59,7 @@ export function MyApprovalsWidget({ approvals, isLoading }: Props) {
             >
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: '13px', fontWeight: 500, color: colors.gray[900] }}>
-                  {a.workflowEntityType ?? 'Wniosek'}
+                  {(a.workflowEntityType && NAZWY_ENCJI[a.workflowEntityType]) ?? 'Wniosek do decyzji'}
                 </div>
                 <div style={{ fontSize: '12px', color: colors.gray[400] }}>
                   {new Date(a.createdAt).toLocaleDateString('pl-PL')}
