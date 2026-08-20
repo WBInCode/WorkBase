@@ -638,7 +638,7 @@ button {
   background: rgba(20, 25, 43, 0.4);
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
-  z-index: 40;
+  z-index: 55; /* above .wb-tabbar (50), below the drawer (60) */
   animation: wb-fadeIn 0.2s ease both;
 }
 

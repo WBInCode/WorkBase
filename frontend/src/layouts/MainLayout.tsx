@@ -269,7 +269,7 @@ export function MainLayout({ children }: MainLayoutProps) {
           opacity: sidebarOpen ? 1 : 0,
           border: sidebarOpen ? undefined : 'none',
           ...(isMobile
-            ? { position: 'fixed', top: 0, left: 0, bottom: 0, zIndex: 50, margin: sidebarOpen ? 10 : 0 }
+            ? { position: 'fixed', top: 0, left: 0, bottom: 0, zIndex: 60, margin: sidebarOpen ? 10 : 0, paddingBottom: 'env(safe-area-inset-bottom, 0px)' }
             : {}),
         }}
       >
@@ -471,7 +471,7 @@ export function MainLayout({ children }: MainLayoutProps) {
         <main
           key={location.pathname}
           className="wb-page-enter"
-          style={{ flex: 1, overflow: 'auto', paddingBottom: isMobile ? 84 : undefined }}
+          style={{ flex: 1, overflow: 'auto', paddingBottom: isMobile ? 'calc(84px + env(safe-area-inset-bottom, 0px))' : undefined }}
         >
           {children}
         </main>
