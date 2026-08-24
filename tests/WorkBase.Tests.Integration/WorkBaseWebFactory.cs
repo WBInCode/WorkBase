@@ -18,6 +18,18 @@ namespace WorkBase.Tests.Integration;
 
 public class WorkBaseWebFactory : WebApplicationFactory<WorkBase.Host.Program>
 {
+    /// <summary>Wewnetrzny dostawca uslug EF wylacznie z baza w pamieci — patrz komentarz nizej.</summary>
+    private static readonly IServiceProvider UslugiEfWPamieci = new ServiceCollection()
+        .AddEntityFrameworkInMemoryDatabase()
+        .BuildServiceProvider();
+
+    /// <summary>
+    /// Nazwa bazy liczona RAZ na fabryke. Wczesniej stalo tu Guid.NewGuid() wewnatrz lambdy
+    /// budujacej opcje, czyli kazdy DbContext — a wiec kazde zadanie HTTP — dostawal wlasna,
+    /// pusta baze. Dane nie przezywaly pojedynczego zapytania.
+    /// </summary>
+    private readonly string _nazwaBazy = "WorkBase_Test_" + Guid.NewGuid().ToString("N");
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
@@ -25,16 +37,20 @@ public class WorkBaseWebFactory : WebApplicationFactory<WorkBase.Host.Program>
         builder.ConfigureTestServices(services =>
         {
             // Replace EF Core DbContext with InMemory
+            services.RemoveAll<WorkBaseDbContext>();
             services.RemoveAll<DbContextOptions<WorkBaseDbContext>>();
             services.RemoveAll<DbContextOptions>();
-            var descriptor = services.SingleOrDefault(
-                d => d.ServiceType == typeof(DbContextOptions<WorkBaseDbContext>));
-            if (descriptor is not null) services.Remove(descriptor);
 
-            services.AddDbContext<WorkBaseDbContext>((sp, options) =>
-            {
-                options.UseInMemoryDatabase("WorkBase_Test_" + Guid.NewGuid().ToString("N"));
-            });
+            // UseInternalServiceProvider jest tu KONIECZNE, nie ozdobne: usuniecie samych
+            // DbContextOptions zostawia w kontenerze uslugi dostawcy Npgsql, wiec EF przerywa
+            // kazde zapytanie komunikatem o dwoch zarejestrowanych dostawcach. Bez tego ta
+            // fabryka nie miala dzialajacej bazy — testy przez nia przechodzily tylko dopoty,
+            // dopoki nie dotknely danych, a kazdy test, ktory ich potrzebowal, dorabial sobie
+            // wlasna fabryke (stad WebhookTestFactory i TaskSearchTestFactory obok).
+            services.AddDbContext<WorkBaseDbContext>((_, options) =>
+                options
+                    .UseInMemoryDatabase(_nazwaBazy)
+                    .UseInternalServiceProvider(UslugiEfWPamieci));
 
             // Remove all IHostedService registrations (Hangfire's BackgroundJobServer is the
             // only one registered app-wide). Hangfire registers it via a factory delegate

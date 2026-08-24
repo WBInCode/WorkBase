@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -68,8 +69,15 @@ public static class DashboardEndpoints
             .Produces(StatusCodes.Status200OK);
 
         // --- Dashboard Configs ---
-        group.MapGet("/configs/{userId:guid}", async (Guid userId, ISender sender) =>
+        // Identyfikator brany wprost z adresu, a dashboard.view ma kazdy zalogowany —
+        // bez tego warunku wystarczylo podmienic go w adresie, zeby odczytac uklad pulpitu
+        // i zapisane filtry innej osoby. Konfiguracja pulpitu jest z natury wlasna, wiec
+        // nie ma tu wariantu "zespolowego": pytamy tylko o siebie.
+        group.MapGet("/configs/{userId:guid}", async (Guid userId, ClaimsPrincipal user, ISender sender) =>
         {
+            if (user.GetUserId() != userId.ToString())
+                return Results.Forbid();
+
             var result = await sender.Send(new GetDashboardConfigsQuery(userId));
             return result.ToHttpResult();
         })

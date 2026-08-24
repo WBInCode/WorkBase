@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -128,7 +129,11 @@ public static class EmployeeEndpoints
     }
 
     private static async Task<IResult> GetEmployees(
+        ClaimsPrincipal user,
+        IPermissionService permissions,
+        IEmployeeScopeResolver scopes,
         ISender sender,
+        CancellationToken ct,
         string? search = null,
         Guid? organizationUnitId = null,
         EmployeeStatus? status = null,
@@ -136,16 +141,71 @@ public static class EmployeeEndpoints
         int pageSize = 20)
     {
         var query = new GetEmployeesQuery(search, organizationUnitId, status, page, pageSize);
-        var result = await sender.Send(query);
-        return result.ToHttpResult();
+        var result = await sender.Send(query, ct);
+        if (!result.IsSuccess) return result.ToHttpResult();
+
+        var strona = result.Value;
+        var widoczne = await user.FilterAccessibleEmployeesAsync(
+            strona.Items.Select(item => item.Id).ToList(),
+            permissions, scopes, PodgladWynagrodzenZespolu, ModulWynagrodzen, ct);
+
+        var pozycje = strona.Items
+            .Select(item => widoczne.Contains(item.Id) ? item : item with { HourlyRate = null })
+            .ToList();
+
+        return Results.Ok(strona with { Items = pozycje });
     }
+
+    /// <summary>Uprawnienie do ogladania cudzych stawek. Wlasna stawka nie wymaga niczego.</summary>
+    private const string PodgladWynagrodzenZespolu = "payroll.view-team";
+
+    /// <summary>
+    /// Zakres liczymy wg modulu "org", nie "payroll" — i to jest celowe.
+    /// „payroll" nie jest modulem z ModuleCatalog (uprawnienia payroll.* dopisano osobno),
+    /// wiec nie ma dla niego ANI JEDNEGO wiersza w iam_data_scopes. Brak wierszy oznacza
+    /// domyslny poziom Team, czyli sam pytajacy i jego bezposredni podwladni — administrator
+    /// zobaczylby wtedy puste stawki wiekszosci firmy i ekran plac pokazalby zera.
+    /// Modul "org" ma zakresy nadane wszystkim rolom (Organization dla Admin/HR,
+    /// Department dla Kierownika, Own dla Pracownika) i dokladnie tak ma dzialac widocznosc
+    /// stawek. Uprawnienie payroll.view-team nadal decyduje, czy w ogole pytamy o zakres.
+    /// </summary>
+    private const string ModulWynagrodzen = "org";
+
+    /// <summary>
+    /// Zeruje stawke godzinowa, jesli pytajacy nie ma prawa jej widziec.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="EmployeeDto"/> i <see cref="EmployeeDetailDto"/> niosa HourlyRate, a wszystkie
+    /// trzy odczyty pracownika (lista, karta, wyszukanie po numerze) oddawaly ja kazdemu
+    /// z uprawnieniem org.view — czyli KAZDEMU zalogowanemu, bo org.view ma rola "Pracownik".
+    /// Model uprawnien od poczatku rozroznia payroll.view (wlasne rozliczenie) od
+    /// payroll.view-team (zespol i firma); ekran /payroll to respektowal, a te endpointy nie.
+    /// </remarks>
+    private static async Task<bool> MozeWidziecStawkeAsync(
+        ClaimsPrincipal user,
+        Guid employeeId,
+        IPermissionService permissions,
+        IEmployeeScopeResolver scopes,
+        CancellationToken ct)
+        => await user.CanAccessEmployeeAsync(
+            employeeId, permissions, scopes, PodgladWynagrodzenZespolu, ModulWynagrodzen, ct);
 
     private static async Task<IResult> GetEmployeeById(
         Guid id,
-        ISender sender)
+        ClaimsPrincipal user,
+        IPermissionService permissions,
+        IEmployeeScopeResolver scopes,
+        ISender sender,
+        CancellationToken ct)
     {
-        var result = await sender.Send(new GetEmployeeByIdQuery(id));
-        return result.ToHttpResult();
+        var result = await sender.Send(new GetEmployeeByIdQuery(id), ct);
+        if (!result.IsSuccess) return result.ToHttpResult();
+
+        var pracownik = result.Value;
+        if (await MozeWidziecStawkeAsync(user, pracownik.Id, permissions, scopes, ct))
+            return Results.Ok(pracownik);
+
+        return Results.Ok(pracownik with { HourlyRate = null });
     }
 
     private static async Task<IResult> AssignEmployee(
@@ -203,15 +263,24 @@ public static class EmployeeEndpoints
 
     private static async Task<IResult> GetEmployeeByNumber(
         string employeeNumber,
+        IPermissionService permissions,
+        IEmployeeScopeResolver scopes,
         ISender sender,
-        HttpContext httpContext)
+        HttpContext httpContext,
+        CancellationToken ct)
     {
         var tenantId = httpContext.User.FindFirst("tenant_id")?.Value;
         if (string.IsNullOrEmpty(tenantId) || !Guid.TryParse(tenantId, out var tid))
             return Results.Forbid();
 
-        var result = await sender.Send(new GetEmployeeByNumberQuery(tid, employeeNumber));
-        return result.ToHttpResult();
+        var result = await sender.Send(new GetEmployeeByNumberQuery(tid, employeeNumber), ct);
+        if (!result.IsSuccess) return result.ToHttpResult();
+
+        var pracownik = result.Value;
+        if (await MozeWidziecStawkeAsync(httpContext.User, pracownik.Id, permissions, scopes, ct))
+            return Results.Ok(pracownik);
+
+        return Results.Ok(pracownik with { HourlyRate = null });
     }
 
     private static async Task<IResult> GetAccessStatus(
