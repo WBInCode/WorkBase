@@ -5,6 +5,27 @@
 
 ---
 
+## Wdrożenie 2026-08-24
+
+Całość opisana niżej jest **wdrożona na produkcję**: commit `010bc60`, gałąź `wdrozenie/2026-08-24-audyt`, sześć commitów. Weryfikacja po wdrożeniu:
+
+| Sprawdzenie | Wynik |
+|---|---|
+| `/health` i HTTPS | Healthy, 200 |
+| Błędy i ostrzeżenia od startu | 0 |
+| Migracja `FixScheduleSourceDefault` | wartość domyślna `source` = 1; **1889 grafików indywidualnych** przeniesionych z `OrgUnit` — przestały być kasowane w poniedziałki |
+| Backfill słowników | `TestowaFirma` i `Muszkieterowie` z zera do 4 typów urlopu, 4 statusów, 4 priorytetów i 2 obiegów (widoczne w logach) |
+| Konfiguracja `Nowak Industries` | nietknięta (5 typów, 7 statusów) — seeder jest dopisujący |
+| Blokada kreatora | **zero** wierszy `setup.*` — żadna istniejąca firma nie została zablokowana |
+| Nagłówek kamery | `camera=(self)` — skaner QR na kiosku działa |
+| Logowanie z Huba | `POST /api/hub/sso/logout` → 200 po wdrożeniu, czyli najbardziej ryzykowny wpis białej listy działa na żywym ruchu |
+
+Kopia przed zmianą: `/opt/wb/backups/pre-workbase-20260824-115220` (zrzut bazy + źródła + obrazy `rollback-20260824-115220`).
+
+**Gałąź nie została scalona do `main` ani wypchnięta.** `CLAUDE.md` mówi „`main` = produkcja", więc do czasu scalenia ten warunek nie jest spełniony — produkcja wyprzedza `main` o sześć commitów.
+
+---
+
 ## 0. Punkt wyjścia
 
 Trzy fakty, które wyznaczają cały plan:
