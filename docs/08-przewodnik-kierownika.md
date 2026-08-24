@@ -126,6 +126,18 @@ Zmiana samych statusów, czyli słownika dostępnych etapów, wymaga uprawnienia
 
 Ekran Wynagrodzenia pokazuje rozliczenia na podstawie zarejestrowanego czasu pracy. Podgląd zespołu wymaga uprawnienia `payroll.view-team`, które w standardowej konfiguracji ma Kierownik i dział kadr.
 
+Zakres jest ten sam, co przy pozostałych danych pracowników: kierownik widzi swoją jednostkę, dział kadr i administrator — całą firmę.
+
+### Przekazanie rozliczenia do księgowości
+
+Przycisk **Eksport XLSX** nad tabelą pobiera zestawienie za wybrany okres: normę z grafiku, czas pracy, godziny zwykłe i nadgodziny, dni urlopu i nieobecności, kwoty oraz wiersz podsumowania. Godziny i kwoty są liczbami, więc arkusz od razu na nich liczy.
+
+Plik zawiera dokładnie te osoby, które widzisz na ekranie — eksport nie omija zakresu danych.
+
+Pracownik bez ustawionej stawki ma kolumny kwotowe **puste**, a nie zerowe. To rozróżnienie jest celowe: puste pole znaczy „stawki nikt nie ustawił", zero znaczyłoby „wyliczono zero".
+
+Rozbicie dzień po dniu jest osobno, w raporcie zespołu — tam eksport daje siatkę pracownik × dzień.
+
 ---
 
 ## 8. Lista kontrolna przy nowym pracowniku

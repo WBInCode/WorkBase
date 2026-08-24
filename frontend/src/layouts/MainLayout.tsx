@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback, type ReactNode } from 'react
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from 'react-oidc-context';
 import { useTranslation } from 'react-i18next';
-import { FolderTree, Users, FileUp, LogOut, Menu, X, Shield, Grid3X3, CalendarDays, UsersRound, CalendarClock, Palmtree, CalendarRange, ClipboardCheck, ListTodo, ClipboardList, LayoutDashboard, Briefcase, Clock, MoreHorizontal, FileArchive, FolderOpen, Flag, CircleDot, Coffee, Layers, Wallet, Building2, Palette, Type, Bell, AlarmClockCheck, ChevronDown, Sun, Moon, LifeBuoy, type LucideIcon } from 'lucide-react';
+import { FolderTree, Users, FileUp, LogOut, Menu, X, Shield, Grid3X3, CalendarDays, UsersRound, CalendarClock, Palmtree, CalendarRange, ClipboardCheck, ListTodo, ClipboardList, LayoutDashboard, Briefcase, Clock, MoreHorizontal, FileArchive, FolderOpen, Flag, CircleDot, Coffee, Layers, Wallet, Building2, Palette, Type, Bell, AlarmClockCheck, ChevronDown, Sun, Moon, LifeBuoy, GitBranch, type LucideIcon } from 'lucide-react';
 import { mapUserClaims } from '@/auth';
 import { useUprawnienia } from '@/auth/useUprawnienia';
 import { useFeatureFlags, useCurrentUser } from '@/api/hooks/useIam';
@@ -144,6 +144,10 @@ const adminNavItems: NavItem[] = [
   { path: '/admin/escalation-rules', labelKey: 'nav.escalationRules', icon: AlarmClockCheck },
   { path: '/admin/document-settings', labelKey: 'nav.documentSettings', icon: FileArchive },
   { path: '/admin/task-settings', labelKey: 'nav.taskSettings', icon: ListTodo },
+  // Kreator obiegow mial trase i wpis w mapie uprawnien, ale nie bylo do niego wejscia z
+  // aplikacji — dalo sie tam trafic tylko wklejajac adres. Obiegi akceptacji stoja pod
+  // urlopami i zadaniami, wiec jedyny interfejs do ich konfiguracji nie moze byc ukryty.
+  { path: '/workflow/builder', labelKey: 'nav.workflowBuilder', icon: GitBranch },
 ];
 
 // ─── Collapsible section state (persisted) ──────────────────

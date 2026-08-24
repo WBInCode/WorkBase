@@ -376,8 +376,31 @@ export const SEKCJE_POMOCY: readonly SekcjaPomocy[] = [
         pytanie: 'Jak zobaczyć rozliczenia zespołu?',
         odpowiedz: [
           'Potrzebne jest uprawnienie do podglądu rozliczeń zespołu. Mają je standardowo kierownicy i dział kadr.',
+          'Kierownik widzi swoją jednostkę, dział kadr i administrator — całą firmę. Zakres wynika z tych samych ustawień, co widoczność danych pracownika.',
         ],
         wymaga: ['payroll.view-team'],
+      },
+      {
+        id: 'eksport-rozliczenia',
+        pytanie: 'Jak przekazać rozliczenie do księgowości?',
+        odpowiedz: [
+          'Przycisk „Eksport XLSX” nad tabelą pobiera zestawienie za wybrany okres: normę z grafiku, czas pracy, godziny zwykłe i nadgodziny, dni urlopu i nieobecności oraz kwoty, wraz z wierszem podsumowania.',
+          'Godziny i kwoty są w pliku liczbami, więc można na nich liczyć bezpośrednio w arkuszu.',
+          'Plik zawiera dokładnie te osoby, które widzisz na ekranie — eksport nie omija zakresu danych.',
+        ],
+        uwaga:
+          'Pracownik bez ustawionej stawki ma kolumny kwotowe puste, a nie zerowe. Puste pole oznacza „stawki nikt nie ustawił”, zero oznaczałoby wyliczone zero.',
+        sciezka: '/payroll',
+        etykietaSciezki: 'Otwórz Wynagrodzenia',
+        wymaga: ['payroll.view'],
+      },
+      {
+        id: 'stawka-kto-widzi',
+        pytanie: 'Kto widzi stawkę godzinową pracownika?',
+        odpowiedz: [
+          'Wyłącznie osoby z uprawnieniem do rozliczeń zespołu i tylko w swoim zakresie danych. Każdy widzi własną stawkę.',
+          'Na karcie pracownika i na liście pracowników stawka innej osoby jest ukryta, jeśli nie masz do niej prawa.',
+        ],
       },
     ],
   },
@@ -490,7 +513,11 @@ export const SEKCJE_POMOCY: readonly SekcjaPomocy[] = [
         odpowiedz: [
           'Import prowadzi przez kolejne kroki: wybór pliku, dopasowanie kolumn i podgląd przed zapisem.',
           'System sam próbuje dopasować kolumny po nagłówkach. Jeśli któregoś wymaganego pola nie rozpozna, napisze wprost, czego brakuje.',
+          'Plik z programu kadrowego można wgrać bez konwersji: rozpoznawane jest zarówno kodowanie UTF-8, jak i Windows-1250 używane przez Symfonię, Optimę i Excela, a separatorem może być przecinek albo średnik.',
+          'Datę zatrudnienia można podać jako 15.03.2015, 15-03-2015, 15/03/2015 albo 2015-03-15. Zapis z ukośnikiem czytany jest po polsku — dzień jako pierwszy.',
         ],
+        uwaga:
+          'Wiersze z nieprawidłową datą albo bez adresu e-mail są pomijane i wypisane na podglądzie przed zapisem. Import nie zapisze zmyślonej daty w miejsce błędnej.',
         sciezka: '/org/employees/import',
         etykietaSciezki: 'Otwórz Import CSV',
         wymaga: ['org.import'],
@@ -508,7 +535,7 @@ export const SEKCJE_POMOCY: readonly SekcjaPomocy[] = [
         id: 'model-uprawnien',
         pytanie: 'Jak zbudowany jest system uprawnień?',
         odpowiedz: [
-          'Uprawnienie to pojedyncza czynność zapisana jako moduł i akcja, na przykład leave.approve albo org.import. W systemie jest ich 108, rozłożonych na 19 modułów.',
+          'Uprawnienie to pojedyncza czynność zapisana jako moduł i akcja, na przykład leave.approve albo org.import. Pełną listę widać na ekranie Macierz uprawnień.',
           'Uprawnień nie nadaje się osobom, tylko rolom. Osoba dostaje rolę, a wraz z nią komplet uprawnień.',
           'Niezależnie od uprawnień działa zakres danych, który decyduje, czyje rekordy widzisz: całej firmy, swojej jednostki albo wyłącznie własne.',
         ],
@@ -592,6 +619,19 @@ export const SEKCJE_POMOCY: readonly SekcjaPomocy[] = [
           'Nazewnictwo pozwala dopasować etykiety w interfejsie do słownictwa używanego w firmie, a Branding logo i kolory.',
         ],
         wymaga: ['config.manage', 'org.manage', 'tasks.manage'],
+      },
+      {
+        id: 'kreator-obiegow',
+        pytanie: 'Gdzie konfiguruje się obiegi akceptacji?',
+        odpowiedz: [
+          'Kreator obiegów znajdziesz w Ustawieniach. Opisuje, przez jakie kroki przechodzi wniosek i kto go zatwierdza.',
+          'Nowa firma dostaje gotowy obieg akceptacji wniosku urlopowego i akceptacji zadania — można ich używać bez żadnej konfiguracji.',
+        ],
+        uwaga:
+          'Akceptanta wniosku wyznacza przełożony wskazany w strukturze, a nie rola. Pracownik bez przełożonego nie ma komu złożyć wniosku do akceptacji.',
+        sciezka: '/workflow/builder',
+        etykietaSciezki: 'Otwórz Kreator obiegów',
+        wymaga: ['workflow.manage'],
       },
       {
         id: 'powiadomienia-szablony',

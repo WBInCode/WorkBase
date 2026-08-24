@@ -65,6 +65,7 @@ const pl = {
     escalationRules: 'Reguły eskalacji',
     documentSettings: 'Ustawienia dokumentów',
     taskSettings: 'Ustawienia zadań',
+    workflowBuilder: 'Kreator obiegow',
   },
   admin: {
     featureFlags: {

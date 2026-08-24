@@ -37,57 +37,37 @@ ls -lh "$BACKUP/workbase.dump" | awk '{print "    zrzut bazy: " $5}'
 log "2/6 nowe zrodla"
 rm -rf /tmp/workbase-new && mkdir -p /tmp/workbase-new
 tar xzf /tmp/workbase-src.tar.gz -C /tmp/workbase-new
-# Bramka: paczka musi zawierac slady tego, co wlasnie wdrazamy. Liste aktualizujemy przy
-# kazdym wdrozeniu — chodzi o wylapanie sytuacji, w ktorej podlozylo sie starsze zrodlo.
-SLADY=(
-  "src/Modules/Workflow/WorkBase.Modules.Workflow.Application/WorkflowEngine.cs:WejdzDoKrokuAsync"
-  "src/WorkBase.Infrastructure/Leave/ZamknijWniosekUrlopowyPoObiegu.cs:ZamknijWniosekUrlopowyPoObiegu"
-  "src/WorkBase.Infrastructure/Auth/EmployeeScopeResolver.cs:Select(scope => scope.ScopeLevel)"
-  "src/WorkBase.Infrastructure/Auth/EmployeeScopeResolver.cs:DataScopeLevelValue.Department"
-  "frontend/src/api/hooks/useTimeTracking.ts:fetchSchedulesPerEmployee"
-  "src/WorkBase.Infrastructure/Seeding/IamSeeder.cs:BackfillMissingPermissionsAsync"
-  "src/WorkBase.Infrastructure/Seeding/IamSeeder.cs:KierownikScopeFor"
-  "src/Modules/TimeTracking/WorkBase.Modules.TimeTracking.Application/Commands/ClearSchedulesHandler.cs:ClearSchedulesHandler"
-  "frontend/index.html:favicon.svg"
-  "src/WorkBase.Infrastructure/Auth/AuthorizationCacheInvalidator.cs:IAuthorizationCacheInvalidator"
-  "src/WorkBase.Host/Program.cs:UseForwardedHeaders"
-  "src/WorkBase.Host/Endpoints/WorkspaceEndpoints.cs:CanAccessEmployeeAsync"
-  "src/Modules/TimeTracking/WorkBase.Modules.TimeTracking.Api/Endpoints/TimeEntryEndpoints.cs:CanAccessEmployeeAsync"
-  "src/Modules/TimeTracking/WorkBase.Modules.TimeTracking.Api/Endpoints/TimeEntryEndpoints.cs:EnsureCanRecordFor"
-  "src/WorkBase.Infrastructure/HubPlatform/HubNotificationForwarder.cs:HubNotificationJob"
-  "src/Modules/Tasks/WorkBase.Modules.Tasks.Application/EventHandlers/TaskAssignedNotificationHandler.cs:TaskAssignedNotificationHandler"
-  "src/Modules/Tasks/WorkBase.Modules.Tasks.Application/Services/TaskStatusMachine.cs:HasAnyAsync"
-  "frontend/src/pages/time/TeamAttendancePage.tsx:currentWorkState"
-  "frontend/src/pages/time/TeamAttendancePage.tsx:endMin !== null && endMin <= startMin"
-  "frontend/src/pages/tasks/TaskCardPage.tsx:Status zmieniony"
-  "frontend/src/theme/workbase.css:.wb-toasts"
-  "frontend/src/theme/workbase.css:--wb-vio-100"
-  "frontend/src/theme/tokens.ts:textOnAccent"
-  "frontend/nginx.conf:client_max_body_size"
-  "src/WorkBase.Infrastructure/Security/ClamAvScanner.cs:zINSTREAM"
-  "src/Modules/Tasks/WorkBase.Modules.Tasks.Application/Commands/UploadTaskAttachmentCommand.cs:UploadTaskAttachmentHandler"
-  "src/Modules/TimeTracking/WorkBase.Modules.TimeTracking.Api/Endpoints/ScheduleEndpoints.cs:CanAccessEmployeeAsync"
-  "src/Modules/TimeTracking/WorkBase.Modules.TimeTracking.Api/Endpoints/TimeCorrectionEndpoints.cs:CanAccessEmployeeAsync"
-  "src/Modules/Organization/WorkBase.Modules.Organization.Application/Commands/Positions/ReapplyPositionPolicyCommand.cs:ReapplyPositionPolicyHandler"
-  "src/WorkBase.Infrastructure/Chat/ChatNoticeForwarder.cs:ChatNoticeJob"
-  "src/WorkBase.Host/Endpoints/EcosystemTaskEndpoints.cs:EcosystemTaskSearch"
-  "src/WorkBase.Infrastructure/Seeding/DemoDataSeeder.cs:DemoDataSeeder"
-  "src/WorkBase.Host/Program.cs:--seed-demo"
-  "frontend/src/api/rownoleglosc.ts:mapujZOgraniczeniem"
-  "src/Modules/TimeTracking/WorkBase.Modules.TimeTracking.Domain/Services/WorkedTimeCalculator.cs:MaxSessionHours"
-  "src/Modules/TimeTracking/WorkBase.Modules.TimeTracking.Application/Commands/RecalculateTimeSheetsHandler.cs:RecalculateTimeSheetsHandler"
-  "src/Modules/TimeTracking/WorkBase.Modules.TimeTracking.Application/Contracts/ITimeEntryRepository.cs:GetEntriesAroundDateAsync"
-  "frontend/src/pages/time/TeamAttendancePage.tsx:Przelicz godziny"
-)
-for wpis in "${SLADY[@]}"; do
-  plik=${wpis%%:*}
-  wzor=${wpis#*:}
-  # `-e` jest konieczne: wzorzec zaczynajacy sie od `--` grep wzialby za wlasna opcje.
-  if ! grep -qF -e "$wzor" "/tmp/workbase-new/$plik" 2>/dev/null; then
-    echo "!! paczka nie zawiera oczekiwanej zmiany: $plik -> $wzor"
+# Bramka: paczka musi pochodzic z commita, ktory wlasnie wdrazamy — chodzi o wylapanie
+# sytuacji, w ktorej podlozylo sie starsze zrodlo. Wczesniej byla tu recznie utrzymywana lista
+# ~40 par plik:fraza, dopisywana przy KAZDYM wdrozeniu; sprawdzala to samo, tylko drozej i
+# zawsze o jedno wdrozenie za pozno. Teraz `git archive` sam wpisuje SHA do pliku COMMIT_SHA
+# (atrybut export-subst w .gitattributes), wiec porownujemy wprost.
+SHA_W_PACZCE=$(tr -d ' \n\r' < /tmp/workbase-new/COMMIT_SHA 2>/dev/null || true)
+
+if [ -z "$SHA_W_PACZCE" ]; then
+  echo "!! paczka nie ma pliku COMMIT_SHA — nie da sie potwierdzic, co wdrazamy"
+  echo "   (paczke robimy przez 'git archive', nie przez kopiowanie katalogu)"
+  exit 1
+fi
+
+# Niepodstawiony wzorzec oznacza, ze zrodla nie przeszly przez git archive.
+case "$SHA_W_PACZCE" in
+  *Format*)
+    echo "!! COMMIT_SHA nie zostal podstawiony — zrodla nie pochodza z 'git archive'"
     exit 1
-  fi
-done
+    ;;
+esac
+
+# NEW_COMMIT bywa skrotem, wiec porownujemy prefiksem.
+case "$SHA_W_PACZCE" in
+  "$NEW_COMMIT"*) : ;;
+  *)
+    echo "!! paczka pochodzi z commita $SHA_W_PACZCE, a wdrazamy $NEW_COMMIT"
+    exit 1
+    ;;
+esac
+log "    paczka z commita $SHA_W_PACZCE — zgadza sie"
+
 rm -rf "$BASE/src" && mv /tmp/workbase-new "$BASE/src"
 
 # Motyw Keycloaka jest montowany z KATALOGU STALEGO poza src. Podmiana src tworzy nowy

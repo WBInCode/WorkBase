@@ -127,6 +127,7 @@ Rola jest synchronizowana przy każdym świeżym logowaniu. Oznacza to, że:
 | `/admin/escalation-rules` | reakcja na brak decyzji w terminie | `config.manage` |
 | `/admin/document-settings` | typy plików, limity rozmiaru | `config.manage` |
 | `/admin/task-settings` | ustawienia modułu zadań | `config.manage` |
+| `/workflow/builder` | obiegi akceptacji | `workflow.manage` |
 
 ---
 
@@ -164,6 +165,12 @@ Ręczne włączenie modułu spoza planu nie ma trwałego efektu, bo kolejna sync
 
 Wyłączenie modułu ukrywa całą jego sekcję w menu wszystkim użytkownikom, niezależnie od uprawnień. Dane nie są kasowane, wracają po ponownym włączeniu.
 
+### Moduły dostępne w tej wersji
+
+Aplikacja obsługuje dziewięć modułów: Organizacja, Zarządzanie dostępem, Czas pracy, Urlopy, Zadania, Procesy, Dashboard, Powiadomienia i Dokumenty.
+
+Moduły Formularze, Integracje, Sprawy, Kontakty, Sprzedaż i AI zostały **wycofane z tej wersji** i nie pojawiają się na liście flag funkcjonalności. Wrócą pojedynczo, gdy będą gotowe do wdrożenia u klienta.
+
 ---
 
 ## 8. Diagnostyka
@@ -186,6 +193,24 @@ Kolejność sprawdzania:
 ### Pracownik nie ma przycisku rejestracji czasu
 
 Przycisk pojawia się tylko wtedy, gdy konto jest powiązane z kartą pracownika. Powiązanie powstaje przy wejściu z WB Platform. Konta utworzone inną drogą mogą go nie mieć.
+
+### Import pracowników z pliku kadrowego
+
+Ekran `/org/employees/import` przyjmuje pliki w kodowaniu UTF-8 oraz Windows-1250 (to drugie stosują Symfonia, Optima i Excel przy „Zapisz jako CSV") — nie trzeba ich wcześniej konwertować. Separatorem może być przecinek albo średnik.
+
+Data zatrudnienia może być zapisana jako `15.03.2015`, `15-03-2015`, `15/03/2015` albo `2015-03-15`. Zapis z ukośnikiem czytany jest po polsku, dzień jako pierwszy.
+
+Wiersze z nieprawidłową datą lub bez adresu e-mail są pomijane i wypisane na podglądzie przed zapisem. Nieistniejąca data (np. `31.02`) jest odrzucana, a nie przewijana na kolejny miesiąc.
+
+Plik do sprawdzenia całej ścieżki: [`docs/przyklady/import-pracownikow-przyklad.csv`](przyklady/import-pracownikow-przyklad.csv) — zapisany w Windows-1250, z trzema wierszami do odrzucenia.
+
+**Import wysyła zaproszenia.** Każdy zaimportowany pracownik dostaje zaproszenie do WorkBase przez WB Platform. Nie importuj list testowych z prawdziwymi adresami.
+
+### Nowa firma zaraz po nadaniu licencji
+
+Firma zakładana przez WB Platform dostaje komplet do pracy od razu: role, strukturę, rodzaje nieobecności, statusy i priorytety zadań oraz obiegi akceptacji wniosku urlopowego i zadania.
+
+Do uzupełnienia pozostają trzy rzeczy, których system nie zgadnie: lista pracowników, godziny pracy (szablon grafiku) oraz wskazanie przełożonych. Bez tego ostatniego wnioski urlopowe nie mają akceptanta — patrz niżej.
 
 ### Wnioski urlopowe nie trafiają do nikogo
 

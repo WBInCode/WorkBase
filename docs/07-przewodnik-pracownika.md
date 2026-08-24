@@ -169,6 +169,8 @@ Ekran **Wynagrodzenia** (`/payroll`) pokazuje rozliczenie za wybrany okres, wyli
 
 Zwykły pracownik widzi wyłącznie własne dane. Zakres widoczności wynika z roli i nie da się go obejść wpisaniem adresu ekranu.
 
+Stawkę godzinową innej osoby widzą tylko osoby z uprawnieniem do rozliczeń zespołu — standardowo kierownik i dział kadr, każde w swoim zakresie. Własną stawkę widzisz zawsze.
+
 ---
 
 ## 8. Typowe problemy

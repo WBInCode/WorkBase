@@ -3,8 +3,8 @@
 ## Zanim zaczniesz
 
 1. Przeczytaj [README.md](README.md) — stack, architektura, setup.
-2. Zapoznaj się z [03 — Architektura techniczna](docs/03-technical-architecture.md) — struktura modułów, konwencje kodu, wzorce.
-3. Sprawdź [04 — Backlog](docs/04-detailed-backlog.md) — task nad którym pracujesz ma ID (np. `T-E05-002`).
+2. Zapoznaj się z [Mapą wiedzy o projekcie](docs/ONBOARDING-AGENTA.md) — struktura modułów, konwencje kodu, wzorce i pułapki. Historyczny projekt architektury: [03](docs/archiwum/03-technical-architecture.md) (archiwum, marzec 2026).
+3. Bieżące prace prowadzi [Plan rozwoju](docs/PLAN-ROZWOJU-2026-08.md). Starsze identyfikatory zadań (`T-E05-002`) pochodzą z [04 — Backlog](docs/archiwum/04-detailed-backlog.md) (archiwum).
 
 ## Workflow pracy
 

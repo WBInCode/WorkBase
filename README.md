@@ -179,10 +179,14 @@ Typy: `feat`, `fix`, `chore`, `test`, `docs`, `refactor`, `style`, `ci`, `perf`
 
 ## Dokumentacja projektu
 
-- [01 — Definicja produktu](docs/01-product-foundation.md)
-- [02 — Roadmapa MVP](docs/02-mvp-roadmap.md)
-- [03 — Architektura techniczna](docs/03-technical-architecture.md)
-- [04 — Szczegółowy backlog](docs/04-detailed-backlog.md)
+**Zacznij tutaj:**
+
+- [Mapa wiedzy o projekcie](docs/ONBOARDING-AGENTA.md) — stan faktyczny systemu
+- [Audyt 2026-08-24](docs/AUDYT-2026-08-24.md) — co jest zepsute i dlaczego
+- [Plan rozwoju](docs/PLAN-ROZWOJU-2026-08.md) — co robimy dalej
+
+**Architektura:**
+
 - [05 — Architektura licencjonowania modułów](docs/05-module-licensing-architecture.md)
 - [06 — Provisioning firm z WB Platform](docs/06-hub-company-provisioning.md)
 
