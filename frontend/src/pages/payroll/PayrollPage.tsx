@@ -4,10 +4,9 @@ import { useAuth } from 'react-oidc-context';
 import { useCurrentUser } from '@/api/hooks/useIam';
 import { useUprawnienia } from '@/auth/useUprawnienia';
 import { useEmployees } from '@/api/hooks/useOrganization';
-import { useTeamTimesheets, useTeamSchedulesByEmployee } from '@/api/hooks/useTimeTracking';
 import { useTeamLeaveRequests } from '@/api/hooks/useLeave';
+import { useRozliczenie } from '@/api/hooks/useRozliczenie';
 import { usePayrollSettings, useUpdatePayrollSettings } from '@/api/hooks/usePayrollSettings';
-import type { ScheduleDto } from '@/api/types/time';
 import type { LeaveRequestDto } from '@/api/types/leave';
 import { colors } from '@/theme/tokens';
 import {
@@ -28,23 +27,6 @@ function endOfMonth(d: Date): string {
   return new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString().slice(0, 10);
 }
 
-function hoursFromTimespan(ts: string | undefined | null): number {
-  if (!ts) return 0;
-  const parts = ts.split(':');
-  if (parts.length < 3) return 0;
-  let days = 0;
-  let hours: number;
-  if (parts[0]!.includes('.')) {
-    const [d, h] = parts[0]!.split('.');
-    days = Number(d) || 0;
-    hours = Number(h) || 0;
-  } else {
-    hours = Number(parts[0]) || 0;
-  }
-  const minutes = Number(parts[1]) || 0;
-  const seconds = Number(parts[2]) || 0;
-  return days * 24 + hours + minutes / 60 + seconds / 3600;
-}
 
 function fmtH(h: number): string {
   if (h <= 0) return '0h';
@@ -84,15 +66,6 @@ function daysOfApprovedLeavesInRange(
   return { vacationDays: vacation, absenceDays: absence };
 }
 
-function plannedHoursInRange(schedules: ScheduleDto[], from: Date, to: Date): number {
-  let total = 0;
-  for (const s of schedules) {
-    const d = new Date(s.date);
-    if (d < from || d > to) continue;
-    total += hoursFromTimespan(s.plannedDuration);
-  }
-  return total;
-}
 
 interface Row {
   id: string;
@@ -104,10 +77,14 @@ interface Row {
   workedH: number;
   regularH: number;
   overtimeH: number;
+  nightH: number;
+  holidayH: number;
   vacationDays: number;
   absenceDays: number;
   basicPay: number;
   overtimePay: number;
+  nightPay: number;
+  holidayPay: number;
   totalPay: number;
 }
 
@@ -160,14 +137,11 @@ export function PayrollPage() {
 
   const employeeIds = useMemo(() => employees.map((e) => e.id), [employees]);
 
-  const { data: timesheets, isLoading: loadingSheets } = useTeamTimesheets(
-    employeeIds,
-    from,
-    to,
-    'month',
-  );
-  const { data: schedulesByEmp, isLoading: loadingSchedules } =
-    useTeamSchedulesByEmployee(employeeIds, from, to);
+  // Godziny i kwoty liczy serwer: dodatek nocny wymaga wpisow czasu, a swiateczny kalendarza
+  // dni wolnych — jedno i drugie jest poza zasiegiem przegladarki. Tutaj zostaje wylacznie
+  // to, czego rozliczenie nie zwraca: nazwiska oraz dni urlopu i nieobecnosci.
+  const { data: rozliczenie, isLoading: loadingRozliczenie } = useRozliczenie(from, to);
+
   const year = new Date(from).getFullYear();
   const { data: leavesByEmp, isLoading: loadingLeaves } = useTeamLeaveRequests(
     employeeIds,
@@ -178,46 +152,37 @@ export function PayrollPage() {
   const toDate = useMemo(() => new Date(to), [to]);
 
   const rows: Row[] = useMemo(() => {
-    if (!timesheets || !schedulesByEmp || !leavesByEmp) return [];
+    if (!rozliczenie || !leavesByEmp) return [];
+
+    const wgPracownika = new Map(rozliczenie.map((r) => [r.employeeId, r]));
+
     return employees.map((emp, idx) => {
-      const sheet = timesheets[idx];
-      const schedules = schedulesByEmp[idx] ?? [];
+      const r = wgPracownika.get(emp.id);
       const leaves = leavesByEmp[idx] ?? [];
-
-      const workedH = hoursFromTimespan(sheet?.netWorked as unknown as string);
-      const normaH = plannedHoursInRange(schedules, fromDate, toDate);
-      const regularH = normaH > 0 ? Math.min(workedH, normaH) : workedH;
-      const overtimeH = normaH > 0 ? Math.max(workedH - normaH, 0) : 0;
-
-      const { vacationDays, absenceDays } = daysOfApprovedLeavesInRange(
-        leaves,
-        fromDate,
-        toDate,
-      );
-
-      const rate = emp.hourlyRate ?? 0;
-      const basicPay = rate * regularH;
-      const overtimePay = rate * overtimeMultiplier * overtimeH;
-      const totalPay = basicPay + overtimePay;
+      const { vacationDays, absenceDays } = daysOfApprovedLeavesInRange(leaves, fromDate, toDate);
 
       return {
         id: emp.id,
         name: `${emp.firstName} ${emp.lastName}`,
         email: emp.email,
-        rate,
+        rate: emp.hourlyRate ?? 0,
         hasRate: emp.hourlyRate !== null && emp.hourlyRate !== undefined,
-        normaH,
-        workedH,
-        regularH,
-        overtimeH,
+        normaH: r?.normaH ?? 0,
+        workedH: r?.przepracowaneH ?? 0,
+        regularH: r?.zwykleH ?? 0,
+        overtimeH: r?.nadgodzinyH ?? 0,
+        nightH: r?.nocneH ?? 0,
+        holidayH: r?.swiateczneH ?? 0,
         vacationDays,
         absenceDays,
-        basicPay,
-        overtimePay,
-        totalPay,
+        basicPay: r?.zasadnicze ?? 0,
+        overtimePay: r?.zaNadgodziny ?? 0,
+        nightPay: r?.dodatekNocny ?? 0,
+        holidayPay: r?.dodatekSwiateczny ?? 0,
+        totalPay: r?.razem ?? 0,
       };
     });
-  }, [employees, timesheets, schedulesByEmp, leavesByEmp, fromDate, toDate, overtimeMultiplier]);
+  }, [employees, rozliczenie, leavesByEmp, fromDate, toDate]);
 
   const totals = useMemo(() => {
     return rows.reduce(
@@ -234,7 +199,7 @@ export function PayrollPage() {
   }, [rows]);
 
   const isLoading =
-    loadingEmployees || loadingSheets || loadingSchedules || loadingLeaves;
+    loadingEmployees || loadingRozliczenie || loadingLeaves;
 
   const toggle = (id: string) => {
     setExpanded((prev) => {
@@ -287,8 +252,10 @@ export function PayrollPage() {
 
     // Godziny z dwoma miejscami, kwoty z separatorem tysiecy — inaczej arkusz pokazuje
     // 7.333333333333333 i kadrowa dostaje liczbe, ktorej nie da sie przepisac.
-    for (const kolumna of [4, 5, 6, 7]) arkusz.getColumn(kolumna).numFmt = '0.00';
-    for (const kolumna of [3, 10, 11, 12]) arkusz.getColumn(kolumna).numFmt = '# ##0.00';
+    // Numery kolumn odpowiadaja NAGLOWKI_ROZLICZENIA — godziny z dwoma miejscami,
+    // kwoty z separatorem tysiecy.
+    for (const kolumna of [4, 5, 6, 7, 8, 9]) arkusz.getColumn(kolumna).numFmt = '0.00';
+    for (const kolumna of [3, 12, 13, 14, 15, 16]) arkusz.getColumn(kolumna).numFmt = '# ##0.00';
 
     arkusz.views = [{ state: 'frozen', ySplit: 1 }];
 
@@ -469,7 +436,7 @@ export function PayrollPage() {
       )}
 
       <p style={{ marginTop: 16, fontSize: 12, color: 'var(--wb-g-400, #94a3b8)' }}>
-        Norma — z grafiku pracy. Czas pracy — netto z karty czasu (po odjęciu przerw). Nadgodziny — czas pracy ponad normę. Stawkę ustawiasz w karcie pracownika.
+        Norma — z grafiku pracy, pomniejszona o dni wolne oznaczone jako obniżające normę. Czas pracy — netto (po odjęciu przerw). Nadgodziny — czas pracy ponad normę. Dodatki nocny i świąteczny liczą się jako nadwyżka ponad stawkę, więc godzina nocna będąca nadgodziną nie jest płatna dwa razy. Porę nocną i mnożniki ustawiasz w ustawieniach wynagrodzeń, stawkę — w karcie pracownika.
       </p>
     </div>
   );
@@ -520,6 +487,18 @@ function DetailGrid({ row, from, to, overtimeMultiplier }: { row: Row; from: Dat
           label={`Za nadgodziny (${row.overtimeH.toFixed(2)}h × ${row.rate.toFixed(2)} × ${overtimeMultiplier})`}
           value={row.hasRate ? fmtPLN(row.overtimePay) : '—'}
         />
+        {row.nightH > 0 && (
+          <DetailLine
+            label={`Dodatek nocny (${row.nightH.toFixed(2)}h)`}
+            value={row.hasRate ? fmtPLN(row.nightPay) : '—'}
+          />
+        )}
+        {row.holidayH > 0 && (
+          <DetailLine
+            label={`Dodatek świąteczny (${row.holidayH.toFixed(2)}h)`}
+            value={row.hasRate ? fmtPLN(row.holidayPay) : '—'}
+          />
+        )}
         <DetailLine
           label="Całkowite brutto"
           value={row.hasRate ? fmtPLN(row.totalPay) : '—'}

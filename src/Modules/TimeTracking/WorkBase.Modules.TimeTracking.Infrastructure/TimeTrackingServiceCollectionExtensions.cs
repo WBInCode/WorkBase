@@ -24,6 +24,7 @@ public static class TimeTrackingServiceCollectionExtensions
         services.AddScoped<ITimeSheetBulkReader, TimeSheetRepository>();
         services.AddScoped<IQrTokenRepository, QrTokenRepository>();
         services.AddScoped<IScheduleRepository, ScheduleRepository>();
+        services.AddScoped<IDzienWolnyRepository, DzienWolnyRepository>();
         services.AddScoped<IScheduleTemplateRepository, ScheduleTemplateRepository>();
         services.AddScoped<ITimeAnomalyRepository, TimeAnomalyRepository>();
         services.AddScoped<ITimeCorrectionRepository, TimeCorrectionRepository>();

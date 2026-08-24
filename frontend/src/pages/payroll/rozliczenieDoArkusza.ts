@@ -13,17 +13,23 @@ export interface WierszRozliczenia {
   workedH: number;
   regularH: number;
   overtimeH: number;
+  nightH: number;
+  holidayH: number;
   vacationDays: number;
   absenceDays: number;
   basicPay: number;
   overtimePay: number;
+  nightPay: number;
+  holidayPay: number;
   totalPay: number;
 }
 
 export const NAGLOWKI_ROZLICZENIA = [
   'Pracownik', 'E-mail', 'Stawka [PLN/h]', 'Norma [h]', 'Czas pracy [h]',
-  'Godziny zwykłe [h]', 'Nadgodziny [h]', 'Urlop [dni]', 'Nieobecności [dni]',
-  'Zasadnicze [PLN]', 'Za nadgodziny [PLN]', 'Razem [PLN]',
+  'Godziny zwykłe [h]', 'Nadgodziny [h]', 'Nocne [h]', 'Świąteczne [h]',
+  'Urlop [dni]', 'Nieobecności [dni]',
+  'Zasadnicze [PLN]', 'Za nadgodziny [PLN]', 'Dodatek nocny [PLN]',
+  'Dodatek świąteczny [PLN]', 'Razem [PLN]',
 ] as const;
 
 export type KomorkaArkusza = string | number | null;
@@ -42,10 +48,14 @@ export function wierszDoArkusza(wiersz: WierszRozliczenia): KomorkaArkusza[] {
     wiersz.workedH,
     wiersz.regularH,
     wiersz.overtimeH,
+    wiersz.nightH,
+    wiersz.holidayH,
     wiersz.vacationDays,
     wiersz.absenceDays,
     wiersz.hasRate ? wiersz.basicPay : null,
     wiersz.hasRate ? wiersz.overtimePay : null,
+    wiersz.hasRate ? wiersz.nightPay : null,
+    wiersz.hasRate ? wiersz.holidayPay : null,
     wiersz.hasRate ? wiersz.totalPay : null,
   ];
 }
@@ -69,10 +79,14 @@ export function wierszSumy(wiersze: readonly WierszRozliczenia[]): KomorkaArkusz
     suma((w) => w.workedH),
     suma((w) => w.regularH),
     suma((w) => w.overtimeH),
+    suma((w) => w.nightH),
+    suma((w) => w.holidayH),
     suma((w) => w.vacationDays),
     suma((w) => w.absenceDays),
     sumaKwot((w) => w.basicPay),
     sumaKwot((w) => w.overtimePay),
+    sumaKwot((w) => w.nightPay),
+    sumaKwot((w) => w.holidayPay),
     sumaKwot((w) => w.totalPay),
   ];
 }

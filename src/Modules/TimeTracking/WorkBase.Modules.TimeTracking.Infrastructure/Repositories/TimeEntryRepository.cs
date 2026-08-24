@@ -59,6 +59,29 @@ public sealed class TimeEntryRepository(WorkBaseDbContext dbContext) : ITimeEntr
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<List<TimeEntry>> GetEntriesForEmployeesRangeAsync(
+        Guid tenantId,
+        IReadOnlyList<Guid> employeeIds,
+        DateOnly from,
+        DateOnly to,
+        CancellationToken cancellationToken = default)
+    {
+        if (employeeIds.Count == 0) return [];
+
+        // Doba zapasu z kazdej strony: zmiana rozpoczeta 22:00 dnia poprzedzajacego okres
+        // wnosi godziny do pierwszej doby okresu, a rozpoczeta ostatniego dnia — do nastepnej.
+        var od = from.AddDays(-1).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+        var do_ = to.AddDays(2).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+
+        return await dbContext.Set<TimeEntry>()
+            .Where(e => e.TenantId == tenantId
+                        && employeeIds.Contains(e.EmployeeId)
+                        && e.EntryTime >= od
+                        && e.EntryTime < do_)
+            .OrderBy(e => e.EmployeeId).ThenBy(e => e.EntryTime)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task AddAsync(TimeEntry entry, CancellationToken cancellationToken = default)
     {
         await dbContext.Set<TimeEntry>().AddAsync(entry, cancellationToken);

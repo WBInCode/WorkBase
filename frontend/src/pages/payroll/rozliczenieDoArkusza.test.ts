@@ -16,10 +16,14 @@ function wiersz(nadpisz: Partial<WierszRozliczenia> = {}): WierszRozliczenia {
     workedH: 168,
     regularH: 160,
     overtimeH: 8,
+    nightH: 0,
+    holidayH: 0,
     vacationDays: 2,
     absenceDays: 1,
     basicPay: 8000,
     overtimePay: 600,
+    nightPay: 0,
+    holidayPay: 0,
     totalPay: 8600,
     ...nadpisz,
   };
@@ -34,7 +38,7 @@ describe('rozliczenie do arkusza', () => {
   it('godziny i kwoty ida jako liczby, nie napisy — inaczej nie da sie na nich liczyc', () => {
     const komorki = wierszDoArkusza(wiersz());
 
-    for (const indeks of [2, 3, 4, 5, 6, 7, 8, 9, 10, 11]) {
+    for (const indeks of [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]) {
       expect(typeof komorki[indeks]).toBe('number');
     }
   });
@@ -43,10 +47,12 @@ describe('rozliczenie do arkusza', () => {
     const komorki = wierszDoArkusza(wiersz({ hasRate: false, rate: 0, basicPay: 0, overtimePay: 0, totalPay: 0 }));
 
     // stawka, zasadnicze, za nadgodziny, razem
-    expect(komorki[2]).toBeNull();
-    expect(komorki[9]).toBeNull();
-    expect(komorki[10]).toBeNull();
-    expect(komorki[11]).toBeNull();
+    expect(komorki[2]).toBeNull();   // stawka
+    expect(komorki[11]).toBeNull();  // zasadnicze
+    expect(komorki[12]).toBeNull();  // za nadgodziny
+    expect(komorki[13]).toBeNull();  // dodatek nocny
+    expect(komorki[14]).toBeNull();  // dodatek swiateczny
+    expect(komorki[15]).toBeNull();  // razem
     // godziny licza sie nadal — pracownik pracowal, tylko stawki nikt nie ustawil
     expect(komorki[4]).toBe(168);
   });
@@ -61,15 +67,15 @@ describe('rozliczenie do arkusza', () => {
     const suma = wierszSumy([zeStawka, bezStawki]);
 
     expect(suma[0]).toBe('RAZEM');
-    expect(suma[3]).toBe(260); // norma: 160 + 100
-    expect(suma[4]).toBe(258); // czas pracy: 168 + 90
-    expect(suma[11]).toBe(8600); // razem: tylko osoba ze stawka
+    expect(suma[3]).toBe(260);   // norma: 160 + 100
+    expect(suma[4]).toBe(258);   // czas pracy: 168 + 90
+    expect(suma[15]).toBe(8600); // razem: tylko osoba ze stawka
   });
 
   it('pusta lista daje same zera, nie NaN', () => {
     const suma = wierszSumy([]);
 
     expect(suma[3]).toBe(0);
-    expect(suma[11]).toBe(0);
+    expect(suma[15]).toBe(0);
   });
 });

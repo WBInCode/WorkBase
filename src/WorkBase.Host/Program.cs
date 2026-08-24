@@ -219,6 +219,7 @@ try
     app.MapBillingEndpoints();
     app.MapSyncEndpoints();
     app.MapPayrollSettingsEndpoints();
+    app.MapPayrollRozliczenieEndpoints();
     app.MapTerminologyEndpoints();
     app.MapTimeTrackingSettingsEndpoints();
     app.MapDocumentSettingsEndpoints();
