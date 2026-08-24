@@ -10,6 +10,13 @@ import type { EmployeeDto, OrganizationUnitTreeNode } from '@/api/types/organiza
 import { useIsMobile } from '@/shared';
 import TimeInput from '@/components/shared/TimeInput';
 import type ExcelJS from 'exceljs';
+import {
+  utworzSkoroszyt,
+  pobierzSkoroszyt,
+  WYPELNIENIE_NAGLOWKA,
+  CZCIONKA_NAGLOWKA,
+  CIENKA_RAMKA,
+} from '@/shared/arkusz';
 import { colors } from '@/theme/tokens';
 
 /* ── helpers ── */
@@ -448,26 +455,17 @@ export function TeamAttendancePage() {
 
   /* Excel export */
   const exportExcel = useCallback(async () => {
-    // Loaded on demand — exceljs is a large dependency, kept out of the main
-    // and route bundles until the user actually triggers an export.
-    const { default: ExcelJSLib } = await import('exceljs');
-    const wb = new ExcelJSLib.Workbook();
-    wb.creator = 'WorkBase';
+    const wb = await utworzSkoroszyt();
     const ws = wb.addWorksheet('Raport czasu pracy');
 
     /* ── colours ── */
-    const headerFill: ExcelJS.FillPattern = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF059669' } };
-    const headerFont: Partial<ExcelJS.Font> = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
+    const headerFill = WYPELNIENIE_NAGLOWKA;
+    const headerFont = CZCIONKA_NAGLOWKA;
     const weekendFill: ExcelJS.FillPattern = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
     const greenFill: ExcelJS.FillPattern = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDCFCE7' } };
     const yellowFill: ExcelJS.FillPattern = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEF3C7' } };
     const sumFill: ExcelJS.FillPattern = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF0FDF4' } };
-    const thinBorder: Partial<ExcelJS.Borders> = {
-      top: { style: 'thin', color: { argb: 'FFE5E7EB' } },
-      bottom: { style: 'thin', color: { argb: 'FFE5E7EB' } },
-      left: { style: 'thin', color: { argb: 'FFE5E7EB' } },
-      right: { style: 'thin', color: { argb: 'FFE5E7EB' } },
-    };
+    const thinBorder = CIENKA_RAMKA;
 
     /* ── header row ── */
     const headerValues = ['Pracownik', ...dates.map((d) => formatWeekdayShort(d)), 'Suma netto'];
@@ -549,15 +547,7 @@ export function TeamAttendancePage() {
     /* ── freeze first row + first column ── */
     ws.views = [{ state: 'frozen', xSplit: 1, ySplit: 1 }];
 
-    /* ── download ── */
-    const buffer = await wb.xlsx.writeBuffer();
-    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `raport-czasu-${dateRange.from}_${dateRange.to}.xlsx`;
-    a.click();
-    URL.revokeObjectURL(url);
+    await pobierzSkoroszyt(wb, `raport-czasu-${dateRange.from}_${dateRange.to}.xlsx`);
   }, [employees, dates, tsMap, dateRange]);
 
   return (

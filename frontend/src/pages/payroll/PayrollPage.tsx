@@ -1,7 +1,8 @@
-import { useMemo, useState, Fragment, useEffect } from 'react';
-import { ChevronDown, ChevronRight, Settings } from 'lucide-react';
+import { useMemo, useState, Fragment, useEffect, useCallback } from 'react';
+import { ChevronDown, ChevronRight, Settings, Download } from 'lucide-react';
 import { useAuth } from 'react-oidc-context';
 import { useCurrentUser } from '@/api/hooks/useIam';
+import { useUprawnienia } from '@/auth/useUprawnienia';
 import { useEmployees } from '@/api/hooks/useOrganization';
 import { useTeamTimesheets, useTeamSchedulesByEmployee } from '@/api/hooks/useTimeTracking';
 import { useTeamLeaveRequests } from '@/api/hooks/useLeave';
@@ -9,6 +10,14 @@ import { usePayrollSettings, useUpdatePayrollSettings } from '@/api/hooks/usePay
 import type { ScheduleDto } from '@/api/types/time';
 import type { LeaveRequestDto } from '@/api/types/leave';
 import { colors } from '@/theme/tokens';
+import {
+  utworzSkoroszyt,
+  pobierzSkoroszyt,
+  WYPELNIENIE_NAGLOWKA,
+  CZCIONKA_NAGLOWKA,
+  CIENKA_RAMKA,
+} from '@/shared/arkusz';
+import { NAGLOWKI_ROZLICZENIA, wierszDoArkusza, wierszSumy } from './rozliczenieDoArkusza';
 
 const DEFAULT_OVERTIME_MULTIPLIER = 1.5;
 
@@ -109,21 +118,18 @@ export function PayrollPage() {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   const auth = useAuth();
-  const roles = (auth.user?.profile?.['roles'] as string[] | undefined) ?? [];
   // isAdmin is sourced from the app's own Role/Permission data, not the Keycloak "roles" claim
   // — see docs/AUDIT-KNOWLEDGE-MAP.md (role system consistency).
   const { data: currentUser } = useCurrentUser();
   const isAdmin = !!currentUser?.isAdmin;
-  // NOTE: isHr/isManager still key off the Keycloak claim — there is no backend DataScope
-  // concept for Payroll yet to derive these from app permissions (unlike isAdmin above).
-  // 'workbase-manager' is also never actually provisioned in Keycloak (see
-  // KeycloakAdminService.CreateRealmRolesAsync), so this check is effectively dead for any
-  // tenant that hasn't manually created that realm role — flagged as a follow-up.
-  const isHr = roles.some((r) => r === 'workbase-hr' || r === 'HR' || r === 'Hr');
-  const isManager = roles.some(
-    (r) => r === 'workbase-manager' || r === 'Kierownik' || r === 'Manager',
-  );
-  const isDepartmentScope = !isAdmin && (isHr || isManager);
+  // Zakres zespolowy szedl wczesniej z roszczenia "roles" w tokenie Keycloaka, a rola
+  // workbase-manager nigdy nie jest tam zakladana (KeycloakAdminService.CreateRealmRolesAsync).
+  // Kierownik trafial przez to do galezi "tylko wlasny wiersz" i widzial ekran plac z jedna
+  // pozycja. Bierzemy wiec to samo zrodlo, ktore sprawdza backend: uprawnienie payroll.view-team.
+  // Szerzej niz pozwala zakres i tak nie zobaczy — stawki spoza zakresu backend zeruje
+  // (EmployeeEndpoints), wiec ta zmiana nie moze niczego odslonic.
+  const { moze } = useUprawnienia();
+  const isDepartmentScope = !isAdmin && moze('payroll.view-team');
   const userSub = auth.user?.profile?.sub ?? null;
 
   const { data: payrollSettings } = usePayrollSettings();
@@ -239,6 +245,56 @@ export function PayrollPage() {
     });
   };
 
+  /**
+   * Eksport zestawienia dla kadr. Rozbicie dzienne (pracownik x dzien) ma juz raport
+   * zespolu — tutaj brakowalo tego, co idzie do listy plac: normy, czasu pracy, nadgodzin,
+   * nieobecnosci i kwot. Do arkusza trafiaja LICZBY, nie sformatowane napisy, zeby dalo sie
+   * na nich liczyc; formatowanie ustawiamy maska komorki.
+   *
+   * Wiersze sa dokladnie tym, co widac na ekranie, a widac tylko to, na co pozwala zakres
+   * danych pytajacego — eksport nie omija uprawnien.
+   */
+  const eksportujZestawienie = useCallback(async () => {
+    const skoroszyt = await utworzSkoroszyt();
+    const arkusz = skoroszyt.addWorksheet('Rozliczenie');
+
+    const naglowki = [...NAGLOWKI_ROZLICZENIA];
+
+    const wierszNaglowka = arkusz.addRow(naglowki);
+    wierszNaglowka.eachCell((komorka) => {
+      komorka.fill = WYPELNIENIE_NAGLOWKA;
+      komorka.font = CZCIONKA_NAGLOWKA;
+      komorka.border = CIENKA_RAMKA;
+      komorka.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+    });
+    wierszNaglowka.height = 30;
+
+    for (const r of rows) {
+      const wiersz = arkusz.addRow(wierszDoArkusza(r));
+      wiersz.eachCell((komorka) => { komorka.border = CIENKA_RAMKA; });
+    }
+
+    // Podsumowanie na dole — kadry i tak je licza recznie, wiec niech przyjdzie gotowe.
+    const podsumowanie = arkusz.addRow(wierszSumy(rows));
+    podsumowanie.eachCell((komorka) => {
+      komorka.font = { bold: true };
+      komorka.border = CIENKA_RAMKA;
+    });
+
+    arkusz.getColumn(1).width = 28;
+    arkusz.getColumn(2).width = 30;
+    for (let kolumna = 3; kolumna <= naglowki.length; kolumna++) arkusz.getColumn(kolumna).width = 15;
+
+    // Godziny z dwoma miejscami, kwoty z separatorem tysiecy — inaczej arkusz pokazuje
+    // 7.333333333333333 i kadrowa dostaje liczbe, ktorej nie da sie przepisac.
+    for (const kolumna of [4, 5, 6, 7]) arkusz.getColumn(kolumna).numFmt = '0.00';
+    for (const kolumna of [3, 10, 11, 12]) arkusz.getColumn(kolumna).numFmt = '# ##0.00';
+
+    arkusz.views = [{ state: 'frozen', ySplit: 1 }];
+
+    await pobierzSkoroszyt(skoroszyt, `rozliczenie-${from}_${to}.xlsx`);
+  }, [rows, from, to]);
+
   return (
     <div style={{ padding: '24px 28px', maxWidth: '1400px', margin: '0 auto' }}>
       {/* ── Karta dowodzenia: tytuł + ustawienia + zakres + statystyki ── */}
@@ -259,7 +315,26 @@ export function PayrollPage() {
               Ewidencja czasu pracy + rozliczenie wynagrodzeń (norma z grafiku, czas pracy z kart, nadgodziny ×{overtimeMultiplier}).
             </p>
           </div>
-          {isAdmin && <PayrollSettingsButton />}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button
+              onClick={eksportujZestawienie}
+              disabled={isLoading || rows.length === 0}
+              title="Pobierz zestawienie do listy plac (XLSX)"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                padding: '8px 14px', borderRadius: 10,
+                border: '1px solid var(--wb-line, #e3e7f1)',
+                background: 'var(--wb-panel, #fff)',
+                color: colors.gray[900], fontSize: 13, fontWeight: 600,
+                cursor: isLoading || rows.length === 0 ? 'not-allowed' : 'pointer',
+                opacity: isLoading || rows.length === 0 ? 0.5 : 1,
+              }}
+            >
+              <Download size={15} />
+              Eksport XLSX
+            </button>
+            {isAdmin && <PayrollSettingsButton />}
+          </div>
         </div>
 
         <div

@@ -1,0 +1,11 @@
+Nr pracownika;Nazwisko;Imiê;E-mail;Data zatrudnienia;Stanowisko
+001;Kowalska-Nowak;Anna;anna.kowalska@example.invalid;15.03.2015;"Kierownik, dzia³ handlowy"
+002;¯ó³w;£ukasz;lukasz.zolw@example.invalid;01.09.2018;Specjalista ds. logistyki
+003;Æwikliñski;Pawe³;pawel.cwiklinski@example.invalid;5.3.2020;Magazynier
+004;Œniadecki;Zbigniew;zbigniew.sniadecki@example.invalid;2021-01-04;Kierowca
+005;Wójcik;Ma³gorzata;malgorzata.wojcik@example.invalid;12/07/2022;Ksiêgowa
+006;D¹browski;Krzysztof;krzysztof.dabrowski@example.invalid;28.02.2023;"Operator maszyn CNC"
+007;£êcki;Tomasz;tomasz.lecki@example.invalid;31.02.2023;Sta¿ysta
+008;Nowak;Ewa;;01.06.2024;Recepcja
+009;Grzegorzewska;Jadwiga;jadwiga.g@example.invalid;brak;Sprz¹taczka
+010;Pi¹tek;Marcin;marcin.piatek@example.invalid;02.01.2025;Handlowiec

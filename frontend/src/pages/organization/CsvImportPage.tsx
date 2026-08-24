@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { ArrowRight, ArrowLeft, CheckCircle2, FileSpreadsheet } from 'lucide-react';
-import { parseCsv, type ParsedCsv } from '@/utils/csvParser';
+import { parseCsv, odczytajCsv, parsujDateZatrudnienia, type ParsedCsv } from '@/utils/csvParser';
 import { api } from '@/api/client';
 import { ApiError } from '@/api/client';
 import type { CreateEmployeeRequest } from '@/api/types/organization';
@@ -31,7 +31,8 @@ function validateRow(row: Record<string, string>, rowIndex: number): RowValidati
   if (!row.email?.trim()) errors.push('Brak email');
   else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(row.email.trim())) errors.push('Nieprawidłowy email');
   if (!row.hireDate?.trim()) errors.push('Brak daty zatrudnienia');
-  else if (isNaN(Date.parse(row.hireDate.trim()))) errors.push('Nieprawidłowy format daty');
+  else if (parsujDateZatrudnienia(row.hireDate) === null)
+    errors.push('Nieprawidłowa data — użyj 15.03.2015 albo 2015-03-15');
   return { rowIndex, errors };
 }
 
@@ -64,10 +65,9 @@ export function CsvImportPage() {
   /* ── Upload ── */
   const handleFile = useCallback((file: File) => {
     if (!file.name.toLowerCase().endsWith('.csv')) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const text = e.target?.result;
-      if (typeof text !== 'string') return;
+    // odczytajCsv dobiera kodowanie (UTF-8, a przy bledzie Windows-1250) — pliki z polskich
+    // programow kadrowych prawie zawsze sa w tym drugim.
+    void odczytajCsv(file).then((text) => {
       const parsed = parseCsv(text);
       setCsv(parsed);
       setFileName(file.name);
@@ -93,8 +93,7 @@ export function CsvImportPage() {
       });
       setMapping(autoMap);
       setStep('mapping');
-    };
-    reader.readAsText(file);
+    });
   }, []);
 
   /* ── Build mapped rows ── */
@@ -141,7 +140,7 @@ export function CsvImportPage() {
         lastName: (row.lastName ?? '').trim(),
         email: (row.email ?? '').trim(),
         employeeNumber: row.employeeNumber?.trim() || undefined,
-        hireDate: new Date((row.hireDate ?? '').trim()).toISOString(),
+        hireDate: (parsujDateZatrudnienia(row.hireDate ?? '') ?? new Date()).toISOString(),
       };
 
       try {
