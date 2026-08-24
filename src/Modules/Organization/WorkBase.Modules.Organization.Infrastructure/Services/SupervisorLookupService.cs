@@ -28,4 +28,17 @@ public sealed class SupervisorLookupService(WorkBaseDbContext dbContext) : ISupe
         return await dbContext.Set<SupervisorRelation>()
             .AnyAsync(r => r.SupervisorEmployeeId == supervisorEmployeeId && r.EndDate == null, cancellationToken);
     }
+
+    public async Task<Guid?> GetZastepceAsync(
+        Guid zastepowanyEmployeeId, DateOnly dzien, CancellationToken cancellationToken = default)
+    {
+        return await dbContext.Set<Zastepstwo>()
+            .Where(z => z.ZastepowanyEmployeeId == zastepowanyEmployeeId
+                        && !z.Odwolane
+                        && z.OdKiedy <= dzien
+                        && dzien <= z.DoKiedy)
+            .OrderBy(z => z.OdKiedy)
+            .Select(z => (Guid?)z.ZastepcaEmployeeId)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
 }

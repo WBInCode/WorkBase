@@ -20,4 +20,12 @@ public interface ISupervisorLookupService
 
     /// <summary>Czy pracownik ma aktywnych podwładnych. Bycie przełożonym to relacja, nie rola.</summary>
     Task<bool> HasSubordinatesAsync(Guid supervisorEmployeeId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Zwraca osobę, która w danym dniu zastępuje wskazanego akceptanta, albo null gdy nikt go
+    /// nie zastępuje. Zastępstwo dotyczy wyłącznie wskazania akceptanta — nie przenosi uprawnień
+    /// ani zakresu danych.
+    /// </summary>
+    Task<Guid?> GetZastepceAsync(
+        Guid zastepowanyEmployeeId, DateOnly dzien, CancellationToken cancellationToken = default);
 }

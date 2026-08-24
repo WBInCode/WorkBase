@@ -49,6 +49,38 @@ public sealed class ApproverResolver(ISupervisorLookupService supervisorLookup) 
             return Result.Failure<Guid>(Error.NotFound("Approval.SupervisorNotFound",
                 "Nie znaleziono przełożonego dla pracownika inicjującego workflow."));
 
-        return supervisorId.Value;
+        return await UwzglednijZastepstwoAsync(supervisorId.Value, cancellationToken);
+    }
+
+    /// <summary>
+    /// Podmienia akceptanta na jego zastępcę, jeśli ktoś go dziś zastępuje.
+    /// </summary>
+    /// <remarks>
+    /// To jedyne miejsce w systemie, w którym rozstrzyga się „kto to zatwierdza", więc zastępstwo
+    /// wystarczy uwzględnić tutaj — obejmuje wszystkie obiegi, nie tylko urlopowe.
+    ///
+    /// Łańcuch zastępstw jest podążany, bo zastępca też bywa nieobecny (klasyczny przypadek:
+    /// kierownik i jego zastępca jadą na to samo szkolenie). Limit i zbiór odwiedzonych chronią
+    /// przed pętlą, gdy dwie osoby wskażą się nawzajem — wtedy wniosek zostaje przy ostatniej
+    /// osobie w łańcuchu, co jest gorsze niż nic, ale lepsze niż zawieszenie obiegu.
+    /// </remarks>
+    private async Task<Guid> UwzglednijZastepstwoAsync(Guid akceptant, CancellationToken cancellationToken)
+    {
+        const int maksymalnaDlugoscLancucha = 5;
+
+        var dzis = DateOnly.FromDateTime(DateTime.UtcNow);
+        var odwiedzeni = new HashSet<Guid> { akceptant };
+        var biezacy = akceptant;
+
+        for (var krok = 0; krok < maksymalnaDlugoscLancucha; krok++)
+        {
+            var zastepca = await supervisorLookup.GetZastepceAsync(biezacy, dzis, cancellationToken);
+            if (zastepca is null || !odwiedzeni.Add(zastepca.Value))
+                return biezacy;
+
+            biezacy = zastepca.Value;
+        }
+
+        return biezacy;
     }
 }

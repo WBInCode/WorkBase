@@ -62,6 +62,9 @@ public class ZakresDanychPracownikaTests
         "/api/leave/balances/{id}",
         "/api/leave/requests/{id}",
         "/api/workflow/approvals/pending/{id}",
+        // Zastepstwa: parametr to osoba zastepowana. Cudze zastepstwa widzi tylko org.manage —
+        // kto kogo zastepuje w akceptacji, to informacja o strukturze decyzyjnej firmy.
+        "/api/org/zastepstwa/{id}",
     ];
 
     public static TheoryData<string> TrasyZDanymiPracownika() => [.. TrasyPracownika];

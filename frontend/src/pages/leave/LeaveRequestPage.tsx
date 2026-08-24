@@ -4,7 +4,8 @@ import { useAuth } from 'react-oidc-context';
 import { mapUserClaims } from '@/auth';
 import { useLeaveTypes, useLeaveBalances, useLeaveRequests, useSubmitLeaveRequest } from '@/api/hooks/useLeave';
 import { useEmployeeDetail } from '@/api/hooks/useOrganization';
-import { LeaveBalanceCard, LeaveRequestForm } from '@/components/Leave';
+import { LeaveBalanceCard, LeaveRequestForm, ZastepstwoPanel } from '@/components/Leave';
+import { useCurrentUser } from '@/api/hooks/useIam';
 import type { LeaveRequestStatus } from '@/api/types/leave';
 import { useIsMobile } from '@/shared';
 import { colors } from '@/theme/tokens';
@@ -21,6 +22,11 @@ export function LeaveRequestPage() {
   const auth = useAuth();
   const user = auth.user ? mapUserClaims(auth.user) : null;
   const employeeId = user?.employeeId ?? null;
+
+  // Panel zastepstwa widza wylacznie osoby majace podwladnych — bycie przelozonym to relacja
+  // w strukturze, nie rola, wiec pytamy o nia serwer.
+  const { data: currentUser } = useCurrentUser();
+  const jestPrzelozonym = currentUser?.isSupervisor ?? false;
 
   const currentYear = new Date().getFullYear();
   const [year, setYear] = useState(currentYear);
@@ -57,6 +63,8 @@ export function LeaveRequestPage() {
 
   return (
     <div style={{ padding: mobile ? '14px' : '24px 28px', maxWidth: '1100px', margin: '0 auto' }}>
+      {jestPrzelozonym && employeeId && <ZastepstwoPanel employeeId={employeeId} />}
+
       {/* ── Karta dowodzenia ── */}
       <div
         style={{
