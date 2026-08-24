@@ -10,8 +10,20 @@ namespace WorkBase.Modules.Identity.Infrastructure.Services;
 
 public sealed class FeatureFlagService(WorkBaseDbContext db) : IFeatureFlagService
 {
+    /// <summary>
+    /// Zwraca tylko flagi modulow, ktore sa w katalogu. Wiersze po modulach wycofanych z
+    /// <see cref="ModuleCatalog"/> zostaja w bazie (nie kasujemy danych najemcy), ale nie moga
+    /// pokazywac sie w panelu jako przelacznik — modul nie ma juz endpointow, wiec wlaczenie
+    /// go niczego nie robi.
+    /// </summary>
     public async Task<List<FeatureFlag>> GetByTenantAsync(Guid tenantId, CancellationToken ct = default)
-        => await db.Set<FeatureFlag>().Where(f => f.TenantId == tenantId).ToListAsync(ct);
+    {
+        var wKatalogu = ModuleCatalog.All.Select(m => m.Key).ToArray();
+
+        return await db.Set<FeatureFlag>()
+            .Where(f => f.TenantId == tenantId && wKatalogu.Contains(f.Module))
+            .ToListAsync(ct);
+    }
 
     public async Task ToggleAsync(Guid tenantId, string module, string? userId, CancellationToken ct = default)
     {

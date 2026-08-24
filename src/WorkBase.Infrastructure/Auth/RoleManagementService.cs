@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using WorkBase.Infrastructure.Persistence;
 using WorkBase.Modules.Identity.Domain.Entities;
 using WorkBase.Shared.Auth;
+using WorkBase.Shared.Modules;
 
 namespace WorkBase.Infrastructure.Auth;
 
@@ -105,9 +106,18 @@ public sealed class RoleManagementService(
         await dbContext.SaveChangesAsync(ct);
     }
 
+    /// <summary>
+    /// Zwraca tylko uprawnienia modulow obecnych w <see cref="ModuleCatalog"/>. Wiersze po
+    /// modulach wycofanych zostaja w bazie (nie kasujemy historii przypisan), ale nie moga
+    /// pojawiac sie w macierzy uprawnien — nie ma juz endpointow, ktore by ich pilnowaly,
+    /// wiec nadanie takiego uprawnienia roli niczego nie zmienia.
+    /// </summary>
     public async Task<IReadOnlyList<PermissionDto>> GetAllPermissionsAsync(CancellationToken ct = default)
     {
+        var wKatalogu = ModuleCatalog.All.Select(m => m.Key).ToArray();
+
         return await dbContext.Set<Permission>()
+            .Where(p => wKatalogu.Contains(p.Module))
             .OrderBy(p => p.Module)
             .ThenBy(p => p.Action)
             .ThenBy(p => p.Scope)

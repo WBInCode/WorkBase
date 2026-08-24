@@ -151,6 +151,14 @@ public record ModuleInfo(string Key, string DisplayName, ModuleGroup Group);
 public enum ModuleGroup { Core, Standard, Premium }
 ```
 
+> **Stan na 2026-08-24 — katalog ma 9 pozycji, nie 15.** Powyzszy listing pokazuje docelowy
+> zestaw modulow. Szesc z nich (`integration`, `forms`, `cases`, `contacts`, `sales`, `ai`)
+> zostalo **wycofanych z `ModuleCatalog.All`**, bo mialy kod i wlaczone flagi, ale zadna z ich
+> 17 tabel nigdy nie dostala migracji — kazde wywolanie konczylo sie 500. Kod zostaje w repo
+> i wraca pojedynczo, gdy modul bedzie komus potrzebny. Mechanizm licencjonowania opisany
+> w tym dokumencie nie zmienia sie — zmienia sie tylko dlugosc listy.
+> Szczegoly: [AUDYT-2026-08-24.md](AUDYT-2026-08-24.md) K1, [PLAN-ROZWOJU-2026-08.md](PLAN-ROZWOJU-2026-08.md) A2.
+
 Konsumenci tego katalogu (po refaktorze — dziś każdy ma własną, ręczną listę):
 - `IamSeeder.cs` → seeduje permissions/flagi dla wszystkich modułów z katalogu (nie tylko 9).
 - `ModuleBoundaryTests.cs` → testuje izolację wszystkich modułów z katalogu.
@@ -161,8 +169,8 @@ Konsumenci tego katalogu (po refaktorze — dziś każdy ma własną, ręczną l
 | Pakiet | Moduły | Segment klienta |
 |---|---|---|
 | **Bronze** (Core) | org, identity, time, leave, tasks, dashboard, notification | Małe firmy 5-30 osób — podstawowy HR/czas pracy |
-| **Silver** (Core + Standard) | + workflow, documents, forms | Średnie firmy — dochodzą akceptacje i dokumentacja |
-| **Gold** (wszystko) | + integration, cases, contacts, sales, ai | Duże firmy / pełny CRM+AI |
+| **Silver** (Core + Standard) | + workflow, documents | Srednie firmy — dochodza akceptacje i dokumentacja |
+| **Gold** (wszystko) | dzis to samo co Silver | Docelowo + integration, cases, contacts, sales, ai — po ich powrocie do katalogu |
 
 Dokupienie pojedynczego modułu spoza pakietu (np. Bronze + "Sales") — zwykła operacja na fladze, nie wymaga zmiany pakietu klienta.
 

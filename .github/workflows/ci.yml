@@ -50,18 +50,19 @@ jobs:
         env:
           ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=workbase_test;Username=workbase;Password=workbase"
 
+      # Poprzednia wersja tego kroku generowala skrypt z ISTNIEJACYCH migracji i miala
+      # continue-on-error, wiec nie mogla wykryc niczego. Rozjazd model <-> migracje przetrwal
+      # w niej miesiace (17 tabel bez migracji + zla wartosc domyslna kasujaca grafiki).
+      # has-pending-model-changes konczy sie kodem != 0, gdy model wyprzedza migracje.
       - name: Validate EF Core migrations
         run: |
           dotnet tool install --global dotnet-ef
-          dotnet ef migrations script \
+          dotnet ef migrations has-pending-model-changes \
             --project src/WorkBase.Infrastructure/WorkBase.Infrastructure.csproj \
             --startup-project src/WorkBase.Host/WorkBase.Host.csproj \
-            --configuration Release \
-            --idempotent \
-            --output artifacts/migration-check.sql
+            --configuration Release
         env:
           ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=workbase_test;Username=workbase;Password=workbase"
-        continue-on-error: true
 
       - name: Generate OpenAPI spec
         run: |

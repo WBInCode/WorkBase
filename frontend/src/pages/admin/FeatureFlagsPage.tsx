@@ -16,12 +16,6 @@ const moduleLabels: Record<string, string> = {
   dashboard: 'Dashboard',
   notification: 'Powiadomienia',
   documents: 'Dokumenty',
-  integration: 'Integracje',
-  forms: 'Formularze',
-  cases: 'Sprawy',
-  contacts: 'Kontakty',
-  sales: 'Sprzedaż',
-  ai: 'AI',
 };
 
 export function FeatureFlagsPage() {

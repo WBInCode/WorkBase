@@ -41,16 +41,19 @@ public static class LicensePlanSeeder
         {
             Id = SilverId,
             Name = "Silver",
-            IncludedModules = [.. bronze.IncludedModules, "workflow", "documents", "forms"],
+            IncludedModules = [.. bronze.IncludedModules, "workflow", "documents"],
             IsActive = true,
             CreatedAt = now,
         };
 
+        // Gold pokrywa dzis to samo co Silver: moduly, ktore go odroznialy (integration, forms,
+        // cases, contacts, sales, ai) sa wycofane z ModuleCatalog do czasu, az ktorys wroci.
+        // Plan zostaje z tym samym Id, bo najemcy w bazie moga juz go miec przypisanego.
         var gold = new LicensePlan
         {
             Id = GoldId,
             Name = "Gold",
-            IncludedModules = [.. silver.IncludedModules, "integration", "cases", "contacts", "sales", "ai"],
+            IncludedModules = [.. silver.IncludedModules],
             IsActive = true,
             CreatedAt = now,
         };

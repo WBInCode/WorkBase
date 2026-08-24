@@ -48,7 +48,6 @@ const KioskPage = lazy(() => import('@/pages/KioskPage').then((m) => ({ default:
 const DocumentListPage = lazy(() => import('@/pages/documents/DocumentListPage').then((m) => ({ default: m.DocumentListPage })));
 const DocumentCategoriesPage = lazy(() => import('@/pages/documents/DocumentCategoriesPage').then((m) => ({ default: m.DocumentCategoriesPage })));
 const WorkflowBuilderPage = lazy(() => import('@/pages/workflow/WorkflowBuilderPage').then((m) => ({ default: m.WorkflowBuilderPage })));
-const FormBuilderPage = lazy(() => import('@/pages/forms/FormBuilderPage').then((m) => ({ default: m.FormBuilderPage })));
 const BrandingConfigPage = lazy(() => import('@/pages/admin/BrandingConfigPage').then((m) => ({ default: m.BrandingConfigPage })));
 const TerminologyConfigPage = lazy(() => import('@/pages/admin/TerminologyConfigPage').then((m) => ({ default: m.TerminologyConfigPage })));
 const TimeTrackingSettingsPage = lazy(() => import('@/pages/time/TimeTrackingSettingsPage').then((m) => ({ default: m.TimeTrackingSettingsPage })));
@@ -124,7 +123,6 @@ function AppRoutes() {
         <Route path="/documents" element={chroniona('/documents', <DocumentListPage />)} />
         <Route path="/documents/categories" element={chroniona('/documents/categories', <DocumentCategoriesPage />)} />
         <Route path="/workflow/builder" element={chroniona('/workflow/builder', <WorkflowBuilderPage />)} />
-        <Route path="/forms/builder" element={chroniona('/forms/builder', <FormBuilderPage />)} />
         <Route path="/admin/roles" element={chroniona('/admin/roles', <RolesPage />)} />
         <Route path="/admin/permissions" element={chroniona('/admin/permissions', <PermissionsMatrixPage />)} />
         <Route path="/admin/feature-flags" element={chroniona('/admin/feature-flags', <FeatureFlagsPage />)} />

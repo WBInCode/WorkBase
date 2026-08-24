@@ -415,6 +415,15 @@ public static class IamSeeder
         // DOPISYWAĆ WYŁĄCZNIE NA KOŃCU: identyfikatory są wyliczane z kolejnego numeru,
         // więc wstawienie czegokolwiek wyżej przesunęłoby id już istniejących uprawnień.
         permissions.Add(CreatePermission(permissionId++, Modules.Tasks, "comment", description: "Komentowanie zadań"));
+
+        // Ponizsze uprawnienia naleza do modulow wycofanych z ModuleCatalog 2026-08-24
+        // (cases, contacts, forms, sales, ai). ZOSTAJA CELOWO: identyfikatory uprawnien sa
+        // wyliczane z kolejnego numeru, wiec usuniecie ktoregokolwiek przesunieploby id
+        // wszystkich nastepnych — a te sa juz zapisane w iam_role_permissions na produkcji
+        // i przypisania rol wskazywalyby po cichu na inne uprawnienia.
+        // Sa nieszkodliwe: zaden endpoint ich nie wymaga, a macierz uprawnien i przelaczniki
+        // modulow filtruja po ModuleCatalog, wiec nie pokazuja sie w interfejsie.
+        // Przy powrocie ktoregos modulu wracaja do uzycia bez zadnej zmiany tutaj.
         permissions.Add(CreatePermission(permissionId++, Modules.Cases, "comment", description: "Komentowanie spraw"));
         permissions.Add(CreatePermission(permissionId++, Modules.Cases, "assign", description: "Przypisywanie spraw"));
         permissions.Add(CreatePermission(permissionId++, Modules.Contacts, "assign", description: "Przypisywanie opiekuna kontrahenta"));

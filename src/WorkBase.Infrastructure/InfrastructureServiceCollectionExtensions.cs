@@ -95,6 +95,7 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<ICurrentTenantService, HttpContextTenantService>();        services.AddScoped<IDataScopeService, DataScopeService>();
         services.AddScoped<IEmployeeScopeResolver, EmployeeScopeResolver>();
         services.AddScoped<ITenantConfigService, Services.TenantConfigService>();
+        services.AddScoped<Setup.IKonfiguracjaStartowaService, Setup.KonfiguracjaStartowaService>();
         services.AddScoped<ITenantProvisioningService, Services.TenantProvisioningService>();
         services.AddScoped<IKioskAccountProvisioningService, Services.KioskAccountProvisioningService>();
         services.AddScoped<IEmailSender, SmtpEmailSender>();
@@ -134,8 +135,11 @@ public static class InfrastructureServiceCollectionExtensions
 
             options.UseSnakeCaseNamingConvention();
 
-            options.ConfigureWarnings(w =>
-                w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+            // PendingModelChangesWarning zostaje WLACZONY (domyslne zachowanie EF 9: wyjatek przy
+            // Migrate). To jedyny mechanizm, ktory wylapuje encje dodane do modelu bez migracji.
+            // Byl tu wyciszony i przez to 17 tabel szesciu modulow nigdy nie trafilo do bazy,
+            // a bledna wartosc domyslna time_schedules.source kasowala grafiki indywidualne.
+            // Jesli start aplikacji padnie z tym ostrzezeniem — wygeneruj migracje, nie wyciszaj.
 
             options.AddInterceptors(
                 sp.GetRequiredService<AuditSaveChangesInterceptor>(),

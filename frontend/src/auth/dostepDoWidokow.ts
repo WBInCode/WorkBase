@@ -56,7 +56,6 @@ export const DOSTEP_DO_WIDOKOW: ReadonlyArray<readonly [string, WymaganeUprawnie
   ['/documents', ['documents.view']],
 
   ['/workflow/builder', ['workflow.manage']],
-  ['/forms/builder', ['forms.manage']],
 
   // Administracja — wczesniej jeden boolean `isAdmin`. Teraz konkretne uprawnienia, wiec
   // wlasciciel moze oddac np. slowniki kadrowe kierownikowi biura bez robienia z niego admina.

@@ -57,13 +57,20 @@ public static class ModuleCatalog
         new("dashboard", "Dashboard", "Dashboard", ModuleGroup.Core),
         new("notification", "Notification", "Powiadomienia", ModuleGroup.Core),
         new("documents", "Documents", "Dokumenty", ModuleGroup.Standard),
-        new("integration", "Integration", "Integracje", ModuleGroup.Standard),
-        new("forms", "Forms", "Formularze", ModuleGroup.Standard),
-        new("cases", "Cases", "Sprawy", ModuleGroup.Premium),
-        new("contacts", "Contacts", "Kontakty", ModuleGroup.Premium),
-        new("sales", "Sales", "Sprzedaż", ModuleGroup.Premium),
-        new("ai", "AI", "AI", ModuleGroup.Premium),
     ];
+
+    // Wycofane z katalogu 2026-08-24: integration, forms, cases, contacts, sales, ai.
+    //
+    // Kod tych modulow zostaje w repo (src/Modules/*, nadal buduje sie przez WorkBase.sln),
+    // ale nie sa czescia aplikacji: nie rejestruja sie w DI, nie mapuja endpointow, a ich
+    // konfiguracje EF nie wchodza do modelu. Powod: mialy pelny kod i wlaczone flagi, ale
+    // ZADNA z ich 17 tabel nigdy nie dostala migracji, wiec kazde wywolanie konczylo sie 500.
+    // Zamiast dokladac migracje do szesciu modulow bez interfejsu i bez testow, wycofujemy je
+    // do czasu, az ktorys bedzie komus potrzebny. Szczegoly: docs/AUDYT-2026-08-24.md (K1).
+    //
+    // Powrot pojedynczego modulu: dopisac wpis nizej, przywrocic ProjectReference w
+    // WorkBase.Host.csproj, wygenerowac migracje, dodac uprawnienia do IamSeeder i UI.
+    // Kolejnosc powrotu wg planu: integration jako pierwszy (docs/PLAN-ROZWOJU-2026-08.md).
 
     /// <summary>Looks up a module by its short key. Returns null if not found.</summary>
     public static ModuleInfo? FindByKey(string key) =>
