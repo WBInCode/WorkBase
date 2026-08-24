@@ -185,6 +185,11 @@ try
     app.UseAuthentication();
     app.UseAuthorization();
 
+    // PO autoryzacji, bo firme odczytuje z roszczenia w tokenie. Dopoki nowa firma nie
+    // ukonczy kreatora pierwszego startu, reszta API odpowiada 409 SETUP_REQUIRED.
+    // Firmy zalozone przed powstaniem kreatora nie maja znacznika i nie sa tym objete.
+    app.UseMiddleware<WorkBase.Infrastructure.Setup.KonfiguracjaStartowaMiddleware>();
+
     app.UseSerilogRequestLogging(options =>
     {
         options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
@@ -220,6 +225,7 @@ try
     app.MapTaskSettingsEndpoints();
     app.MapHubIntegrationEndpoints();
     app.MapEcosystemTaskEndpoints();
+    app.MapSetupEndpoints();
     app.MapHub<NotificationHub>("/hubs/notifications");
 
     if (!app.Environment.IsEnvironment("Testing"))

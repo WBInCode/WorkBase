@@ -18,6 +18,7 @@ public sealed class TenantProvisioningService(
     IKioskAccountProvisioningService kioskAccountProvisioning,
     TenantIssuerCache issuerCache,
     IConfiguration configuration,
+    Setup.IKonfiguracjaStartowaService konfiguracjaStartowa,
     ILogger<TenantProvisioningService> logger) : ITenantProvisioningService
 {
     public async Task<HubTenantProvisioningResult> EnsureHubTenantAsync(
@@ -90,6 +91,12 @@ public sealed class TenantProvisioningService(
         }
 
         await SeedTenantBaselineAsync(tenant.Id, tenant.Name, cancellationToken);
+
+        // Tylko tutaj — na sciezce TWORZENIA. Ponowna synchronizacja z Hubem przechodzi
+        // wyzej, przez galaz istniejacej firmy, wiec firmy zalozone wczesniej nigdy nie
+        // dostana tego znacznika i kreator ich nie zablokuje.
+        await konfiguracjaStartowa.OznaczJakoWymaganaAsync(tenant.Id, cancellationToken);
+
         logger.LogInformation(
             "Provisioned HUB organization {HubOrganizationId} as tenant {TenantId} ({Slug})",
             organizationId, tenant.Id, tenant.Slug);
@@ -128,6 +135,7 @@ public sealed class TenantProvisioningService(
         // this, its first provisioned user would get zero working permissions (see
         // UserProvisioningService.GetDefaultRoleIdAsync).
         await SeedTenantBaselineAsync(tenant.Id, tenant.Name, cancellationToken);
+        await konfiguracjaStartowa.OznaczJakoWymaganaAsync(tenant.Id, cancellationToken);
 
         // Multi-realm mode (docs/05-module-licensing-architecture.md §5): every new company
         // gets its own, fully login-ready Keycloak realm. Realm-per-tenant means the issuer
@@ -243,11 +251,24 @@ public sealed class TenantProvisioningService(
         await SeedAsync();
         await transaction.CommitAsync(cancellationToken);
 
+        // Wszystkie ponizsze sa dopisujace i idempotentne — ta metoda wykonuje sie takze dla
+        // firm juz istniejacych, przy kazdej synchronizacji z Hubem. Dzieki temu firmy zalozone
+        // wczesniej dostaja brakujace slowniki bez osobnej migracji.
         async Task SeedAsync()
         {
             await IamSeeder.SeedTenantRbacAsync(dbContext, tenantId, logger);
             await OrganizationSeeder.SeedTenantStructureAsync(
                 dbContext, tenantId, companyName, logger, cancellationToken);
+
+            // Bez tych trzech nowa firma dostawala z provisioningu wylacznie role i korzen
+            // struktury: nie dalo sie zlozyc wniosku urlopowego (brak typow urlopu), zalozyc
+            // zadania (TaskItem wymaga statusu) ani niczego zaakceptowac (brak definicji obiegu).
+            // Odpowiedniki globalne (LeaveSeeder.SeedAsync i spolka) maja zaszyta firme operatora
+            // i przerywaja, gdy w bazie istnieje juz cokolwiek — czyli od pierwszego uruchomienia
+            // aplikacji nie robily nic dla nikogo poza nia.
+            await LeaveSeeder.SeedTenantAsync(dbContext, tenantId, logger, cancellationToken);
+            await TaskSeeder.SeedTenantAsync(dbContext, tenantId, logger, cancellationToken);
+            await WorkflowSeeder.SeedTenantAsync(dbContext, tenantId, cancellationToken);
         }
     }
 
