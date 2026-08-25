@@ -63,7 +63,12 @@ public sealed class WyznaczZastepstwoHandler(
     }
 }
 
-public sealed record OdwolajZastepstwoCommand(Guid Id) : ICommand, ITenantRequest
+/// <param name="TylkoWlasneOsoby">
+/// Gdy podane, zastepstwo musi nalezec do tej osoby. Null oznacza administratora, ktory moze
+/// odwolac cudze — bo ktos musi umiec odblokowac zespol, gdy kierownik zniknal bez uprzedzenia.
+/// </param>
+public sealed record OdwolajZastepstwoCommand(Guid Id, Guid? TylkoWlasneOsoby = null)
+    : ICommand, ITenantRequest
 {
     public Guid TenantId { get; set; }
 }
@@ -76,6 +81,12 @@ public sealed class OdwolajZastepstwoHandler(IZastepstwoRepository zastepstwa)
         var zastepstwo = await zastepstwa.PobierzAsync(request.Id, cancellationToken);
         if (zastepstwo is null)
             return Result.Failure(Error.NotFound("Zastepstwo.NieZnaleziono", "Nie znaleziono zastępstwa."));
+
+        if (request.TylkoWlasneOsoby is Guid osoba && zastepstwo.ZastepowanyEmployeeId != osoba)
+        {
+            return Result.Failure(new Error(
+                "Zastepstwo.NieTwoje", "Odwołać zastępstwo może osoba, która je wyznaczyła, albo administrator."));
+        }
 
         // Odwolanie nie kasuje wiersza: wnioski juz skierowane do zastepcy maja zostac przy nim,
         // a historia „kto akceptowal w zastepstwie" musi sie zgadzac przy pozniejszym audycie.

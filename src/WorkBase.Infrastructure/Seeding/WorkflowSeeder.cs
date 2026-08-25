@@ -50,6 +50,7 @@ public static class WorkflowSeeder
                  {
                      CreateLeaveRequestDefinition(tenantId),
                      CreateTaskAcceptanceDefinition(tenantId),
+                     CreateWniosekDefinition(tenantId),
                  })
         {
             if (istniejace.Contains(definicja.Name)) continue;
@@ -57,6 +58,52 @@ public static class WorkflowSeeder
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Obieg dla wnioskow definiowanych przez firme (zaliczka, delegacja, praca zdalna...).
+    /// </summary>
+    /// <remarks>
+    /// Jedna definicja obsluguje WSZYSTKIE typy wnioskow — silnik nie musi wiedziec, czego
+    /// wniosek dotyczy, bo o tresci formularza decyduje TypWniosku. Dzieki temu dodanie
+    /// nowego rodzaju wniosku nie wymaga ani nowej definicji obiegu, ani zmiany w kodzie.
+    /// </remarks>
+    private static WorkflowDefinition CreateWniosekDefinition(Guid tenantId)
+    {
+        const string json = """
+        {
+            "name": "wniosek-ogolny-v1",
+            "version": 1,
+            "entityType": "Wniosek",
+            "initialStep": "Zlozony",
+            "steps": [
+                {
+                    "name": "Zlozony",
+                    "type": "action",
+                    "transitions": [
+                        { "outcome": "submitted", "targetStep": "AkceptacjaPrzelozonego" }
+                    ]
+                },
+                {
+                    "name": "AkceptacjaPrzelozonego",
+                    "type": "approval",
+                    "approverStrategy": "supervisor",
+                    "transitions": [
+                        { "outcome": "approved", "targetStep": "Zaakceptowany" },
+                        { "outcome": "rejected", "targetStep": "Odrzucony" }
+                    ]
+                },
+                { "name": "Zaakceptowany", "type": "end" },
+                { "name": "Odrzucony", "type": "end" }
+            ]
+        }
+        """;
+
+        return WorkflowDefinition.Create(
+            tenantId,
+            "wniosek-ogolny-v1",
+            json,
+            "Wniosek firmowy: Złożony → akceptacja przełożonego → Zaakceptowany/Odrzucony");
     }
 
     private static WorkflowDefinition CreateLeaveRequestDefinition(Guid tenantId)

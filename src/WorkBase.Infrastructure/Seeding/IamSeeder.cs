@@ -75,6 +75,7 @@ public static class IamSeeder
         "ai.use",
         "forms.submit", "reports.view",
         "payroll.view", "payroll.view-team",
+            "wnioski.view", "wnioski.create",
     ];
 
     private static readonly HashSet<string> PracownikPermissionCodes =
@@ -90,6 +91,7 @@ public static class IamSeeder
         "ai.use",
         "forms.submit",
         "payroll.view",
+            "wnioski.view", "wnioski.create",
     ];
 
     private static readonly HashSet<string> HrPermissionCodes =
@@ -106,6 +108,7 @@ public static class IamSeeder
         "ai.use",
         "forms.submit", "reports.view",
         "payroll.view", "payroll.view-team",
+            "wnioski.view", "wnioski.create",
     ];
 
     public static async Task SeedAsync(WorkBaseDbContext dbContext, ILogger logger)
@@ -439,6 +442,13 @@ public static class IamSeeder
         permissions.Add(CreatePermission(permissionId++, Modules.Sales, Actions.Manage, description: "Zarządzanie leadami i szansami sprzedaży"));
         permissions.Add(CreatePermission(permissionId++, Modules.AI, "use", description: "Korzystanie z funkcji AI"));
         permissions.Add(CreatePermission(permissionId++, Modules.Forms, "submit", description: "Wypełnianie i wysyłanie formularzy"));
+
+        // Wnioski firmowe (zaliczka, delegacja, praca zdalna...). Dopisane NA KONCU, bo
+        // identyfikatory licza sie pozycyjnie — wstawienie wyzej przesunieploby id uprawnien
+        // juz zapisanych w bazie. Patrz uwaga przy CreatePermission.
+        permissions.Add(CreatePermission(permissionId++, "wnioski", Actions.View, description: "Podgląd własnych wniosków"));
+        permissions.Add(CreatePermission(permissionId++, "wnioski", Actions.Create, description: "Składanie wniosków"));
+        permissions.Add(CreatePermission(permissionId++, "wnioski", Actions.Manage, description: "Definiowanie rodzajów wniosków"));
         // Raporty to obszar modułu Dashboard, nie osobna pozycja katalogu modułów,
         // więc nie dostają automatycznego kompletu CRUD.
         permissions.Add(CreatePermission(permissionId++, "reports", Actions.View, description: "Przeglądanie raportów"));

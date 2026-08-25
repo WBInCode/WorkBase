@@ -73,11 +73,16 @@ public class SlownikiNowejFirmyTests
 
         await WorkflowSeeder.SeedTenantAsync(db, firma);
 
-        var obiegi = await db.Set<WorkflowDefinition>().IgnoreQueryFilters()
+        var nazwy = await db.Set<WorkflowDefinition>().IgnoreQueryFilters()
             .Where(definicja => definicja.TenantId == firma)
-            .CountAsync();
+            .Select(definicja => definicja.Name)
+            .ToListAsync();
 
-        Assert.Equal(2, obiegi);
+        // Nazwy zamiast liczby: gdy ktos dolozy obieg, test ma powiedziec KTORY doszedl,
+        // a nie tylko ze jest ich o jeden wiecej.
+        Assert.Equal(
+            new[] { "leave-request-v1", "task-acceptance-v1", "wniosek-ogolny-v1" }.Order(),
+            nazwy.Order());
     }
 
     /// <summary>
@@ -101,7 +106,7 @@ public class SlownikiNowejFirmyTests
         Assert.Equal(4, await Policz<LeaveType>(db, firma));
         Assert.Equal(4, await Policz<TaskStatusEntity>(db, firma));
         Assert.Equal(4, await Policz<TaskPriority>(db, firma));
-        Assert.Equal(2, await Policz<WorkflowDefinition>(db, firma));
+        Assert.Equal(3, await Policz<WorkflowDefinition>(db, firma));
     }
 
     /// <summary>

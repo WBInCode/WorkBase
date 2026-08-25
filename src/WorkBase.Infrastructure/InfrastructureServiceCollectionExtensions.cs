@@ -120,6 +120,11 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<MediatR.INotificationHandler<Modules.Workflow.Domain.Events.WorkflowInstanceRejectedEvent>,
             Leave.ZamknijWniosekUrlopowyPoObiegu>();
 
+        services.AddScoped<MediatR.INotificationHandler<Modules.Workflow.Domain.Events.WorkflowInstanceCompletedEvent>,
+            Wnioski.ZamknijWniosekPoObiegu>();
+        services.AddScoped<MediatR.INotificationHandler<Modules.Workflow.Domain.Events.WorkflowInstanceRejectedEvent>,
+            Wnioski.ZamknijWniosekPoObiegu>();
+
         services.AddScoped<DomainEventInterceptor>();
         services.AddScoped<AuditSaveChangesInterceptor>();
 

@@ -62,16 +62,15 @@ public static class ZastepstwaEndpoints
             Guid id, ClaimsPrincipal user, IPermissionService permissions,
             ISender sender, CancellationToken ct) =>
         {
-            // Sprawdzenie, czyje to zastępstwo, robi handler przez filtr najemcy; tutaj
-            // wystarczy, że pytający w ogóle zarządza czyimikolwiek zastępstwami.
+            // Filtr najemcy pilnuje tylko tego, ZE zastepstwo nalezy do tej firmy — nie tego,
+            // czyje jest. Wlasciciela sprawdza handler, a tutaj przepuszczamy albo osobe
+            // z powiazanym pracownikiem, albo administratora.
             var wlasnyEmployeeId = user.EmployeeId();
-            if (wlasnyEmployeeId == Guid.Empty
-                && !await user.HasPermissionAsync(permissions, "org.manage", ct))
-            {
-                return Results.Forbid();
-            }
+            var administruje = await user.HasPermissionAsync(permissions, "org.manage", ct);
+            if (wlasnyEmployeeId is null && !administruje) return Results.Forbid();
 
-            var wynik = await sender.Send(new OdwolajZastepstwoCommand(id), ct);
+            var wynik = await sender.Send(new OdwolajZastepstwoCommand(
+                id, administruje ? null : wlasnyEmployeeId), ct);
             return wynik.IsSuccess ? Results.NoContent() : wynik.ToHttpResult();
         })
         .WithName("OdwolajZastepstwo")

@@ -9,6 +9,7 @@ public sealed class WorkflowEndpointModule : IEndpointModule
     public IEndpointRouteBuilder MapEndpoints(IEndpointRouteBuilder endpoints)
     {
         endpoints.MapWorkflowEndpoints();
+        endpoints.MapWnioskiEndpoints();
         return endpoints;
     }
 }
