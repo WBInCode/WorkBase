@@ -71,6 +71,7 @@ export const DOSTEP_DO_WIDOKOW: ReadonlyArray<readonly [string, WymaganeUprawnie
   ['/admin/branding', ['config.manage']],
   ['/admin/terminology', ['config.manage']],
   ['/admin/break-policies', ['config.manage']],
+  ['/admin/dni-wolne', ['config.manage']],
   ['/admin/time-tracking-settings', ['config.manage']],
   ['/admin/notification-templates', ['config.manage']],
   ['/admin/escalation-rules', ['config.manage']],

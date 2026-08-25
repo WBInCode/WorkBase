@@ -128,6 +128,7 @@ Rola jest synchronizowana przy każdym świeżym logowaniu. Oznacza to, że:
 | `/admin/document-settings` | typy plików, limity rozmiaru | `config.manage` |
 | `/admin/task-settings` | ustawienia modułu zadań | `config.manage` |
 | `/workflow/builder` | obiegi akceptacji | `workflow.manage` |
+| `/admin/dni-wolne` | kalendarz dni wolnych i świąt | `config.manage` |
 
 ---
 
@@ -140,6 +141,18 @@ Typ urlopu ma cztery istotne pola: nazwę, płatność, wymóg akceptacji i licz
 **Wymóg akceptacji** decyduje o całej ścieżce wniosku. Typ bez tego wymogu zatwierdza się natychmiast po wysłaniu i nigdy nie trafia do kolejki przełożonego. Tak zwykle konfiguruje się urlop na żądanie i zwolnienie lekarskie.
 
 Zmiana liczby dni w roku dotyczy naliczeń przyszłych i **nie przelicza wstecz** sald już przyznanych.
+
+### Dni wolne
+
+Kalendarz dni wolnych należy do firmy. System nie zna z góry żadnych dat i nie wpisuje niczego sam — także przy zakładaniu firmy.
+
+Dzień wolny wpływa na dwie rzeczy: obniża normę czasu pracy w rozliczeniu (jeśli zaznaczono „Obniża normę”) oraz pozwala naliczyć dodatek świąteczny za pracę w tym dniu.
+
+Przycisk **Wstaw typowe dni wolne w Polsce** dopisuje gotowy zestaw na wybrany rok, pomijając daty już wpisane — można go użyć ponownie po dodaniu własnych dni firmowych. Święta ruchome (Wielkanoc, Boże Ciało) wyliczane są dla każdego roku osobno.
+
+Dni ustalone przez firmę, na przykład wolne za święto wypadające w sobotę, warto oznaczyć jako **firmowe** — to tylko opis, nie zmienia działania.
+
+**Dopóki kalendarz jest pusty, dodatek świąteczny zawsze wynosi zero**, bo nie ma dni, do których mógłby się odnieść.
 
 ### Limity przerw
 

@@ -381,6 +381,18 @@ export const SEKCJE_POMOCY: readonly SekcjaPomocy[] = [
         wymaga: ['payroll.view-team'],
       },
       {
+        id: 'dodatki-nocne-swiateczne',
+        pytanie: 'Skąd biorą się dodatki nocny i świąteczny?',
+        odpowiedz: [
+          'Godziny nocne liczone są z rzeczywistych wejść i wyjść, a nie z sumy na karcie — zmiana przechodząca przez północ dzieli się między dwie doby.',
+          'Godziny świąteczne to praca w dniu oznaczonym w kalendarzu dni wolnych. Bez wpisanych dni wolnych dodatek świąteczny zawsze wyniesie zero.',
+          'Oba dodatki liczą się jako nadwyżka ponad stawkę, więc godzina nocna będąca jednocześnie nadgodziną nie jest płatna dwa razy — dostaje wynagrodzenie za nadgodzinę plus sam dodatek.',
+        ],
+        uwaga:
+          'Mnożnik ustawiony na 1 oznacza brak dodatku. Porę nocną i mnożniki ustawia się w ustawieniach wynagrodzeń.',
+        wymaga: ['payroll.view'],
+      },
+      {
         id: 'eksport-rozliczenia',
         pytanie: 'Jak przekazać rozliczenie do księgowości?',
         odpowiedz: [
@@ -619,6 +631,25 @@ export const SEKCJE_POMOCY: readonly SekcjaPomocy[] = [
           'Nazewnictwo pozwala dopasować etykiety w interfejsie do słownictwa używanego w firmie, a Branding logo i kolory.',
         ],
         wymaga: ['config.manage', 'org.manage', 'tasks.manage'],
+      },
+      {
+        id: 'dni-wolne',
+        pytanie: 'Jak ustawić dni wolne i święta?',
+        odpowiedz: [
+          'Kalendarz dni wolnych należy do firmy — system nie zna z góry żadnych dat i sam niczego nie wpisuje.',
+          'Dzień wolny robi dwie rzeczy: obniża normę czasu pracy w rozliczeniu i pozwala naliczyć dodatek świąteczny za pracę w tym dniu.',
+          'Przycisk „Wstaw typowe dni wolne w Polsce” dopisuje gotowy zestaw na wybrany rok. Wpisy, które już masz, zostają nietknięte, więc można go użyć ponownie po dodaniu własnych dni.',
+        ],
+        kroki: [
+          'Wybierz rok.',
+          'Wstaw gotowy zestaw albo dodaj dni pojedynczo.',
+          'Dni ustalone przez firmę — na przykład wolne za święto wypadające w sobotę — oznacz jako firmowe.',
+        ],
+        uwaga:
+          'Odznacz „Obniża normę”, jeśli chcesz tylko oznaczyć dzień w kalendarzu, nie zmieniając normy czasu pracy.',
+        sciezka: '/admin/dni-wolne',
+        etykietaSciezki: 'Otwórz Dni wolne',
+        wymaga: ['config.manage'],
       },
       {
         id: 'kreator-obiegow',

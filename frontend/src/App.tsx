@@ -28,6 +28,7 @@ const FeatureFlagsPage = lazy(() => import('@/pages/admin/FeatureFlagsPage').the
 const PlatformTenantsPage = lazy(() => import('@/pages/admin/PlatformTenantsPage').then((m) => ({ default: m.PlatformTenantsPage })));
 const LeaveTypesConfigPage = lazy(() => import('@/pages/admin/LeaveTypesConfigPage').then((m) => ({ default: m.LeaveTypesConfigPage })));
 const TaskStatusConfigPage = lazy(() => import('@/pages/admin/TaskStatusConfigPage').then((m) => ({ default: m.TaskStatusConfigPage })));
+const DniWolneConfigPage = lazy(() => import('@/pages/admin/DniWolneConfigPage').then((m) => ({ default: m.DniWolneConfigPage })));
 const BreakPoliciesConfigPage = lazy(() => import('@/pages/admin/BreakPoliciesConfigPage').then((m) => ({ default: m.BreakPoliciesConfigPage })));
 const PositionsConfigPage = lazy(() => import('@/pages/admin/PositionsConfigPage').then((m) => ({ default: m.PositionsConfigPage })));
 const UnitTypesConfigPage = lazy(() => import('@/pages/admin/UnitTypesConfigPage').then((m) => ({ default: m.UnitTypesConfigPage })));
@@ -137,6 +138,7 @@ function AppRoutes() {
         <Route path="/admin/tenants" element={chroniona('/admin/tenants', <PlatformTenantsPage />)} />
         <Route path="/admin/leave-types" element={chroniona('/admin/leave-types', <LeaveTypesConfigPage />)} />
         <Route path="/admin/task-statuses" element={chroniona('/admin/task-statuses', <TaskStatusConfigPage />)} />
+        <Route path="/admin/dni-wolne" element={chroniona('/admin/dni-wolne', <DniWolneConfigPage />)} />
         <Route path="/admin/break-policies" element={chroniona('/admin/break-policies', <BreakPoliciesConfigPage />)} />
         <Route path="/admin/positions" element={chroniona('/admin/positions', <PositionsConfigPage />)} />
         <Route path="/admin/unit-types" element={chroniona('/admin/unit-types', <UnitTypesConfigPage />)} />

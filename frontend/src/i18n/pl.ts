@@ -66,6 +66,7 @@ const pl = {
     documentSettings: 'Ustawienia dokumentów',
     taskSettings: 'Ustawienia zadań',
     workflowBuilder: 'Kreator obiegow',
+    dniWolne: 'Dni wolne',
   },
   admin: {
     featureFlags: {

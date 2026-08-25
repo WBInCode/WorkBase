@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback, type ReactNode } from 'react
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from 'react-oidc-context';
 import { useTranslation } from 'react-i18next';
-import { FolderTree, Users, FileUp, LogOut, Menu, X, Shield, Grid3X3, CalendarDays, UsersRound, CalendarClock, Palmtree, CalendarRange, ClipboardCheck, ListTodo, ClipboardList, LayoutDashboard, Briefcase, Clock, MoreHorizontal, FileArchive, FolderOpen, Flag, CircleDot, Coffee, Layers, Wallet, Building2, Palette, Type, Bell, AlarmClockCheck, ChevronDown, Sun, Moon, LifeBuoy, GitBranch, type LucideIcon } from 'lucide-react';
+import { FolderTree, Users, FileUp, LogOut, Menu, X, Shield, Grid3X3, CalendarDays, UsersRound, CalendarClock, Palmtree, CalendarRange, ClipboardCheck, ListTodo, ClipboardList, LayoutDashboard, Briefcase, Clock, MoreHorizontal, FileArchive, FolderOpen, Flag, CircleDot, Coffee, Layers, Wallet, Building2, Palette, Type, Bell, AlarmClockCheck, ChevronDown, Sun, Moon, LifeBuoy, GitBranch, CalendarOff, type LucideIcon } from 'lucide-react';
 import { mapUserClaims } from '@/auth';
 import { useUprawnienia } from '@/auth/useUprawnienia';
 import { useFeatureFlags, useCurrentUser } from '@/api/hooks/useIam';
@@ -137,6 +137,7 @@ const adminNavItems: NavItem[] = [
   { path: '/admin/leave-policies', labelKey: 'nav.leavePolicies', icon: Palmtree },
   { path: '/admin/task-statuses', labelKey: 'nav.taskStatuses', icon: CircleDot },
   { path: '/admin/break-policies', labelKey: 'nav.breakPolicies', icon: Coffee },
+  { path: '/admin/dni-wolne', labelKey: 'nav.dniWolne', icon: CalendarOff },
   { path: '/admin/positions', labelKey: 'nav.positions', icon: Briefcase },
   { path: '/admin/unit-types', labelKey: 'nav.unitTypes', icon: Layers },
   { path: '/admin/time-tracking-settings', labelKey: 'nav.timeTrackingSettings', icon: CalendarClock },
