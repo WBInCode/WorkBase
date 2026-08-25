@@ -47,6 +47,22 @@ public static class EmployeeScopeGuard
         return accessible;
     }
 
+    /// <summary>
+    /// Zbior pracownikow, ktorych liczby moze zobaczyc pytajacy. <c>null</c> = bez ograniczenia
+    /// (zakres calej firmy). Brak tozsamosci w tokenie zwraca pusty zbior, czyli „nic" —
+    /// bramka ma sie zamykac przy watpliwosci, nie otwierac.
+    /// </summary>
+    public static async Task<IReadOnlySet<Guid>?> VisibleEmployeeIdsAsync(
+        this ClaimsPrincipal user,
+        IEmployeeScopeResolver scopes,
+        string module,
+        CancellationToken ct = default)
+    {
+        if (!user.TryGetIdentity(out var userId, out var tenantId)) return new HashSet<Guid>();
+
+        return await scopes.GetVisibleEmployeeIdsAsync(userId, tenantId, user.EmployeeId(), module, ct);
+    }
+
     public static async Task<bool> HasPermissionAsync(
         this ClaimsPrincipal user,
         IPermissionService permissions,

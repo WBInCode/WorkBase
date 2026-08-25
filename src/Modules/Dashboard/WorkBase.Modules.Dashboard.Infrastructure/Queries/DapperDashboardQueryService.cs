@@ -12,12 +12,12 @@ public sealed class DapperDashboardQueryService(IConfiguration configuration) : 
         ?? throw new InvalidOperationException("DefaultConnection is not configured.");
 
     public async Task<DashboardSummaryDto> GetSummaryAsync(
-        Guid tenantId, IReadOnlyList<Guid>? visibleUnitIds, CancellationToken cancellationToken = default)
+        Guid tenantId, IReadOnlyCollection<Guid>? visibleEmployeeIds, CancellationToken cancellationToken = default)
     {
         await using var connection = new NpgsqlConnection(_connectionString);
         await connection.OpenAsync(cancellationToken);
 
-        var unitFilter = BuildUnitFilter(visibleUnitIds);
+        var unitFilter = new ZakresPracownikow(visibleEmployeeIds);
 
         var attendance = await GetAttendanceAsync(connection, tenantId, unitFilter);
         var tasks = await GetTaskSummaryAsync(connection, tenantId, unitFilter);
@@ -28,7 +28,7 @@ public sealed class DapperDashboardQueryService(IConfiguration configuration) : 
     }
 
     private static async Task<AttendanceSummaryDto> GetAttendanceAsync(
-        NpgsqlConnection connection, Guid tenantId, UnitFilter unitFilter)
+        NpgsqlConnection connection, Guid tenantId, ZakresPracownikow unitFilter)
     {
         var today = DateTime.UtcNow.Date;
         var tomorrow = today.AddDays(1);
@@ -72,14 +72,14 @@ public sealed class DapperDashboardQueryService(IConfiguration configuration) : 
             TenantId = tenantId,
             Today = today,
             Tomorrow = tomorrow,
-            unitFilter.UnitIds,
+            unitFilter.EmployeeIds,
         });
 
         return new AttendanceSummaryDto(row.PresentToday, row.LateToday, row.AbsentToday, row.TotalScheduled);
     }
 
     private static async Task<TaskSummaryDto> GetTaskSummaryAsync(
-        NpgsqlConnection connection, Guid tenantId, UnitFilter unitFilter)
+        NpgsqlConnection connection, Guid tenantId, ZakresPracownikow unitFilter)
     {
         var now = DateTime.UtcNow;
         var weekStart = now.Date.AddDays(-(int)now.DayOfWeek + (int)DayOfWeek.Monday);
@@ -110,14 +110,14 @@ public sealed class DapperDashboardQueryService(IConfiguration configuration) : 
             TenantId = tenantId,
             Now = now,
             WeekStart = weekStart,
-            unitFilter.UnitIds,
+            unitFilter.EmployeeIds,
         });
 
         return new TaskSummaryDto(row.OpenTasks, row.OverdueTasks, row.CompletedThisWeek, row.TotalTasks);
     }
 
     private static async Task<LeaveSummaryDto> GetLeaveSummaryAsync(
-        NpgsqlConnection connection, Guid tenantId, UnitFilter unitFilter)
+        NpgsqlConnection connection, Guid tenantId, ZakresPracownikow unitFilter)
     {
         var today = DateTime.UtcNow.Date;
         var monthStart = new DateTime(today.Year, today.Month, 1, 0, 0, 0, DateTimeKind.Utc);
@@ -145,14 +145,14 @@ public sealed class DapperDashboardQueryService(IConfiguration configuration) : 
             TenantId = tenantId,
             Today = today,
             MonthStart = monthStart,
-            unitFilter.UnitIds,
+            unitFilter.EmployeeIds,
         });
 
         return new LeaveSummaryDto(row.PendingRequests, row.ApprovedThisMonth, row.OnLeaveToday);
     }
 
     private static async Task<AnomalySummaryDto> GetAnomalySummaryAsync(
-        NpgsqlConnection connection, Guid tenantId, UnitFilter unitFilter)
+        NpgsqlConnection connection, Guid tenantId, ZakresPracownikow unitFilter)
     {
         var weekStart = DateTime.UtcNow.Date.AddDays(-(int)DateTime.UtcNow.DayOfWeek + (int)DayOfWeek.Monday);
         if (DateTime.UtcNow.DayOfWeek == DayOfWeek.Sunday) weekStart = weekStart.AddDays(-7);
@@ -177,29 +177,33 @@ public sealed class DapperDashboardQueryService(IConfiguration configuration) : 
         {
             TenantId = tenantId,
             WeekStart = weekStart,
-            unitFilter.UnitIds,
+            unitFilter.EmployeeIds,
         });
 
         return new AnomalySummaryDto(row.NewAnomalies, row.ReviewedThisWeek);
     }
 
-    private static UnitFilter BuildUnitFilter(IReadOnlyList<Guid>? visibleUnitIds)
-        => new(visibleUnitIds is { Count: > 0 } ? visibleUnitIds : null);
-
-    private sealed class UnitFilter(IReadOnlyList<Guid>? unitIds)
+/// <summary>
+    /// Zawezenie liczb pulpitu do pracownikow widocznych dla pytajacego.
+    ///
+    /// Filtrujemy po <c>org_employees.id</c>, a NIE po jednostce organizacyjnej: przypisanie do
+    /// jednostki mieszka w <c>org_employee_assignments</c>, a <c>org_employees</c> nie ma kolumny
+    /// <c>organization_unit_id</c>. Poprzednia wersja filtrowala wlasnie po niej i nigdy sie nie
+    /// wykonala — kazde niepuste zawezenie skonczyloby sie bledem 42703.
+    ///
+    /// <c>null</c> = brak ograniczenia. Pusty zbior = nikt: <c>= ANY('{}')</c> nie dopasowuje
+    /// zadnego wiersza, wiec pusty zakres daje zera, a nie liczby calej firmy.
+    /// </summary>
+    private sealed class ZakresPracownikow(IReadOnlyCollection<Guid>? employeeIds)
     {
-        public IReadOnlyList<Guid>? UnitIds => unitIds;
-        public bool HasFilter => unitIds is { Count: > 0 };
+        public Guid[]? EmployeeIds { get; } = employeeIds?.ToArray();
+        public bool HasFilter => EmployeeIds is not null;
 
         public string EmployeeJoinClause(string alias)
-            => HasFilter
-                ? $"AND {alias}.organization_unit_id = ANY(@UnitIds)"
-                : "";
+            => HasFilter ? $"AND {alias}.id = ANY(@EmployeeIds)" : "";
 
         public string EmployeeWhereClause(string alias)
-            => HasFilter
-                ? $"AND {alias}.organization_unit_id = ANY(@UnitIds)"
-                : "";
+            => HasFilter ? $"AND {alias}.id = ANY(@EmployeeIds)" : "";
     }
 
     // Dapper row mappings (snake_case → PascalCase via Dapper default matching)

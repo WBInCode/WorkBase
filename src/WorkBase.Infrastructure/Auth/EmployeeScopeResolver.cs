@@ -38,24 +38,64 @@ public sealed class EmployeeScopeResolver(WorkBaseDbContext dbContext, IMemoryCa
         if (targetEmployeeIds.Contains(employeeId)) accessible.Add(employeeId);
         if (level == DataScopeLevelValue.Own) return accessible;
 
+        accessible.UnionWith(await PodwladniAsync(tenantId, employeeId, targetEmployeeIds, ct));
+
+        if (level < DataScopeLevelValue.Department) return accessible;
+
+        accessible.UnionWith(await CzlonkowieKierowanychJednostekAsync(tenantId, employeeId, targetEmployeeIds, ct));
+        return accessible;
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlySet<Guid>?> GetVisibleEmployeeIdsAsync(
+        Guid userId, Guid tenantId, Guid? callerEmployeeId, string module, CancellationToken ct = default)
+    {
+        var level = await GetScopeLevelAsync(userId, tenantId, module, ct);
+        if (level is DataScopeLevelValue.Branch or DataScopeLevelValue.Organization) return null;
+
+        var widoczni = new HashSet<Guid>();
+        // Uzytkownik bez kartoteki pracownika (np. konto techniczne) nie widzi nikogo. Zwracamy
+        // pusty zbior, nie null — inaczej brak kartoteki dawalby dostep do calej firmy.
+        if (callerEmployeeId is not Guid employeeId) return widoczni;
+
+        widoczni.Add(employeeId);
+        if (level == DataScopeLevelValue.Own) return widoczni;
+
+        widoczni.UnionWith(await PodwladniAsync(tenantId, employeeId, null, ct));
+
+        if (level < DataScopeLevelValue.Department) return widoczni;
+
+        widoczni.UnionWith(await CzlonkowieKierowanychJednostekAsync(tenantId, employeeId, null, ct));
+        return widoczni;
+    }
+
+    /// <summary>
+    /// Podwladni z aktywnej relacji przelozonego. <paramref name="ograniczDo"/> zawezenie do
+    /// listy kandydatow; <c>null</c> oznacza „wypisz wszystkich".
+    /// </summary>
+    private async Task<List<Guid>> PodwladniAsync(
+        Guid tenantId, Guid employeeId, IReadOnlyCollection<Guid>? ograniczDo, CancellationToken ct)
+    {
         var now = DateTime.UtcNow;
-        var subordinates = await dbContext.Set<SupervisorRelation>()
+        return await dbContext.Set<SupervisorRelation>()
             .Where(relation => relation.TenantId == tenantId
                 && relation.SupervisorEmployeeId == employeeId
-                && targetEmployeeIds.Contains(relation.SubordinateEmployeeId)
+                && (ograniczDo == null || ograniczDo.Contains(relation.SubordinateEmployeeId))
                 && relation.StartDate <= now
                 && (relation.EndDate == null || relation.EndDate > now))
             .Select(relation => relation.SubordinateEmployeeId)
             .ToListAsync(ct);
+    }
 
-        accessible.UnionWith(subordinates);
-
-        if (level < DataScopeLevelValue.Department) return accessible;
-
-        // Zakres Department obejmuje całą jednostkę, w której użytkownik zajmuje stanowisko
-        // kierownicze, a nie tylko bezpośrednich podwładnych. Strona zapisu już tak działa
-        // (TimeManagementScopeService), więc bez tego kierownik układał grafik jednostki,
-        // po czym dostawał 403 przy jego odczycie.
+    /// <summary>
+    /// Zakres Department obejmuje cala jednostke, w ktorej uzytkownik zajmuje stanowisko
+    /// kierownicze, a nie tylko bezposrednich podwladnych. Strona zapisu juz tak dziala
+    /// (TimeManagementScopeService), wiec bez tego kierownik ukladal grafik jednostki,
+    /// po czym dostawal 403 przy jego odczycie.
+    /// </summary>
+    private async Task<List<Guid>> CzlonkowieKierowanychJednostekAsync(
+        Guid tenantId, Guid employeeId, IReadOnlyCollection<Guid>? ograniczDo, CancellationToken ct)
+    {
         var managedUnitIds = await dbContext.Set<EmployeeAssignment>()
             .Where(assignment => assignment.TenantId == tenantId
                 && assignment.EmployeeId == employeeId
@@ -67,19 +107,16 @@ public sealed class EmployeeScopeResolver(WorkBaseDbContext dbContext, IMemoryCa
                 (assignment, _) => assignment.OrganizationUnitId)
             .Distinct()
             .ToListAsync(ct);
-        if (managedUnitIds.Count == 0) return accessible;
+        if (managedUnitIds.Count == 0) return [];
 
-        var unitMembers = await dbContext.Set<EmployeeAssignment>()
+        return await dbContext.Set<EmployeeAssignment>()
             .Where(assignment => assignment.TenantId == tenantId
                 && assignment.EndDate == null
                 && managedUnitIds.Contains(assignment.OrganizationUnitId)
-                && targetEmployeeIds.Contains(assignment.EmployeeId))
+                && (ograniczDo == null || ograniczDo.Contains(assignment.EmployeeId)))
             .Select(assignment => assignment.EmployeeId)
             .Distinct()
             .ToListAsync(ct);
-
-        accessible.UnionWith(unitMembers);
-        return accessible;
     }
 
     internal static string CacheKey(Guid userId, Guid tenantId, string module)

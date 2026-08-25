@@ -14,6 +14,19 @@ public interface IEmployeeScopeResolver
         string module,
         CancellationToken ct = default);
 
+    /// <summary>
+    /// Wylicza pracownikow widocznych dla uzytkownika bez podawania listy kandydatow.
+    /// Zwraca <c>null</c>, gdy zakres nie ogranicza niczego (Branch/Organization) — wtedy
+    /// filtrowanie jest zbedne i nie oplaca sie materializowac calej firmy. Pusty zbior
+    /// oznacza „nic nie widzi", a NIE „widzi wszystko".
+    /// </summary>
+    Task<IReadOnlySet<Guid>?> GetVisibleEmployeeIdsAsync(
+        Guid userId,
+        Guid tenantId,
+        Guid? callerEmployeeId,
+        string module,
+        CancellationToken ct = default);
+
     Task<IReadOnlySet<Guid>> FilterAccessibleAsync(
         Guid userId,
         Guid tenantId,

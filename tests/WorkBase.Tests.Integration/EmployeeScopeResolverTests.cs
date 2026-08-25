@@ -91,14 +91,82 @@ public sealed class EmployeeScopeResolverTests
             user.Id, TenantId, SupervisorEmployeeId, StrangerEmployeeId, "leave"));
     }
 
-    private static async Task<User> ArrangeUserWithScope(WorkBaseDbContext db, DataScopeLevel level)
+    // --- GetVisibleEmployeeIdsAsync: wyliczanie zakresu bez listy kandydatow ---
+    //
+    // Uzywa tego pulpit. Kazde z ponizszych zachowan bylo wczesniej zlamane: osiem endpointow
+    // wolalo zapytanie bez zakresu, wiec kazdy pracownik widzial liczby calej firmy.
+
+    [Fact]
+    public async Task Zakres_wlasny_wypisuje_wylacznie_siebie()
+    {
+        await using var db = CreateDbContext();
+        var user = await ArrangeUserWithScope(db, DataScopeLevel.Own, "dashboard");
+        db.Add(SupervisorRelation.Create(TenantId, SupervisorEmployeeId, SubordinateEmployeeId, DateTime.UtcNow.AddDays(-30)));
+        await db.SaveChangesAsync();
+        var resolver = CreateResolver(db);
+
+        var widoczni = await resolver.GetVisibleEmployeeIdsAsync(
+            user.Id, TenantId, SupervisorEmployeeId, "dashboard");
+
+        Assert.NotNull(widoczni);
+        Assert.Equal([SupervisorEmployeeId], widoczni!);
+    }
+
+    [Fact]
+    public async Task Zakres_dzialu_wypisuje_siebie_i_podwladnych_ale_nie_obcych()
+    {
+        await using var db = CreateDbContext();
+        var user = await ArrangeUserWithScope(db, DataScopeLevel.Department, "dashboard");
+        db.Add(SupervisorRelation.Create(TenantId, SupervisorEmployeeId, SubordinateEmployeeId, DateTime.UtcNow.AddDays(-30)));
+        await db.SaveChangesAsync();
+        var resolver = CreateResolver(db);
+
+        var widoczni = await resolver.GetVisibleEmployeeIdsAsync(
+            user.Id, TenantId, SupervisorEmployeeId, "dashboard");
+
+        Assert.NotNull(widoczni);
+        Assert.Contains(SupervisorEmployeeId, widoczni!);
+        Assert.Contains(SubordinateEmployeeId, widoczni!);
+        Assert.DoesNotContain(StrangerEmployeeId, widoczni!);
+    }
+
+    [Fact]
+    public async Task Zakres_calej_firmy_zwraca_null_czyli_brak_ograniczenia()
+    {
+        await using var db = CreateDbContext();
+        var user = await ArrangeUserWithScope(db, DataScopeLevel.Organization, "dashboard");
+        var resolver = CreateResolver(db);
+
+        // null, a nie zbior wszystkich — materializowanie calej firmy tylko po to, zeby
+        // niczego nie odfiltrowac, byloby marnotrawstwem przy kazdym wejsciu na pulpit.
+        Assert.Null(await resolver.GetVisibleEmployeeIdsAsync(
+            user.Id, TenantId, SupervisorEmployeeId, "dashboard"));
+    }
+
+    [Fact]
+    public async Task Uzytkownik_bez_kartoteki_nie_widzi_nikogo_zamiast_wszystkich()
+    {
+        await using var db = CreateDbContext();
+        var user = await ArrangeUserWithScope(db, DataScopeLevel.Department, "dashboard");
+        var resolver = CreateResolver(db);
+
+        // Konto bez powiazanej kartoteki pracownika. Pusty zbior oznacza „nic nie widzi";
+        // gdyby zwrocic null, brak kartoteki otwieralby liczby calej firmy.
+        var widoczni = await resolver.GetVisibleEmployeeIdsAsync(
+            user.Id, TenantId, callerEmployeeId: null, "dashboard");
+
+        Assert.NotNull(widoczni);
+        Assert.Empty(widoczni!);
+    }
+
+    private static async Task<User> ArrangeUserWithScope(WorkBaseDbContext db, DataScopeLevel level, string module = "leave")
     {
         var user = User.Create($"user-{level}", $"{level}@example.com", "Test", "User", TenantId);
         var role = Role.Create(TenantId, $"Rola {level}", RoleType.Organizational, level: 10);
         db.AddRange(user, role);
         await db.SaveChangesAsync();
         db.Add(UserRole.Create(user.Id, role.Id, TenantId, "system"));
-        db.Add(DataScope.Create(TenantId, role.Id, "leave", level));
+        db.Add(DataScope.Create(TenantId, role.Id, module, level));
         await db.SaveChangesAsync();
         return user;
     }

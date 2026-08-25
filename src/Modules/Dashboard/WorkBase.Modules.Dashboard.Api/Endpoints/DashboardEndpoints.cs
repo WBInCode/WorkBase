@@ -183,45 +183,56 @@ public static class DashboardEndpoints
         return endpoints;
     }
 
-    private static async Task<IResult> GetSummary(ISender sender)
+    /// <summary>
+    /// Zakres liczymy wg modulu „dashboard" — wiersze DataScope dla tego modulu sa zasiewane
+    /// dla kazdej roli (IamSeeder), tylko dotad nikt ich nie czytal: kazde zapytanie szlo
+    /// bez zawezenia, wiec szeregowy pracownik widzial liczby calej firmy.
+    /// </summary>
+    private const string ModulZakresu = "dashboard";
+
+    private static async Task<GetDashboardSummaryQuery> ZapytanieWZakresieAsync(
+        ClaimsPrincipal user, IEmployeeScopeResolver scopes, CancellationToken ct)
+        => new(await user.VisibleEmployeeIdsAsync(scopes, ModulZakresu, ct));
+
+    private static async Task<IResult> GetSummary(ISender sender, ClaimsPrincipal user, IEmployeeScopeResolver scopes, CancellationToken ct)
     {
-        var result = await sender.Send(new GetDashboardSummaryQuery());
+        var result = await sender.Send(await ZapytanieWZakresieAsync(user, scopes, ct), ct);
         return result.ToHttpResult();
     }
 
-    private static async Task<IResult> GetAttendanceToday(ISender sender)
+    private static async Task<IResult> GetAttendanceToday(ISender sender, ClaimsPrincipal user, IEmployeeScopeResolver scopes, CancellationToken ct)
     {
-        var result = await sender.Send(new GetDashboardSummaryQuery());
+        var result = await sender.Send(await ZapytanieWZakresieAsync(user, scopes, ct), ct);
         return result.IsSuccess ? Results.Ok(result.Value.Attendance) : result.ToHttpResult();
     }
 
-    private static async Task<IResult> GetLateArrivals(ISender sender)
+    private static async Task<IResult> GetLateArrivals(ISender sender, ClaimsPrincipal user, IEmployeeScopeResolver scopes, CancellationToken ct)
     {
-        var result = await sender.Send(new GetDashboardSummaryQuery());
+        var result = await sender.Send(await ZapytanieWZakresieAsync(user, scopes, ct), ct);
         return result.IsSuccess ? Results.Ok(result.Value.Attendance.LateToday) : result.ToHttpResult();
     }
 
-    private static async Task<IResult> GetOpenTasks(ISender sender)
+    private static async Task<IResult> GetOpenTasks(ISender sender, ClaimsPrincipal user, IEmployeeScopeResolver scopes, CancellationToken ct)
     {
-        var result = await sender.Send(new GetDashboardSummaryQuery());
+        var result = await sender.Send(await ZapytanieWZakresieAsync(user, scopes, ct), ct);
         return result.IsSuccess ? Results.Ok(result.Value.Tasks) : result.ToHttpResult();
     }
 
-    private static async Task<IResult> GetPendingApprovals(ISender sender)
+    private static async Task<IResult> GetPendingApprovals(ISender sender, ClaimsPrincipal user, IEmployeeScopeResolver scopes, CancellationToken ct)
     {
-        var result = await sender.Send(new GetDashboardSummaryQuery());
+        var result = await sender.Send(await ZapytanieWZakresieAsync(user, scopes, ct), ct);
         return result.IsSuccess ? Results.Ok(result.Value.Leave.PendingRequests) : result.ToHttpResult();
     }
 
-    private static async Task<IResult> GetAnomalies(ISender sender)
+    private static async Task<IResult> GetAnomalies(ISender sender, ClaimsPrincipal user, IEmployeeScopeResolver scopes, CancellationToken ct)
     {
-        var result = await sender.Send(new GetDashboardSummaryQuery());
+        var result = await sender.Send(await ZapytanieWZakresieAsync(user, scopes, ct), ct);
         return result.IsSuccess ? Results.Ok(result.Value.Anomalies) : result.ToHttpResult();
     }
 
-    private static async Task<IResult> GetAlerts(ISender sender)
+    private static async Task<IResult> GetAlerts(ISender sender, ClaimsPrincipal user, IEmployeeScopeResolver scopes, CancellationToken ct)
     {
-        var result = await sender.Send(new GetDashboardSummaryQuery());
+        var result = await sender.Send(await ZapytanieWZakresieAsync(user, scopes, ct), ct);
         if (!result.IsSuccess) return result.ToHttpResult();
 
         var alerts = new List<DashboardAlertDto>();
@@ -240,9 +251,9 @@ public static class DashboardEndpoints
         return Results.Ok(alerts);
     }
 
-    private static async Task<IResult> ExportReport(ISender sender)
+    private static async Task<IResult> ExportReport(ISender sender, ClaimsPrincipal user, IEmployeeScopeResolver scopes, CancellationToken ct)
     {
-        var result = await sender.Send(new GetDashboardSummaryQuery());
+        var result = await sender.Send(await ZapytanieWZakresieAsync(user, scopes, ct), ct);
         if (!result.IsSuccess) return result.ToHttpResult();
 
         var s = result.Value;
