@@ -129,6 +129,7 @@ Rola jest synchronizowana przy każdym świeżym logowaniu. Oznacza to, że:
 | `/admin/task-settings` | ustawienia modułu zadań | `config.manage` |
 | `/workflow/builder` | obiegi akceptacji | `workflow.manage` |
 | `/admin/dni-wolne` | kalendarz dni wolnych i świąt | `config.manage` |
+| `/admin/typy-wnioskow` | rodzaje wniosków firmowych | `wnioski.manage` |
 
 ---
 
@@ -141,6 +142,18 @@ Typ urlopu ma cztery istotne pola: nazwę, płatność, wymóg akceptacji i licz
 **Wymóg akceptacji** decyduje o całej ścieżce wniosku. Typ bez tego wymogu zatwierdza się natychmiast po wysłaniu i nigdy nie trafia do kolejki przełożonego. Tak zwykle konfiguruje się urlop na żądanie i zwolnienie lekarskie.
 
 Zmiana liczby dni w roku dotyczy naliczeń przyszłych i **nie przelicza wstecz** sald już przyznanych.
+
+### Rodzaje wniosków
+
+Wnioski firmowe — zaliczka, delegacja, praca zdalna, wniosek o sprzęt — stoją na tym samym silniku obiegów co wnioski urlopowe. Oznacza to, że akceptacja, przypomnienia o przekroczonym terminie, historia decyzji i zastępstwa działają dla nich bez żadnej dodatkowej konfiguracji.
+
+Rodzaj wniosku składa się z formularza i informacji, czy wniosek wymaga akceptacji przełożonego. Pola definiuje się na ekranie: tekst, tekst wielolinijkowy, liczba, data, lista wyboru albo tak/nie. Każde ma **kod** (pod nim zapisują się dane) i **etykietę** (widoczną dla pracownika).
+
+Kodu rodzaju nie da się zmienić po utworzeniu, bo jest zapisany przy złożonych wnioskach.
+
+Rodzaj, którego nie chcesz już udostępniać, **odznacz jako niedostępny zamiast usuwać** — złożone wcześniej wnioski zachowają wtedy swoją nazwę.
+
+Wniosek, który nie wymaga akceptacji, jest rejestrowany od razu w chwili złożenia. Bez tego wisiałby w stanie „Oczekuje” na zawsze, bo nie ma komu go rozstrzygnąć.
 
 ### Dni wolne
 

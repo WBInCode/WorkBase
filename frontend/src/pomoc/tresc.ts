@@ -259,6 +259,20 @@ export const SEKCJE_POMOCY: readonly SekcjaPomocy[] = [
         wymaga: ['leave.view'],
       },
       {
+        id: 'wnioski-firmowe',
+        pytanie: 'Jak złożyć wniosek inny niż urlopowy?',
+        odpowiedz: [
+          'Ekran Wnioski pozwala złożyć wniosek na formularzu przygotowanym przez firmę — na przykład o zaliczkę, delegację, pracę zdalną albo sprzęt.',
+          'Wniosek trafia do Twojego przełożonego tą samą drogą co wniosek urlopowy, razem z przypomnieniami i zastępstwami.',
+          'Dopóki nikt nie podjął decyzji, możesz wniosek wycofać przyciskiem „Wycofaj”.',
+        ],
+        uwaga:
+          'Jeśli lista rodzajów jest pusta, firma nie zdefiniowała jeszcze żadnego wniosku — zrobi to administrator.',
+        sciezka: '/wnioski',
+        etykietaSciezki: 'Otwórz Wnioski',
+        wymaga: ['wnioski.view'],
+      },
+      {
         id: 'kalendarz-urlopow',
         pytanie: 'Gdzie zobaczę, kto jest nieobecny?',
         odpowiedz: [
@@ -664,6 +678,20 @@ export const SEKCJE_POMOCY: readonly SekcjaPomocy[] = [
         sciezka: '/admin/dni-wolne',
         etykietaSciezki: 'Otwórz Dni wolne',
         wymaga: ['config.manage'],
+      },
+      {
+        id: 'typy-wnioskow',
+        pytanie: 'Jak dodać nowy rodzaj wniosku?',
+        odpowiedz: [
+          'Rodzaj wniosku to formularz plus informacja, czy wniosek wymaga akceptacji przełożonego.',
+          'Pola dodajesz sam: tekst, liczba, data, lista wyboru albo tak/nie. Każde pole ma kod (używany w danych) i etykietę (widoczną dla pracownika).',
+          'Obieg akceptacji jest wspólny dla wszystkich rodzajów wniosków, więc dodanie nowego nie wymaga konfigurowania czegokolwiek poza tym ekranem.',
+        ],
+        uwaga:
+          'Kodu nie da się zmienić po utworzeniu — jest zapisany przy złożonych wnioskach. Rodzaj, którego nie chcesz już udostępniać, odznacz jako niedostępny zamiast go usuwać: złożone wnioski zachowają nazwę.',
+        sciezka: '/admin/typy-wnioskow',
+        etykietaSciezki: 'Otwórz Rodzaje wniosków',
+        wymaga: ['wnioski.manage'],
       },
       {
         id: 'kreator-obiegow',

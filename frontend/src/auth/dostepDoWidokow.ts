@@ -49,6 +49,7 @@ export const DOSTEP_DO_WIDOKOW: ReadonlyArray<readonly [string, WymaganeUprawnie
   ['/leave/calendar', ['leave.view']],
 
   ['/tasks/my', ['tasks.view']],
+  ['/wnioski', ['wnioski.view']],
   ['/tasks/:id', ['tasks.view']],
   ['/tasks', ['tasks.view']],
 
@@ -72,6 +73,7 @@ export const DOSTEP_DO_WIDOKOW: ReadonlyArray<readonly [string, WymaganeUprawnie
   ['/admin/terminology', ['config.manage']],
   ['/admin/break-policies', ['config.manage']],
   ['/admin/dni-wolne', ['config.manage']],
+  ['/admin/typy-wnioskow', ['wnioski.manage']],
   ['/admin/time-tracking-settings', ['config.manage']],
   ['/admin/notification-templates', ['config.manage']],
   ['/admin/escalation-rules', ['config.manage']],

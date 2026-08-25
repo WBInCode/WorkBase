@@ -67,6 +67,8 @@ const pl = {
     taskSettings: 'Ustawienia zadań',
     workflowBuilder: 'Kreator obiegow',
     dniWolne: 'Dni wolne',
+    wnioski: 'Wnioski',
+    typyWnioskow: 'Rodzaje wniosków',
   },
   admin: {
     featureFlags: {
