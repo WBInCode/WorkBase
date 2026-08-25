@@ -220,6 +220,7 @@ try
     app.MapSyncEndpoints();
     app.MapPayrollSettingsEndpoints();
     app.MapPayrollRozliczenieEndpoints();
+    app.MapPulpitUwagaEndpoints();
     app.MapTerminologyEndpoints();
     app.MapTimeTrackingSettingsEndpoints();
     app.MapDocumentSettingsEndpoints();

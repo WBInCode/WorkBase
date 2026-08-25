@@ -56,6 +56,24 @@ Dwie najczęstsze przyczyny:
 
 ---
 
+## 2a. Panel „Co wymaga uwagi”
+
+Na górze Dashboardu stoi lista rzeczy do zrobienia, liczona na bieżąco z danych systemu. Kolejność nie jest przypadkowa: najpierw sprawy pilne, czyli takie, przez które ktoś czeka albo coś stanęło.
+
+| Pozycja | Kiedy się pojawia |
+|---|---|
+| Wnioski czekają na Twoją decyzję | ktoś czeka dłużej niż dwa dni |
+| Nie zarejestrowali wejścia | mają dziś grafik, ale nie rozpoczęli pracy |
+| Pracownicy bez przełożonego | ich wnioski nie mają komu trafić do akceptacji |
+| Pracownicy bez stawki godzinowej | nie da się policzyć wynagrodzenia (widoczne przy uprawnieniu do rozliczeń zespołu) |
+| Nierozpatrzone anomalie czasu pracy | zgłoszenia czekają na sprawdzenie |
+
+Widzisz wyłącznie osoby ze swojego zakresu danych. Wyjątkiem są wnioski czekające na Twoją decyzję — pokazują się niezależnie od uprawnień, bo akceptanta wyznacza struktura, a nie rola.
+
+Pusta lista to dobra wiadomość, a nie brak danych.
+
+---
+
 ## 3. Raport zespołu
 
 Ekran **Raport zespołu** (`/time/team-report`) pokazuje czas pracy podwładnych w wybranym tygodniu lub miesiącu, z podziałem na jednostki organizacyjne.

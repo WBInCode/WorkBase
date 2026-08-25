@@ -77,6 +77,20 @@ export const SEKCJE_POMOCY: readonly SekcjaPomocy[] = [
         etykietaSciezki: 'Otwórz Mój dzień',
       },
       {
+        id: 'co-wymaga-uwagi',
+        pytanie: 'Co to jest panel „Co wymaga uwagi”?',
+        odpowiedz: [
+          'Lista rzeczy do zrobienia, wyliczana na bieżąco z danych systemu — a nie kolejny zestaw liczb.',
+          'Najpierw pokazuje sprawy pilne, czyli takie, przez które ktoś czeka albo coś stanęło: wnioski bez decyzji, osoby bez zarejestrowanego wejścia mimo grafiku, pracowników bez przełożonego.',
+          'Niżej trafiają rzeczy do uzupełnienia, które niczego nie blokują — na przykład brakujące stawki godzinowe czy nierozpatrzone anomalie czasu pracy.',
+        ],
+        uwaga:
+          'Widzisz wyłącznie osoby ze swojego zakresu danych. Wnioski czekające na Twoją decyzję pokazują się niezależnie od uprawnień, bo akceptanta wyznacza struktura, a nie rola.',
+        sciezka: '/dashboard',
+        etykietaSciezki: 'Otwórz Dashboard',
+        wymaga: ['dashboard.view'],
+      },
+      {
         id: 'dlaczego-nie-widze',
         pytanie: 'Dlaczego nie widzę niektórych pozycji w menu?',
         odpowiedz: [

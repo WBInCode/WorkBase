@@ -6,6 +6,7 @@ import {
   TaskSummaryWidget,
   PendingApprovalsWidget,
   AlertsWidget,
+  PanelUwagi,
 } from '@/components/Dashboard';
 import { useIsMobile } from '@/shared';
 import { colors } from '@/theme/tokens';
@@ -57,6 +58,8 @@ export function DashboardPage() {
           Odśwież
         </button>
       </div>
+
+      <PanelUwagi />
 
       {/* ── Pas KPI — najważniejsze liczby dnia ── */}
       <div style={{

@@ -17,6 +17,7 @@ public static class DashboardServiceCollectionExtensions
     public static IServiceCollection AddDashboardModule(this IServiceCollection services)
     {
         services.AddScoped<IDashboardQueryService, DapperDashboardQueryService>();
+        services.AddScoped<IAlertyQueryService, DapperAlertyQueryService>();
         services.AddScoped<IDashboardConfigRepository, DashboardConfigRepository>();
         services.AddScoped<IDashboardWidgetRepository, DashboardWidgetRepository>();
         services.AddScoped<IReportDefinitionRepository, ReportDefinitionRepository>();
