@@ -40,7 +40,7 @@ src/WorkBase.Contracts/       # kontrakty między modułami
 src/WorkBase.Infrastructure/  # Persistence (DbContext+migracje), Auth, HubPlatform, Ecosystem, Chat, Seeding, PublicApi, Middleware
 src/Modules/<Nazwa>/          # 4 projekty: .Domain .Application .Infrastructure .Api
 tests/                        # Unit (225) · Integration (88) · Architecture (5, NetArchTest pilnuje granic modułów)
-frontend/                     # React (npm "workbase-web"), 11 plików testów Vitest (55 testów)
+frontend/                     # React (npm "workbase-web"), 13 plików testów Vitest (74 testy)
 docker/                       # Dockerfile*, compose dev/staging, realm Keycloaka
 deploy-scripts/               # deploy-prod.sh — REALNA ścieżka wdrożenia na produkcję
 docs/                         # 01-06 architektura/plan, 07-09 przewodniki użytkownika, AUDYT-*
@@ -121,8 +121,8 @@ cd frontend && npm ci && npm run dev                  # http://localhost:5173
 Weryfikacja (wszystko przechodzi na stanie 2026-08-24):
 ```bash
 dotnet build WorkBase.sln         # 0 błędów, 0 ostrzeżeń (warnings-as-errors w Directory.Build.props)
-dotnet test WorkBase.sln          # 318 testów: 225 unit + 88 integration + 5 architecture
-cd frontend && npm run type-check && npm run lint && npm test   # 0 błędów, 19 warningów ESLint, 55 testów
+dotnet test WorkBase.sln          # 427 testów: 298 unit + 124 integration + 5 architecture
+cd frontend && npm run type-check && npm run lint && npm test   # 0 błędów, 19 warningów ESLint, 74 testy
 ```
 
 **`.env.example` nie pokrywa** sekcji obecnych w `appsettings.json` i wymaganych na produkcji: `Hub__*`, `ChatNotices__*`, `TaskSearch__*`, `ClamAv__*`, `Integration__*`, `Keycloak__Admin__*`, `RateLimiting__*`. Pełną listę kluczy zobaczysz w `src/WorkBase.Host/appsettings.json`, a realne wartości: `ssh wbvps 'docker inspect workbase-api --format "{{range .Config.Env}}{{println .}}{{end}}"'`.

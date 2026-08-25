@@ -36,7 +36,7 @@ Produkcja: `ssh wbvps`, `/opt/wb/workbase/`, kontenery `workbase-api` / `workbas
 
 Docker w `docker/` (nie w roocie): `docker-compose.dev.yml` — Postgres 5432, Keycloak 8080, MinIO 9000/9001, Seq 5341. `.env.example` pokrywa komplet sekcji (`Hub__*`, `ChatNotices__*`, `TaskSearch__*`, `ClamAv__*`, `Integration__*`, `RateLimiting__*`, `Keycloak__Admin__*`) z komentarzem, co się dzieje przy braku wartości.
 
-Weryfikacja: `dotnet build WorkBase.sln` (warnings-as-errors, ma przechodzić bez ostrzeżeń) · `dotnet test WorkBase.sln` (318 testów) · `cd frontend && npm run type-check && npm run lint && npm test` (55 testów).
+Weryfikacja: `dotnet build WorkBase.sln` (warnings-as-errors, ma przechodzić bez ostrzeżeń) · `dotnet test WorkBase.sln` (427 testów) · `cd frontend && npm run type-check && npm run lint && npm test` (74 testy).
 
 ## Konwencje
 
