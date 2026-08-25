@@ -10,16 +10,15 @@ namespace WorkBase.Tests.Unit;
 /// IamSeeder liczy identyfikator uprawnienia z kolejnego numeru, a petla po ModuleCatalog.All
 /// idzie pierwsza. Dolozenie modulu przesuwa wiec identyfikatory wszystkich uprawnien jawnych.
 ///
-/// Na dzialajacej bazie nie konczy sie to cichym rozjazdem, tylko awaria: seeder wstawia
-/// uprawnienia po KODZIE (pomija istniejace), ale identyfikator bierze z licznika — a ten
-/// wskaze wiersz, ktory juz istnieje pod innym kodem. Wstawienie lamie klucz glowny i wywraca
-/// zasiew przy starcie aplikacji.
+/// Skutkiem przesuniecia nie jest awaria — na dzialajacej bazie brakujace uprawnienia dopisuja
+/// sie przez Permission.Create z nowym identyfikatorem, a sciezka wstawiajaca numery z licznika
+/// jest pomijana bramka "role juz istnieja". Skutkiem jest ROZJAZD: numeracja w kodzie przestaje
+/// odpowiadac tej w bazie zasianej starsza wersja. Produkcja ma numery z czasow 15 modulow
+/// (najwyzszy zajety to 100), a kod konczy sie dzis na 78.
 ///
-/// Sprawdzone na produkcji: identyfikatory 46-50 zajmuje integration.* — uprawnienia po module
-/// wycofanym z katalogu, ktore zostaly w bazie celowo.
-///
-/// Ten test ma paść, gdy ktos zmieni liczbe albo kolejnosc modulow. To nie jest falszywy alarm:
-/// zanim taka zmiana bedzie bezpieczna, identyfikatory trzeba uniezaleznic od pozycji.
+/// Ten test ma pasc, gdy ktos zmieni liczbe albo kolejnosc modulow — nie dlatego, ze zaraz
+/// cos wybuchnie, tylko dlatego, ze warto wiedziec, ze numeracja wlasnie przestala byc stabilna.
+/// Nowe uprawnienia numerujemy od 200 w gore i te numery juz sie nie ruszaja.
 /// </remarks>
 public class IamSeederIdentyfikatoryTests
 {

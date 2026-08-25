@@ -475,16 +475,21 @@ public static class IamSeeder
     /// </summary>
     /// <remarks>
     /// UWAGA: numeracja jest POZYCYJNA, wiec kolejnosc wywolan wyznacza identyfikatory.
-    /// Petla po ModuleCatalog.All idzie pierwsza, wiec dolozenie modulu przesuwa identyfikatory
-    /// WSZYSTKICH uprawnien jawnych ponizej.
+    /// Petla po ModuleCatalog.All idzie pierwsza, wiec dolozenie albo usuniecie modulu przesuwa
+    /// identyfikatory WSZYSTKICH uprawnien jawnych ponizej.
     ///
-    /// Na dzialajacej bazie konczy sie to kolizja klucza glownego przy starcie: seeder wstawia
-    /// uprawnienia po KODZIE (pomija te, ktore juz sa), ale identyfikator bierze z licznika —
-    /// a ten wskaze wiersz, ktory juz istnieje pod innym kodem. Sprawdzone na produkcji:
-    /// identyfikatory 46-50 zajmuje integration.*, pozostale po module wycofanym z katalogu.
+    /// Co to realnie oznacza — bez przesady w zadna strone:
+    ///  - na SWIEZEJ bazie nic sie nie psuje, bo caly zestaw pochodzi z jednego przebiegu
+    ///    i jest wewnetrznie spojny,
+    ///  - na DZIALAJACEJ bazie te identyfikatory i tak nie sa uzywane: BackfillMissingPermissionsAsync
+    ///    tworzy brakujace uprawnienia przez Permission.Create bez podania id, a sciezka
+    ///    wstawiajaca id z licznika jest pomijana bramka "role juz istnieja",
+    ///  - skutkiem przesuniecia jest wiec ROZJAZD miedzy numeracja w kodzie a ta w bazie
+    ///    zasianej starsza wersja, a nie awaria. Produkcja ma numery z czasow 15 modulow
+    ///    (najwyzszy zajety to 100), kod konczy sie dzis na 78.
     ///
-    /// Pilnuje tego IamSeederIdentyfikatoryTests. Zanim dolozysz modul do ModuleCatalog,
-    /// trzeba najpierw uniezaleznic identyfikatory od pozycji.
+    /// Dlatego numerow z licznika nie traktujemy jako miejsca na nowe uprawnienia — te dostaja
+    /// jawny numer od 200 w gore. Pilnuje tego IamSeederIdentyfikatoryTests.
     /// </remarks>
     private static Permission CreatePermission(int seed, string module, string action, string? scope = null, string? description = null)
     {

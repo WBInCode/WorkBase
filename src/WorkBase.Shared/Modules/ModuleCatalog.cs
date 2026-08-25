@@ -45,8 +45,10 @@ public sealed record ModuleInfo(string Key, string Namespace, string DisplayName
 ///
 /// DODANIE MODULU TO NIE JEST JEDEN WPIS. Identyfikatory uprawnien w IamSeeder licza sie
 /// pozycyjnie, a petla po tej liscie idzie pierwsza — nowy modul przesuwa identyfikatory
-/// wszystkich uprawnien jawnych i na dzialajacej bazie wywraca start aplikacji kolizja
-/// klucza glownego. Najpierw trzeba uniezaleznic identyfikatory od pozycji.
+/// wszystkich uprawnien jawnych ponizej. Na dzialajacej bazie nie wywraca to startu (brakujace
+/// uprawnienia dopisuja sie z nowymi identyfikatorami), ale rozjezdza numeracje w kodzie
+/// z ta zapisana w bazie — a wtedy nie da sie juz na tych numerach polegac przy diagnozie.
+/// Dolozenie modulu wymaga tez uprawnien, zakresow danych i flagi funkcjonalnosci.
 /// Pilnuje tego IamSeederIdentyfikatoryTests.
 /// </summary>
 public static class ModuleCatalog
