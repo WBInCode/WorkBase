@@ -442,13 +442,6 @@ public static class IamSeeder
         permissions.Add(CreatePermission(permissionId++, Modules.Sales, Actions.Manage, description: "Zarządzanie leadami i szansami sprzedaży"));
         permissions.Add(CreatePermission(permissionId++, Modules.AI, "use", description: "Korzystanie z funkcji AI"));
         permissions.Add(CreatePermission(permissionId++, Modules.Forms, "submit", description: "Wypełnianie i wysyłanie formularzy"));
-
-        // Wnioski firmowe (zaliczka, delegacja, praca zdalna...). Dopisane NA KONCU, bo
-        // identyfikatory licza sie pozycyjnie — wstawienie wyzej przesunieploby id uprawnien
-        // juz zapisanych w bazie. Patrz uwaga przy CreatePermission.
-        permissions.Add(CreatePermission(permissionId++, "wnioski", Actions.View, description: "Podgląd własnych wniosków"));
-        permissions.Add(CreatePermission(permissionId++, "wnioski", Actions.Create, description: "Składanie wniosków"));
-        permissions.Add(CreatePermission(permissionId++, "wnioski", Actions.Manage, description: "Definiowanie rodzajów wniosków"));
         // Raporty to obszar modułu Dashboard, nie osobna pozycja katalogu modułów,
         // więc nie dostają automatycznego kompletu CRUD.
         permissions.Add(CreatePermission(permissionId++, "reports", Actions.View, description: "Przeglądanie raportów"));
@@ -457,6 +450,22 @@ public static class IamSeeder
         // zalogowanego, a zakres danych ograniczal wylacznie DataScope.
         permissions.Add(CreatePermission(permissionId++, "payroll", Actions.View, description: "Podgląd własnego rozliczenia wynagrodzenia"));
         permissions.Add(CreatePermission(permissionId++, "payroll", "view-team", description: "Podgląd rozliczeń wynagrodzeń zespołu i firmy"));
+
+        // ─────────────────────────────────────────────────────────────────────────────
+        // UPRAWNIENIA Z ZAREZERWOWANYM IDENTYFIKATOREM (od 200 w gore)
+        //
+        // Numeracja z licznika powyzej jest POZYCYJNA i na dzialajacej bazie nie da sie jej
+        // juz bezpiecznie rozszerzac: instalacja produkcyjna ma identyfikatory z czasow, gdy
+        // katalog mial 15 modulow, wiec dzisiejszy licznik trafia w numery dawno zajete przez
+        // inne uprawnienia. Wstawienie takiego wiersza lamie klucz glowny i wywraca zasiew
+        // przy starcie aplikacji.
+        //
+        // Dlatego KAZDE NOWE uprawnienie dostaje jawny numer z zakresu 200+, ktory nie zalezy
+        // od pozycji ani od liczby modulow. Najwyzszy numer zajety przez stara numeracje to 100.
+        // Pilnuje tego IamSeederIdentyfikatoryTests.
+        permissions.Add(CreatePermission(201, "wnioski", Actions.View, description: "Podgląd własnych wniosków"));
+        permissions.Add(CreatePermission(202, "wnioski", Actions.Create, description: "Składanie wniosków"));
+        permissions.Add(CreatePermission(203, "wnioski", Actions.Manage, description: "Definiowanie rodzajów wniosków"));
 
         return permissions;
     }
