@@ -19,6 +19,8 @@ public static class WorkflowServiceCollectionExtensions
     public static IServiceCollection AddWorkflowModule(this IServiceCollection services)
     {
         services.AddScoped<IWorkflowDefinitionRepository, WorkflowDefinitionRepository>();
+        services.AddScoped<ITypWnioskuRepository, TypWnioskuRepository>();
+        services.AddScoped<IWnioskiRepository, WnioskiRepository>();
         services.AddScoped<IWorkflowInstanceRepository, WorkflowInstanceRepository>();
         services.AddScoped<IWorkflowStepRepository, WorkflowStepRepository>();
         services.AddScoped<IWorkflowActionRepository, WorkflowActionRepository>();
