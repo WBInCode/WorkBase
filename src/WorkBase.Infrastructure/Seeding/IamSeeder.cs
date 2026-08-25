@@ -265,6 +265,14 @@ public static class IamSeeder
         CreatePermissions().Select(p => p.FullCode).ToHashSet();
 
     /// <summary>
+    /// Kod uprawnienia -> jego identyfikator. Wystawione dla testu, ktory pilnuje, zeby
+    /// identyfikatory nie przesunely sie przy zmianie katalogu modulow — patrz uwaga przy
+    /// <see cref="CreatePermission"/>.
+    /// </summary>
+    public static IReadOnlyDictionary<string, Guid> AllPermissionIds { get; } =
+        CreatePermissions().ToDictionary(p => p.FullCode, p => p.Id);
+
+    /// <summary>
     /// Dopisuje uprawnienia, ktore pojawily sie w kodzie po pierwszym uruchomieniu instalacji,
     /// i nadaje je istniejacym rolom systemowym oraz szablonowym we wszystkich firmach.
     /// </summary>
@@ -443,6 +451,22 @@ public static class IamSeeder
         return permissions;
     }
 
+    /// <summary>
+    /// Identyfikator uprawnienia liczony z kolejnego numeru.
+    /// </summary>
+    /// <remarks>
+    /// UWAGA: numeracja jest POZYCYJNA, wiec kolejnosc wywolan wyznacza identyfikatory.
+    /// Petla po ModuleCatalog.All idzie pierwsza, wiec dolozenie modulu przesuwa identyfikatory
+    /// WSZYSTKICH uprawnien jawnych ponizej.
+    ///
+    /// Na dzialajacej bazie konczy sie to kolizja klucza glownego przy starcie: seeder wstawia
+    /// uprawnienia po KODZIE (pomija te, ktore juz sa), ale identyfikator bierze z licznika —
+    /// a ten wskaze wiersz, ktory juz istnieje pod innym kodem. Sprawdzone na produkcji:
+    /// identyfikatory 46-50 zajmuje integration.*, pozostale po module wycofanym z katalogu.
+    ///
+    /// Pilnuje tego IamSeederIdentyfikatoryTests. Zanim dolozysz modul do ModuleCatalog,
+    /// trzeba najpierw uniezaleznic identyfikatory od pozycji.
+    /// </remarks>
     private static Permission CreatePermission(int seed, string module, string action, string? scope = null, string? description = null)
     {
         // Generate deterministic GUID from seed

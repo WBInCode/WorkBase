@@ -40,9 +40,14 @@ public sealed record ModuleInfo(string Key, string Namespace, string DisplayName
 /// - <c>ModuleBoundaryTests</c> (architecture isolation tests)
 /// - Frontend admin UI (module labels, navigation) via the modules endpoint
 ///
-/// Adding a new module: append one entry here. Do not remove/rename existing
-/// Key/Namespace values — they are persisted in the database (permissions,
-/// feature flags) and referenced by Keycloak/tenant configuration.
+/// Do not remove/rename existing Key/Namespace values — they are persisted in the
+/// database (permissions, feature flags) and referenced by Keycloak/tenant configuration.
+///
+/// DODANIE MODULU TO NIE JEST JEDEN WPIS. Identyfikatory uprawnien w IamSeeder licza sie
+/// pozycyjnie, a petla po tej liscie idzie pierwsza — nowy modul przesuwa identyfikatory
+/// wszystkich uprawnien jawnych i na dzialajacej bazie wywraca start aplikacji kolizja
+/// klucza glownego. Najpierw trzeba uniezaleznic identyfikatory od pozycji.
+/// Pilnuje tego IamSeederIdentyfikatoryTests.
 /// </summary>
 public static class ModuleCatalog
 {
