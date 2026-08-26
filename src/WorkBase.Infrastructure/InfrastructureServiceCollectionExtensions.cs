@@ -125,6 +125,11 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<MediatR.INotificationHandler<Modules.Workflow.Domain.Events.WorkflowInstanceRejectedEvent>,
             Wnioski.ZamknijWniosekPoObiegu>();
 
+        // TaskOverdueDetectorJob publikowal to zdarzenie codziennie od poczatku i NIKT go nie
+        // obslugiwal — zadanie pracowalo w prozni.
+        services.AddScoped<MediatR.INotificationHandler<Modules.Tasks.Domain.Events.TaskOverdueEvent>,
+            Tasks.PowiadomOZaleglymZadaniu>();
+
         services.AddScoped<DomainEventInterceptor>();
         services.AddScoped<AuditSaveChangesInterceptor>();
 

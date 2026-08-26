@@ -131,9 +131,16 @@ public sealed class EcosystemSnapshotJob(
         // rozroznilismy, piecioro pracownikow bez konta generowalo ponad 5000 nieudanych
         // wywolan na dobe, 1493 zablokowane zadania i 35 MB w tabelach kolejki — a prawdziwe
         // awarie ginely w tym szumie.
+        //
+        // Poziom Debug, nie Information — diagnoza z 2026-08-26: integracja DZIALA. Z dziewieciu
+        // aktywnych pracownikow firmy operatora szescioro synchronizuje sie poprawnie (sukces nie
+        // jest logowany), a troje nie ma konta w Rytmie i nigdy nie bedzie mialo. Przy przebiegu
+        // co 15 minut dawalo to blisko 300 wierszy na dobe o stanie, ktory sie nie zmieni.
+        // Audyt czytal te trzy wiersze jako „integracja obejmuje 3 osoby i nikogo nie synchronizuje";
+        // w rzeczywistosci to byly jedyne LOGOWANE przypadki, czyli same pominiecia.
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
-            logger.LogInformation(
+            logger.LogDebug(
                 "Pomijam synchronizacje z Rytmem dla pracownika {EmployeeId}: brak konta w Rytmie.",
                 employeeId);
             return;

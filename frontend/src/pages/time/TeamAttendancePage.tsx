@@ -371,9 +371,10 @@ export function TeamAttendancePage() {
     const cellKey = `${employeeId}:${date}`;
     setSavingCell(cellKey);
     try {
-      // usuń istniejące wpisy tego dnia, żeby uniknąć duplikatów
+      // Usuń istniejące wpisy tego dnia, żeby uniknąć duplikatów.
+      // Sekwencyjnie, nie równolegle: kasowanie i zakładanie wpisów tego samego dnia musi
+      // iść po kolei, bo serwer liczy je względem siebie.
       for (const entry of existingEntries) {
-        // eslint-disable-next-line no-await-in-loop
         await deleteEntry.mutateAsync(entry.id);
       }
       if (startMin !== null) {
@@ -388,8 +389,8 @@ export function TeamAttendancePage() {
           type: 'ClockIn',
           note: 'Edycja z raportu zespołu',
         });
+        // Sekwencyjnie z tego samego powodu co wyżej: kolejność wpisów w obrębie dnia ma znaczenie.
         for (const b of validBreaks) {
-          // eslint-disable-next-line no-await-in-loop
           await createEntry.mutateAsync({
             employeeId,
             entryTime: toIso(b.startMin!),
@@ -397,7 +398,6 @@ export function TeamAttendancePage() {
             breakType: b.breakType || undefined,
             note: 'Edycja z raportu zespołu',
           });
-          // eslint-disable-next-line no-await-in-loop
           await createEntry.mutateAsync({
             employeeId,
             entryTime: toIso(b.endMin!),
