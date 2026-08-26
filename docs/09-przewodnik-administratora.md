@@ -244,6 +244,25 @@ Do uzupełnienia pozostają trzy rzeczy, których system nie zgadnie: lista prac
 
 Najczęściej brakuje wskazania przełożonego w karcie pracownika. Druga możliwość to typ urlopu bez wymogu akceptacji, który zatwierdza się sam.
 
+### Anomalie czasu pracy — wykrywanie i rozpatrywanie
+
+Zadanie cykliczne o 01:00 porównuje grafik z rzeczywistą rejestracją i zapisuje rozbieżności: brak wejścia, brak wyjścia, spóźnienie, praca w dniu wolnym, podwójne wejście. Które z nich są wykrywane, ustala się w **Ustawieniach czasu pracy**.
+
+Ekran **Anomalie** (`/time/anomalie`, `time.view`) pozwala je rozpatrzyć. Dwie decyzje, bo to dwie różne rzeczy:
+
+| Decyzja | Znaczenie |
+|---|---|
+| **Przejrzane** | sprawa obejrzana i zamknięta |
+| **To nie problem** | nie było czego prostować — urlop, dzień wolny, nieaktualny grafik |
+
+Rozróżnienie pozwala później policzyć, ile wykrytych anomalii było realnych. Samo rozpatrzenie wymaga `time.manage`; bez niego widać listę bez przycisków.
+
+Poprawianie ewidencji odbywa się na **karcie czasu**, do której prowadzi odsyłacz przy każdej pozycji — świadomie nie na liście anomalii, żeby nie powstała druga ścieżka edycji wpisów.
+
+⚠️ **Lista jest zawężana do zakresu danych pytającego.** Do 26 sierpnia 2026 nie była: zapytanie filtrowało wyłącznie po firmie, a endpoint wymaga `time.view`, które ma każdy pracownik — czyli dowolna osoba mogła pobrać anomalie całej załogi. Poprawione, przypięte testem.
+
+---
+
 ### Terminy: badania, BHP, uprawnienia, końce umów
 
 Ekran **Terminy** (`/terminy`, uprawnienie `org.view`) pokazuje, co wygasa w najbliższych 30, 60 albo 90 dniach. Wpisy wprowadza się na karcie pracownika; rodzaje terminów i wyprzedzenie ostrzeżenia ustala firma w **Ustawieniach → Rodzaje terminów** (`org.edit`).

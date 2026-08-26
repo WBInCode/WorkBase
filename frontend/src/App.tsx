@@ -30,6 +30,7 @@ const LeaveTypesConfigPage = lazy(() => import('@/pages/admin/LeaveTypesConfigPa
 const TaskStatusConfigPage = lazy(() => import('@/pages/admin/TaskStatusConfigPage').then((m) => ({ default: m.TaskStatusConfigPage })));
 const WnioskiPage = lazy(() => import('@/pages/wnioski/WnioskiPage').then((m) => ({ default: m.WnioskiPage })));
 const TypyWnioskowConfigPage = lazy(() => import('@/pages/admin/TypyWnioskowConfigPage').then((m) => ({ default: m.TypyWnioskowConfigPage })));
+const AnomaliePage = lazy(() => import('@/pages/time/AnomaliePage').then((m) => ({ default: m.AnomaliePage })));
 const TerminyPage = lazy(() => import('@/pages/terminy/TerminyPage').then((m) => ({ default: m.TerminyPage })));
 const TypyTerminowConfigPage = lazy(() => import('@/pages/admin/TypyTerminowConfigPage').then((m) => ({ default: m.TypyTerminowConfigPage })));
 const GotowoscPage = lazy(() => import('@/pages/admin/GotowoscPage').then((m) => ({ default: m.GotowoscPage })));
@@ -146,6 +147,7 @@ function AppRoutes() {
         <Route path="/admin/task-statuses" element={chroniona('/admin/task-statuses', <TaskStatusConfigPage />)} />
         <Route path="/wnioski" element={chroniona('/wnioski', <WnioskiPage />)} />
         <Route path="/admin/typy-wnioskow" element={chroniona('/admin/typy-wnioskow', <TypyWnioskowConfigPage />)} />
+        <Route path="/time/anomalie" element={chroniona('/time/anomalie', <AnomaliePage />)} />
         <Route path="/terminy" element={chroniona('/terminy', <TerminyPage />)} />
         <Route path="/admin/typy-terminow" element={chroniona('/admin/typy-terminow', <TypyTerminowConfigPage />)} />
         <Route path="/admin/gotowosc" element={chroniona('/admin/gotowosc', <GotowoscPage />)} />

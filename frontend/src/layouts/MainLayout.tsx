@@ -92,6 +92,7 @@ const navSections: NavSection[] = [
       { path: '/time/timesheet', labelKey: 'nav.timesheet', icon: CalendarDays },
       { path: '/time/team-report', labelKey: 'nav.teamReport', icon: UsersRound },
       { path: '/time/schedule', labelKey: 'nav.schedule', icon: CalendarClock },
+      { path: '/time/anomalie', labelKey: 'nav.anomalie', icon: Flag },
       { path: '/payroll', labelKey: 'nav.payroll', icon: Wallet },
     ],
   },

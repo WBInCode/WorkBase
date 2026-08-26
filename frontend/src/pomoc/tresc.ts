@@ -195,6 +195,21 @@ export const SEKCJE_POMOCY: readonly SekcjaPomocy[] = [
         wymaga: ['time.create'],
       },
       {
+        id: 'anomalie-rozpatrywanie',
+        pytanie: 'Czym są anomalie i jak je rozpatrzyć?',
+        odpowiedz: [
+          'Anomalia to rozbieżność między grafikiem a rzeczywistą rejestracją czasu: brak wejścia mimo zaplanowanej zmiany, brak wyjścia, spóźnienie, praca w dniu wolnym. System wykrywa je co noc.',
+          'Na ekranie „Anomalie” można je rozpatrzyć na dwa sposoby. „Przejrzane” znaczy: sprawa obejrzana i zamknięta. „To nie problem” znaczy: nie było czego prostować — ktoś był na urlopie, to był dzień wolny albo grafik był nieaktualny.',
+          'Rozróżnienie ma znaczenie później: pozwala policzyć, ile wykrytych anomalii było realnych, a ile wynikało z danych.',
+          'Jeśli ewidencję trzeba poprawić, użyj odsyłacza „Karta czasu” — poprawianie wpisów odbywa się tam, a nie na liście anomalii.',
+        ],
+        uwaga:
+          'Rozpatrywanie wymaga uprawnienia do zarządzania czasem pracy. Bez niego widać listę, ale bez przycisków. Każdy widzi wyłącznie anomalie osób ze swojego zakresu danych — własne widzi zawsze.',
+        sciezka: '/time/anomalie',
+        etykietaSciezki: 'Otwórz anomalie',
+        wymaga: ['time.view'],
+      },
+      {
         id: 'blad-godzin',
         pytanie: 'Zapomniałem zarejestrować wyjście. Co teraz?',
         odpowiedz: [

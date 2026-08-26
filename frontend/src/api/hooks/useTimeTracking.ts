@@ -149,6 +149,26 @@ export function useAnomalies(filter: AnomaliesFilter) {
   });
 }
 
+/**
+ * Rozpatrzenie anomalii. Dwie decyzje, bo to dwie różne rzeczy:
+ * „przejrzana" = sprawa obejrzana i zamknięta, „odrzucona" = to nie był problem.
+ * Oba wymagają `time.manage`, więc szeregowy pracownik dostanie 403.
+ */
+function useDecyzjaOAnomalii(akcja: 'review' | 'dismiss') {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.put<void>(`/api/time/anomalies/${id}/${akcja}`, {}),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['time', 'anomalies'] });
+      // Kafelek anomalii na pulpicie liczy te same rekordy — bez tego licznik zostawał stary.
+      qc.invalidateQueries({ queryKey: ['dashboard'] });
+    },
+  });
+}
+
+export const useOznaczAnomalieJakoPrzejrzana = () => useDecyzjaOAnomalii('review');
+export const useOdrzucAnomalie = () => useDecyzjaOAnomalii('dismiss');
+
 export function useTeamTimesheets(
   employeeIds: string[],
   from: string,
