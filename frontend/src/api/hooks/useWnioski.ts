@@ -51,6 +51,34 @@ export function useTypyWnioskow(wszystkie = false) {
   });
 }
 
+export interface PozycjaWniosku {
+  etykieta: string;
+  wartosc: string | null;
+}
+
+export interface WniosekDoDecyzji {
+  id: string;
+  typNazwa: string;
+  status: StatusWniosku;
+  zlozonyO: string;
+  pozycje: PozycjaWniosku[];
+}
+
+/**
+ * Treść wniosku dla osoby, która ma o nim zdecydować.
+ *
+ * Serwer przepuszcza wnioskodawcę albo akceptanta tego obiegu; cudzy wniosek zwraca 404,
+ * żeby nie potwierdzać jego istnienia. Stąd `retry: false` — ponawianie nic nie zmieni.
+ */
+export function useWniosekDoDecyzji(id: string | null) {
+  return useQuery({
+    queryKey: ['wnioski', 'szczegoly', id],
+    queryFn: () => api.get<WniosekDoDecyzji>(`/api/wnioski/${id}`),
+    enabled: Boolean(id),
+    retry: false,
+  });
+}
+
 export function useMojeWnioski() {
   return useQuery({
     queryKey: ['wnioski', 'moje'],

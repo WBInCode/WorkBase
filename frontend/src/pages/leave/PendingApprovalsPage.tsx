@@ -3,6 +3,7 @@ import { ClipboardCheck } from 'lucide-react';
 import { useAuth } from 'react-oidc-context';
 import { mapUserClaims } from '@/auth';
 import { usePendingApprovals, useSubmitApprovalDecision } from '@/api/hooks/useWorkflow';
+import { TrescWniosku } from '@/components/Wnioski';
 import { useEmployees } from '@/api/hooks/useOrganization';
 import { ApprovalActionBar } from '@/components/Leave';
 import type { ApprovalDecision, ApprovalRequestDto } from '@/api/types/workflow';
@@ -18,6 +19,9 @@ const STATUS_CONFIG: Record<string, { label: string; bg: string; color: string }
 
 const ENTITY_TYPE_LABEL: Record<string, string> = {
   LeaveRequest: 'Wniosek urlopowy',
+  // Bez tego wpisu akceptant widzial w kolumnie typu surowe "Wniosek" prosto z bazy.
+  Wniosek: 'Wniosek ogólny',
+  TaskAssignment: 'Akceptacja zadania',
 };
 
 const thStyle: React.CSSProperties = {
@@ -224,6 +228,11 @@ export function PendingApprovalsPage() {
                     <td style={{ ...tdStyle, textAlign: 'center' }}>
                       {isExpanded ? (
                         <div style={{ minWidth: mobile ? 'auto' : '420px', textAlign: 'left' }}>
+                          {/* Bez tego akceptant zatwierdzal, nie widzac ani jednego pola
+                              z wypelnionego formularza. */}
+                          {approval.workflowEntityType === 'Wniosek' && approval.workflowEntityId && (
+                            <TrescWniosku wniosekId={approval.workflowEntityId} />
+                          )}
                           <ApprovalActionBar
                             onDecide={(decision, comment) =>
                               handleDecide(approval, decision, comment)

@@ -105,6 +105,7 @@ public class ZakresDanychPracownikaTests
         ["/api/workflow/instances/{id}"] = "identyfikator instancji obiegu",
         ["/api/workflow/instances/{id}/branches"] = "identyfikator instancji obiegu",
         ["/api/workflow/instances/{id}/steps"] = "identyfikator instancji obiegu",
+        ["/api/wnioski/{id}"] = "identyfikator wniosku; dostep ma wnioskodawca albo akceptant TEGO obiegu — sprawdzane w zapytaniu, bo przy zastepstwie zastepca bywa poza zakresem danych",
         ["/openapi/{id}.json"] = "nazwa dokumentu OpenAPI",
 
         // Identyfikator KONTA (claim sub), nie pracownika — test podstawia identyfikator

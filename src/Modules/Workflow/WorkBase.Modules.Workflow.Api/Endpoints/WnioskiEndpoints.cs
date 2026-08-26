@@ -77,6 +77,22 @@ public static class WnioskiEndpoints
         .WithSummary("Wnioski złożone przez zalogowaną osobę")
         .RequirePermission("wnioski.view");
 
+        // Tresc wniosku dla osoby, ktora ma o nim zdecydowac. Uprawnienie jest tu slabym
+        // zabezpieczeniem (wnioski.view ma kazdy) — wlasciwe rozstrzygniecie robi zapytanie:
+        // przepuszcza wnioskodawce albo akceptanta TEGO obiegu. Zakres danych sie nie nadaje,
+        // bo przy zastepstwie zastepca bywa poza zakresem osoby zastepowanej.
+        wnioski.MapGet("/{id:guid}", async (
+            Guid id, ClaimsPrincipal user, ISender sender, CancellationToken ct) =>
+        {
+            if (user.EmployeeId() is not Guid employeeId) return Results.Forbid();
+
+            var wynik = await sender.Send(new PobierzWniosekDoDecyzjiQuery(id, employeeId), ct);
+            return wynik.ToHttpResult();
+        })
+        .WithName("PobierzWniosek")
+        .WithSummary("Treść wniosku — dla wnioskodawcy albo akceptanta")
+        .RequirePermission("wnioski.view");
+
         wnioski.MapPost("/", async (
             ZlozWniosekRequest request, ClaimsPrincipal user, ISender sender, CancellationToken ct) =>
         {

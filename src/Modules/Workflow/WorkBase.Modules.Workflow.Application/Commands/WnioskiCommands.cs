@@ -233,3 +233,88 @@ public sealed class PobierzMojeWnioskiHandler(
             .ToList();
     }
 }
+
+/// <summary>Pole wniosku gotowe do pokazania: etykieta z definicji plus wpisana wartość.</summary>
+public sealed record PozycjaWnioskuDto(string Etykieta, string? Wartosc);
+
+public sealed record WniosekDoDecyzjiDto(
+    Guid Id,
+    string TypNazwa,
+    string Status,
+    DateTime ZlozonyO,
+    IReadOnlyList<PozycjaWnioskuDto> Pozycje);
+
+/// <summary>
+/// Treść wniosku dla osoby, która ma o nim zdecydować.
+/// </summary>
+/// <remarks>
+/// <para>
+/// Ekran akceptacji pokazywał dotąd wyłącznie pasek „zatwierdź / odrzuć" — akceptant decydował,
+/// nie widząc ani jednego pola z wypełnionego formularza. Przy wniosku ogólnym widział surowe
+/// słowo „Wniosek" i nic więcej.
+/// </para>
+/// <para>
+/// Dostęp ma wnioskodawca oraz osoba, która JEST akceptantem tego konkretnego obiegu —
+/// sprawdzane po liście zgłoszeń akceptacyjnych instancji, a nie po zakresie danych. To istotne
+/// przy zastępstwach: zastępca bywa poza zakresem danych zastępowanego, a mimo to ma
+/// rozstrzygnąć sprawę.
+/// </para>
+/// <para>
+/// Brak dostępu zwracamy jako „nie istnieje", żeby nie potwierdzać istnienia cudzego wniosku.
+/// </para>
+/// </remarks>
+public sealed record PobierzWniosekDoDecyzjiQuery(Guid Id, Guid PytajacyEmployeeId)
+    : IQuery<WniosekDoDecyzjiDto>, ITenantRequest
+{
+    public Guid TenantId { get; set; }
+}
+
+public sealed class PobierzWniosekDoDecyzjiHandler(
+    IWnioskiRepository wnioski,
+    ITypWnioskuRepository typy,
+    IApprovalRequestRepository zgloszenia)
+    : IQueryHandler<PobierzWniosekDoDecyzjiQuery, WniosekDoDecyzjiDto>
+{
+    private static readonly Error NieZnaleziono = Error.NotFound(
+        "Wniosek.NieIstnieje", "Wniosek nie istnieje albo nie masz do niego dostępu.");
+
+    public async Task<Result<WniosekDoDecyzjiDto>> Handle(
+        PobierzWniosekDoDecyzjiQuery request, CancellationToken ct)
+    {
+        var wniosek = await wnioski.PobierzAsync(request.TenantId, request.Id, ct);
+        if (wniosek is null) return Result.Failure<WniosekDoDecyzjiDto>(NieZnaleziono);
+
+        if (wniosek.EmployeeId != request.PytajacyEmployeeId
+            && !await JestAkceptantemAsync(wniosek, request.PytajacyEmployeeId, ct))
+        {
+            return Result.Failure<WniosekDoDecyzjiDto>(NieZnaleziono);
+        }
+
+        var typ = await typy.PobierzAsync(request.TenantId, wniosek.TypWnioskuId, ct);
+        var wartosci = wniosek.Wartosci();
+
+        // Kolejność i etykiety bierzemy z DEFINICJI, nie z zapisanych wartości: dzięki temu
+        // akceptant widzi formularz tak, jak go widział wnioskodawca, łącznie z polami pustymi.
+        var pozycje = (typ?.Pola() ?? [])
+            .Select(pole => new PozycjaWnioskuDto(
+                pole.Etykieta,
+                wartosci.TryGetValue(pole.Kod, out var wartosc) ? wartosc : null))
+            .ToList();
+
+        return new WniosekDoDecyzjiDto(
+            wniosek.Id,
+            typ?.Nazwa ?? "(usunięty typ)",
+            wniosek.Status.ToString(),
+            wniosek.ZlozonyO,
+            pozycje);
+    }
+
+    private async Task<bool> JestAkceptantemAsync(Wniosek wniosek, Guid pytajacy, CancellationToken ct)
+    {
+        if (wniosek.WorkflowInstanceId is not Guid instancja) return false;
+
+        var zgloszeniaObiegu = await zgloszenia.GetByInstanceAsync(instancja, ct);
+        return zgloszeniaObiegu.Any(z => z.ApproverId == pytajacy);
+    }
+}
+
