@@ -152,6 +152,43 @@ public class KonfiguracjaStartowaTests
         Assert.NotEqual(HttpStatusCode.Conflict, poZakonczeniu.StatusCode);
     }
 
+    /// <summary>
+    /// Kroki zapisujace maja te same uprawnienia, co ich odpowiedniki w panelu. Bez tego kazdy
+    /// pracownik zablokowanej firmy mogl wejsc do kreatora i zaimportowac ludzi albo przestawic
+    /// akceptantow — bo bramka wpuszcza do kreatora wszystkich z tej firmy, nie tylko wlasciciela.
+    /// </summary>
+    [Theory]
+    [InlineData("/api/setup/employees")]
+    [InlineData("/api/setup/approvals")]
+    [InlineData("/api/setup/working-hours")]
+    public async Task Pracownik_bez_uprawnien_nie_skonfiguruje_firmy(string sciezka)
+    {
+        var firma = Guid.NewGuid();
+        await OznaczJakoWymagana(firma);
+        using var client = KlientPracownika(firma);
+
+        var odpowiedz = await client.PostAsJsonAsync(sciezka, new { });
+
+        Assert.Equal(HttpStatusCode.Forbidden, odpowiedz.StatusCode);
+    }
+
+    /// <summary>
+    /// Zdjecie blokady zostaje otwarte swiadomie: firma ma komplet domyslnych z provisioningu,
+    /// wiec nic sie nie psuje, a zamkniecie zamienialoby pomylke w przypisaniu roli wlascicielowi
+    /// w trwale zablokowana firme bez wyjscia.
+    /// </summary>
+    [Fact]
+    public async Task Zdjecie_blokady_zostaje_dostepne_takze_bez_uprawnien_administracyjnych()
+    {
+        var firma = Guid.NewGuid();
+        await OznaczJakoWymagana(firma);
+        using var client = KlientPracownika(firma);
+
+        var odpowiedz = await client.PostAsync("/api/setup/complete", null);
+
+        Assert.Equal(HttpStatusCode.NoContent, odpowiedz.StatusCode);
+    }
+
     [Fact]
     public async Task Kreator_pamieta_krok_po_zamknieciu_przegladarki()
     {
@@ -210,7 +247,15 @@ public class KonfiguracjaStartowaTests
         Assert.Equal(HttpStatusCode.BadRequest, odpowiedz.StatusCode);
     }
 
+    /// <summary>Wlasciciel firmy — z Huba przychodzi jako Admin, wiec ma komplet.</summary>
     private HttpClient KlientFirmy(Guid firma) => _factory.CreateAuthenticatedClient(
+        userId: Guid.NewGuid(),
+        tenantId: firma,
+        permissions: ["org.view", "org.create", "org.edit", "time.manage", "identity.view"],
+        employeeId: Guid.NewGuid());
+
+    /// <summary>Szeregowy pracownik: ma org.view, nie ma org.create ani org.edit.</summary>
+    private HttpClient KlientPracownika(Guid firma) => _factory.CreateAuthenticatedClient(
         userId: Guid.NewGuid(),
         tenantId: firma,
         permissions: ["org.view", "identity.view"],

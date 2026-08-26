@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Check, ChevronRight, Loader2, Users, Clock, UserCheck, Sparkles } from 'lucide-react';
+import { Check, ChevronRight, Loader2, Users, Clock, UserCheck, Sparkles, Hourglass } from 'lucide-react';
 import {
   useStanKreatora,
   usePracownicyKreatora,
@@ -11,6 +11,7 @@ import {
   type Zmiana,
 } from '@/api/hooks/useKreatorStartu';
 import { odczytajCsv, parseCsv, parsujDateZatrudnienia } from '@/utils/csvParser';
+import { useUprawnienia } from '@/auth/useUprawnienia';
 import { colors } from '@/theme/tokens';
 
 /**
@@ -25,6 +26,7 @@ import { colors } from '@/theme/tokens';
  */
 export function KreatorStartuPage() {
   const { data: stan, isLoading } = useStanKreatora();
+  const { moze, znane } = useUprawnienia();
   const [ekran, setEkran] = useState<number | null>(null);
 
   const ekranStartowy = useMemo(() => {
@@ -38,12 +40,20 @@ export function KreatorStartuPage() {
   const biezacy = ekran ?? ekranStartowy;
   const idz = (nr: number) => setEkran(Math.max(0, Math.min(4, nr)));
 
-  if (isLoading) {
+  if (isLoading || !znane) {
     return (
       <Tlo>
         <Loader2 size={22} style={{ color: colors.primary[600], animation: 'spin 1s linear infinite' }} />
       </Tlo>
     );
+  }
+
+  // Bramka wpuszcza do kreatora KAZDEGO z tej firmy, nie tylko wlasciciela — pracownik, ktory
+  // zaloguje sie pierwszy, wyladowalby w cudzym kreatorze. Serwer i tak odrzuci jego zapisy
+  // (org.create / org.edit), ale zobaczyc formularz, ktorego nie moze wyslac, to zly sposob
+  // na powitanie w nowym systemie.
+  if (!moze('org.create') && !moze('org.edit')) {
+    return <EkranPracownika />;
   }
 
   return (
@@ -653,5 +663,38 @@ function EkranPodsumowanie({ wstecz }: { wstecz: () => void }) {
         <button onClick={wstecz} style={stylPrzycisku(false)}>Wstecz</button>
       </Stopka>
     </>
+  );
+}
+
+// ---------------------------------------------------------------- ekran dla pracownika
+
+function EkranPracownika() {
+  return (
+    <Tlo>
+      <div
+        style={{
+          width: '100%',
+          maxWidth: 520,
+          background: 'var(--wb-panel, #fff)',
+          border: '1px solid var(--wb-line, #e3e7f1)',
+          borderRadius: 16,
+          padding: '30px 28px',
+          textAlign: 'center',
+          boxShadow: '0 12px 40px rgba(15, 23, 42, .08)',
+        }}
+      >
+        <Hourglass size={26} style={{ color: colors.primary[600], marginBottom: 12 }} />
+        <h1 style={{ fontSize: 19, fontWeight: 800, margin: '0 0 8px', color: colors.gray[900] }}>
+          Firma jest w trakcie konfiguracji
+        </h1>
+        <p style={{ margin: '0 0 6px', fontSize: 14, color: 'var(--wb-ink-2, #6b7490)' }}>
+          Osoba zarządzająca kończy ustawienia. Zaloguj się ponownie za jakiś czas — wtedy
+          wszystko będzie już gotowe.
+        </p>
+        <p style={{ margin: 0, fontSize: 13, color: 'var(--wb-ink-2, #9aa3b8)' }}>
+          Nie musisz nic robić.
+        </p>
+      </div>
+    </Tlo>
   );
 }

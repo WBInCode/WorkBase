@@ -260,7 +260,12 @@ Front: `frontend/src/pages/setup/KreatorStartuPage.tsx`, zamontowany w `App.tsx`
 
 Ekran „ludzie” korzysta z istniejących `odczytajCsv`/`parseCsv`/`parsujDateZatrudnienia`, więc obsługa Windows-1250 i polskich formatów daty przychodzi za darmo. Kolumny rozpoznaje po nagłówkach; gdy ich nie znajdzie, mówi wprost, żeby dodać osoby ręcznie albo użyć pełnego importu po zakończeniu kreatora — zamiast udawać, że rozumie plik.
 
-**Czego nadal nie ma:** kroku 6, czyli ekranu „firma w trakcie konfiguracji” dla pracownika, który zaloguje się przed ukończeniem kreatora przez właściciela. Dziś taki pracownik zobaczy ten sam kreator co właściciel — do poprawienia przed pierwszym wdrożeniem u firmy wieloosobowej.
+**Krok 6 rowniez wykonany.** Bramka wpuszcza do kreatora kazdego uzytkownika zablokowanej firmy, nie tylko wlasciciela — pracownik, ktory zaloguje sie pierwszy, ladowal w cudzym kreatorze i mogl w nim zaimportowac ludzi. Zamkniete z dwoch stron:
+
+- **Serwer:** kroki zapisujace dostaly te same uprawnienia, co ich odpowiedniki w panelu (`org.create`, `time.manage`, `org.edit`). Role sa zasiewane przy tworzeniu firmy, jeszcze przed pierwszym logowaniem, wiec wlasciciel przychodzacy z Huba jako Admin ma je od poczatku; szeregowy pracownik nie ma zadnego z nich. Cztery testy.
+- **Interfejs:** kto nie ma `org.create` ani `org.edit`, widzi ekran „Firma jest w trakcie konfiguracji" zamiast formularza, ktorego i tak nie moglby wyslac.
+
+`POST /api/setup/complete` zostaje **swiadomie otwarte**. Zdjecie blokady niczego nie niszczy — firma ma komplet domyslnych z provisioningu — a zamkniecie zamienialoby kazda pomylke w przypisaniu roli wlascicielowi w trwale zablokowana firme bez wyjscia. Pilnuje tego osobny test, zeby nikt nie „poprawil" tego przez przypadek.
 
 ### Stan po kroku 2 (zapis historyczny)
 

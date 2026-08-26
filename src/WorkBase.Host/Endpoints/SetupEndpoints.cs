@@ -72,7 +72,8 @@ public static class SetupEndpoints
             return Results.Ok(osoby);
         })
         .WithName("PobierzPracownikowKreatora")
-        .WithSummary("Lista pracowników na potrzeby kreatora");
+        .WithSummary("Lista pracowników na potrzeby kreatora")
+        .RequirePermission("org.view");
 
         group.MapPost("/employees", async (
             LudzieBody body,
@@ -113,7 +114,8 @@ public static class SetupEndpoints
             });
         })
         .WithName("KreatorDodajPracownikow")
-        .WithSummary("Krok 1 kreatora — kto tu pracuje");
+        .WithSummary("Krok 1 kreatora — kto tu pracuje")
+        .RequirePermission("org.create");
 
         group.MapPost("/working-hours", async (
             GodzinyPracyBody body,
@@ -156,7 +158,8 @@ public static class SetupEndpoints
             return Results.Ok(new { szablonow = zmiany.Count, przerwaMinut = body.MinutPrzerwy });
         })
         .WithName("KreatorGodzinyPracy")
-        .WithSummary("Krok 2 kreatora — w jakich godzinach pracujecie");
+        .WithSummary("Krok 2 kreatora — w jakich godzinach pracujecie")
+        .RequirePermission("time.manage");
 
         group.MapPost("/approvals", async (
             AkceptanciBody body,
@@ -199,12 +202,19 @@ public static class SetupEndpoints
             return Results.Ok(new { ustawione, bledy });
         })
         .WithName("KreatorAkceptanci")
-        .WithSummary("Krok 3 kreatora — kto akceptuje wnioski");
+        .WithSummary("Krok 3 kreatora — kto akceptuje wnioski")
+        .RequirePermission("org.edit");
 
-        // Bez RequirePermission: kreator prowadzi wlasciciel firmy zaraz po nadaniu licencji,
-        // a uprawnienia nadaje sie dopiero w jego trakcie. Rola wlasciciela przychodzi z Huba
-        // (hub_role = owner -> Admin), wiec zabezpieczeniem jest tu identity.manage tam, gdzie
-        // istnieje, a na tym etapie — sam fakt zalogowania do firmy, ktora czeka na konfiguracje.
+        // Kroki zapisujace maja te same uprawnienia, co ich odpowiedniki w panelu administratora
+        // (org.create / time.manage / org.edit) — kreator jest cienka warstwa nad tymi samymi
+        // komendami, wiec nie ma powodu, zeby wpuszczal dalej. Role sa zasiewane przy TWORZENIU
+        // firmy, jeszcze przed pierwszym logowaniem, wiec wlasciciel przychodzacy z Huba jako
+        // Admin ma je od poczatku. Szeregowy pracownik nie ma org.create ani org.edit.
+        //
+        // To jedno wywolanie zostaje OTWARTE swiadomie. Zdjecie blokady niczego nie niszczy —
+        // firma i tak ma komplet domyslnych z provisioningu — a zamkniecie go zamienia kazda
+        // pomylke w przypisaniu roli wlascicielowi w trwale zablokowana firme bez wyjscia.
+        // Interfejs i tak pokazuje przycisk tylko osobie, ktora moze cokolwiek skonfigurowac.
         group.MapPost("/complete", async (
             ClaimsPrincipal user,
             IKonfiguracjaStartowaService konfiguracja,
