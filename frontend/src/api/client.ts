@@ -10,6 +10,39 @@ export function setTokenProvider(provider: () => string | undefined) {
   getAccessToken = provider;
 }
 
+const SCIEZKA_KREATORA = '/kreator';
+
+/**
+ * Buduje błąd z odpowiedzi i — dla firmy, która nie ukończyła kreatora pierwszego startu —
+ * przenosi do kreatora.
+ *
+ * Serwer odpowiada wtedy 409 z `errorCode: SETUP_REQUIRED` na każdym żądaniu poza białą listą.
+ * Bez tego przekierowania właściciel nowej firmy widzi rozsypaną aplikację: powłoka odpytuje
+ * branding i feature flags, dostaje 409 i nie ma jak dowiedzieć się, co zrobić.
+ *
+ * Twarde przejście zamiast nawigacji Reactem jest celowe — ten kod działa poza drzewem
+ * routera, a kreator i tak renderuje się poza MainLayout, więc nie ma czego zachowywać.
+ */
+async function bladZOdpowiedzi(response: Response): Promise<ApiError> {
+  const tresc = await response.json().catch(() => ({ message: response.statusText }));
+
+  const kod = (tresc as { errorCode?: string })?.errorCode;
+  if (
+    response.status === 409 &&
+    kod === 'SETUP_REQUIRED' &&
+    typeof window !== 'undefined' &&
+    !window.location.pathname.startsWith(SCIEZKA_KREATORA)
+  ) {
+    window.location.assign(SCIEZKA_KREATORA);
+  }
+
+  return new ApiError(
+    response.status,
+    tresc.message ?? tresc.detail ?? tresc.title ?? response.statusText,
+    tresc,
+  );
+}
+
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { body, headers: customHeaders, ...rest } = options;
 
@@ -29,10 +62,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     body: body ? JSON.stringify(body) : undefined,
   });
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: response.statusText }));
-    throw new ApiError(response.status, error.message ?? error.detail ?? error.title ?? response.statusText, error);
-  }
+  if (!response.ok) throw await bladZOdpowiedzi(response);
 
   if (response.status === 204) {
     return undefined as T;
@@ -68,12 +98,9 @@ export const api = {
       body: formData,
     });
 
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: response.statusText }));
-      // Backend zwraca ProblemDetails z polem `detail` — bez tego użytkownik dostawał samo
-      // „Nie udało się” zamiast konkretnej przyczyny (np. niedozwolone rozszerzenie pliku).
-      throw new ApiError(response.status, error.message ?? error.detail ?? error.title ?? response.statusText, error);
-    }
+    // Backend zwraca ProblemDetails z polem `detail` — bez tego użytkownik dostawał samo
+    // „Nie udało się” zamiast konkretnej przyczyny (np. niedozwolone rozszerzenie pliku).
+    if (!response.ok) throw await bladZOdpowiedzi(response);
 
     if (response.status === 204) return undefined as T;
     return response.json() as Promise<T>;
@@ -84,10 +111,7 @@ export const api = {
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
     const response = await fetch(`${API_BASE}${path}`, { method: 'GET', headers });
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({}));
-      throw new ApiError(response.status, error.message ?? error.detail ?? error.title ?? response.statusText, error);
-    }
+    if (!response.ok) throw await bladZOdpowiedzi(response);
     return response.blob();
   },
 };

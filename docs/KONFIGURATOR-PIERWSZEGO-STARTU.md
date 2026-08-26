@@ -211,9 +211,9 @@ Każdy z tych warunków to jedno zapytanie do bazy i każdy odpowiada realnej pu
 |---|---|---|---|
 | 1 | ✅ **Wykonane 2026-08-24** — seedery `Leave`/`Task`/`Workflow` na per-najemcę, wołane z `TenantProvisioningService` | ~2 h | Bez tego kreator jest jedyną drogą do działającej firmy |
 | 2 | ✅ **Wykonane 2026-08-24** — stan konfiguracji + `GET /api/setup/state` + `POST /api/setup/complete` + blokada `SETUP_REQUIRED` z białą listą i testami | ~2 h | Szkielet, na którym wiszą ekrany |
-| 3 | Ekran 1 (ludzie) — na istniejącym imporcie CSV | 1–2 dni | Najcięższy i najważniejszy krok |
-| 4 | Ekrany 2 i 3 (godziny, akceptacje) | 2 dni | |
-| 5 | Ekran 4 (podsumowanie „ustawiliśmy za Ciebie") | 0,5 dnia | Tani, a robi najwięcej dla zaufania |
+| 3 | ✅ **Wykonane 2026-08-26** — ekran 1 (ludzie), na istniejącym parserze CSV | | Najcięższy i najważniejszy krok |
+| 4 | ✅ **Wykonane 2026-08-26** — ekrany 2 i 3 (godziny, akceptacje) | | |
+| 5 | ✅ **Wykonane 2026-08-26** — ekran 4 (podsumowanie „ustawiliśmy za Ciebie") | | Tani, a robi najwięcej dla zaufania |
 | 6 | Ekran „firma w trakcie konfiguracji" dla pracowników | 0,5 dnia | |
 | 7 | Etap 2 — lista konfiguracji w panelu admina | 2 dni | Po MVP |
 | 8 | Etap 3b — kontrola stanu „co jeszcze nie zadziała" | 2 dni | Największa wartość z rozbudowy |
@@ -247,6 +247,22 @@ Stan jest cache'owany w pamięci na minutę: czytamy go przy **każdym** żądan
 - 11 tras krytycznych sprawdzanych z osobna, każda z powodem w treści testu (`/api/setup/*` — bo inaczej kreatora nie da się ukończyć; `/api/auth/me` — bo interfejs nie odczyta uprawnień; `/api/hub/*` i `/sso/*` — bo to odcina logowanie; `/api/billing/webhook`; `/health`; `/hubs`; `/`).
 - Bramka odwrotna: gdyby ktoś rozszerzył listę o zbyt ogólny prefiks (np. `/api`), blokada przestałaby chronić cokolwiek, a testy pojedynczych tras by tego nie zauważyły. Dlatego osobny test liczy trasy z `EndpointDataSource` i wymaga, żeby przepuszczana była mniejszość.
 - Trzy testy zachowania: firma bez znacznika nigdy nie dostaje 409; firma z nieukończoną konfiguracją dostaje 409 z kodem; kreator działa mimo blokady i po `POST /api/setup/complete` reszta aplikacji odpowiada normalnie.
+
+### ✅ Kroki 3–5 wykonane 2026-08-26 — MVP kreatora działa
+
+Backend: `POST /api/setup/employees`, `/working-hours`, `/approvals` plus `GET /api/setup/employees`. Ten ostatni **musi** żyć pod `/api/setup`, bo ekran akceptantów potrzebuje listy pracowników, a `/api/org/employees` jest za blokadą. Lista jest okrojona (identyfikator, imię, nazwisko, e-mail) — pełne `EmployeeDto` niesie stawkę godzinową, a kreator nie ma powodu jej pokazywać.
+
+**Ryzyko z §8 rozbrojone.** `ImportEmployeesCommand` i `CreateEmployeeCommand` dostały flagę `ZapraszajDoHuba`, domyślnie `true`, żeby nie zmienić zachowania panelu administratora. Kreator przekazuje `false` i pyta osobno przełącznikiem „wyślij zaproszenia od razu”. Trzy testy jednostkowe pilnują obu stron tej decyzji — że kreator nie zaprasza i że panel nadal zaprasza.
+
+**Wznawialność:** `setup.current_step` i `setup.skipped_steps` w `cfg_tenant_configs`, `GET /state` zwraca `aktualnyKrok`, `pominieteKroki` i listę kroków. Kreator wraca na krok następny po ostatnim zapisanym.
+
+Front: `frontend/src/pages/setup/KreatorStartuPage.tsx`, zamontowany w `App.tsx` **poza `AppRoutes`**, obok `/kiosk` — z dokładnie tego powodu, który przewidywał ten dokument. Klient API (`frontend/src/api/client.ts`) łapie `409` z `errorCode: SETUP_REQUIRED` i przenosi na `/kreator`; trzy testy pilnują, żeby nie przenosił, gdy już tam jesteśmy (pętla przeładowań), i żeby nie reagował na zwykły konflikt 409.
+
+Ekran „ludzie” korzysta z istniejących `odczytajCsv`/`parseCsv`/`parsujDateZatrudnienia`, więc obsługa Windows-1250 i polskich formatów daty przychodzi za darmo. Kolumny rozpoznaje po nagłówkach; gdy ich nie znajdzie, mówi wprost, żeby dodać osoby ręcznie albo użyć pełnego importu po zakończeniu kreatora — zamiast udawać, że rozumie plik.
+
+**Czego nadal nie ma:** kroku 6, czyli ekranu „firma w trakcie konfiguracji” dla pracownika, który zaloguje się przed ukończeniem kreatora przez właściciela. Dziś taki pracownik zobaczy ten sam kreator co właściciel — do poprawienia przed pierwszym wdrożeniem u firmy wieloosobowej.
+
+### Stan po kroku 2 (zapis historyczny)
 
 **Czego jeszcze nie ma:** samych kroków kreatora (`POST /api/setup/employees`, `/working-hours`, `/approvals`) i strony we froncie. Front musi łapać `SETUP_REQUIRED` i przenosić do kreatora, a sam kreator renderować się **poza `MainLayout`** — tak jak `KioskPage` — bo powłoka aplikacji odpytuje trasy, które blokada odcina.
 

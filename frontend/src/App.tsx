@@ -48,6 +48,7 @@ const DashboardPage = lazy(() => import('@/pages/DashboardPage').then((m) => ({ 
 const WorkspacePage = lazy(() => import('@/pages/WorkspacePage').then((m) => ({ default: m.WorkspacePage })));
 const PomocPage = lazy(() => import('@/pages/PomocPage').then((m) => ({ default: m.PomocPage })));
 const KioskPage = lazy(() => import('@/pages/KioskPage').then((m) => ({ default: m.KioskPage })));
+const KreatorStartuPage = lazy(() => import('@/pages/setup/KreatorStartuPage').then((m) => ({ default: m.KreatorStartuPage })));
 const DocumentListPage = lazy(() => import('@/pages/documents/DocumentListPage').then((m) => ({ default: m.DocumentListPage })));
 const DocumentCategoriesPage = lazy(() => import('@/pages/documents/DocumentCategoriesPage').then((m) => ({ default: m.DocumentCategoriesPage })));
 const WorkflowBuilderPage = lazy(() => import('@/pages/workflow/WorkflowBuilderPage').then((m) => ({ default: m.WorkflowBuilderPage })));
@@ -181,6 +182,17 @@ function App() {
               <Route path="/auth/callback" element={<AuthCallbackPage />} />
               <Route path="/auth/sso-bridge" element={<SsoBridgePage />} />
               <Route path="/logged-out" element={<LoggedOutPage />} />
+              {/* Poza AppRoutes z tego samego powodu co kiosk: MainLayout odpytuje branding
+                  i feature flags, ktorych biala lista bramki nie przepuszcza, wiec powloka
+                  pod blokada sypalaby sie na 409 przy kazdym wejsciu. */}
+              <Route
+                path="/kreator"
+                element={
+                  <ProtectedRoute>
+                    <KreatorStartuPage />
+                  </ProtectedRoute>
+                }
+              />
               <Route
                 path="/kiosk"
                 element={

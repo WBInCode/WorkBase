@@ -91,6 +91,17 @@ export const SEKCJE_POMOCY: readonly SekcjaPomocy[] = [
         wymaga: ['dashboard.view'],
       },
       {
+        id: 'kreator-pierwszego-startu',
+        pytanie: 'Czym jest kreator pierwszego startu?',
+        odpowiedz: [
+          'Nowa firma po nadaniu licencji przechodzi krótki kreator: trzy pytania o to, kto tu pracuje, w jakich godzinach i kto akceptuje wnioski.',
+          'Każde pytanie ma odpowiedź domyślną, więc „Dalej, Dalej, Dalej, Zacznij” daje działającą firmę jednoosobową w minutę. To poprawny sposób przejścia, nie obejście.',
+          'Kreator można przerwać — po ponownym zalogowaniu wraca w to samo miejsce, w którym został zamknięty.',
+        ],
+        uwaga:
+          'Firma działa, zanim ktokolwiek dotknie kreatora: typy urlopów, statusy zadań i obiegi akceptacji są zakładane automatycznie przy tworzeniu firmy. Kreator służy do ich potwierdzenia i uzupełnienia, a nie do uruchomienia systemu.',
+      },
+      {
         id: 'dlaczego-nie-widze',
         pytanie: 'Dlaczego nie widzę niektórych pozycji w menu?',
         odpowiedz: [
@@ -546,6 +557,16 @@ export const SEKCJE_POMOCY: readonly SekcjaPomocy[] = [
           'Zaraz po utworzeniu warto ustawić jednostkę, stanowisko i przełożonego. Bez przełożonego wnioski urlopowe tej osoby nie będą miały adresata.',
         ],
         wymaga: ['org.create'],
+      },
+      {
+        id: 'zaproszenia-przy-dodawaniu',
+        pytanie: 'Kiedy pracownik dostaje zaproszenie do logowania?',
+        odpowiedz: [
+          'Dodanie pracownika w Ustawieniach — pojedynczo albo importem — od razu kolejkuje zaproszenie do platformy WB, na adres podany w kartotece.',
+          'Wyjątkiem jest kreator pierwszego startu: tam zaproszenia są domyślnie wyłączone, a wysyłkę włącza się osobnym przełącznikiem. Chodzi o to, żeby import kilkudziesięciu osób nie rozesłał kilkudziesięciu zaproszeń, zanim ktokolwiek sprawdzi poprawność listy.',
+        ],
+        uwaga:
+          'Zaproszenie zakłada konto na platformie, a nie tylko w WorkBase — dlatego warto najpierw obejrzeć zaimportowaną listę, a dopiero potem zapraszać.',
       },
       {
         id: 'import-csv',

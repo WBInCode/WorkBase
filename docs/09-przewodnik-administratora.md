@@ -234,9 +234,11 @@ Plik do sprawdzenia całej ścieżki: [`docs/przyklady/import-pracownikow-przykl
 
 ### Nowa firma zaraz po nadaniu licencji
 
-Firma zakładana przez WB Platform dostaje komplet do pracy od razu: role, strukturę, rodzaje nieobecności, statusy i priorytety zadań oraz obiegi akceptacji wniosku urlopowego i zadania.
+Firma zakładana przez WB Platform dostaje komplet do pracy od razu: role, strukturę, rodzaje nieobecności, statusy i priorytety zadań oraz obiegi akceptacji wniosku urlopowego, zadania i wniosku ogólnego.
 
 Do uzupełnienia pozostają trzy rzeczy, których system nie zgadnie: lista pracowników, godziny pracy (szablon grafiku) oraz wskazanie przełożonych. Bez tego ostatniego wnioski urlopowe nie mają akceptanta — patrz niżej.
+
+**Właściciel nowej firmy przechodzi te trzy rzeczy w kreatorze pierwszego startu**, który uruchamia się sam przy pierwszym zalogowaniu i nie wymaga niczego od administratora platformy.
 
 ### Wnioski urlopowe nie trafiają do nikogo
 
@@ -244,7 +246,28 @@ Najczęściej brakuje wskazania przełożonego w karcie pracownika. Druga możli
 
 ---
 
-## 9. Kolejność przy wdrożeniu nowej firmy
+## 9. Kreator pierwszego startu
+
+Nowa firma jest do czasu ukończenia kreatora **zablokowana**: API odpowiada `409` z kodem `SETUP_REQUIRED` na wszystkim poza samym kreatorem, logowaniem i webhookami, a interfejs przenosi użytkownika do `/kreator`. Blokada dotyczy **wyłącznie firm zakładanych od tej wersji** — firmy istniejące wcześniej nigdy nie dostają znacznika i kreator ich nie zatrzyma.
+
+Cztery ekrany, trzy pytania:
+
+| Ekran | Pytanie | Domyślnie | Co powstaje |
+|---|---|---|---|
+| 1 | Kto tu pracuje? | „na razie tylko ja" | pracownicy (plik CSV, ręcznie albo nikt) |
+| 2 | W jakich godzinach? | pn–pt 8:00–16:00, przerwa 30 min niepłatna | szablon grafiku + polityka przerw |
+| 3 | Kto akceptuje wnioski? | krok do pominięcia | relacje przełożonych |
+| 4 | Podsumowanie | — | lista „co ustawiliśmy za Ciebie" |
+
+Każde pytanie ma odpowiedź domyślną, więc „Dalej, Dalej, Dalej, Zacznij" daje działającą firmę jednoosobową. Kreator jest **wznawialny**: zamknięcie przeglądarki na kroku 2 wraca po zalogowaniu na krok 2, nie na początek.
+
+**Zaproszenia w kreatorze są domyślnie wyłączone.** Dodanie pracownika w Ustawieniach kolejkuje zaproszenie do platformy WB od razu; w kreatorze wysyłkę włącza się osobnym przełącznikiem, żeby import kilkudziesięciu osób nie rozesłał kilkudziesięciu zaproszeń przed sprawdzeniem listy.
+
+Kreator jest cienką warstwą nad tymi samymi komendami, których używają ekrany administracyjne — nie tworzy danych własną ścieżką. Co za tym idzie: wszystko, co ustawi, da się później zmienić normalnie w Ustawieniach.
+
+---
+
+## 10. Kolejność przy wdrożeniu nowej firmy
 
 1. Sprawdź, które moduły obejmuje plan, we Flagach funkcjonalności.
 2. Zdefiniuj **typy jednostek** i **stanowiska**, bo bez nich nie da się zbudować struktury.
