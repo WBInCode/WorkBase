@@ -15,6 +15,7 @@ import {
   EmployeeActivityTimeline,
   EmployeeTerminySection,
 } from '@/components/EmployeeCard';
+import { DokumentyEncji } from '@/components/Documents';
 import { useIsMobile } from '@/shared';
 import { colors } from '@/theme/tokens';
 
@@ -156,6 +157,10 @@ export function EmployeeCardPage() {
           />
 
           <EmployeeTerminySection employeeId={employee.id} />
+
+          {/* Karta zadania celowo tego NIE dostaje: ma juz wlasne zalaczniki (TaskAttachment),
+              wiec dokumenty encji bylyby tam drugim mechanizmem plikow na jednym ekranie. */}
+          <DokumentyEncji entityType="employee" entityId={employee.id} tytul="Dokumenty pracownika" />
         </div>
       </div>
     </div>

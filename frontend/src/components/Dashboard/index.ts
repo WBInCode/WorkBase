@@ -3,3 +3,4 @@ export { TaskSummaryWidget } from './TaskSummaryWidget';
 export { PendingApprovalsWidget } from './PendingApprovalsWidget';
 export { AlertsWidget } from './AlertsWidget';
 export { PanelUwagi } from './PanelUwagi';
+export { NieobecniDzis } from './NieobecniDzis';

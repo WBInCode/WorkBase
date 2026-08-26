@@ -7,6 +7,7 @@ import {
   PendingApprovalsWidget,
   AlertsWidget,
   PanelUwagi,
+  NieobecniDzis,
 } from '@/components/Dashboard';
 import { useIsMobile } from '@/shared';
 import { colors } from '@/theme/tokens';
@@ -98,7 +99,8 @@ export function DashboardPage() {
           value={isLoading || !data ? '…' : String(data.anomalies.newAnomalies)}
           sub={data ? `${data.anomalies.reviewedThisWeek} sprawdzonych w tym tyg.` : undefined}
           tone={data && data.anomalies.newAnomalies > 0 ? 'danger' : 'success'}
-          onClick={() => navigate('/time/team-report')}
+          // Prowadzil do raportu zespolu, na ktorym anomalii nie da sie rozpatrzyc.
+          onClick={() => navigate('/time/anomalie')}
         />
       </div>
 
@@ -115,6 +117,7 @@ export function DashboardPage() {
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', minWidth: 0 }}>
           <PendingApprovalsWidget data={data?.leave} isLoading={isLoading} />
+          <NieobecniDzis />
           <AlertsWidget data={data?.anomalies} isLoading={isLoading} />
         </div>
       </div>
