@@ -86,6 +86,8 @@ Szczegóły: [`docs/06-hub-company-provisioning.md`](06-hub-company-provisioning
 
 ## 4. Produkcja
 
+Kopie zapasowe, obserwator dostępności i to, czego w utrzymaniu brakuje: **[`OPERACJE.md`](OPERACJE.md)**.
+
 ```
 VPS: ssh wbvps  (51.83.202.86, Debian 12)
 Katalog:  /opt/wb/workbase/{docker-compose.yml, src/, COMMIT}
