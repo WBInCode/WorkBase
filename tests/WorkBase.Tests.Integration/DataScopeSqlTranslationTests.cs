@@ -80,6 +80,46 @@ public sealed class DataScopeSqlTranslationTests : IAsyncLifetime
         Assert.Equal(DataScopeLevelValue.Department, wynik.Level);
     }
 
+    /// <summary>
+    /// Wypisanie widocznych pracownikow bez listy kandydatow — sciezka pulpitu.
+    /// </summary>
+    /// <remarks>
+    /// To jest dokladnie ta klasa bledu, dla ktorej powstal ten plik. Zapytania maja warunek
+    /// `ograniczDo == null || ograniczDo.Contains(...)`, gdzie `ograniczDo` jest kolekcja albo
+    /// nullem. Dostawca in-memory wykona taki warunek w pamieci i przepusci wszystko; Npgsql
+    /// musi go PRZETLUMACZYC. Bez tego testu pierwsze wejscie na pulpit na produkcji byloby
+    /// pierwszym uruchomieniem tego kodu przeciw prawdziwej bazie.
+    /// </remarks>
+    [Theory]
+    [InlineData(DataScopeLevel.Own)]
+    [InlineData(DataScopeLevel.Team)]
+    [InlineData(DataScopeLevel.Department)]
+    public async Task Wypisanie_widocznych_pracownikow_tlumaczy_sie_do_SQL(DataScopeLevel poziom)
+    {
+        if (_skip) return;
+
+        var user = await ArrangeUserWithScope(poziom);
+        var resolver = new EmployeeScopeResolver(_db, new MemoryCache(new MemoryCacheOptions()));
+
+        var widoczni = await resolver.GetVisibleEmployeeIdsAsync(user.Id, TenantId, EmployeeId, "leave");
+
+        // Zawezenie musi istniec i obejmowac przynajmniej pytajacego — null oznaczaloby
+        // „bez ograniczenia", czyli liczby calej firmy dla kogos, kto nie ma takiego zakresu.
+        Assert.NotNull(widoczni);
+        Assert.Contains(EmployeeId, widoczni!);
+    }
+
+    [Fact]
+    public async Task Zakres_calej_firmy_nie_odpytuje_bazy_i_zwraca_brak_ograniczenia()
+    {
+        if (_skip) return;
+
+        var user = await ArrangeUserWithScope(DataScopeLevel.Organization);
+        var resolver = new EmployeeScopeResolver(_db, new MemoryCache(new MemoryCacheOptions()));
+
+        Assert.Null(await resolver.GetVisibleEmployeeIdsAsync(user.Id, TenantId, EmployeeId, "leave"));
+    }
+
     [Fact]
     public void Oba_typy_poziomu_zakresu_maja_zgodne_wartosci_liczbowe()
     {
