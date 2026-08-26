@@ -7,7 +7,9 @@
     <meta name="description" content="WorkBase — system zarządzania pracownikami i czasem pracy" />
     <script src="/manifest-loader.js"></script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="apple-touch-icon" href="/pwa-192x192.svg" />
+    <!-- Safari IGNORUJE apple-touch-icon w SVG — Apple wymaga PNG. Osobny plik 180x180
+         bez kanalu alfa, bo iOS maskuje ikone sam, a przezroczyste rogi zamienia na czarne. -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="WorkBase" />
