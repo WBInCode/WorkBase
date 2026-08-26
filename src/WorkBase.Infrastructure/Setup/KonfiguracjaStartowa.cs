@@ -22,6 +22,28 @@ public static class KonfiguracjaStartowa
     /// <summary>Znacznik czasu ukonczenia kreatora. Jego brak przy KluczWymagana = blokada.</summary>
     public const string KluczUkonczona = "setup.completed_at";
 
+    /// <summary>Ostatni ukonczony krok kreatora — dzieki temu kreator jest wznawialny.</summary>
+    public const string KluczAktualnyKrok = "setup.current_step";
+
+    /// <summary>Kroki swiadomie pominiete, rozdzielone przecinkiem.</summary>
+    public const string KluczPominieteKroki = "setup.skipped_steps";
+
+    /// <summary>
+    /// Trzy pytania kreatora, w kolejnosci. Ekran powitalny i podsumowanie nie sa krokami,
+    /// bo nie zapadaja na nich zadne decyzje — nie ma czego wznawiac.
+    /// </summary>
+    public static class Kroki
+    {
+        public const string Ludzie = "ludzie";
+        public const string Godziny = "godziny";
+        public const string Akceptanci = "akceptanci";
+
+        public static readonly string[] WKolejnosci = [Ludzie, Godziny, Akceptanci];
+
+        public static bool Znany(string krok) =>
+            WKolejnosci.Contains(krok, StringComparer.OrdinalIgnoreCase);
+    }
+
     /// <summary>Kod bledu, po ktorym interfejs przenosi uzytkownika do kreatora.</summary>
     public const string KodBledu = "SETUP_REQUIRED";
 
@@ -62,8 +84,13 @@ public static class KonfiguracjaStartowa
 
         foreach (var prefiks in DostepneBezKonfiguracji)
         {
-            if (wartosc.StartsWith(prefiks, StringComparison.OrdinalIgnoreCase))
-                return true;
+            if (!wartosc.StartsWith(prefiks, StringComparison.OrdinalIgnoreCase)) continue;
+
+            // Granica segmentu jest istotna: samo StartsWith przepuscilo by "/api/setupowanie"
+            // czy "/api/authors", bo zaczynaja sie tak samo jak wpis z listy. Dzis takich tras
+            // nie ma, ale to jest lista, na ktorej pomylka otwiera aplikacje, nie zamyka.
+            var dalej = wartosc.Length > prefiks.Length ? wartosc[prefiks.Length] : '/';
+            if (dalej is '/' or '?') return true;
         }
 
         return false;

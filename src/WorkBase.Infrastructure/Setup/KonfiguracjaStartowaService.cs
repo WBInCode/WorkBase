@@ -3,7 +3,11 @@ using WorkBase.Shared.Domain;
 
 namespace WorkBase.Infrastructure.Setup;
 
-public sealed record StanKonfiguracji(bool Wymagana, DateTime? UkonczonaO)
+public sealed record StanKonfiguracji(
+    bool Wymagana,
+    DateTime? UkonczonaO,
+    string? AktualnyKrok = null,
+    IReadOnlyList<string>? PominieteKroki = null)
 {
     /// <summary>Prawda tylko wtedy, gdy firmie nalezy zablokowac reszte aplikacji.</summary>
     public bool BlokujeDostep => Wymagana && UkonczonaO is null;
@@ -15,6 +19,12 @@ public interface IKonfiguracjaStartowaService
 
     /// <summary>Wolane przy TWORZENIU firmy — nigdy przy ponownej synchronizacji.</summary>
     Task OznaczJakoWymaganaAsync(Guid tenantId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Zapisuje krok jako zalatwiony (albo swiadomie pominiety), zeby po zamknieciu
+    /// przegladarki kreator wrocil w to samo miejsce, a nie na poczatek.
+    /// </summary>
+    Task ZapiszKrokAsync(Guid tenantId, string krok, bool pominiety = false, CancellationToken ct = default);
 
     Task UkonczAsync(Guid tenantId, CancellationToken ct = default);
 }
@@ -37,10 +47,14 @@ public sealed class KonfiguracjaStartowaService(
 
         var wymagana = await konfiguracja.GetAsync(tenantId, KonfiguracjaStartowa.KluczWymagana, ct);
         var ukonczona = await konfiguracja.GetAsync(tenantId, KonfiguracjaStartowa.KluczUkonczona, ct);
+        var krok = await konfiguracja.GetAsync(tenantId, KonfiguracjaStartowa.KluczAktualnyKrok, ct);
+        var pominiete = await konfiguracja.GetAsync(tenantId, KonfiguracjaStartowa.KluczPominieteKroki, ct);
 
         var stan = new StanKonfiguracji(
             Wymagana: string.Equals(wymagana, "true", StringComparison.OrdinalIgnoreCase),
-            UkonczonaO: DateTime.TryParse(ukonczona, out var data) ? data : null);
+            UkonczonaO: DateTime.TryParse(ukonczona, out var data) ? data : null,
+            AktualnyKrok: string.IsNullOrWhiteSpace(krok) ? null : krok,
+            PominieteKroki: RozdzielKroki(pominiete));
 
         pamiec.Set(Klucz(tenantId), stan, CzasZycia);
         return stan;
@@ -51,6 +65,36 @@ public sealed class KonfiguracjaStartowaService(
         await konfiguracja.SetAsync(tenantId, KonfiguracjaStartowa.KluczWymagana, "true", ct);
         pamiec.Remove(Klucz(tenantId));
     }
+
+    public async Task ZapiszKrokAsync(
+        Guid tenantId, string krok, bool pominiety = false, CancellationToken ct = default)
+    {
+        if (!KonfiguracjaStartowa.Kroki.Znany(krok))
+            throw new ArgumentException($"Nieznany krok kreatora: '{krok}'.", nameof(krok));
+
+        await konfiguracja.SetAsync(tenantId, KonfiguracjaStartowa.KluczAktualnyKrok, krok, ct);
+
+        if (pominiety)
+        {
+            var obecne = RozdzielKroki(
+                await konfiguracja.GetAsync(tenantId, KonfiguracjaStartowa.KluczPominieteKroki, ct));
+            if (!obecne.Contains(krok, StringComparer.OrdinalIgnoreCase))
+            {
+                await konfiguracja.SetAsync(
+                    tenantId,
+                    KonfiguracjaStartowa.KluczPominieteKroki,
+                    string.Join(',', obecne.Append(krok)),
+                    ct);
+            }
+        }
+
+        pamiec.Remove(Klucz(tenantId));
+    }
+
+    private static IReadOnlyList<string> RozdzielKroki(string? wartosc) =>
+        string.IsNullOrWhiteSpace(wartosc)
+            ? []
+            : wartosc.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
     public async Task UkonczAsync(Guid tenantId, CancellationToken ct = default)
     {

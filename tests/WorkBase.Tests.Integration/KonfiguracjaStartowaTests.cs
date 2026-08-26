@@ -34,6 +34,9 @@ public class KonfiguracjaStartowaTests
     [Theory]
     [InlineData("/api/setup/state", "kreator nie dalby sie ukonczyc")]
     [InlineData("/api/setup/complete", "kreator nie dalby sie ukonczyc")]
+    [InlineData("/api/setup/employees", "krok 1 kreatora — kto tu pracuje")]
+    [InlineData("/api/setup/working-hours", "krok 2 kreatora — godziny pracy")]
+    [InlineData("/api/setup/approvals", "krok 3 kreatora — akceptanci")]
     [InlineData("/api/auth/me", "interfejs nie odczytalby uprawnien i firmy")]
     [InlineData("/api/hub/sso/callback", "logowanie z Huba przestaloby dzialac")]
     [InlineData("/api/hub/sso/logout", "wylogowanie z Huba przestaloby dzialac")]
@@ -58,6 +61,23 @@ public class KonfiguracjaStartowaTests
     public void Zwykle_trasy_aplikacji_sa_objete_blokada(string sciezka)
     {
         Assert.False(KonfiguracjaStartowa.SciezkaDostepnaBezKonfiguracji(new PathString(sciezka)));
+    }
+
+    /// <summary>
+    /// Prefiks musi konczyc sie na granicy segmentu. Samo StartsWith przepuscilo by trasy,
+    /// ktore tylko zaczynaja sie tak samo jak wpis z listy — a to jest lista, na ktorej
+    /// pomylka OTWIERA aplikacje, nie zamyka.
+    /// </summary>
+    [Theory]
+    [InlineData("/api/setupowanie")]
+    [InlineData("/api/authors")]
+    [InlineData("/api/hubert")]
+    [InlineData("/healthcheck-wewnetrzny")]
+    public void Trasa_o_podobnym_poczatku_nie_przechodzi_przez_biala_liste(string sciezka)
+    {
+        Assert.False(
+            KonfiguracjaStartowa.SciezkaDostepnaBezKonfiguracji(new PathString(sciezka)),
+            $"Trasa {sciezka} tylko zaczyna sie jak wpis z listy — nie moze byc przepuszczona");
     }
 
     /// <summary>
@@ -130,6 +150,64 @@ public class KonfiguracjaStartowaTests
         // podrecznej pamieci, bo ukonczenie ja czysci.
         var poZakonczeniu = await client.GetAsync("/api/org/employees");
         Assert.NotEqual(HttpStatusCode.Conflict, poZakonczeniu.StatusCode);
+    }
+
+    [Fact]
+    public async Task Kreator_pamieta_krok_po_zamknieciu_przegladarki()
+    {
+        var firma = Guid.NewGuid();
+        await OznaczJakoWymagana(firma);
+        using var client = KlientFirmy(firma);
+
+        // „Na razie tylko ja" — pusta lista jest poprawnym wyborem, nie bledem.
+        var krok1 = await client.PostAsJsonAsync("/api/setup/employees", new { pracownicy = Array.Empty<object>() });
+        Assert.Equal(HttpStatusCode.OK, krok1.StatusCode);
+
+        var stan = await client.GetFromJsonAsync<JsonElement>("/api/setup/state");
+
+        Assert.Equal("ludzie", stan.GetProperty("aktualnyKrok").GetString());
+        Assert.Contains(
+            "ludzie",
+            stan.GetProperty("pominieteKroki").EnumerateArray().Select(e => e.GetString()));
+
+        // Kreator nadal nie jest ukonczony — zapisanie kroku to nie to samo co zamkniecie.
+        Assert.False(stan.GetProperty("ukonczona").GetBoolean());
+        Assert.Equal(3, stan.GetProperty("kroki").GetArrayLength());
+    }
+
+    [Fact]
+    public async Task Godziny_pracy_bez_zadnego_wyboru_daja_domyslny_tydzien()
+    {
+        var firma = Guid.NewGuid();
+        await OznaczJakoWymagana(firma);
+        using var client = KlientFirmy(firma);
+
+        // Scenariusz „Dalej, Dalej, Dalej": pusty formularz ma dac dzialajaca firme,
+        // a nie blad walidacji.
+        var odpowiedz = await client.PostAsJsonAsync("/api/setup/working-hours", new { });
+        Assert.Equal(HttpStatusCode.OK, odpowiedz.StatusCode);
+
+        var tresc = await odpowiedz.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(1, tresc.GetProperty("szablonow").GetInt32());
+        Assert.Equal(30, tresc.GetProperty("przerwaMinut").GetInt32());
+
+        var stan = await client.GetFromJsonAsync<JsonElement>("/api/setup/state");
+        Assert.Equal("godziny", stan.GetProperty("aktualnyKrok").GetString());
+    }
+
+    [Fact]
+    public async Task Zmiana_konczaca_sie_przed_rozpoczeciem_jest_odrzucana()
+    {
+        var firma = Guid.NewGuid();
+        await OznaczJakoWymagana(firma);
+        using var client = KlientFirmy(firma);
+
+        var odpowiedz = await client.PostAsJsonAsync("/api/setup/working-hours", new
+        {
+            zmiany = new[] { new { nazwa = "Bez sensu", od = "16:00:00", @do = "08:00:00" } },
+        });
+
+        Assert.Equal(HttpStatusCode.BadRequest, odpowiedz.StatusCode);
     }
 
     private HttpClient KlientFirmy(Guid firma) => _factory.CreateAuthenticatedClient(

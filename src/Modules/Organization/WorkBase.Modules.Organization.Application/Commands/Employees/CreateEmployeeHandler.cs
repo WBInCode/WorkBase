@@ -27,14 +27,18 @@ public sealed class CreateEmployeeHandler(
             request.HireDate);
 
         await employeeRepository.AddAsync(employee, cancellationToken);
-        await accessProvisioningQueue.QueueInvitationAsync(
-            new EmployeeAccessInvitationRequest(
-                employee.TenantId,
-                employee.Id,
-                employee.Email,
-                employee.FirstName,
-                employee.LastName),
-            cancellationToken);
+
+        if (request.ZapraszajDoHuba)
+        {
+            await accessProvisioningQueue.QueueInvitationAsync(
+                new EmployeeAccessInvitationRequest(
+                    employee.TenantId,
+                    employee.Id,
+                    employee.Email,
+                    employee.FirstName,
+                    employee.LastName),
+                cancellationToken);
+        }
 
         return employee.Id;
     }

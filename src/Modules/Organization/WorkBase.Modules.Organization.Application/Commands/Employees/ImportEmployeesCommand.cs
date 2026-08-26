@@ -6,8 +6,15 @@ using WorkBase.Shared.Domain;
 
 namespace WorkBase.Modules.Organization.Application.Commands.Employees;
 
+/// <param name="ZapraszajDoHuba">
+/// Domyslnie <c>true</c>, zeby nie zmieniac zachowania dotychczasowych wywolan. Kreator
+/// pierwszego startu przekazuje <c>false</c>: import 40 osob rozeslalby 40 zaproszen w Hubie,
+/// czyli zapis w danych innego produktu, zanim wlasciciel zdazy cokolwiek sprawdzic.
+/// Zapraszanie jest wtedy osobna, swiadoma decyzja.
+/// </param>
 public sealed record ImportEmployeesCommand(
-    List<ImportEmployeeRow> Rows) : ICommand<ImportEmployeesResult>, ITenantRequest
+    List<ImportEmployeeRow> Rows,
+    bool ZapraszajDoHuba = true) : ICommand<ImportEmployeesResult>, ITenantRequest
 {
     public Guid TenantId { get; set; }
 }
@@ -51,14 +58,18 @@ public sealed class ImportEmployeesHandler(
                 request.TenantId, row.FirstName, row.LastName,
                 row.Email, row.EmployeeNumber, row.HireDate);
             await employeeRepository.AddAsync(employee, cancellationToken);
-            await accessProvisioningQueue.QueueInvitationAsync(
-                new EmployeeAccessInvitationRequest(
-                    employee.TenantId,
-                    employee.Id,
-                    employee.Email,
-                    employee.FirstName,
-                    employee.LastName),
-                cancellationToken);
+
+            if (request.ZapraszajDoHuba)
+            {
+                await accessProvisioningQueue.QueueInvitationAsync(
+                    new EmployeeAccessInvitationRequest(
+                        employee.TenantId,
+                        employee.Id,
+                        employee.Email,
+                        employee.FirstName,
+                        employee.LastName),
+                    cancellationToken);
+            }
             imported++;
         }
 
