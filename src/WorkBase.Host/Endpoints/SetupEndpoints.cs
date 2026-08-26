@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using WorkBase.Contracts;
 using WorkBase.Infrastructure.Setup;
 using WorkBase.Modules.Organization.Application.Commands.Employees;
 using WorkBase.Modules.Organization.Application.Queries.Employees;
@@ -80,6 +81,7 @@ public static class SetupEndpoints
             ClaimsPrincipal user,
             ISender sender,
             IKonfiguracjaStartowaService konfiguracja,
+            IKeycloakAdminService keycloak,
             CancellationToken ct) =>
         {
             var tenantId = user.GetTenantId();
@@ -95,15 +97,23 @@ public static class SetupEndpoints
             // zapisujemy jako pominiety, zeby ekran podsumowania mogl o tym powiedziec.
             if (wiersze.Count == 0)
             {
+                var kartotekaSam = await ZadbajOKartotekeWlascicielaAsync(user, sender, keycloak, ct);
                 await konfiguracja.ZapiszKrokAsync(
                     tenantId.Value, KonfiguracjaStartowa.Kroki.Ludzie, pominiety: true, ct);
-                return Results.Ok(new { dodani = 0, pominieci = 0, bledy = Array.Empty<string>() });
+                return Results.Ok(new
+                {
+                    dodani = 0,
+                    pominieci = 0,
+                    bledy = Array.Empty<string>(),
+                    kartotekaWlasciciela = kartotekaSam,
+                });
             }
 
             var wynik = await sender.Send(
                 new ImportEmployeesCommand(wiersze, ZapraszajDoHuba: body.ZaprosicTeraz), ct);
             if (!wynik.IsSuccess) return wynik.ToHttpResult();
 
+            var kartoteka = await ZadbajOKartotekeWlascicielaAsync(user, sender, keycloak, ct);
             await konfiguracja.ZapiszKrokAsync(tenantId.Value, KonfiguracjaStartowa.Kroki.Ludzie, ct: ct);
 
             return Results.Ok(new
@@ -111,6 +121,7 @@ public static class SetupEndpoints
                 dodani = wynik.Value.Imported,
                 pominieci = wynik.Value.Skipped,
                 bledy = wynik.Value.Errors,
+                kartotekaWlasciciela = kartoteka,
             });
         })
         .WithName("KreatorDodajPracownikow")
@@ -230,6 +241,66 @@ public static class SetupEndpoints
         .WithSummary("Oznacza konfigurację pierwszego startu jako ukończoną");
 
         return endpoints;
+    }
+
+    /// <summary>
+    /// Zapewnia wlascicielowi kartoteke pracownika i wpisuje jej identyfikator do Keycloaka.
+    /// </summary>
+    /// <remarks>
+    /// Wlasciciel loguje sie z Huba i dostaje konto uzytkownika, ale NIE kartoteke pracownika.
+    /// SSO dopasowuje kartoteke po adresie e-mail (HubEmployeeIdentityLinker), wiec dopoki jej
+    /// nie ma, token nie niesie employee_id — a bez tego claimu nie da sie zarejestrowac czasu
+    /// pracy ani zlozyc wniosku urlopowego. Wariant „na razie tylko ja" obiecywal dzialajaca
+    /// firme jednoosobowa i tej obietnicy nie dotrzymywal: wyszlo to dopiero przy przejsciu
+    /// onboardingu od zera na produkcji.
+    ///
+    /// Atrybut w Keycloaku ustawiamy od razu (scalanie, nie nadpisanie), zeby claim pojawil sie
+    /// po odswiezeniu tokenu, a nie dopiero przy kolejnym przejsciu przez handoff z Huba.
+    /// Kreator konczy sie ponownym logowaniem wlasnie po to.
+    /// </remarks>
+    private static async Task<Guid?> ZadbajOKartotekeWlascicielaAsync(
+        ClaimsPrincipal user,
+        ISender sender,
+        IKeycloakAdminService keycloak,
+        CancellationToken ct)
+    {
+        var email = user.FindFirstValue("email");
+        if (string.IsNullOrWhiteSpace(email)) return null;
+
+        var znalezione = await sender.Send(new GetEmployeesQuery(email, null, null, Page: 1, PageSize: 5), ct);
+        var istniejaca = znalezione.IsSuccess
+            ? znalezione.Value.Items.FirstOrDefault(o => string.Equals(o.Email, email, StringComparison.OrdinalIgnoreCase))
+            : null;
+
+        Guid employeeId;
+        if (istniejaca is not null)
+        {
+            employeeId = istniejaca.Id;
+        }
+        else
+        {
+            var utworzenie = await sender.Send(new CreateEmployeeCommand(
+                user.FindFirstValue("given_name") ?? "Wlasciciel",
+                user.FindFirstValue("family_name") ?? "firmy",
+                email,
+                EmployeeNumber: null,
+                HireDate: DateTime.UtcNow.Date,
+                // Bez zaproszenia: wlasciciel wlasnie jest zalogowany, wiec konto ma.
+                ZapraszajDoHuba: false), ct);
+            if (!utworzenie.IsSuccess) return null;
+            employeeId = utworzenie.Value;
+        }
+
+        var sub = user.FindFirstValue("sub");
+        if (!string.IsNullOrWhiteSpace(sub))
+        {
+            await keycloak.SetUserAttributesAsync(
+                sub,
+                new Dictionary<string, string> { ["employee_id"] = employeeId.ToString() },
+                ct);
+        }
+
+        return employeeId;
     }
 
     private static readonly int[] DomyslneDniRobocze = [1, 2, 3, 4, 5];

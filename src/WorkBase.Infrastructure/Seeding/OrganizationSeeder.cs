@@ -31,6 +31,12 @@ public static class OrganizationSeeder
     /// Creates the minimal editable organization structure for a newly provisioned tenant.
     /// Existing roots are never replaced; roots created here are identified by code ROOT.
     /// </summary>
+    private static readonly (string Nazwa, string Opis, bool Kierownicze)[] DomyslneStanowiska =
+    [
+        ("Pracownik", "Stanowisko podstawowe", false),
+        ("Kierownik", "Stanowisko kierownicze — otwiera zakres danych działu", true),
+    ];
+
     public static async Task SeedTenantStructureAsync(
         WorkBaseDbContext dbContext,
         Guid tenantId,
@@ -57,6 +63,27 @@ public static class OrganizationSeeder
         var companyType = EnsureType("Firma", "Główna jednostka organizacyjna", 1);
         EnsureType("Dział", "Dział organizacyjny", 2);
         EnsureType("Zespół", "Zespół roboczy", 3);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        // Stanowiska MUSZA byc zakladane przed obsluga korzenia, bo ponizej jest wczesny return
+        // dla firm, ktore korzen juz maja — inaczej istniejace firmy nigdy by ich nie dostaly.
+        //
+        // Dwa wystarcza i wiecej byloby narzucaniem firmie struktury. Chodzi o jedna rzecz:
+        // IsManagerial na stanowisku steruje zakresem danych „Dzial" (EmployeeScopeResolver
+        // liczy jednostki, w ktorych uzytkownik zajmuje stanowisko kierownicze). Bez ani jednego
+        // stanowiska kierowniczego ten zakres nie ma z czego powstac i nikt nigdy nie zobaczy
+        // danych swojego dzialu — co wyszlo dopiero przy przejsciu onboardingu od zera.
+        var stanowiska = await dbContext.Set<Position>()
+            .IgnoreQueryFilters()
+            .Where(position => position.TenantId == tenantId)
+            .Select(position => position.Name)
+            .ToListAsync(cancellationToken);
+
+        foreach (var (nazwa, opis, kierownicze) in DomyslneStanowiska)
+        {
+            if (stanowiska.Contains(nazwa)) continue;
+            dbContext.Set<Position>().Add(Position.Create(tenantId, nazwa, opis, isManagerial: kierownicze));
+        }
         await dbContext.SaveChangesAsync(cancellationToken);
 
         var root = await dbContext.Set<OrganizationUnit>()

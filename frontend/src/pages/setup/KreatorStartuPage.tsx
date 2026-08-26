@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useAuth } from 'react-oidc-context';
 import { Check, ChevronRight, Loader2, Users, Clock, UserCheck, Sparkles, Hourglass } from 'lucide-react';
 import {
   useStanKreatora,
@@ -41,6 +42,17 @@ export function KreatorStartuPage() {
   const idz = (nr: number) => setEkran(Math.max(0, Math.min(4, nr)));
 
   if (isLoading || !znane) {
+    return (
+      <Tlo>
+        <Loader2 size={22} style={{ color: colors.primary[600], animation: 'spin 1s linear infinite' }} />
+      </Tlo>
+    );
+  }
+
+  // Po ponownym zalogowaniu wracamy na adres, z ktorego wyszlismy — czyli tutaj. Kreator
+  // jest juz wtedy domkniety i nie ma czego pokazywac.
+  if (stan?.ukonczona) {
+    window.location.replace('/');
     return (
       <Tlo>
         <Loader2 size={22} style={{ color: colors.primary[600], animation: 'spin 1s linear infinite' }} />
@@ -622,15 +634,19 @@ const USTAWIONE_ZA_CIEBIE = [
 
 function EkranPodsumowanie({ wstecz }: { wstecz: () => void }) {
   const zakoncz = useZakonczKreator();
+  const auth = useAuth();
   const [blad, setBlad] = useState<string | null>(null);
 
   const zacznij = async () => {
     setBlad(null);
     try {
       await zakoncz.mutateAsync();
-      // Twarde przejście: powłoka aplikacji nie była dotąd montowana pod blokadą, więc
-      // najprościej wejść do niej od zera, z czystym stanem zapytań.
-      window.location.assign('/');
+      // Ponowne logowanie, a nie zwykłe przejście na stronę główną. Kartoteka pracownika
+      // właściciela powstaje dopiero w kreatorze, a identyfikator trafia do tokenu z atrybutu
+      // w Keycloaku — token wydany przed konfiguracją go nie ma. Bez odświeżenia właściciel
+      // wszedłby do gotowej firmy i nie mógł zarejestrować czasu ani złożyć wniosku.
+      // Sesja w Keycloaku jest aktywna, więc dla użytkownika to samo przekierowanie.
+      await auth.signinRedirect();
     } catch (e) {
       setBlad(e instanceof Error ? e.message : 'Nie udało się zakończyć konfiguracji.');
     }
@@ -639,6 +655,11 @@ function EkranPodsumowanie({ wstecz }: { wstecz: () => void }) {
   return (
     <>
       <Naglowek tytul="Gotowe" opis="Firma jest skonfigurowana. Poniższe rzeczy ustawiliśmy za Ciebie — każdą zmienisz w Ustawieniach." />
+
+      <p style={{ margin: '0 0 14px', fontSize: 13, color: 'var(--wb-ink-2, #6b7490)' }}>
+        Po kliknięciu przelogujemy Cię w tle — to potrwa moment i jest potrzebne, żebyś od razu
+        mógł rejestrować czas pracy i składać wnioski.
+      </p>
 
       <ul style={{ margin: '0 0 4px', padding: 0, listStyle: 'none', display: 'grid', gap: 8 }}>
         {USTAWIONE_ZA_CIEBIE.map((pozycja) => (

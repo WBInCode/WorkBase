@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using WorkBase.Infrastructure.Persistence;
 using WorkBase.Infrastructure.Seeding;
 using WorkBase.Modules.Leave.Domain.Entities;
+using WorkBase.Modules.Organization.Domain.Entities;
 using WorkBase.Modules.Tasks.Domain.Entities;
 using WorkBase.Modules.Workflow.Domain.Entities;
 using Xunit;
@@ -141,6 +142,52 @@ public class SlownikiNowejFirmyTests
 
         Assert.Equal(4, await Policz<LeaveType>(db, pierwsza));
         Assert.Equal(0, await Policz<LeaveType>(db, druga));
+    }
+
+    /// <summary>
+    /// Bez ani jednego stanowiska kierowniczego zakres danych „Dzial" nie ma z czego powstac:
+    /// EmployeeScopeResolver liczy jednostki, w ktorych uzytkownik zajmuje stanowisko
+    /// z IsManagerial. Nowa firma nie dostawala zadnych stanowisk, wiec nikt nigdy nie
+    /// zobaczylby danych swojego dzialu — wyszlo przy przejsciu onboardingu od zera.
+    /// </summary>
+    [Fact]
+    public async Task Nowa_firma_dostaje_stanowisko_kierownicze_bo_bez_niego_nie_ma_zakresu_dzialu()
+    {
+        await using var db = UtworzBaze();
+        var firma = Guid.NewGuid();
+
+        await OrganizationSeeder.SeedTenantStructureAsync(db, firma, "Firma Testowa", NullLogger.Instance);
+
+        var stanowiska = await db.Set<Position>().IgnoreQueryFilters()
+            .Where(p => p.TenantId == firma)
+            .ToListAsync();
+
+        Assert.Equal(2, stanowiska.Count);
+        Assert.Contains(stanowiska, p => p.IsManagerial);
+        Assert.Contains(stanowiska, p => !p.IsManagerial);
+    }
+
+    /// <summary>
+    /// Stanowiska zakladamy PRZED obsluga korzenia struktury, bo tam jest wczesny return dla
+    /// firm, ktore korzen juz maja. Gdyby kolejnosc byla odwrotna, firmy zalozone wczesniej
+    /// nigdy by stanowisk nie dostaly — a ten seeder wykonuje sie przy kazdej synchronizacji
+    /// z Hubem wlasnie po to, zeby uzupelniac braki.
+    /// </summary>
+    [Fact]
+    public async Task Firma_z_istniejacym_korzeniem_tez_dostaje_brakujace_stanowiska()
+    {
+        await using var db = UtworzBaze();
+        var firma = Guid.NewGuid();
+
+        await OrganizationSeeder.SeedTenantStructureAsync(db, firma, "Firma Testowa", NullLogger.Instance);
+        db.Set<Position>().RemoveRange(db.Set<Position>().IgnoreQueryFilters().Where(p => p.TenantId == firma));
+        await db.SaveChangesAsync();
+        Assert.Equal(0, await Policz<Position>(db, firma));
+
+        // Druga synchronizacja — korzen juz istnieje, wiec seeder idzie sciezka wczesnego wyjscia.
+        await OrganizationSeeder.SeedTenantStructureAsync(db, firma, "Firma Testowa", NullLogger.Instance);
+
+        Assert.Equal(2, await Policz<Position>(db, firma));
     }
 
     private static Task<int> Policz<T>(WorkBaseDbContext db, Guid firma) where T : class
