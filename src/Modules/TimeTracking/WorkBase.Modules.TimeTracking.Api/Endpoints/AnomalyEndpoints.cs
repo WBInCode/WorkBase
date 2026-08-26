@@ -13,6 +13,9 @@ namespace WorkBase.Modules.TimeTracking.Api.Endpoints;
 
 public static class AnomalyEndpoints
 {
+    private const string PodgladZespolu = "time.view-team";
+    private const string ModulZakresu = "time";
+
     public static IEndpointRouteBuilder MapAnomalyEndpoints(this IEndpointRouteBuilder endpoints)
     {
         var group = endpoints.MapGroup("/api/time/anomalies")
@@ -42,15 +45,36 @@ public static class AnomalyEndpoints
         return endpoints;
     }
 
+    /// <summary>
+    /// Lista anomalii, zawezona do zakresu danych pytajacego.
+    /// </summary>
+    /// <remarks>
+    /// Zapytanie filtruje WYLACZNIE po najemcy, a endpoint wymaga time.view, ktore ma KAZDY
+    /// pracownik — bez zawezenia po stronie serwera dowolna osoba pobralaby anomalie calej firmy:
+    /// kto sie spoznil i kto nie zarejestrowal wejscia, z identyfikatorem pracownika, ktory
+    /// rozwiazuje sie do nazwiska przez /api/org/employees. To ta sama klasa bledu, co wczesniej
+    /// w pulpicie. Wlasne anomalie widzi kazdy — FilterAccessibleEmployeesAsync przepuszcza
+    /// wlasny identyfikator bez pytania o uprawnienie zespolowe.
+    /// </remarks>
     private static async Task<IResult> GetAnomalies(
         [AsParameters] AnomalyQueryParams query,
-        ISender sender)
+        ClaimsPrincipal user,
+        IPermissionService permissions,
+        IEmployeeScopeResolver scopes,
+        ISender sender,
+        CancellationToken ct)
     {
         var from = query.From ?? DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-7));
         var to = query.To ?? DateOnly.FromDateTime(DateTime.UtcNow);
 
-        var result = await sender.Send(new GetAnomaliesQuery(from, to, query.Status));
-        return result.ToHttpResult();
+        var result = await sender.Send(new GetAnomaliesQuery(from, to, query.Status), ct);
+        if (!result.IsSuccess) return result.ToHttpResult();
+
+        var widoczni = await user.FilterAccessibleEmployeesAsync(
+            result.Value.Select(a => a.EmployeeId).Distinct().ToList(),
+            permissions, scopes, PodgladZespolu, ModulZakresu, ct);
+
+        return Results.Ok(result.Value.Where(a => widoczni.Contains(a.EmployeeId)).ToList());
     }
 
     private static async Task<IResult> ReviewAnomaly(
