@@ -593,6 +593,20 @@ export const SEKCJE_POMOCY: readonly SekcjaPomocy[] = [
     ikona: Settings2,
     wpisy: [
       {
+        id: 'gotowosc-konfiguracji',
+        pytanie: 'Skąd wiem, czego jeszcze brakuje w konfiguracji?',
+        odpowiedz: [
+          'Ekran „Gotowość konfiguracji” wylicza na bieżąco z danych firmy, co jeszcze nie zadziała i gdzie to ustawić.',
+          'Pozycje dzielą się na dwie grupy: takie, które blokują funkcję całkowicie (np. brak przełożonych — wnioski nie mają komu trafić do akceptacji), oraz takie, przez które funkcja działa w okrojonej formie (np. brak stawek godzinowych — godziny policzą się, ale kwoty będą puste).',
+          'Kreator pierwszego startu zadaje tylko trzy pytania i celowo nie pyta o resztę, więc zaraz po nim ta lista zwykle nie jest pusta. To normalne.',
+        ],
+        uwaga:
+          'Nic z tej listy nie jest wymagane. Jeśli któraś funkcja nie jest Wam potrzebna, można zostawić ją nieustawioną — system niczego nie wymusza, tylko informuje o skutkach.',
+        sciezka: '/admin/gotowosc',
+        etykietaSciezki: 'Otwórz gotowość konfiguracji',
+        wymaga: ['org.edit'],
+      },
+      {
         id: 'model-uprawnien',
         pytanie: 'Jak zbudowany jest system uprawnień?',
         odpowiedz: [

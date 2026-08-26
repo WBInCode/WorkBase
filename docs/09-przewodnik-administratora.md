@@ -265,9 +265,28 @@ Każde pytanie ma odpowiedź domyślną, więc „Dalej, Dalej, Dalej, Zacznij" 
 
 Kreator jest cienką warstwą nad tymi samymi komendami, których używają ekrany administracyjne — nie tworzy danych własną ścieżką. Co za tym idzie: wszystko, co ustawi, da się później zmienić normalnie w Ustawieniach.
 
+Kreator zakłada też **kartotekę pracownika właścicielowi**. Bez niej właściciel ma konto użytkownika, ale nie ma kartoteki — a SSO wiąże je po adresie e-mail, więc token nie dostaje `employee_id` i nie da się zarejestrować czasu pracy ani złożyć wniosku. Dlatego kreator kończy się ponownym zalogowaniem: token wydany przed konfiguracją tego identyfikatora jeszcze nie niósł.
+
 ---
 
-## 10. Kolejność przy wdrożeniu nowej firmy
+## 10. Gotowość konfiguracji — „co jeszcze nie zadziała"
+
+Ekran **Gotowość konfiguracji** (`/admin/gotowosc`, uprawnienie `org.edit`) wylicza na bieżąco z danych firmy, które funkcje jeszcze nie zadziałają. Kreator zadaje trzy pytania i celowo nie pyta o resztę, więc zaraz po nim ta lista zwykle nie jest pusta i **to jest normalne**.
+
+Pozycje dzielą się na dwie grupy:
+
+| Grupa | Znaczenie | Przykłady |
+|---|---|---|
+| **Blokuje** | funkcja nie zadziała wcale | brak pracowników, brak przełożonych (wnioski nie mają komu trafić), brak stanowiska kierowniczego (zakres danych „Dział" nie ma z czego powstać), brak kont do logowania, brak szablonu grafiku |
+| **Warto** | funkcja działa w okrojonej formie | brak polityki przerw, brak stawek godzinowych (godziny policzą się, kwoty będą puste), pusty kalendarz dni wolnych (dodatek świąteczny się nie naliczy), brak rodzajów wniosków |
+
+Każda pozycja mówi, **co nie zadziała**, a nie czego brakuje — „brak stanowisk kierowniczych" nic nie znaczy dla nietechnicznego właściciela, „nikt nie zobaczy danych swojego działu" znaczy. Przy każdej jest skrót do ekranu, na którym da się to ustawić.
+
+**Nic z tej listy nie jest wymagane.** Firma ma prawo świadomie zostawić dowolną pozycję nieustawioną; ekran informuje o skutkach, niczego nie wymusza.
+
+---
+
+## 11. Kolejność przy wdrożeniu nowej firmy
 
 1. Sprawdź, które moduły obejmuje plan, we Flagach funkcjonalności.
 2. Zdefiniuj **typy jednostek** i **stanowiska**, bo bez nich nie da się zbudować struktury.

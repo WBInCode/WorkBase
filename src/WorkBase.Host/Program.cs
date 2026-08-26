@@ -221,6 +221,7 @@ try
     app.MapPayrollSettingsEndpoints();
     app.MapPayrollRozliczenieEndpoints();
     app.MapPulpitUwagaEndpoints();
+app.MapGotowoscKonfiguracjiEndpoints();
     app.MapTerminologyEndpoints();
     app.MapTimeTrackingSettingsEndpoints();
     app.MapDocumentSettingsEndpoints();

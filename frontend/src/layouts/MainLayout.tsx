@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback, type ReactNode } from 'react
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from 'react-oidc-context';
 import { useTranslation } from 'react-i18next';
-import { FolderTree, Users, FileUp, LogOut, Menu, X, Shield, Grid3X3, CalendarDays, UsersRound, CalendarClock, Palmtree, CalendarRange, ClipboardCheck, ListTodo, ClipboardList, LayoutDashboard, Briefcase, Clock, MoreHorizontal, FileArchive, FolderOpen, Flag, CircleDot, Coffee, Layers, Wallet, Building2, Palette, Type, Bell, AlarmClockCheck, ChevronDown, Sun, Moon, LifeBuoy, GitBranch, CalendarOff, FileText, FileCog, type LucideIcon } from 'lucide-react';
+import { FolderTree, Users, FileUp, LogOut, Menu, X, Shield, Grid3X3, CalendarDays, UsersRound, CalendarClock, Palmtree, CalendarRange, ClipboardCheck, ListTodo, ClipboardList, LayoutDashboard, Briefcase, Clock, MoreHorizontal, FileArchive, FolderOpen, Flag, CircleDot, Coffee, Layers, Wallet, Building2, Palette, Type, Bell, AlarmClockCheck, ChevronDown, Sun, Moon, LifeBuoy, GitBranch, CalendarOff, FileText, FileCog, Gauge, type LucideIcon } from 'lucide-react';
 import { mapUserClaims } from '@/auth';
 import { useUprawnienia } from '@/auth/useUprawnienia';
 import { useFeatureFlags, useCurrentUser } from '@/api/hooks/useIam';
@@ -132,6 +132,7 @@ const adminNavItems: NavItem[] = [
   { path: '/admin/permissions', labelKey: 'nav.permissions', icon: Grid3X3 },
   { path: '/admin/feature-flags', labelKey: 'nav.featureFlags', icon: Flag },
   { path: '/admin/branding', labelKey: 'nav.branding', icon: Palette },
+  { path: '/admin/gotowosc', labelKey: 'nav.gotowosc', icon: Gauge },
   { path: '/admin/terminology', labelKey: 'nav.terminology', icon: Type },
   { path: '/admin/tenants', labelKey: 'nav.tenantsOperator', icon: Building2, operatorOnly: true },
   { path: '/admin/leave-types', labelKey: 'nav.leaveTypes', icon: Palmtree },

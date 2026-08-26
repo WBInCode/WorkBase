@@ -72,6 +72,7 @@ export const DOSTEP_DO_WIDOKOW: ReadonlyArray<readonly [string, WymaganeUprawnie
   ['/admin/branding', ['config.manage']],
   ['/admin/terminology', ['config.manage']],
   ['/admin/break-policies', ['config.manage']],
+  ['/admin/gotowosc', ['org.edit']],
   ['/admin/dni-wolne', ['config.manage']],
   ['/admin/typy-wnioskow', ['wnioski.manage']],
   ['/admin/time-tracking-settings', ['config.manage']],
