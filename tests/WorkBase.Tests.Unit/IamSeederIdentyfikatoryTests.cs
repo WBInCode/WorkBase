@@ -37,6 +37,7 @@ public class IamSeederIdentyfikatoryTests
     // Uprawnienia z zarezerwowanego zakresu. Ich numery nie zaleza od liczby modulow.
     [InlineData("wnioski.view", 201)]
     [InlineData("wnioski.manage", 203)]
+    [InlineData("org.view-team", 204)]
     public void Uprawnienia_maja_ustalone_identyfikatory(string kod, int oczekiwanyNumer)
     {
         Assert.True(IamSeeder.AllPermissionIds.TryGetValue(kod, out var id),

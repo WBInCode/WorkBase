@@ -257,6 +257,14 @@ app.MapGotowoscKonfiguracjiEndpoints();
             "* * * * *",
             new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
 
+        // 06:30, czyli po wykryciu zaleglych zadan (06:00) — kadry dostaja obie listy razem,
+        // a nie w dwoch osobnych porach.
+        RecurringJob.AddOrUpdate<WorkBase.Infrastructure.Terminy.TerminyPrzypomnieniaJob>(
+            "terminy-przypomnienia-daily",
+            job => job.ExecuteAsync(),
+            "30 6 * * *",
+            new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
+
         RecurringJob.AddOrUpdate<EcosystemSyncScheduler>(
             "rytm-ecosystem-snapshot",
             job => job.EnqueueAllAsync(),

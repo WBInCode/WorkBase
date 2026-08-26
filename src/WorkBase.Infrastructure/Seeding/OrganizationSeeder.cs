@@ -37,6 +37,20 @@ public static class OrganizationSeeder
         ("Kierownik", "Stanowisko kierownicze — otwiera zakres danych działu", true),
     ];
 
+    /// <summary>
+    /// Startowy slownik terminow. Nazwy i wyprzedzenia sa polskim domyslnym ustawieniem, a nie
+    /// regula — firma moze je zmienic, usunac albo dopisac wlasne, tak samo jak typy urlopow.
+    /// Rozne terminy maja rozny czas reakcji: badania okresowe umawia sie z miesiecznym
+    /// wyprzedzeniem, a wypowiedzenie umowy wymaga dwoch.
+    /// </summary>
+    private static readonly (string Kod, string Nazwa, string Opis, int DniOstrzezenia)[] DomyslneTypyTerminow =
+    [
+        ("BADANIA", "Badania lekarskie", "Okresowe badania profilaktyczne", 30),
+        ("BHP", "Szkolenie BHP", "Szkolenie okresowe z zakresu BHP", 30),
+        ("UPRAWNIENIA", "Uprawnienia i certyfikaty", "Uprawnienia z data waznosci — wozki, SEP, prawo jazdy zawodowe", 60),
+        ("UMOWA", "Koniec umowy", "Umowa na czas okreslony albo okres probny", 60),
+    ];
+
     public static async Task SeedTenantStructureAsync(
         WorkBaseDbContext dbContext,
         Guid tenantId,
@@ -83,6 +97,19 @@ public static class OrganizationSeeder
         {
             if (stanowiska.Contains(nazwa)) continue;
             dbContext.Set<Position>().Add(Position.Create(tenantId, nazwa, opis, isManagerial: kierownicze));
+        }
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        var typyTerminow = await dbContext.Set<TypTerminu>()
+            .IgnoreQueryFilters()
+            .Where(typ => typ.TenantId == tenantId)
+            .Select(typ => typ.Kod)
+            .ToListAsync(cancellationToken);
+
+        foreach (var (kod, nazwa, opis, dni) in DomyslneTypyTerminow)
+        {
+            if (typyTerminow.Contains(kod)) continue;
+            dbContext.Set<TypTerminu>().Add(TypTerminu.Utworz(tenantId, kod, nazwa, opis, dni));
         }
         await dbContext.SaveChangesAsync(cancellationToken);
 

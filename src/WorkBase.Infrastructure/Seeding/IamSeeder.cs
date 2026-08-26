@@ -62,7 +62,7 @@ public static class IamSeeder
     // identical baseline access.
     private static readonly HashSet<string> KierownikPermissionCodes =
     [
-        "org.view", "org.export",
+        "org.view", "org.export", "org.view-team",
         // time.edit pozwala uzupelnic i poprawic ewidencje czasu wlasna oraz swojego zespolu;
         // pelny zasieg (cala firma) zostaje przy time.manage dla HR/Admina.
         "time.view", "time.create", "time.edit", "time.view-team", "time.approve", "time.export",
@@ -96,7 +96,7 @@ public static class IamSeeder
 
     private static readonly HashSet<string> HrPermissionCodes =
     [
-        "org.view", "org.create", "org.edit", "org.delete", "org.import", "org.export", "org.manage",
+        "org.view", "org.view-team", "org.create", "org.edit", "org.delete", "org.import", "org.export", "org.manage",
         "identity.view",
         "time.view", "time.create", "time.edit", "time.view-team", "time.manage", "time.approve", "time.export",
         "leave.view", "leave.create", "leave.edit", "leave.delete", "leave.view-team", "leave.approve", "leave.manage", "leave.export",
@@ -466,6 +466,12 @@ public static class IamSeeder
         permissions.Add(CreatePermission(201, "wnioski", Actions.View, description: "Podgląd własnych wniosków"));
         permissions.Add(CreatePermission(202, "wnioski", Actions.Create, description: "Składanie wniosków"));
         permissions.Add(CreatePermission(203, "wnioski", Actions.Manage, description: "Definiowanie rodzajów wniosków"));
+
+        // Terminy kadrowe (badania, BHP, uprawnienia, koniec umowy) to dane wrazliwe o osobie.
+        // Modul org nie mial uprawnienia zespolowego: org.view ma KAZDY pracownik, a org.manage
+        // nie ma kierownik — czyli bez tego wpisu albo kazdy widzialby cudze badania, albo
+        // przelozony nie widzialby terminow wlasnego zespolu i funkcja tracilaby polowe sensu.
+        permissions.Add(CreatePermission(204, "org", "view-team", description: "Podgląd terminów i danych kadrowych zespołu"));
 
         return permissions;
     }

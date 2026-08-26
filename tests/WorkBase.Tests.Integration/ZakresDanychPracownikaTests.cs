@@ -65,6 +65,9 @@ public class ZakresDanychPracownikaTests
         // Zastepstwa: parametr to osoba zastepowana. Cudze zastepstwa widzi tylko org.manage —
         // kto kogo zastepuje w akceptacji, to informacja o strukturze decyzyjnej firmy.
         "/api/org/zastepstwa/{id}",
+        // Terminy kadrowe: badania lekarskie, BHP, uprawnienia, koniec umowy. Dane wrazliwe
+        // o osobie — cudze widzi tylko org.view-team, i tylko w swoim zakresie danych.
+        "/api/terminy/pracownik/{id}",
     ];
 
     public static TheoryData<string> TrasyZDanymiPracownika() => [.. TrasyPracownika];
