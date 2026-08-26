@@ -559,6 +559,21 @@ export const SEKCJE_POMOCY: readonly SekcjaPomocy[] = [
         wymaga: ['org.create'],
       },
       {
+        id: 'terminy-badania-bhp',
+        pytanie: 'Jak pilnować badań lekarskich, BHP i uprawnień?',
+        odpowiedz: [
+          'Ekran „Terminy” pokazuje, co wygasa w najbliższych 30, 60 albo 90 dniach — badania okresowe, szkolenia BHP, uprawnienia z datą ważności i końce umów.',
+          'Terminy wprowadza się na karcie pracownika, w sekcji „Terminy”. Rodzaje terminów i to, ile dni wcześniej ma pojawić się ostrzeżenie, ustala firma w Ustawieniach.',
+          'Odnowienie zakłada nowy wpis, a poprzedni trafia do historii — dzięki temu widać przebieg badań, a nie tylko ostatnią datę.',
+          'Dzień po wejściu terminu w okno ostrzeżenia oraz w dniu jego upływu system wysyła powiadomienie pracownikowi i jego przełożonemu. Każde z nich idzie raz, nie codziennie.',
+        ],
+        uwaga:
+          'System niczego nie blokuje. Osoba z nieaktualnym badaniem normalnie zarejestruje czas pracy i złoży wniosek — pokazujemy stan, a decyzja o dopuszczeniu do pracy należy do pracodawcy.',
+        sciezka: '/terminy',
+        etykietaSciezki: 'Otwórz terminy',
+        wymaga: ['org.view'],
+      },
+      {
         id: 'zaproszenia-przy-dodawaniu',
         pytanie: 'Kiedy pracownik dostaje zaproszenie do logowania?',
         odpowiedz: [

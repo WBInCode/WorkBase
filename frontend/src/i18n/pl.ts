@@ -67,6 +67,8 @@ const pl = {
     taskSettings: 'Ustawienia zadań',
     workflowBuilder: 'Kreator obiegow',
     gotowosc: 'Gotowość konfiguracji',
+    typyTerminow: 'Rodzaje terminów',
+    terminy: 'Terminy',
     dniWolne: 'Dni wolne',
     wnioski: 'Wnioski',
     typyWnioskow: 'Rodzaje wniosków',

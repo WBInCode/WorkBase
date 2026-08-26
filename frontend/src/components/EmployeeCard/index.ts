@@ -5,3 +5,4 @@ export { EmployeeTimesheetSection } from './EmployeeTimesheetSection';
 export { EmployeeLeaveSection } from './EmployeeLeaveSection';
 export { EmployeeTasksSection } from './EmployeeTasksSection';
 export { EmployeeActivityTimeline } from './EmployeeActivityTimeline';
+export { EmployeeTerminySection } from './EmployeeTerminySection';

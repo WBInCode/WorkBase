@@ -244,6 +244,20 @@ Do uzupełnienia pozostają trzy rzeczy, których system nie zgadnie: lista prac
 
 Najczęściej brakuje wskazania przełożonego w karcie pracownika. Druga możliwość to typ urlopu bez wymogu akceptacji, który zatwierdza się sam.
 
+### Terminy: badania, BHP, uprawnienia, końce umów
+
+Ekran **Terminy** (`/terminy`, uprawnienie `org.view`) pokazuje, co wygasa w najbliższych 30, 60 albo 90 dniach. Wpisy wprowadza się na karcie pracownika; rodzaje terminów i wyprzedzenie ostrzeżenia ustala firma w **Ustawieniach → Rodzaje terminów** (`org.edit`).
+
+Nowa firma dostaje zestaw startowy — badania lekarskie (30 dni), szkolenie BHP (30), uprawnienia i certyfikaty (60), koniec umowy (60) — **edytowalny jak każdy inny słownik**. Wyprzedzenie jest osobne dla każdego rodzaju, bo badanie umawia się z miesięcznym wyprzedzeniem, a wypowiedzenie umowy wymaga dwóch.
+
+| Rzecz | Zachowanie |
+|---|---|
+| Odnowienie | zakłada **nowy** wpis, poprzedni trafia do historii — zostaje przebieg badań, nie tylko ostatnia data |
+| Powiadomienie | do pracownika i jego przełożonego, **raz przy wejściu w okno ostrzeżenia i raz przy upływie** — nie codziennie |
+| Widoczność cudzych terminów | wymaga `org.view-team` (Admin, HR, Kierownik) **i** mieszczenia się w zakresie danych; własne widzi każdy |
+
+**System niczego nie blokuje.** Osoba z nieaktualnym badaniem normalnie zarejestruje czas pracy i złoży wniosek. Pokazujemy stan; dopuszczenie do pracy jest odpowiedzialnością pracodawcy, nie systemu — i tak ma zostać.
+
 ---
 
 ## 9. Kreator pierwszego startu

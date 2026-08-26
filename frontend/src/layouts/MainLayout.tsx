@@ -82,6 +82,7 @@ const navSections: NavSection[] = [
       { path: '/org/tree', labelKey: 'nav.structure', icon: FolderTree },
       { path: '/org/employees', labelKey: 'nav.employees', icon: Users, exact: true },
       { path: '/org/employees/import', labelKey: 'nav.csvImport', icon: FileUp },
+      { path: '/terminy', labelKey: 'nav.terminy', icon: AlarmClockCheck },
     ],
   },
   {
@@ -133,6 +134,7 @@ const adminNavItems: NavItem[] = [
   { path: '/admin/feature-flags', labelKey: 'nav.featureFlags', icon: Flag },
   { path: '/admin/branding', labelKey: 'nav.branding', icon: Palette },
   { path: '/admin/gotowosc', labelKey: 'nav.gotowosc', icon: Gauge },
+  { path: '/admin/typy-terminow', labelKey: 'nav.typyTerminow', icon: Flag },
   { path: '/admin/terminology', labelKey: 'nav.terminology', icon: Type },
   { path: '/admin/tenants', labelKey: 'nav.tenantsOperator', icon: Building2, operatorOnly: true },
   { path: '/admin/leave-types', labelKey: 'nav.leaveTypes', icon: Palmtree },

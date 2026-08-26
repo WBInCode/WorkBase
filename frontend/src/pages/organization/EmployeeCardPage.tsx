@@ -13,6 +13,7 @@ import {
   EmployeeLeaveSection,
   EmployeeTasksSection,
   EmployeeActivityTimeline,
+  EmployeeTerminySection,
 } from '@/components/EmployeeCard';
 import { useIsMobile } from '@/shared';
 import { colors } from '@/theme/tokens';
@@ -153,6 +154,8 @@ export function EmployeeCardPage() {
             requests={leaveRequests}
             isLoading={balancesLoading || leaveLoading}
           />
+
+          <EmployeeTerminySection employeeId={employee.id} />
         </div>
       </div>
     </div>
