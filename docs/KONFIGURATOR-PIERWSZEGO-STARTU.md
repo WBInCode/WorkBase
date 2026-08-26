@@ -267,6 +267,14 @@ Ekran „ludzie” korzysta z istniejących `odczytajCsv`/`parseCsv`/`parsujDate
 
 `POST /api/setup/complete` zostaje **swiadomie otwarte**. Zdjecie blokady niczego nie niszczy — firma ma komplet domyslnych z provisioningu — a zamkniecie zamienialoby kazda pomylke w przypisaniu roli wlascicielowi w trwale zablokowana firme bez wyjscia. Pilnuje tego osobny test, zeby nikt nie „poprawil" tego przez przypadek.
 
+### Czwarte pytanie dodane 2026-08-26 — wymiar urlopu
+
+Projekt zakładał trzy pytania i to była dobra domyślna decyzja, ale jedna rzecz wypadła z niej niesłusznie: **nowa firma dostaje 26 dni urlopu wypoczynkowego z seedera i nikt się o tym nie dowiaduje**. To jest ustawienie firmy, nie nasze, więc właściciel powinien je przynajmniej zobaczyć.
+
+Krok `urlop` (`GET`/`POST /api/setup/leave`) pokazuje aktualną wartość i pozwala ją zmienić. Ekran podaje dla orientacji, że Kodeks pracy przewiduje 20 albo 26 dni zależnie od stażu — **jako informację**. System nie sprawdza tej liczby i nie narzuca żadnej wartości; test pilnuje, że 35 dni przechodzi tak samo jak 26. Odrzucane są wyłącznie wartości, które nie są liczbą dni w roku.
+
+Firma, która skasowała typ urlopu wypoczynkowego, dostaje krok oznaczony jako pominięty — nie odtwarzamy go za nią.
+
 ### Stan po kroku 2 (zapis historyczny)
 
 **Czego jeszcze nie ma:** samych kroków kreatora (`POST /api/setup/employees`, `/working-hours`, `/approvals`) i strony we froncie. Front musi łapać `SETUP_REQUIRED` i przenosić do kreatora, a sam kreator renderować się **poza `MainLayout`** — tak jak `KioskPage` — bo powłoka aplikacji odpytuje trasy, które blokada odcina.

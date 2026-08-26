@@ -1,12 +1,14 @@
 import { useMemo, useState } from 'react';
 import { useAuth } from 'react-oidc-context';
-import { Check, ChevronRight, Loader2, Users, Clock, UserCheck, Sparkles, Hourglass } from 'lucide-react';
+import { Check, ChevronRight, Loader2, Users, Clock, UserCheck, Sparkles, Hourglass, Palmtree } from 'lucide-react';
 import {
   useStanKreatora,
   usePracownicyKreatora,
   useZapiszLudzi,
   useZapiszGodziny,
   useZapiszAkceptantow,
+  useWymiarUrlopu,
+  useZapiszUrlop,
   useZakonczKreator,
   type NowaOsoba,
   type Zmiana,
@@ -35,11 +37,11 @@ export function KreatorStartuPage() {
     if (!stan.aktualnyKrok) return 0;
     // Wracamy na krok NASTĘPNY po ostatnim zapisanym — stąd wznawialność.
     const indeks = stan.kroki.indexOf(stan.aktualnyKrok);
-    return Math.min(indeks + 2, 4);
+    return Math.min(indeks + 2, OSTATNI_EKRAN);
   }, [stan]);
 
   const biezacy = ekran ?? ekranStartowy;
-  const idz = (nr: number) => setEkran(Math.max(0, Math.min(4, nr)));
+  const idz = (nr: number) => setEkran(Math.max(0, Math.min(OSTATNI_EKRAN, nr)));
 
   if (isLoading || !znane) {
     return (
@@ -87,7 +89,8 @@ export function KreatorStartuPage() {
         {biezacy === 1 && <EkranLudzie dalej={() => idz(2)} />}
         {biezacy === 2 && <EkranGodziny dalej={() => idz(3)} wstecz={() => idz(1)} />}
         {biezacy === 3 && <EkranAkceptanci dalej={() => idz(4)} wstecz={() => idz(2)} />}
-        {biezacy === 4 && <EkranPodsumowanie wstecz={() => idz(3)} />}
+        {biezacy === 4 && <EkranUrlop dalej={() => idz(5)} wstecz={() => idz(3)} />}
+        {biezacy === 5 && <EkranPodsumowanie wstecz={() => idz(4)} />}
       </div>
     </Tlo>
   );
@@ -110,10 +113,14 @@ function Tlo({ children }: { children: React.ReactNode }) {
   );
 }
 
+/** Ekran powitalny (0) i podsumowanie (5) nie sa krokami — nie zapadaja na nich decyzje. */
+const OSTATNI_EKRAN = 5;
+
 const ETAPY = [
   { nr: 1, etykieta: 'Ludzie', Ikona: Users },
   { nr: 2, etykieta: 'Godziny', Ikona: Clock },
   { nr: 3, etykieta: 'Akceptacje', Ikona: UserCheck },
+  { nr: 4, etykieta: 'Urlop', Ikona: Palmtree },
 ];
 
 function Postep({ biezacy }: { biezacy: number }) {
@@ -148,7 +155,7 @@ function Postep({ biezacy }: { biezacy: number }) {
               {zrobiony ? <Check size={13} /> : <Ikona size={13} />}
               {etykieta}
             </span>
-            {nr < 3 && <ChevronRight size={13} style={{ color: 'var(--wb-ink-2, #9aa3b8)' }} />}
+            {nr < ETAPY.length && <ChevronRight size={13} style={{ color: 'var(--wb-ink-2, #9aa3b8)' }} />}
           </div>
         );
       })}
@@ -617,7 +624,69 @@ function EkranAkceptanci({ dalej, wstecz }: { dalej: () => void; wstecz: () => v
   );
 }
 
-// ---------------------------------------------------------------- ekran 4
+// ---------------------------------------------------------------- ekran 4 (urlop)
+
+/**
+ * Wymiar urlopu wypoczynkowego. Nowa firma dostaje z seedera 26 dni i dotad nikt sie o tym
+ * nie dowiadywal — a to jest ustawienie FIRMY, nie nasze. Kodeks pracy przewiduje 20 albo 26
+ * dni zaleznie od stazu; pokazujemy te informacje, ale niczego nie wymuszamy ani nie
+ * sprawdzamy, co firma wpisze.
+ */
+function EkranUrlop({ dalej, wstecz }: { dalej: () => void; wstecz: () => void }) {
+  const { data } = useWymiarUrlopu();
+  const zapisz = useZapiszUrlop();
+  const [dni, setDni] = useState<number | null>(null);
+  const [blad, setBlad] = useState<string | null>(null);
+
+  const wartosc = dni ?? data?.dniUrlopu ?? 26;
+
+  const wyslij = async () => {
+    setBlad(null);
+    try {
+      await zapisz.mutateAsync({ dniUrlopu: wartosc });
+      dalej();
+    } catch (e) {
+      setBlad(e instanceof Error ? e.message : 'Nie udało się zapisać.');
+    }
+  };
+
+  return (
+    <>
+      <Naglowek
+        tytul="Ile dni urlopu wypoczynkowego?"
+        opis="Ustawiliśmy 26 dni. Jeśli u Was jest inaczej, zmień teraz — albo później w Ustawieniach."
+      />
+
+      <label style={{ fontSize: 13, color: colors.gray[900], display: 'block', maxWidth: 200 }}>
+        Dni w roku
+        <input
+          type="number"
+          min={0}
+          max={365}
+          value={wartosc}
+          onChange={(e) => setDni(Number(e.target.value))}
+          style={stylPola}
+        />
+      </label>
+
+      <p style={{ margin: '14px 0 0', fontSize: 12.5, color: 'var(--wb-ink-2, #6b7490)', maxWidth: '64ch' }}>
+        Dla orientacji: Kodeks pracy przewiduje 20 dni przy stażu poniżej 10 lat i 26 dni powyżej.
+        To wyłącznie informacja — system nie sprawdza tej liczby i nie narzuca żadnej wartości.
+      </p>
+
+      {blad && <p style={{ margin: '12px 0 0', fontSize: 13, color: colors.danger[600] }}>{blad}</p>}
+
+      <Stopka>
+        <button onClick={() => void wyslij()} disabled={zapisz.isPending} style={stylPrzycisku(true)}>
+          {zapisz.isPending ? 'Zapisywanie…' : 'Dalej'}
+        </button>
+        <button onClick={wstecz} style={stylPrzycisku(false)}>Wstecz</button>
+      </Stopka>
+    </>
+  );
+}
+
+// ---------------------------------------------------------------- ekran 5 (podsumowanie)
 
 /**
  * Ten ekran jest ważniejszy, niż wygląda. Nietechniczny właściciel nie wie, czego nie wie —

@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/api/client';
 
-export type KrokKreatora = 'ludzie' | 'godziny' | 'akceptanci';
+export type KrokKreatora = 'ludzie' | 'godziny' | 'akceptanci' | 'urlop';
 
 export interface StanKreatora {
   wymagana: boolean;
@@ -86,6 +86,18 @@ export const useZapiszAkceptantow = () =>
     { akceptantId: string | null; pracownicyIds: string[] },
     { ustawione: number; bledy: string[] }
   >('/api/setup/approvals');
+
+export function useWymiarUrlopu(wlaczone = true) {
+  return useQuery({
+    queryKey: ['kreator', 'urlop'],
+    queryFn: () => api.get<{ dniUrlopu: number | null }>('/api/setup/leave'),
+    enabled: wlaczone,
+    retry: false,
+  });
+}
+
+export const useZapiszUrlop = () =>
+  useKrok<{ dniUrlopu: number }, { dniUrlopu: number | null; pominiety: boolean }>('/api/setup/leave');
 
 export function useZakonczKreator() {
   return useMutation({

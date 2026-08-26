@@ -4,6 +4,9 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
+using WorkBase.Infrastructure.Persistence;
+using WorkBase.Infrastructure.Seeding;
 using WorkBase.Infrastructure.Setup;
 using Xunit;
 
@@ -209,7 +212,10 @@ public class KonfiguracjaStartowaTests
 
         // Kreator nadal nie jest ukonczony — zapisanie kroku to nie to samo co zamkniecie.
         Assert.False(stan.GetProperty("ukonczona").GetBoolean());
-        Assert.Equal(3, stan.GetProperty("kroki").GetArrayLength());
+        // Liczba krokow jest czescia kontraktu z frontem: kreator liczy z niej, gdzie wznowic.
+        Assert.Equal(
+            new[] { "ludzie", "godziny", "akceptanci", "urlop" },
+            stan.GetProperty("kroki").EnumerateArray().Select(e => e.GetString()).ToArray());
     }
 
     [Fact]
@@ -248,10 +254,71 @@ public class KonfiguracjaStartowaTests
     }
 
     /// <summary>Wlasciciel firmy — z Huba przychodzi jako Admin, wiec ma komplet.</summary>
+    /// <summary>
+    /// Wymiar urlopu to ustawienie FIRMY. Seeder wpisuje 26 dni i dotad nikt sie o tym nie
+    /// dowiadywal — krok kreatora ma to pokazac i pozwolic zmienic, a nie narzucic.
+    /// </summary>
+    [Fact]
+    public async Task Wymiar_urlopu_da_sie_zmienic_w_kreatorze()
+    {
+        var firma = Guid.NewGuid();
+        await OznaczJakoWymagana(firma);
+        await ZasiejTypyUrlopu(firma);
+        using var client = KlientFirmy(firma);
+
+        var przed = await client.GetFromJsonAsync<JsonElement>("/api/setup/leave");
+        Assert.Equal(26, przed.GetProperty("dniUrlopu").GetInt32());
+
+        var zapis = await client.PostAsJsonAsync("/api/setup/leave", new { dniUrlopu = 20 });
+        Assert.Equal(HttpStatusCode.OK, zapis.StatusCode);
+
+        var po = await client.GetFromJsonAsync<JsonElement>("/api/setup/leave");
+        Assert.Equal(20, po.GetProperty("dniUrlopu").GetInt32());
+    }
+
+    /// <summary>
+    /// Nie sprawdzamy, czy liczba zgadza sie z Kodeksem pracy — to nie nasza jurysdykcja.
+    /// Odrzucamy wylacznie wartosci, ktore nie sa liczba dni w roku.
+    /// </summary>
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(366)]
+    public async Task Liczba_dni_poza_zakresem_roku_jest_odrzucana(int dni)
+    {
+        var firma = Guid.NewGuid();
+        await OznaczJakoWymagana(firma);
+        using var client = KlientFirmy(firma);
+
+        var odpowiedz = await client.PostAsJsonAsync("/api/setup/leave", new { dniUrlopu = dni });
+
+        Assert.Equal(HttpStatusCode.BadRequest, odpowiedz.StatusCode);
+    }
+
+    [Fact]
+    public async Task Nietypowa_ale_poprawna_liczba_dni_przechodzi()
+    {
+        var firma = Guid.NewGuid();
+        await OznaczJakoWymagana(firma);
+        await ZasiejTypyUrlopu(firma);
+        using var client = KlientFirmy(firma);
+
+        // 35 dni to wiecej, niz przewiduje Kodeks pracy — i to jest w porzadku.
+        var odpowiedz = await client.PostAsJsonAsync("/api/setup/leave", new { dniUrlopu = 35 });
+
+        Assert.Equal(HttpStatusCode.OK, odpowiedz.StatusCode);
+    }
+
+    private async Task ZasiejTypyUrlopu(Guid firma)
+    {
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<WorkBaseDbContext>();
+        await LeaveSeeder.SeedTenantAsync(db, firma, NullLogger.Instance);
+    }
+
     private HttpClient KlientFirmy(Guid firma) => _factory.CreateAuthenticatedClient(
         userId: Guid.NewGuid(),
         tenantId: firma,
-        permissions: ["org.view", "org.create", "org.edit", "time.manage", "identity.view"],
+        permissions: ["org.view", "org.create", "org.edit", "time.manage", "leave.view", "leave.manage", "identity.view"],
         employeeId: Guid.NewGuid());
 
     /// <summary>Szeregowy pracownik: ma org.view, nie ma org.create ani org.edit.</summary>

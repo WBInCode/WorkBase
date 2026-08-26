@@ -94,8 +94,8 @@ export const SEKCJE_POMOCY: readonly SekcjaPomocy[] = [
         id: 'kreator-pierwszego-startu',
         pytanie: 'Czym jest kreator pierwszego startu?',
         odpowiedz: [
-          'Nowa firma po nadaniu licencji przechodzi krótki kreator: trzy pytania o to, kto tu pracuje, w jakich godzinach i kto akceptuje wnioski.',
-          'Każde pytanie ma odpowiedź domyślną, więc „Dalej, Dalej, Dalej, Zacznij” daje działającą firmę jednoosobową w minutę. To poprawny sposób przejścia, nie obejście.',
+          'Nowa firma po nadaniu licencji przechodzi krótki kreator: cztery pytania o to, kto tu pracuje, w jakich godzinach, kto akceptuje wnioski i ile jest dni urlopu.',
+          'Każde pytanie ma odpowiedź domyślną, więc przeklikanie kreatora do końca daje działającą firmę jednoosobową w minutę. To poprawny sposób przejścia, nie obejście.',
           'Kreator można przerwać — po ponownym zalogowaniu wraca w to samo miejsce, w którym został zamknięty.',
         ],
         uwaga:

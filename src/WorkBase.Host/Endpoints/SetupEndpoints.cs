@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Routing;
 using WorkBase.Contracts;
 using WorkBase.Infrastructure.Setup;
 using WorkBase.Modules.Organization.Application.Commands.Employees;
+using WorkBase.Modules.Leave.Application.Commands;
+using WorkBase.Modules.Leave.Application.Queries;
 using WorkBase.Modules.Organization.Application.Queries.Employees;
 using WorkBase.Modules.TimeTracking.Application.Commands;
 using WorkBase.Modules.TimeTracking.Domain.Entities;
@@ -216,6 +218,66 @@ public static class SetupEndpoints
         .WithSummary("Krok 3 kreatora — kto akceptuje wnioski")
         .RequirePermission("org.edit");
 
+        // Wymiar urlopu wypoczynkowego. Seeder wpisuje nowej firmie 26 dni i dotad nikt sie
+        // o tym nie dowiadywal — a to jest ustawienie FIRMY, nie nasze. Kodeks pracy przewiduje
+        // 20 albo 26 dni zaleznie od stazu; pokazujemy te informacje, ale niczego nie wymuszamy
+        // i nie sprawdzamy, co firma wpisze.
+        group.MapGet("/leave", async (ISender sender, CancellationToken ct) =>
+        {
+            var typy = await sender.Send(new GetLeaveTypesQuery(), ct);
+            if (!typy.IsSuccess) return typy.ToHttpResult();
+
+            var wypoczynkowy = typy.Value.FirstOrDefault(t => t.Code == KodUrlopuWypoczynkowego);
+            return Results.Ok(new { dniUrlopu = wypoczynkowy?.DefaultDaysPerYear });
+        })
+        .WithName("KreatorPobierzWymiarUrlopu")
+        .WithSummary("Aktualny wymiar urlopu wypoczynkowego")
+        .RequirePermission("leave.view");
+
+        group.MapPost("/leave", async (
+            UrlopBody body,
+            ClaimsPrincipal user,
+            ISender sender,
+            IKonfiguracjaStartowaService konfiguracja,
+            CancellationToken ct) =>
+        {
+            var tenantId = user.GetTenantId();
+            if (tenantId is null) return Results.Forbid();
+
+            if (body.DniUrlopu is < 0 or > 365)
+                return Results.BadRequest(new { blad = "Liczba dni urlopu musi mieścić się między 0 a 365." });
+
+            var typy = await sender.Send(new GetLeaveTypesQuery(), ct);
+            if (!typy.IsSuccess) return typy.ToHttpResult();
+
+            var wypoczynkowy = typy.Value.FirstOrDefault(t => t.Code == KodUrlopuWypoczynkowego);
+            if (wypoczynkowy is null)
+            {
+                // Firma skasowala ten typ urlopu — jej prawo. Nie odtwarzamy go za nia.
+                await konfiguracja.ZapiszKrokAsync(
+                    tenantId.Value, KonfiguracjaStartowa.Kroki.Urlop, pominiety: true, ct);
+                return Results.Ok(new { dniUrlopu = (int?)null, pominiety = true });
+            }
+
+            var zmiana = await sender.Send(new UpdateLeaveTypeCommand(
+                wypoczynkowy.Id,
+                wypoczynkowy.Code,
+                wypoczynkowy.Name,
+                wypoczynkowy.Description,
+                wypoczynkowy.IsPaid,
+                wypoczynkowy.RequiresApproval,
+                body.DniUrlopu,
+                wypoczynkowy.Color,
+                wypoczynkowy.SortOrder), ct);
+            if (!zmiana.IsSuccess) return zmiana.ToHttpResult();
+
+            await konfiguracja.ZapiszKrokAsync(tenantId.Value, KonfiguracjaStartowa.Kroki.Urlop, ct: ct);
+            return Results.Ok(new { dniUrlopu = body.DniUrlopu, pominiety = false });
+        })
+        .WithName("KreatorWymiarUrlopu")
+        .WithSummary("Krok 4 kreatora — wymiar urlopu wypoczynkowego")
+        .RequirePermission("leave.manage");
+
         // Kroki zapisujace maja te same uprawnienia, co ich odpowiedniki w panelu administratora
         // (org.create / time.manage / org.edit) — kreator jest cienka warstwa nad tymi samymi
         // komendami, wiec nie ma powodu, zeby wpuszczal dalej. Role sa zasiewane przy TWORZENIU
@@ -303,6 +365,9 @@ public static class SetupEndpoints
         return employeeId;
     }
 
+    /// <summary>Kod z LeaveSeeder — ten sam, ktory dostaje kazda nowa firma.</summary>
+    private const string KodUrlopuWypoczynkowego = "ANNUAL";
+
     private static readonly int[] DomyslneDniRobocze = [1, 2, 3, 4, 5];
 
     private static readonly ZmianaBody DomyslnaZmiana =
@@ -344,4 +409,6 @@ public static class SetupEndpoints
         List<Przypisanie>? Przypisania);
 
     public sealed record Przypisanie(Guid PracownikId, Guid PrzelozonyId);
+
+    public sealed record UrlopBody(int DniUrlopu);
 }

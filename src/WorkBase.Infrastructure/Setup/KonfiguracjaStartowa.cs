@@ -29,7 +29,7 @@ public static class KonfiguracjaStartowa
     public const string KluczPominieteKroki = "setup.skipped_steps";
 
     /// <summary>
-    /// Trzy pytania kreatora, w kolejnosci. Ekran powitalny i podsumowanie nie sa krokami,
+    /// Pytania kreatora, w kolejnosci. Ekran powitalny i podsumowanie nie sa krokami,
     /// bo nie zapadaja na nich zadne decyzje — nie ma czego wznawiac.
     /// </summary>
     public static class Kroki
@@ -37,8 +37,9 @@ public static class KonfiguracjaStartowa
         public const string Ludzie = "ludzie";
         public const string Godziny = "godziny";
         public const string Akceptanci = "akceptanci";
+        public const string Urlop = "urlop";
 
-        public static readonly string[] WKolejnosci = [Ludzie, Godziny, Akceptanci];
+        public static readonly string[] WKolejnosci = [Ludzie, Godziny, Akceptanci, Urlop];
 
         public static bool Znany(string krok) =>
             WKolejnosci.Contains(krok, StringComparer.OrdinalIgnoreCase);

@@ -250,16 +250,19 @@ Najczęściej brakuje wskazania przełożonego w karcie pracownika. Druga możli
 
 Nowa firma jest do czasu ukończenia kreatora **zablokowana**: API odpowiada `409` z kodem `SETUP_REQUIRED` na wszystkim poza samym kreatorem, logowaniem i webhookami, a interfejs przenosi użytkownika do `/kreator`. Blokada dotyczy **wyłącznie firm zakładanych od tej wersji** — firmy istniejące wcześniej nigdy nie dostają znacznika i kreator ich nie zatrzyma.
 
-Cztery ekrany, trzy pytania:
+Pięć ekranów, cztery pytania:
 
 | Ekran | Pytanie | Domyślnie | Co powstaje |
 |---|---|---|---|
 | 1 | Kto tu pracuje? | „na razie tylko ja" | pracownicy (plik CSV, ręcznie albo nikt) |
 | 2 | W jakich godzinach? | pn–pt 8:00–16:00, przerwa 30 min niepłatna | szablon grafiku + polityka przerw |
 | 3 | Kto akceptuje wnioski? | krok do pominięcia | relacje przełożonych |
-| 4 | Podsumowanie | — | lista „co ustawiliśmy za Ciebie" |
+| 4 | Ile dni urlopu wypoczynkowego? | 26 dni | wymiar urlopu wypoczynkowego |
+| 5 | Podsumowanie | — | lista „co ustawiliśmy za Ciebie" |
 
-Każde pytanie ma odpowiedź domyślną, więc „Dalej, Dalej, Dalej, Zacznij" daje działającą firmę jednoosobową. Kreator jest **wznawialny**: zamknięcie przeglądarki na kroku 2 wraca po zalogowaniu na krok 2, nie na początek.
+Krok 4 istnieje po to, żeby właściciel w ogóle **dowiedział się**, że taka wartość jest ustawiona: seeder wpisuje nowej firmie 26 dni i dotąd nikt się o tym nie dowiadywał. Ekran podaje dla orientacji, że Kodeks pracy przewiduje 20 albo 26 dni zależnie od stażu, ale **system tej liczby nie sprawdza i żadnej nie narzuca** — 35 dni przejdzie tak samo jak 26.
+
+Każde pytanie ma odpowiedź domyślną, więc „Dalej, Dalej, Dalej, Dalej, Zacznij" daje działającą firmę jednoosobową. Kreator jest **wznawialny**: zamknięcie przeglądarki na kroku 2 wraca po zalogowaniu na krok 2, nie na początek.
 
 **Zaproszenia w kreatorze są domyślnie wyłączone.** Dodanie pracownika w Ustawieniach kolejkuje zaproszenie do platformy WB od razu; w kreatorze wysyłkę włącza się osobnym przełącznikiem, żeby import kilkudziesięciu osób nie rozesłał kilkudziesięciu zaproszeń przed sprawdzeniem listy.
 
