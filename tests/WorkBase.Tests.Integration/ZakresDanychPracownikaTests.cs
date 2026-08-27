@@ -88,6 +88,7 @@ public class ZakresDanychPracownikaTests
         ["/api/config/departments/{id}"] = "identyfikator jednostki organizacyjnej",
         ["/api/dashboard/reports/{id}"] = "identyfikator definicji raportu",
         ["/api/documents/{id}/download"] = "identyfikator dokumentu",
+        ["/api/documents/{id}/potwierdzenia"] = "identyfikator dokumentu; raport kto potwierdzil jest firmowy (documents.manage), jak caly modul",
         ["/api/documents/audit/entity/{id}/{id}"] = "typ i identyfikator encji",
         ["/api/iam/feature-flags/tenant/{id}"] = "identyfikator najemcy",
         ["/api/iam/roles/{id}"] = "identyfikator roli",

@@ -34,6 +34,10 @@ Ekranem startowym jest **Mój dzień**. Jest dostępny dla każdej zalogowanej o
 
 W górnym pasku znajdują się: zegar, dzwonek powiadomień, przycisk rejestracji czasu pracy oraz przełącznik jasnego i ciemnego motywu.
 
+### Dokumenty do potwierdzenia
+
+Gdy firma opublikuje regulamin albo instrukcję, z którą masz się zapoznać, nad listą dokumentów pojawia się baner **Do potwierdzenia**. Otwórz plik, przeczytaj i kliknij **Zapoznałem się**. Robisz to wyłącznie Ty — nikt nie potwierdzi za Ciebie. Brak potwierdzenia niczego nie blokuje, ale kadry widzą, kto jeszcze nie potwierdził.
+
 ### Rzeczy, które dostałeś od firmy
 
 Na Twojej karcie pracownika jest sekcja **Mienie powierzone** — laptop, telefon, klucze i wszystko inne, co firma Ci wydała. Przy każdej rzeczy możesz kliknąć **Potwierdzam odbiór**. Robisz to wyłącznie Ty, ze swojego konta; nikt nie potwierdzi za Ciebie. Brak potwierdzenia niczego nie blokuje — to informacja dla obu stron, że rzecz faktycznie trafiła do Ciebie.

@@ -10,6 +10,8 @@ export interface DocumentDto {
   description: string | null;
   isDeleted: boolean;
   createdAt: string;
+  /** Regulamin, instrukcja BHP, polityka — kazdy adresat ma potwierdzic, ze sie zapoznal. */
+  wymagaPotwierdzenia: boolean;
 }
 
 export interface DocumentCategoryDto {

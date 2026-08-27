@@ -362,6 +362,20 @@ Trzy decyzje projektowe, celowe:
 
 „Do zwrotu” celowo nie pokazuje wszystkich wydanych rzeczy: laptop u kogoś, kto pracuje, nie jest do zwrotu.
 
+### Potwierdzenie zapoznania się z dokumentem
+
+Regulamin, instrukcja BHP, polityka bezpieczeństwa — dokumenty, przy których firma chce mieć ślad, że każdy je przeczytał. Buduje się na module Dokumenty (storage, kategorie, uprawnienia, skanowanie antywirusowe są już tam).
+
+| Gdzie | Co |
+|---|---|
+| Lista dokumentów, kolumna **Potwierdzenie** (`documents.create`) | przełącznik „wymagane” przy pliku |
+| Baner **Do potwierdzenia** nad listą dokumentów | każdy adresat widzi swoje zaległe i klika „Zapoznałem się” |
+| Przycisk **kto** przy dokumencie (`documents.manage`) | kto potwierdził, kto nie i od ilu dni od publikacji |
+
+Kogo dokument dotyczy: **firmowy** (bez powiązania) — każdego aktywnego pracownika; **dołączony do karty pracownika** — tylko tej osoby. Załączników zadań nie da się oznaczyć, bo nie mają adresata.
+
+Potwierdza wyłącznie sam pracownik, ze swojego konta; kadry nie mogą potwierdzić za kogoś. Nie ma cofnięcia: nowa wersja regulaminu to nowy dokument i nowe potwierdzenia. System niczego nie wymusza ani nie blokuje — to rejestr do pokazania przy kontroli, egzekwowanie należy do firmy.
+
 ---
 
 ## 9. Kreator pierwszego startu

@@ -22,6 +22,7 @@ public sealed class DocumentConfiguration : IEntityTypeConfiguration<Document>
         builder.Property(d => d.Description).HasMaxLength(1024);
         builder.Property(d => d.IsDeleted).IsRequired();
         builder.Property(d => d.DeletedAt);
+        builder.Property(d => d.WymagaPotwierdzenia).IsRequired().HasDefaultValue(false);
 
         builder.HasIndex(d => d.TenantId);
         builder.HasIndex(d => new { d.TenantId, d.EntityType, d.EntityId });

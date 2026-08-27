@@ -212,6 +212,7 @@ try
     app.MapWorkspaceEndpoints();
     app.MapCardSectionEndpoints();
     app.MapSavedViewEndpoints();
+    app.MapPotwierdzeniaDokumentowEndpoints();
     app.MapActivityFeedEndpoints();
     app.MapDepartmentModuleEndpoints();
     app.MapBrandingEndpoints();

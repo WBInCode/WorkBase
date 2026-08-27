@@ -7,7 +7,7 @@ namespace WorkBase.Modules.Documents.Application.Queries;
 public sealed record DocumentDto(
     Guid Id, string FileName, string ContentType, long FileSizeBytes,
     Guid UploadedById, Guid? CategoryId, string? EntityType, Guid? EntityId,
-    string? Description, bool IsDeleted, DateTime CreatedAt);
+    string? Description, bool IsDeleted, DateTime CreatedAt, bool WymagaPotwierdzenia);
 
 public sealed record GetDocumentsQuery(
     Guid? CategoryId = null, string? EntityType = null, Guid? EntityId = null, bool IncludeDeleted = false)
@@ -28,7 +28,7 @@ public sealed class GetDocumentsHandler(IDocumentRepository repository)
         return docs.Select(d => new DocumentDto(
             d.Id, d.FileName, d.ContentType, d.FileSizeBytes,
             d.UploadedById, d.CategoryId, d.EntityType, d.EntityId,
-            d.Description, d.IsDeleted, d.CreatedAt)).ToList();
+            d.Description, d.IsDeleted, d.CreatedAt, d.WymagaPotwierdzenia)).ToList();
     }
 }
 

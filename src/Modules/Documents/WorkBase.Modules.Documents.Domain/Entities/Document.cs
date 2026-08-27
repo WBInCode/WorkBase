@@ -17,6 +17,12 @@ public sealed class Document : AuditableEntity<Guid>, ITenantScoped, IAuditable
     public bool IsDeleted { get; private set; }
     public DateTime? DeletedAt { get; private set; }
 
+    /// <summary>
+    /// Regulamin, instrukcja BHP, polityka: kazdy, kogo dotyczy, ma potwierdzic, ze sie zapoznal.
+    /// Dokument firmowy (bez encji) dotyczy wszystkich aktywnych; przypiety do pracownika — tylko jego.
+    /// </summary>
+    public bool WymagaPotwierdzenia { get; private set; }
+
     private Document() { }
 
     public static Document Create(
@@ -47,4 +53,6 @@ public sealed class Document : AuditableEntity<Guid>, ITenantScoped, IAuditable
     }
 
     public void UpdateCategory(Guid? categoryId) => CategoryId = categoryId;
+
+    public void UstawWymagaPotwierdzenia(bool wymaga) => WymagaPotwierdzenia = wymaga;
 }

@@ -20,6 +20,6 @@ public sealed class GetDocumentAuditByUserHandler(IDocumentRepository repository
         return docs.Select(d => new DocumentDto(
             d.Id, d.FileName, d.ContentType, d.FileSizeBytes,
             d.UploadedById, d.CategoryId, d.EntityType, d.EntityId,
-            d.Description, d.IsDeleted, d.CreatedAt)).ToList();
+            d.Description, d.IsDeleted, d.CreatedAt, d.WymagaPotwierdzenia)).ToList();
     }
 }

@@ -100,6 +100,7 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<ITenantProvisioningService, Services.TenantProvisioningService>();
         services.AddScoped<IKioskAccountProvisioningService, Services.KioskAccountProvisioningService>();
         services.AddScoped<IEmailSender, SmtpEmailSender>();
+        services.AddScoped<Dokumenty.PotwierdzeniaDokumentow>();
 
         var moduleApplicationAssemblies = GetModuleApplicationAssemblies().ToArray();
 

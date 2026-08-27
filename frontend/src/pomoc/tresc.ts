@@ -612,6 +612,20 @@ export const SEKCJE_POMOCY: readonly SekcjaPomocy[] = [
         wymaga: ['org.view'],
       },
       {
+        id: 'potwierdzenie-dokumentu',
+        pytanie: 'Jak sprawdzić, kto zapoznał się z regulaminem?',
+        odpowiedz: [
+          'Na liście dokumentów zaznacz przy pliku „wymagane” w kolumnie Potwierdzenie. Dokument firmowy dotyczy każdego aktywnego pracownika; dokument dołączony do karty pracownika — tylko tej osoby.',
+          'Każdy, kogo dokument dotyczy, widzi nad listą dokumentów baner „Do potwierdzenia” z przyciskiem „Zapoznałem się”. Potwierdza wyłącznie on sam, ze swojego konta — nikt nie zrobi tego za niego.',
+          'Przycisk „kto” przy dokumencie pokazuje, kto potwierdził, a kto nie i od ilu dni. Nowa wersja regulaminu to nowy dokument i nowe potwierdzenia, jak w segregatorze z podpisami.',
+        ],
+        uwaga:
+          'System nie wymusza potwierdzeń ani niczego nie blokuje. To rejestr, który firma może pokazać przy kontroli; egzekwowanie należy do niej.',
+        sciezka: '/documents',
+        etykietaSciezki: 'Otwórz dokumenty',
+        wymaga: ['documents.create'],
+      },
+      {
         id: 'mienie-powierzone',
         pytanie: 'Jak zapisać, że pracownik dostał laptop, telefon albo klucze?',
         odpowiedz: [

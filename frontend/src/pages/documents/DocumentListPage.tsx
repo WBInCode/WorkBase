@@ -1,5 +1,7 @@
-import { useState, useMemo, useRef, type ChangeEvent } from 'react';
-import { Search, Upload, Download, Trash2, FileText, FolderOpen, Filter } from 'lucide-react';
+import { Fragment, useState, useMemo, useRef, type ChangeEvent } from 'react';
+import { Search, Upload, Download, Trash2, FileText, FolderOpen, Filter, ClipboardCheck } from 'lucide-react';
+import { DoPotwierdzeniaBaner, PotwierdzeniaDokumentu } from '@/components/Documents/PotwierdzeniaDokumentu';
+import { useUstawWymagaPotwierdzenia } from '@/api/hooks/useDocuments';
 import {
   useDocuments,
   useDocumentCategories,
@@ -41,6 +43,8 @@ export function DocumentListPage() {
   const uploadMutation = useUploadDocument();
   const deleteMutation = useDeleteDocument();
   const downloadMutation = useDownloadDocument();
+  const ustawWymaga = useUstawWymagaPotwierdzenia();
+  const [raportDla, setRaportDla] = useState<string | null>(null);
   const mobile = useIsMobile();
   const { addToast } = useToast();
 
@@ -104,6 +108,7 @@ export function DocumentListPage() {
 
   return (
     <div style={{ padding: mobile ? 14 : '24px 28px', maxWidth: 1240, margin: '0 auto' }}>
+      <DoPotwierdzeniaBaner />
       {/* ── Karta dowodzenia: tytuł + upload + filtry ── */}
       <div
         style={{
@@ -316,6 +321,7 @@ export function DocumentListPage() {
                 <th style={{ padding: '10px 12px', fontWeight: 600, color: 'var(--wb-g-600, #475569)' }}>Opis</th>
                 <th style={{ padding: '10px 12px', fontWeight: 600, color: 'var(--wb-g-600, #475569)' }}>Rozmiar</th>
                 <th style={{ padding: '10px 12px', fontWeight: 600, color: 'var(--wb-g-600, #475569)' }}>Data</th>
+                <th style={{ padding: '10px 12px', fontWeight: 600, color: 'var(--wb-g-600, #475569)', whiteSpace: 'nowrap' }}>Potwierdzenie</th>
                 <th style={{ padding: '10px 12px', fontWeight: 600, color: 'var(--wb-g-600, #475569)', width: 100 }}>Akcje</th>
               </tr>
             </thead>
@@ -323,10 +329,8 @@ export function DocumentListPage() {
               {filtered.map((doc) => {
                 const cat = categories.find((c) => c.id === doc.categoryId);
                 return (
-                  <tr
-                    key={doc.id}
-                    style={{ borderBottom: '1px solid var(--wb-g-100, #f1f5f9)' }}
-                  >
+                  <Fragment key={doc.id}>
+                  <tr style={{ borderBottom: '1px solid var(--wb-g-100, #f1f5f9)' }}>
                     <td style={{ padding: '10px 12px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <FileText size={16} style={{ color: 'var(--wb-g-500, #64748b)', flexShrink: 0 }} />
@@ -344,6 +348,31 @@ export function DocumentListPage() {
                     </td>
                     <td style={{ padding: '10px 12px', color: 'var(--wb-g-500, #64748b)', whiteSpace: 'nowrap' }}>
                       {formatDate(doc.createdAt)}
+                    </td>
+                    <td style={{ padding: '10px 12px', whiteSpace: 'nowrap' }}>
+                      {/* Zalacznik zadania nie ma adresata — przelacznika nie pokazujemy. */}
+                      {(doc.entityType === null || doc.entityType === 'employee') && moze('documents.create') ? (
+                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12.5, cursor: 'pointer' }}>
+                          <input
+                            type="checkbox"
+                            checked={doc.wymagaPotwierdzenia}
+                            onChange={(e) => ustawWymaga.mutate({ id: doc.id, wymaga: e.target.checked })}
+                            aria-label={`Wymaga potwierdzenia: ${doc.fileName}`}
+                          />
+                          wymagane
+                        </label>
+                      ) : doc.wymagaPotwierdzenia ? (
+                        <span style={{ fontSize: 12.5, color: 'var(--wb-g-500, #64748b)' }}>wymagane</span>
+                      ) : null}
+                      {doc.wymagaPotwierdzenia && moze('documents.manage') && (
+                        <button
+                          onClick={() => setRaportDla(raportDla === doc.id ? null : doc.id)}
+                          title="Kto potwierdził"
+                          style={{ marginLeft: 8, padding: '3px 8px', fontSize: 12, fontFamily: 'inherit', background: 'none', border: '1px solid var(--wb-line, #e2e8f0)', borderRadius: 8, cursor: 'pointer', color: colors.primary[600], display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                        >
+                          <ClipboardCheck size={12} /> kto
+                        </button>
+                      )}
                     </td>
                     <td style={{ padding: '10px 12px' }}>
                       <div style={{ display: 'flex', gap: 4 }}>
@@ -385,6 +414,14 @@ export function DocumentListPage() {
                       </div>
                     </td>
                   </tr>
+                  {raportDla === doc.id && (
+                    <tr>
+                      <td colSpan={7} style={{ padding: '4px 12px 14px' }}>
+                        <PotwierdzeniaDokumentu documentId={doc.id} />
+                      </td>
+                    </tr>
+                  )}
+                  </Fragment>
                 );
               })}
             </tbody>

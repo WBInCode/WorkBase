@@ -25,6 +25,7 @@
   <ItemGroup>
     <ProjectReference Include="..\WorkBase.Contracts\WorkBase.Contracts.csproj" />
     <ProjectReference Include="..\Modules\Organization\WorkBase.Modules.Organization.Domain\WorkBase.Modules.Organization.Domain.csproj" />
+    <ProjectReference Include="..\Modules\Documents\WorkBase.Modules.Documents.Domain\WorkBase.Modules.Documents.Domain.csproj" />
     <ProjectReference Include="..\Modules\TimeTracking\WorkBase.Modules.TimeTracking.Domain\WorkBase.Modules.TimeTracking.Domain.csproj" />
     <ProjectReference Include="..\Modules\Notification\WorkBase.Modules.Notification.Domain\WorkBase.Modules.Notification.Domain.csproj" />
   </ItemGroup>

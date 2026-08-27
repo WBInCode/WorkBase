@@ -115,3 +115,64 @@ export function useDeleteDocumentCategory() {
     },
   });
 }
+
+// --- potwierdzenie zapoznania sie z dokumentem ---
+
+export interface DokumentDoPotwierdzenia {
+  documentId: string;
+  fileName: string;
+  description: string | null;
+  createdAt: string;
+  dniOdPublikacji: number;
+}
+
+export interface StanPotwierdzenia {
+  employeeId: string;
+  imieNazwisko: string;
+  potwierdzonoDnia: string | null;
+  dniBezPotwierdzenia: number | null;
+}
+
+export interface RaportPotwierdzen {
+  documentId: string;
+  fileName: string;
+  wymagaPotwierdzenia: boolean;
+  potwierdzilo: number;
+  czeka: number;
+  osoby: StanPotwierdzenia[];
+}
+
+/** Co pytajacy ma jeszcze potwierdzic. Konto bez kartoteki dostaje pusta liste. */
+export function useDokumentyDoPotwierdzenia() {
+  return useQuery({
+    queryKey: ['documents', 'do-potwierdzenia'],
+    queryFn: () => api.get<DokumentDoPotwierdzenia[]>('/api/documents/do-potwierdzenia'),
+  });
+}
+
+/** Potwierdza wylacznie sam pracownik — serwer bierze identyfikator z tokenu. */
+export function usePotwierdzDokument() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.post<void>(`/api/documents/${id}/potwierdz`, {}),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['documents'] }),
+  });
+}
+
+export function useUstawWymagaPotwierdzenia() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, wymaga }: { id: string; wymaga: boolean }) =>
+      api.put<void>(`/api/documents/${id}/wymaga-potwierdzenia`, { wymaga }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['documents'] }),
+  });
+}
+
+/** Widok dla kadr: kto potwierdzil, kto nie i od ilu dni. Pobierany dopiero po rozwinieciu. */
+export function useRaportPotwierdzen(id: string | null) {
+  return useQuery({
+    queryKey: ['documents', 'potwierdzenia', id],
+    queryFn: () => api.get<RaportPotwierdzen>(`/api/documents/${id}/potwierdzenia`),
+    enabled: Boolean(id),
+  });
+}
