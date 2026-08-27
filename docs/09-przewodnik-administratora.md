@@ -306,6 +306,24 @@ Nowa firma dostaje zestaw startowy — badania lekarskie (30 dni), szkolenie BHP
 
 **System niczego nie blokuje.** Osoba z nieaktualnym badaniem normalnie zarejestruje czas pracy i złoży wniosek. Pokazujemy stan; dopuszczenie do pracy jest odpowiedzialnością pracodawcy, nie systemu — i tak ma zostać.
 
+### Odejście pracownika a dostęp do systemu
+
+„Dezaktywuj pracownika" na karcie (`org.edit`) robi teraz trzy rzeczy naraz:
+
+| Krok | Co się dzieje |
+|---|---|
+| Status | pracownik znika z list aktywnych i z raportów |
+| Konto | **wyłączone w Keycloaku** — logowanie przestaje działać |
+| Sesje | otwarte sesje zostają zamknięte |
+
+Ostatnie dwa punkty są nowe. Wcześniej zwolnienie zmieniało wyłącznie status, a konto działało dalej — kadry widziały „Nieaktywny" i miały pełne prawo sądzić, że dostęp zniknął. **Jeśli ktoś odszedł z firmy przed tą wersją, jego konto może być nadal czynne**: wejdź na kartę i dezaktywuj ponownie, to wystarczy.
+
+Samo wyłączenie konta nie kończy sprawy natychmiast, dlatego zamykamy też sesje: token dostępu wydany przed wyłączeniem byłby ważny aż do wygaśnięcia.
+
+**Konta nie kasujemy.** Skasowane zabrałoby ślad, kto co zrobił, i uniemożliwiło powrót. Przywrócenie pracownika (przycisk na karcie osoby nieaktywnej) oddaje dostęp i — w firmach obsługiwanych przez WB Platform — ponawia zaproszenie.
+
+Awaria Keycloaka nie wycofuje zwolnienia: zmiana w kadrach zostaje zapisana, a w logu pojawia się błąd z numerem pracownika. Wtedy konto trzeba wyłączyć ręcznie w konsoli.
+
 ---
 
 ## 9. Kreator pierwszego startu

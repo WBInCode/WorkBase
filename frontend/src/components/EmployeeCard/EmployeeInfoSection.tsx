@@ -3,12 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import {
   useDeactivateEmployee,
+  useActivateEmployee,
   useEmployeeAccessStatus,
   useRetryEmployeeAccess,
   useSetEmployeeHourlyRate,
 } from '@/api/hooks/useOrganization';
 import { useCurrentUser } from '@/api/hooks/useIam';
-import { RefreshCw, UserMinus } from 'lucide-react';
+import { RefreshCw, UserMinus, UserPlus } from 'lucide-react';
 import { colors } from '@/theme/tokens';
 
 const statusLabels: Record<EmployeeStatus, string> = {
@@ -57,6 +58,7 @@ export function EmployeeInfoSection({ employee }: Props) {
   const isAdmin = !!currentUser?.isAdmin;
   const setRate = useSetEmployeeHourlyRate();
   const deactivate = useDeactivateEmployee();
+  const activate = useActivateEmployee();
   const { data: access } = useEmployeeAccessStatus(employee.id);
   const retryAccess = useRetryEmployeeAccess();
   const [editingRate, setEditingRate] = useState(false);
@@ -229,6 +231,35 @@ export function EmployeeInfoSection({ employee }: Props) {
         </div>
       )}
 
+      {/* Przywrocenie — tylko dla nieaktywnych. Zwolnienie odbiera dostep do konta, wiec
+          bez tego przycisku pomylka byla nie do odkrecenia bez konsoli Keycloaka. */}
+      {isAdmin && employee.status !== 'Active' && (
+        <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: `1px solid ${colors.gray[200]}` }}>
+          <button
+            onClick={() => activate.mutateAsync(employee.id)}
+            disabled={activate.isPending}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '8px',
+              padding: '10px 20px', fontSize: '13px', fontWeight: 600,
+              color: colors.primary[700], backgroundColor: colors.primary[50],
+              border: `1px solid ${colors.primary[200]}`, borderRadius: '12px',
+              cursor: 'pointer', opacity: activate.isPending ? 0.6 : 1,
+            }}
+          >
+            <UserPlus size={16} />
+            {activate.isPending ? 'Przywracanie…' : 'Przywróć pracownika'}
+          </button>
+          <p style={{ margin: '10px 0 0', fontSize: '12.5px', color: 'var(--wb-ink-2, #6b7490)' }}>
+            Pracownik wróci na listy aktywnych, a jego konto odzyska możliwość logowania.
+          </p>
+          {activate.error && (
+            <p style={{ margin: '8px 0 0', fontSize: '13px', color: colors.danger[600] }}>
+              Błąd: {(activate.error as Error)?.message || 'Nie udało się przywrócić pracownika.'}
+            </p>
+          )}
+        </div>
+      )}
+
       {/* Deactivate button — admin only, active employees only */}
       {isAdmin && employee.status === 'Active' && (
         <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: `1px solid ${colors.danger[100]}` }}>
@@ -252,7 +283,11 @@ export function EmployeeInfoSection({ employee }: Props) {
                 Czy na pewno chcesz dezaktywować pracownika <strong>{employee.firstName} {employee.lastName}</strong>?
               </p>
               <p style={{ margin: '0 0 16px', fontSize: '13px', color: colors.danger[700] }}>
-                Pracownik zostanie oznaczony jako nieaktywny. Nie będzie widoczny w raportach i listach aktywnych pracowników.
+                Pracownik zostanie oznaczony jako nieaktywny, zniknie z raportów i list aktywnych,
+                a jego konto straci możliwość logowania — także sesje otwarte w tej chwili.
+              </p>
+              <p style={{ margin: '0 0 16px', fontSize: '13px', color: colors.danger[700] }}>
+                Konto nie jest kasowane. Historia zostaje, a przywrócenie pracownika oddaje dostęp.
               </p>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button

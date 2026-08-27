@@ -222,6 +222,20 @@ export function useDeactivateEmployee() {
   });
 }
 
+/**
+ * Przywrocenie pracownika.
+ *
+ * Zwolnienie odbiera dostep do konta, wiec bez tej drogi powrotnej omylka byla nie do
+ * odkrecenia bez konsoli Keycloaka.
+ */
+export function useActivateEmployee() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.post<void>(`/api/org/employees/${id}/activate`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['org', 'employees'] }),
+  });
+}
+
 export function useSetEmployeeHourlyRate() {
   const qc = useQueryClient();
   return useMutation({

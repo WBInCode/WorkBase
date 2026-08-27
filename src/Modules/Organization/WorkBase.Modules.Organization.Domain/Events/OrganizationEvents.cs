@@ -6,6 +6,16 @@ public sealed record EmployeeCreatedEvent(Guid EmployeeId, Guid TenantId) : Doma
 
 public sealed record EmployeeDeactivatedEvent(Guid EmployeeId, Guid TenantId) : DomainEvent;
 
+/// <summary>
+/// Ponowne zatrudnienie albo cofnięcie omyłkowego zwolnienia.
+/// </summary>
+/// <remarks>
+/// Zdarzenie dodane razem z odbieraniem dostępu przy zwolnieniu. Bez niego przywrócony pracownik
+/// zostawałby z wyłączonym kontem i jedyną drogą powrotu przez konsolę Keycloaka — a nikt nie
+/// skojarzyłby, że „przywróciłem go w kadrach" i „nie może się zalogować" to ta sama sprawa.
+/// </remarks>
+public sealed record EmployeeActivatedEvent(Guid EmployeeId, Guid TenantId) : DomainEvent;
+
 public sealed record EmployeeAssignmentChangedEvent(
     Guid EmployeeId,
     Guid OrganizationUnitId,

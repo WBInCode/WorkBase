@@ -72,6 +72,13 @@ public static class EmployeeEndpoints
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound);
 
+        group.MapPost("/{id:guid}/activate", ActivateEmployee)
+            .WithName("ActivateEmployee")
+            .WithSummary("Przywróć pracownika")
+            .RequirePermission("org.edit")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status404NotFound);
+
         group.MapPost("/import", ImportEmployees)
             .WithName("ImportEmployees")
             .WithSummary("Importuj pracowników z CSV/JSON")
@@ -250,6 +257,14 @@ public static class EmployeeEndpoints
         ISender sender)
     {
         var result = await sender.Send(new DeactivateEmployeeCommand(id));
+        return result.IsSuccess ? Results.NoContent() : result.ToHttpResult();
+    }
+
+    private static async Task<IResult> ActivateEmployee(
+        Guid id,
+        ISender sender)
+    {
+        var result = await sender.Send(new ActivateEmployeeCommand(id));
         return result.IsSuccess ? Results.NoContent() : result.ToHttpResult();
     }
 

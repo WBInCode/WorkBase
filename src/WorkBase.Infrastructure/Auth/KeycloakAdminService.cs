@@ -1,6 +1,7 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -1093,8 +1094,59 @@ public sealed class KeycloakAdminService(
         return true;
     }
 
+    public async Task<bool> SetUserEnabledAsync(
+        string? realmName,
+        string keycloakUserId,
+        bool enabled,
+        CancellationToken cancellationToken = default)
+    {
+        var token = await GetAdminTokenAsync(cancellationToken);
+        if (token is null) return false;
+
+        var client = httpClientFactory.CreateClient();
+        var baseUrl = GetAdminBaseUrl();
+        realmName ??= configuration["Keycloak:Realm"] ?? "workbase";
+
+        // Pobieramy calego uzytkownika i odsylamy z podmieniona flaga, zamiast wyslac samo
+        // {"enabled": false}. Keycloak przyjmuje aktualizacje jako REPREZENTACJE, a nie latke —
+        // te same wzgledy stoja za GET-em w MergeUserAttributesAsync. Ryzyko wyczyszczenia
+        // profilu na produkcji nie jest warte trzech zaoszczedzonych linii.
+        using var getRequest = new HttpRequestMessage(HttpMethod.Get,
+            $"{baseUrl}/admin/realms/{realmName}/users/{keycloakUserId}");
+        getRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        using var getResponse = await client.SendAsync(getRequest, cancellationToken);
+        if (!getResponse.IsSuccessStatusCode)
+        {
+            logger.LogError("Nie znaleziono konta {UserId} w realmie {Realm}: {Status}",
+                keycloakUserId, realmName, getResponse.StatusCode);
+            return false;
+        }
+
+        var uzytkownik = await getResponse.Content.ReadFromJsonAsync<JsonObject>(cancellationToken);
+        if (uzytkownik is null) return false;
+        uzytkownik["enabled"] = enabled;
+
+        using var request = new HttpRequestMessage(HttpMethod.Put,
+            $"{baseUrl}/admin/realms/{realmName}/users/{keycloakUserId}");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        request.Content = JsonContent.Create(uzytkownik, options: JsonOptions);
+
+        using var response = await client.SendAsync(request, cancellationToken);
+        if (!response.IsSuccessStatusCode)
+        {
+            var error = await response.Content.ReadAsStringAsync(cancellationToken);
+            logger.LogError(
+                "Nie udalo sie ustawic enabled={Enabled} dla konta {UserId} w realmie {Realm}: {Status} {Error}",
+                enabled, keycloakUserId, realmName, response.StatusCode, error);
+            return false;
+        }
+
+        return true;
+    }
+
     public async Task<bool> LogoutUserSessionsAsync(
-        string realmName,
+        string? realmName,
         string email,
         CancellationToken cancellationToken = default)
     {
@@ -1103,6 +1155,7 @@ public sealed class KeycloakAdminService(
 
         var client = httpClientFactory.CreateClient();
         var baseUrl = GetAdminBaseUrl();
+        realmName ??= configuration["Keycloak:Realm"] ?? "workbase";
 
         var userId = await FindUserIdByEmailAsync(client, baseUrl, realmName, token, email, cancellationToken);
         if (userId is null)

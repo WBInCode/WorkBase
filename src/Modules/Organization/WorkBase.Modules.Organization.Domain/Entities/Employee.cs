@@ -78,6 +78,7 @@ public sealed class Employee : AuditableEntity<Guid>, ITenantScoped, IAuditable
     {
         Status = EmployeeStatus.Active;
         TerminationDate = null;
+        RaiseDomainEvent(new EmployeeActivatedEvent(Id, TenantId));
     }
 
     public void UpdateCustomFields(string? customFields)

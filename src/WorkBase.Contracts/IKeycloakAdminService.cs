@@ -92,13 +92,29 @@ public interface IKeycloakAdminService
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Włącza lub wyłącza konto. Wyłączone konto nie może się zalogować, ale <b>zachowuje wszystko
+    /// pozostałe</b> — powiązania, historię i możliwość ponownego włączenia. Dlatego zwolnienie
+    /// pracownika wyłącza konto, a nie kasuje: skasowane konto zabrałoby ślad, kto co zrobił.
+    /// </summary>
+    /// <param name="realmName">
+    /// Realm firmy, albo <c>null</c> dla realmu wspólnego z konfiguracji — dzięki temu wołający
+    /// spoza infrastruktury nie musi znać ustawień Keycloaka.
+    /// </param>
+    Task<bool> SetUserEnabledAsync(
+        string? realmName,
+        string keycloakUserId,
+        bool enabled,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Terminates every active Keycloak session of the user with the given e-mail, so a
     /// central logout in the ecosystem Hub also ends the WorkBase session. Returns false
     /// when the account cannot be resolved or Keycloak rejects the request; an unknown
     /// e-mail is not an error for the caller (no such user, nothing to close).
     /// </summary>
+    /// <param name="realmName">Jak wyżej: <c>null</c> oznacza realm wspólny z konfiguracji.</param>
     Task<bool> LogoutUserSessionsAsync(
-        string realmName,
+        string? realmName,
         string email,
         CancellationToken cancellationToken = default);
 }
