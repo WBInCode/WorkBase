@@ -131,10 +131,13 @@ export const SEKCJE_POMOCY: readonly SekcjaPomocy[] = [
         id: 'powiadomienia-preferencje',
         pytanie: 'Czy mogę wyłączyć powiadomienia, których nie chcę?',
         odpowiedz: [
-          'Tak. Na dole listy pod dzwonkiem jest odnośnik „Ustawienia powiadomień”, a w nim przełącznik przy każdym rodzaju: przydzielone zadanie, zadanie po terminie, anomalia czasu pracy, zbliżający się i miniony termin, wniosek czekający na decyzję.',
+          'Tak. Na dole listy pod dzwonkiem jest odnośnik „Ustawienia powiadomień”, a w nim dwa przełączniki przy każdym rodzaju: „w aplikacji” i „mailem”. Rodzaje to przydzielone zadanie, zadanie po terminie, anomalia czasu pracy, zbliżający się i miniony termin oraz wniosek czekający na decyzję.',
           'Ustawienia są wyłącznie Twoje. Nikt inny ich nie widzi ani nie zmienia — także administrator, który może zmieniać treść powiadomień, ale nie to, kto je dostaje.',
-          'Wyłączenie jednego rodzaju nie dotyka pozostałych. Domyślnie wszystkie są włączone.',
+          'Powiadomienia w aplikacji są domyślnie włączone, a poczta domyślnie wyłączona: wiadomość wychodzi poza system, do Twojej skrzynki, więc musisz o nią poprosić sam.',
+          'Wyłączenie jednego rodzaju nie dotyka pozostałych. Wyciszenie rodzaju w aplikacji zabiera też jego kopie na skrzynkę.',
         ],
+        uwaga:
+          'Poczta wymaga skonfigurowanego serwera pocztowego po stronie firmy. Jeśli włączony kanał nic nie przynosi, zgłoś to administratorowi — powiadomienie w aplikacji dochodzi wtedy normalnie.',
         sciezka: '/powiadomienia',
         etykietaSciezki: 'Otwórz ustawienia powiadomień',
       },

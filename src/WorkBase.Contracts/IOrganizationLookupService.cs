@@ -10,4 +10,10 @@ public interface IOrganizationLookupService
 
     /// <summary>Imię i nazwisko pracownika, albo null gdy nie ma takiego pracownika.</summary>
     Task<string?> GetEmployeeFullNameAsync(Guid employeeId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adres e-mail właściciela konta, albo null gdy konto nie ma kartoteki pracownika
+    /// lub kartoteka nie ma adresu.
+    /// </summary>
+    Task<string?> GetEmailByUserIdAsync(Guid tenantId, Guid userId, CancellationToken cancellationToken = default);
 }

@@ -15,8 +15,9 @@ import { colors } from '@/theme/tokens';
  * o cudze ani ich zmienić. Wcześniej identyfikator szedł od klienta i dało się wyciszyć
  * powiadomienia komuś innemu.
  *
- * Brak wiersza znaczy „wysyłaj" — dlatego przełącznik domyślnie jest włączony, a wyłączenie
- * dopiero tworzy wpis.
+ * Dwie domyślki i są celowo różne. W aplikacji brak wiersza znaczy „wysyłaj", więc przełącznik
+ * startuje włączony, a wyłączenie dopiero tworzy wpis. Mailem — odwrotnie: poczta wychodzi poza
+ * system, do skrzynki, której nikt o zgodę nie pytał, więc włączenie musi być świadome.
  */
 const KATEGORIE: { kod: string; nazwa: string; opis: string }[] = [
   {
@@ -55,20 +56,16 @@ export function PreferencjePowiadomienPage() {
   const { data: preferencje = [], isLoading } = usePreferencjePowiadomien();
   const zapisz = useZapiszPreferencje();
 
-  const wlaczona = (kod: string) => {
+  const stan = (kod: string) => {
     const wpis = preferencje.find((p) => p.category === kod);
-    // Brak wpisu = wysylamy. Odwrotna domyslka uciszylaby powiadomienia wszystkim,
-    // ktorzy nigdy tu nie zajrzeli.
-    return wpis ? wpis.inApp : true;
+    // Brak wpisu: w aplikacji wysylamy (odwrotna domyslka uciszylaby powiadomienia wszystkim,
+    // ktorzy nigdy tu nie zajrzeli), mailem nie wysylamy.
+    return { inApp: wpis ? wpis.inApp : true, email: wpis?.email ?? false };
   };
 
-  const przelacz = (kod: string) => {
-    const wpis = preferencje.find((p) => p.category === kod);
-    zapisz.mutate({
-      category: kod,
-      inApp: wpis ? !wpis.inApp : false,
-      email: wpis?.email ?? false,
-    });
+  const przelacz = (kod: string, kanal: 'inApp' | 'email') => {
+    const obecny = stan(kod);
+    zapisz.mutate({ category: kod, ...obecny, [kanal]: !obecny[kanal] });
   };
 
   return (
@@ -81,8 +78,9 @@ export function PreferencjePowiadomienPage() {
       </div>
 
       <p style={{ color: 'var(--wb-ink-2, #6b7490)', margin: '0 0 22px', fontSize: 14, maxWidth: '70ch' }}>
-        Wyłącz to, czego nie chcesz dostawać. Ustawienia są Twoje — nikt inny ich nie widzi
-        ani nie zmienia. Treść samych powiadomień ustala firma w Ustawieniach.
+        Wyłącz to, czego nie chcesz dostawać, i zaznacz to, co ma trafiać także na Twoją skrzynkę.
+        Ustawienia są Twoje — nikt inny ich nie widzi ani nie zmienia. Treść samych powiadomień
+        ustala firma w Ustawieniach.
       </p>
 
       {isLoading ? (
@@ -90,7 +88,7 @@ export function PreferencjePowiadomienPage() {
       ) : (
         <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: 10 }}>
           {KATEGORIE.map((kategoria) => {
-            const wlaczone = wlaczona(kategoria.kod);
+            const { inApp, email } = stan(kategoria.kod);
             return (
               <li
                 key={kategoria.kod}
@@ -111,17 +109,32 @@ export function PreferencjePowiadomienPage() {
                   </p>
                 </div>
 
-                <label style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 12.5, whiteSpace: 'nowrap' }}>
-                  <input
-                    type="checkbox"
-                    checked={wlaczone}
-                    disabled={zapisz.isPending}
-                    onChange={() => przelacz(kategoria.kod)}
-                  />
-                  <span style={{ color: wlaczone ? colors.gray[900] : 'var(--wb-ink-2, #9aa3b8)' }}>
-                    {wlaczone ? 'dostaję' : 'wyciszone'}
-                  </span>
-                </label>
+                <div style={{ display: 'flex', gap: 14, fontSize: 12.5, whiteSpace: 'nowrap' }}>
+                  <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                    <input
+                      type="checkbox"
+                      checked={inApp}
+                      disabled={zapisz.isPending}
+                      onChange={() => przelacz(kategoria.kod, 'inApp')}
+                      aria-label={`${kategoria.nazwa} — w aplikacji`}
+                    />
+                    <span style={{ color: inApp ? colors.gray[900] : 'var(--wb-ink-2, #9aa3b8)' }}>
+                      w aplikacji
+                    </span>
+                  </label>
+                  <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                    <input
+                      type="checkbox"
+                      checked={email}
+                      disabled={zapisz.isPending || !inApp}
+                      onChange={() => przelacz(kategoria.kod, 'email')}
+                      aria-label={`${kategoria.nazwa} — mailem`}
+                    />
+                    <span style={{ color: email ? colors.gray[900] : 'var(--wb-ink-2, #9aa3b8)' }}>
+                      mailem
+                    </span>
+                  </label>
+                </div>
               </li>
             );
           })}

@@ -36,6 +36,21 @@ public sealed class OrganizationLookupService(WorkBaseDbContext dbContext) : IOr
             .FirstOrDefaultAsync(cancellationToken);
     }
 
+    /// <remarks>
+    /// <c>IgnoreQueryFilters</c> i jawny najemca, bo o adres pyta wysylka powiadomien — a ta
+    /// idzie takze z zadan cyklicznych, ktore chodza poza kontekstem zadania HTTP i filtr
+    /// najemcy zwrocilby im pustke dla wszystkich.
+    /// </remarks>
+    public async Task<string?> GetEmailByUserIdAsync(
+        Guid tenantId, Guid userId, CancellationToken cancellationToken = default)
+    {
+        return await dbContext.Set<Employee>()
+            .IgnoreQueryFilters()
+            .Where(e => e.TenantId == tenantId && e.UserId == userId)
+            .Select(e => e.Email)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
     public async Task<string?> GetEmployeeFullNameAsync(
         Guid employeeId, CancellationToken cancellationToken = default)
     {

@@ -36,9 +36,11 @@ W górnym pasku znajdują się: zegar, dzwonek powiadomień, przycisk rejestracj
 
 ### Które powiadomienia chcesz dostawać
 
-Na dole listy pod dzwonkiem jest odnośnik **Ustawienia powiadomień**. Każdy rodzaj ma osobny przełącznik: przydzielone zadanie, zadanie po terminie, anomalia czasu pracy, zbliżający się termin, termin miniony i wniosek czekający na decyzję.
+Na dole listy pod dzwonkiem jest odnośnik **Ustawienia powiadomień**. Każdy rodzaj ma dwa przełączniki — **w aplikacji** i **mailem** — a rodzajów jest sześć: przydzielone zadanie, zadanie po terminie, anomalia czasu pracy, zbliżający się termin, termin miniony i wniosek czekający na decyzję.
 
-Ustawienia są wyłącznie Twoje — nikt inny ich nie widzi ani nie zmienia, także administrator, który może zmieniać treść powiadomień, ale nie to, kto je dostaje. Wyciszenie jednego rodzaju nie dotyka pozostałych, a domyślnie wszystkie są włączone.
+Ustawienia są wyłącznie Twoje — nikt inny ich nie widzi ani nie zmienia, także administrator, który może zmieniać treść powiadomień, ale nie to, kto je dostaje. Wyciszenie jednego rodzaju nie dotyka pozostałych.
+
+Domyślnie **wszystko w aplikacji jest włączone, a poczta wyłączona**. Wiadomość wychodzi poza system, do Twojej skrzynki, więc musisz o nią poprosić sam. Wyciszenie rodzaju w aplikacji zabiera też jego kopie na skrzynkę.
 
 ### Dlaczego menu wygląda inaczej u różnych osób
 

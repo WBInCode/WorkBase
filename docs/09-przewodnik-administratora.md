@@ -196,6 +196,14 @@ Trzy zachowania warte zapamiętania, bo są celowe:
 - **Szablon wyłączony albo nieutworzony to powrót do treści domyślnej.** Błąd w konfiguracji nigdy nie wycisza powiadomienia.
 - **Treść ustala firma, ale odbiór jest decyzją pracownika.** Każdy ma własny ekran ustawień powiadomień (`/powiadomienia`) i może wyciszyć wybrany rodzaj. Administrator tego nie widzi ani nie zmienia.
 
+### Powiadomienia na pocztę
+
+Kanał pocztowy jest **opt-in**: pracownik sam zaznacza „mailem" przy wybranym rodzaju. Domyślnie nie wychodzi nic. Odwrotna domyślka oznaczałaby wysyłanie na skrzynki, o które nikt nie pytał.
+
+Do działania potrzebny jest serwer pocztowy w konfiguracji instancji (`Smtp__Host`, `Smtp__Port`, `Smtp__Username`, `Smtp__Password`, `Smtp__FromEmail`, `Smtp__FromName`). Adres odbiorcy bierze się z kartoteki pracownika — konto bez kartoteki albo bez adresu nie dostanie wiadomości.
+
+Awaria poczty **nie zabiera powiadomienia w aplikacji**: wpis jest już zapisany, a nieudana wysyłka zostawia ostrzeżenie w logu i nie przerywa zadania cyklicznego, więc pozostali odbiorcy z tej samej partii dostają swoje.
+
 Reguła eskalacji wiąże **konkretny krok obiegu** z progiem w minutach. Po jego przekroczeniu akceptant dostaje przypomnienie. Sprawdzenie idzie co 15 minut, ale przypomnienie o danym wniosku wychodzi **raz** — wniosek stojący tydzień nie zasypie nikogo powtórkami. Reguła obejmuje wyłącznie krok, przy którym ją ustawiono; żeby przypilnować całego obiegu, trzeba dodać regułę do każdego kroku osobno.
 
 System nie narzuca żadnego progu. Bez ustawionej reguły nie przypomina o niczym.

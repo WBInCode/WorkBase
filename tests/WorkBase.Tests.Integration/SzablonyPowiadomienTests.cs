@@ -205,6 +205,108 @@ public class SzablonyPowiadomienTests
         Assert.Equal(1, await db.Set<Notification>().IgnoreQueryFilters().CountAsync());
     }
 
+    // --- kanal pocztowy ---
+
+    /// <summary>
+    /// Domyslka pocztowa jest ODWROTNA niz w aplikacji. Poczta wychodzi poza system, do skrzynki,
+    /// ktorej nikt o zgode nie pytal — wlaczenie musi byc swiadome.
+    /// </summary>
+    [Fact]
+    public async Task Bez_ustawionych_preferencji_mail_NIE_wychodzi()
+    {
+        await using var db = UtworzBaze();
+        var (serwis, poczta, _) = ZbudujZPoczta(db);
+
+        await serwis.SendAsync(Firma, Konto, "Tytul", "Tresc", "task_assigned");
+
+        await poczta.DidNotReceiveWithAnyArgs().SendAsync(default!, default!, default!, default);
+    }
+
+    [Fact]
+    public async Task Wlaczony_kanal_pocztowy_wysyla_na_adres_z_kartoteki()
+    {
+        await using var db = UtworzBaze();
+        db.Add(NotificationPreference.Create(Firma, Konto, "task_assigned", inApp: true, email: true));
+        await db.SaveChangesAsync();
+        var (serwis, poczta, _) = ZbudujZPoczta(db, adres: "anna@example.com");
+
+        await serwis.SendAsync(Firma, Konto, "Zadanie", "Rozliczyc fakture", "task_assigned");
+
+        await poczta.Received(1).SendAsync(
+            "anna@example.com", "Zadanie", Arg.Is<string>(t => t.Contains("Rozliczyc fakture")),
+            Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// Tresc niesie dane od uzytkownikow (tytul zadania, nazwisko). Bez ucieczki nawias ostry
+    /// rozjechalby wiadomosc, a w gorszym wariancie wstrzyknal do niej znaczniki.
+    /// </summary>
+    [Fact]
+    public async Task Tresc_trafia_do_maila_po_ucieczce_html()
+    {
+        await using var db = UtworzBaze();
+        db.Add(NotificationPreference.Create(Firma, Konto, "task_assigned", inApp: true, email: true));
+        await db.SaveChangesAsync();
+        var (serwis, poczta, _) = ZbudujZPoczta(db, adres: "anna@example.com");
+
+        await serwis.SendAsync(Firma, Konto, "Tytul", "<script>alert(1)</script>", "task_assigned");
+
+        await poczta.Received(1).SendAsync(
+            Arg.Any<string>(), Arg.Any<string>(),
+            Arg.Is<string>(t => !t.Contains("<script>") && t.Contains("&lt;script&gt;")),
+            Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// Wyciszenie w aplikacji ucisza rowniez poczte. Inaczej „nie chce tego widziec" konczyloby sie
+    /// tym samym powiadomieniem w skrzynce.
+    /// </summary>
+    [Fact]
+    public async Task Wyciszenie_w_aplikacji_zabiera_takze_mail()
+    {
+        await using var db = UtworzBaze();
+        db.Add(NotificationPreference.Create(Firma, Konto, "task_assigned", inApp: false, email: true));
+        await db.SaveChangesAsync();
+        var (serwis, poczta, _) = ZbudujZPoczta(db, adres: "anna@example.com");
+
+        await serwis.SendAsync(Firma, Konto, "Tytul", "Tresc", "task_assigned");
+
+        await poczta.DidNotReceiveWithAnyArgs().SendAsync(default!, default!, default!, default);
+    }
+
+    /// <summary>
+    /// Awaria poczty NIE MOZE zabrac powiadomienia w aplikacji ani przerwac przebiegu zadania
+    /// cyklicznego — pozostali odbiorcy z tej samej petli musza dostac swoje.
+    /// </summary>
+    [Fact]
+    public async Task Awaria_smtp_nie_zabiera_powiadomienia_w_aplikacji()
+    {
+        await using var db = UtworzBaze();
+        db.Add(NotificationPreference.Create(Firma, Konto, "task_assigned", inApp: true, email: true));
+        await db.SaveChangesAsync();
+        var (serwis, poczta, _) = ZbudujZPoczta(db, adres: "anna@example.com");
+        poczta.SendAsync(default!, default!, default!, default)
+            .ReturnsForAnyArgs(Task.FromException(new InvalidOperationException("SMTP lezy")));
+
+        await serwis.SendAsync(Firma, Konto, "Tytul", "Tresc", "task_assigned");
+
+        Assert.Equal(1, await db.Set<Notification>().IgnoreQueryFilters().CountAsync());
+    }
+
+    /// <summary>Konto bez kartoteki nie ma adresu — nie ma dokad wyslac.</summary>
+    [Fact]
+    public async Task Konto_bez_adresu_nie_generuje_maila()
+    {
+        await using var db = UtworzBaze();
+        db.Add(NotificationPreference.Create(Firma, Konto, "task_assigned", inApp: true, email: true));
+        await db.SaveChangesAsync();
+        var (serwis, poczta, _) = ZbudujZPoczta(db, adres: null);
+
+        await serwis.SendAsync(Firma, Konto, "Tytul", "Tresc", "task_assigned");
+
+        await poczta.DidNotReceiveWithAnyArgs().SendAsync(default!, default!, default!, default);
+    }
+
     private static NotificationService Zbuduj(WorkBaseDbContext db)
     {
         var hub = Substitute.For<IHubContext<NotificationHub>>();
@@ -214,6 +316,25 @@ public class SzablonyPowiadomienTests
             db, hub,
             Substitute.For<IHubNotificationForwarder>(),
             Substitute.For<IChatNoticeForwarder>());
+    }
+
+    private static (NotificationService, IEmailSender, IOrganizationLookupService) ZbudujZPoczta(
+        WorkBaseDbContext db, string? adres = null)
+    {
+        var hub = Substitute.For<IHubContext<NotificationHub>>();
+        hub.Clients.Group(Arg.Any<string>()).Returns(Substitute.For<IClientProxy>());
+
+        var poczta = Substitute.For<IEmailSender>();
+        var organizacja = Substitute.For<IOrganizationLookupService>();
+        organizacja.GetEmailByUserIdAsync(Firma, Konto, Arg.Any<CancellationToken>()).Returns(adres);
+
+        var serwis = new NotificationService(
+            db, hub,
+            Substitute.For<IHubNotificationForwarder>(),
+            Substitute.For<IChatNoticeForwarder>(),
+            poczta, organizacja);
+
+        return (serwis, poczta, organizacja);
     }
 
     private static WorkBaseDbContext UtworzBaze()
