@@ -343,6 +343,25 @@ Samo wyłączenie konta nie kończy sprawy natychmiast, dlatego zamykamy też se
 
 Awaria Keycloaka nie wycofuje zwolnienia: zmiana w kadrach zostaje zapisana, a w logu pojawia się błąd z numerem pracownika. Wtedy konto trzeba wyłączyć ręcznie w konsoli.
 
+### Mienie powierzone
+
+Rejestr rzeczy firmy wydanych pracownikowi — laptop, telefon, klucze, karta dostępu, odzież, narzędzia. Odpowiada na pytanie, które zadaje sobie każda firma i praktycznie każda odpowiada arkuszem: „co ten człowiek ma od nas i co ma oddać, gdy odejdzie”.
+
+| Gdzie | Co |
+|---|---|
+| Karta pracownika → **Mienie powierzone** (`org.edit`) | wydanie, zwrot, pełna historia pod przełącznikiem |
+| Karta pracownika, przycisk **Potwierdzam odbiór** | widoczny wyłącznie dla samego pracownika |
+| **Do zwrotu** (`/mienie/do-zwrotu`, `org.view-team`) | niezwrócone rzeczy u osób nieaktywnych lub z datą odejścia, w zakresie danych pytającego |
+| Potwierdzenie dezaktywacji | ostrzeżenie, ile rzeczy osoba ma jeszcze oddać |
+
+Trzy decyzje projektowe, celowe:
+
+- **Rodzaj to tekst, nie słownik.** Firmy wydają bardzo różne rzeczy; lista z góry byłaby albo za krótka, albo za długa. Formularz podpowiada typowe wartości, ale nie zmusza do nich.
+- **Zwrot nie kasuje wpisu.** Historia „kto miał ten laptop przede mną” jest tak samo potrzebna jak stan bieżący, a przy sporze o uszkodzenie to jedyny dowód, kiedy sprzęt zmienił ręce.
+- **Potwierdzenie składa wyłącznie pracownik**, ze swojego konta. Kadry mogą wpisać wydanie, ale nie mogą potwierdzić za niego — wtedy potwierdzenie nic by nie znaczyło. Brak potwierdzenia niczego nie blokuje; to informacja, nie bramka.
+
+„Do zwrotu” celowo nie pokazuje wszystkich wydanych rzeczy: laptop u kogoś, kto pracuje, nie jest do zwrotu.
+
 ---
 
 ## 9. Kreator pierwszego startu

@@ -16,6 +16,7 @@ import {
   EmployeeTerminySection,
 } from '@/components/EmployeeCard';
 import { DokumentyEncji } from '@/components/Documents';
+import { EmployeeMienieSection } from '@/components/EmployeeCard/EmployeeMienieSection';
 import { useIsMobile } from '@/shared';
 import { colors } from '@/theme/tokens';
 
@@ -157,6 +158,8 @@ export function EmployeeCardPage() {
           />
 
           <EmployeeTerminySection employeeId={employee.id} />
+
+          <EmployeeMienieSection employeeId={employee.id} />
 
           {/* Karta zadania celowo tego NIE dostaje: ma juz wlasne zalaczniki (TaskAttachment),
               wiec dokumenty encji bylyby tam drugim mechanizmem plikow na jednym ekranie. */}

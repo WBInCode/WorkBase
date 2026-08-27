@@ -612,12 +612,26 @@ export const SEKCJE_POMOCY: readonly SekcjaPomocy[] = [
         wymaga: ['org.view'],
       },
       {
+        id: 'mienie-powierzone',
+        pytanie: 'Jak zapisać, że pracownik dostał laptop, telefon albo klucze?',
+        odpowiedz: [
+          'Na karcie pracownika, w sekcji „Mienie powierzone”, przycisk „Wydaj”. Rodzaj wpisujesz sam — system podpowiada typowe (laptop, telefon, klucze, odzież, narzędzia), ale nie zmusza do żadnej listy.',
+          'Pracownik widzi swoje rzeczy na własnej karcie i może potwierdzić odbiór ze swojego konta. Nikt nie potwierdzi za niego — wtedy potwierdzenie nic by nie znaczyło. Brak potwierdzenia niczego nie blokuje.',
+          'Zwrot nie kasuje wpisu, tylko dopisuje datę. Historia „kto miał ten sprzęt wcześniej” zostaje pod przełącznikiem „pokaż także zwrócone”.',
+          'Ekran „Do zwrotu” zbiera rzeczy u osób, które odchodzą albo już odeszły — i tylko u nich. Przy dezaktywacji pracownika system ostrzega, ile rzeczy ma jeszcze oddać.',
+        ],
+        sciezka: '/mienie/do-zwrotu',
+        etykietaSciezki: 'Otwórz „Do zwrotu”',
+        wymaga: ['org.view-team'],
+      },
+      {
         id: 'zwolnienie-pracownika',
         pytanie: 'Co się dzieje, gdy pracownik odchodzi z firmy?',
         odpowiedz: [
           'Na karcie pracownika jest przycisk „Dezaktywuj pracownika”. Osoba znika z list aktywnych i z raportów, a jej konto traci możliwość logowania — razem z sesjami otwartymi w tej chwili.',
           'Konto nie jest kasowane. Historia czasu pracy, wniosków i zadań zostaje, bo bez niej nie dałoby się rozliczyć ani sprawdzić, kto co zrobił.',
           'Powrót jest jednym kliknięciem: na karcie nieaktywnego pracownika pojawia się „Przywróć pracownika”, które oddaje dostęp.',
+          'Jeśli osoba ma niezwrócone mienie firmy, potwierdzenie dezaktywacji o tym przypomina, a rzeczy trafiają na listę „Do zwrotu”.',
         ],
         uwaga:
           'Do wersji z sierpnia 2026 zwolnienie zmieniało wyłącznie status — konto działało dalej. Jeśli ktoś odszedł wcześniej, warto sprawdzić jego kartę i dezaktywować ponownie.',

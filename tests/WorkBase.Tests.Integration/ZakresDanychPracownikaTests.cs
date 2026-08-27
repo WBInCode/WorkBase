@@ -68,6 +68,9 @@ public class ZakresDanychPracownikaTests
         // Terminy kadrowe: badania lekarskie, BHP, uprawnienia, koniec umowy. Dane wrazliwe
         // o osobie — cudze widzi tylko org.view-team, i tylko w swoim zakresie danych.
         "/api/terminy/pracownik/{id}",
+        // Mienie powierzone: co pracownik ma od firmy. Ten sam model dostepu co terminy.
+        "/api/mienie/pracownik/{id}",
+        "/api/mienie/pracownik/{id}/niezwrocone",
     ];
 
     public static TheoryData<string> TrasyZDanymiPracownika() => [.. TrasyPracownika];

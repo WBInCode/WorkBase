@@ -11,6 +11,7 @@ import {
 import { useCurrentUser } from '@/api/hooks/useIam';
 import { RefreshCw, UserMinus, UserPlus } from 'lucide-react';
 import { colors } from '@/theme/tokens';
+import { useNiezwroconeMienie } from '@/api/hooks/useMienie';
 
 const statusLabels: Record<EmployeeStatus, string> = {
   Active: 'Aktywny',
@@ -66,6 +67,8 @@ export function EmployeeInfoSection({ employee }: Props) {
     employee.hourlyRate !== null && employee.hourlyRate !== undefined ? String(employee.hourlyRate) : '',
   );
   const [showDeactivateConfirm, setShowDeactivateConfirm] = useState(false);
+  // Pytamy dopiero po otwarciu potwierdzenia — bez sensu odpytywac przy kazdym wejsciu na karte.
+  const { data: niezwrocone } = useNiezwroconeMienie(employee.id, showDeactivateConfirm);
   const color = statusColors[employee.status];
 
   const handleDeactivate = async () => {
@@ -289,6 +292,11 @@ export function EmployeeInfoSection({ employee }: Props) {
               <p style={{ margin: '0 0 16px', fontSize: '13px', color: colors.danger[700] }}>
                 Konto nie jest kasowane. Historia zostaje, a przywrócenie pracownika oddaje dostęp.
               </p>
+              {niezwrocone !== undefined && niezwrocone.liczba > 0 && (
+                <p style={{ margin: '0 0 16px', fontSize: '13px', color: colors.danger[800], fontWeight: 600 }}>
+                  Ta osoba ma jeszcze {niezwrocone.liczba} {niezwrocone.liczba === 1 ? 'rzecz firmy do oddania' : 'rzeczy firmy do oddania'} — po dezaktywacji trafi na listę „Do zwrotu”.
+                </p>
+              )}
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button
                   onClick={handleDeactivate}

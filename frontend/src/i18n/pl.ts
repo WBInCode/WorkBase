@@ -71,6 +71,7 @@ const pl = {
     typyTerminow: 'Rodzaje terminów',
     anomalie: 'Anomalie',
     terminy: 'Terminy',
+    doZwrotu: 'Do zwrotu',
     dniWolne: 'Dni wolne',
     wnioski: 'Wnioski',
     typyWnioskow: 'Rodzaje wniosków',

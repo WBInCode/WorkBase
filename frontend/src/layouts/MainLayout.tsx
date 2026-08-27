@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback, type ReactNode } from 'react
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from 'react-oidc-context';
 import { useTranslation } from 'react-i18next';
-import { FolderTree, Users, FileUp, LogOut, Menu, X, CalendarDays, UsersRound, CalendarClock, Palmtree, CalendarRange, ClipboardCheck, ListTodo, ClipboardList, LayoutDashboard, Briefcase, Clock, MoreHorizontal, FileArchive, FolderOpen, Flag, Wallet, AlarmClockCheck, ChevronDown, Sun, Moon, LifeBuoy, FileText, Settings2, type LucideIcon } from 'lucide-react';
+import { FolderTree, Users, FileUp, LogOut, Menu, X, CalendarDays, UsersRound, CalendarClock, Palmtree, CalendarRange, ClipboardCheck, ListTodo, ClipboardList, LayoutDashboard, Briefcase, Clock, MoreHorizontal, FileArchive, FolderOpen, Flag, Wallet, AlarmClockCheck, ChevronDown, Sun, Moon, LifeBuoy, FileText, Settings2, Package, type LucideIcon } from 'lucide-react';
 import { GOTOWOSC, GRUPY_USTAWIEN, WSZYSTKIE_POZYCJE_USTAWIEN } from '@/nav/ustawienia';
 import { mapUserClaims } from '@/auth';
 import { useUprawnienia } from '@/auth/useUprawnienia';
@@ -84,6 +84,7 @@ const navSections: NavSection[] = [
       { path: '/org/employees', labelKey: 'nav.employees', icon: Users, exact: true },
       { path: '/org/employees/import', labelKey: 'nav.csvImport', icon: FileUp },
       { path: '/terminy', labelKey: 'nav.terminy', icon: AlarmClockCheck },
+      { path: '/mienie/do-zwrotu', labelKey: 'nav.doZwrotu', icon: Package },
     ],
   },
   {

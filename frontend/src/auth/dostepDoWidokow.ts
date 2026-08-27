@@ -80,6 +80,9 @@ export const DOSTEP_DO_WIDOKOW: ReadonlyArray<readonly [string, WymaganeUprawnie
   ['/admin/break-policies', ['config.manage']],
   ['/time/anomalie', ['time.view']],
   ['/terminy', ['org.view']],
+  // Lista zbiorcza mienia do zwrotu niesie nazwiska osob odchodzacych — dla przelozonych i kadr.
+  // Wlasne rzeczy kazdy widzi na swojej karcie bez zadnego uprawnienia.
+  ['/mienie/do-zwrotu', ['org.view-team']],
   ['/admin/typy-terminow', ['org.edit']],
   ['/admin/gotowosc', ['org.edit']],
   ['/admin/dni-wolne', ['config.manage']],
