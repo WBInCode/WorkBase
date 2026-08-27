@@ -190,6 +190,8 @@ Szablon powiadomienia ma kod odpowiadający rodzajowi zdarzenia, własny tytuł 
 | `termin_minal` | termin kadrowy upłynął | `pracownik`, `rodzaj`, `dni`, `data` |
 | `escalation` | wniosek stoi u akceptanta ponad próg | `krok`, `godziny`, `prog` |
 
+Nowa firma dostaje **komplet sześciu szablonów** odwzorowujących domyślne teksty — po to, żeby administrator w ogóle zobaczył, jakie kody system rozpoznaje, i miał co przepisać pod siebie.
+
 Trzy zachowania warte zapamiętania, bo są celowe:
 
 - **Zmienna, której szablon nie zna, zostaje w tekście widoczna.** Literówka w nazwie ma rzucać się w oczy, zamiast zostawiać w zdaniu dziurę, której nie da się z niczym powiązać.

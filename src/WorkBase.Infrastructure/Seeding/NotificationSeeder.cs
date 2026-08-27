@@ -34,10 +34,32 @@ public static class NotificationSeeder
             "Anomalia: {{rodzaj}}", "{{pracownik}}: {{rodzaj}} w dniu {{data}}.", "anomaly_detected"),
 
         ("termin_zbliza", "Zbliżający się termin",
-            "Termin się zbliża", "{{rodzaj}} — zostało {{dni}} dni ({{data}}).", "termin_zbliza"),
+            "Termin się zbliża", "{{pracownik}}: {{rodzaj}} — zostało {{dni}} dni ({{data}}).", "termin_zbliza"),
 
         ("termin_minal", "Termin minął",
-            "Termin minął", "{{rodzaj}} — termin minął {{dni}} dni temu ({{data}}).", "termin_minal"),
+            "Termin minął", "{{pracownik}}: {{rodzaj}} — termin minął {{dni}} dni temu ({{data}}).", "termin_minal"),
+
+        ("escalation", "Wniosek czeka na decyzję",
+            "Wniosek czeka na Twoją decyzję",
+            "Sprawa „{{krok}}” czeka {{godziny}} godz. — dłużej niż ustalone {{prog}} min.", "escalation"),
+    ];
+
+    /// <summary>
+    /// Wcześniejsze wersje treści domyślnej, do których dopisujemy poprawkę.
+    /// </summary>
+    /// <remarks>
+    /// Przypomnienie o terminie idzie do pracownika <b>i</b> jego przełożonego, ale pierwsza wersja
+    /// szablonu nie mówiła, CZYJ to termin — przełożony dostawał „Badania lekarskie — zostało 10 dni".
+    /// Tekst awaryjny w kodzie już to naprawia, tylko że aktywny szablon go przesłania, więc firmy
+    /// zasiane wcześniej zostałyby z wadą na zawsze.
+    ///
+    /// Podmieniamy <b>wyłącznie treść identyczną ze starym ziarnem</b>. Szablon, którego firma
+    /// dotknęła, jest jej decyzją i zostaje nietknięty.
+    /// </remarks>
+    private static readonly (string Kod, string StaraTresc)[] DoPoprawki =
+    [
+        ("termin_zbliza", "{{rodzaj}} — zostało {{dni}} dni ({{data}})."),
+        ("termin_minal", "{{rodzaj}} — termin minął {{dni}} dni temu ({{data}})."),
     ];
 
     public static async Task SeedTenantAsync(
@@ -46,11 +68,23 @@ public static class NotificationSeeder
         ILogger logger,
         CancellationToken cancellationToken = default)
     {
-        var istniejace = await dbContext.Set<NotificationTemplate>()
+        var szablony = await dbContext.Set<NotificationTemplate>()
             .IgnoreQueryFilters()
             .Where(t => t.TenantId == tenantId)
-            .Select(t => t.Code)
             .ToListAsync(cancellationToken);
+
+        var istniejace = szablony.Select(t => t.Code).ToList();
+
+        var poprawione = 0;
+        foreach (var (kod, staraTresc) in DoPoprawki)
+        {
+            var szablon = szablony.FirstOrDefault(t => t.Code == kod && t.BodyTemplate == staraTresc);
+            if (szablon is null) continue;
+
+            var nowa = Domyslne.First(d => d.Kod == kod);
+            szablon.Update(nowa.Nazwa, nowa.Tytul, nowa.Tresc, nowa.Kategoria);
+            poprawione++;
+        }
 
         var dodane = 0;
         foreach (var (kod, nazwa, tytul, tresc, kategoria) in Domyslne)
@@ -62,10 +96,11 @@ public static class NotificationSeeder
             dodane++;
         }
 
-        if (dodane == 0) return;
+        if (dodane == 0 && poprawione == 0) return;
 
         await dbContext.SaveChangesAsync(cancellationToken);
         logger.LogInformation(
-            "Zasiano {Ile} szablonow powiadomien dla firmy {TenantId}.", dodane, tenantId);
+            "Szablony powiadomien firmy {TenantId}: zasiano {Zasiane}, poprawiono {Poprawione}.",
+            tenantId, dodane, poprawione);
     }
 }
