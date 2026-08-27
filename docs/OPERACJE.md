@@ -70,6 +70,28 @@ STAN=/tmp/probny ADRESY="https://test-alarmu.invalid/health" PROG_ALARMU=2 \
 
 ---
 
+## Poczta wychodząca
+
+Konfiguracja żyje w `/opt/wb/workbase/.env` (sekcja `Smtp__*`, wczytywana przez `env_file` w `docker-compose.yml`). `deploy-prod.sh` tego pliku nie dotyka, więc ustawienia przeżywają wdrożenia.
+
+**Dane są te same, co w Hubie** — jedno konto Resend na całą rodzinę, źródło: `/opt/wb/hub/.env.hub` (klucze `SMTP_*`, `MAIL_FROM`). Nadawcą jest `no-reply@wb-platform.pl`, bo to ta domena jest zweryfikowana w Resendzie; nazwa wyświetlana to `WorkBase`.
+
+**Port 587, nie 465 — i to nie jest kosmetyka.** Hub stoi na nodemailerze z `secure: true`, czyli natychmiastowym TLS na 465. `SmtpEmailSender` łączy się przez `SecureSocketOptions.StartTlsWhenAvailable`, które na porcie 465 nie zadziała. Przepisanie ustawień jeden do jednego dałoby konfigurację wyglądającą poprawnie i niedziałającą.
+
+Sprawdzenie po zmianie danych:
+
+```bash
+cd /opt/wb/workbase && docker compose up -d workbase-api   # NIE `restart` — nie wczyta env_file
+docker exec workbase-api env | grep Smtp__Host
+docker logs workbase-api --since 5m 2>&1 | grep -i -e "Email sent" -e "Nie udalo sie wyslac"
+```
+
+**Zweryfikowane 2026-08-27:** wiadomość próbna przeszła przez `smtp.resend.com:587` (STARTTLS) tymi samymi danymi co Hub.
+
+Konsumenci poczty: dane startowe kiosku oraz kanał e-mail powiadomień. Ten drugi jest **opt-in** — dopóki nikt nie zaznaczy „mailem" w swoich ustawieniach powiadomień, nic nie wychodzi. Awaria poczty nie zabiera powiadomienia w aplikacji ani nie przerywa zadania cyklicznego.
+
+---
+
 ## Czego nadal nie ma
 
 - **Kopii poza serwerem** — patrz wyżej, wymaga konta w zewnętrznym magazynie.
