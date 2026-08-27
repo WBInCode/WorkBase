@@ -127,6 +127,17 @@ export const SEKCJE_POMOCY: readonly SekcjaPomocy[] = [
           'Powiadomienia dostajesz między innymi o decyzji w sprawie wniosku urlopowego oraz o wnioskach czekających na Twoją akceptację.',
         ],
       },
+      {
+        id: 'powiadomienia-preferencje',
+        pytanie: 'Czy mogę wyłączyć powiadomienia, których nie chcę?',
+        odpowiedz: [
+          'Tak. Na dole listy pod dzwonkiem jest odnośnik „Ustawienia powiadomień”, a w nim przełącznik przy każdym rodzaju: przydzielone zadanie, zadanie po terminie, anomalia czasu pracy, zbliżający się i miniony termin, wniosek czekający na decyzję.',
+          'Ustawienia są wyłącznie Twoje. Nikt inny ich nie widzi ani nie zmienia — także administrator, który może zmieniać treść powiadomień, ale nie to, kto je dostaje.',
+          'Wyłączenie jednego rodzaju nie dotyka pozostałych. Domyślnie wszystkie są włączone.',
+        ],
+        sciezka: '/powiadomienia',
+        etykietaSciezki: 'Otwórz ustawienia powiadomień',
+      },
     ],
   },
 
@@ -775,11 +786,28 @@ export const SEKCJE_POMOCY: readonly SekcjaPomocy[] = [
         id: 'powiadomienia-szablony',
         pytanie: 'Czy mogę zmienić treść powiadomień?',
         odpowiedz: [
-          'Tak, w szablonach powiadomień. Szablon zawiera treść oraz zmienne podstawiane automatycznie, na przykład imię pracownika czy zakres dat.',
-          'Reguły eskalacji określają, co się dzieje, gdy decyzja nie zapada w wyznaczonym czasie.',
+          'Tak, w szablonach powiadomień. Szablon ma kod odpowiadający rodzajowi zdarzenia (na przykład task_overdue albo escalation), własny tytuł i treść, a w treści zmienne w podwójnych klamrach — podstawiane w chwili wysyłki.',
+          'Zmienna, której szablon nie zna, zostaje w tekście widoczna. To celowe: literówka w nazwie ma być widać, zamiast zostawiać w zdaniu niezrozumiałą dziurę.',
+          'Szablon wyłączony albo w ogóle nieutworzony oznacza powrót do treści domyślnej. Błąd w konfiguracji nigdy nie wycisza powiadomienia.',
         ],
+        uwaga:
+          'Treść ustala firma, ale to, czy dana osoba chce ją dostawać, jest jej własną decyzją w ustawieniach powiadomień.',
         sciezka: '/admin/notification-templates',
         etykietaSciezki: 'Otwórz Szablony powiadomień',
+        wymaga: ['config.manage'],
+      },
+      {
+        id: 'eskalacje',
+        pytanie: 'Co się dzieje, gdy wniosek stoi u akceptanta zbyt długo?',
+        odpowiedz: [
+          'Firma sama ustala próg — regułę eskalacji wiąże się z konkretnym krokiem obiegu i podaje czas w minutach. Po jego przekroczeniu akceptant dostaje przypomnienie.',
+          'Sprawdzenie idzie co 15 minut, ale przypomnienie o danym wniosku wychodzi raz. Wniosek stojący tydzień nie zasypie nikogo powtórkami.',
+          'Reguła obejmuje wyłącznie krok, przy którym ją ustawiono. Żeby przypilnować całego obiegu, trzeba dodać regułę do każdego kroku osobno.',
+        ],
+        uwaga:
+          'Sam próg to decyzja firmy — system nie narzuca żadnej wartości i bez ustawionej reguły nie przypomina o niczym.',
+        sciezka: '/admin/escalation-rules',
+        etykietaSciezki: 'Otwórz Reguły eskalacji',
         wymaga: ['config.manage'],
       },
     ],

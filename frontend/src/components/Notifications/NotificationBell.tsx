@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { Bell, BellOff, CheckCheck } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Bell, BellOff, CheckCheck, SlidersHorizontal } from 'lucide-react';
 import { useNotifications, useUnreadCount, useMarkNotificationRead } from '@/api/hooks/useNotifications';
 import { colors } from '@/theme/tokens';
 
@@ -195,6 +196,22 @@ export function NotificationBell({ userId }: NotificationBellProps) {
               </div>
             ))
           )}
+
+          {/* Wejscie do wlasnych ustawien. Bramka preferencji dziala w SendAsync, wiec ekran
+              musi byc osiagalny stad — inaczej wyciszenie kategorii nie ma jak sie wydarzyc. */}
+          <Link
+            to="/powiadomienia"
+            onClick={() => setOpen(false)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 7, padding: '10px 16px',
+              borderTop: `1px solid ${colors.gray[200]}`, fontSize: '12.5px', fontWeight: 700,
+              color: colors.primary[600], textDecoration: 'none',
+              position: 'sticky', bottom: 0, backgroundColor: colors.white,
+            }}
+          >
+            <SlidersHorizontal size={13} />
+            Ustawienia powiadomień
+          </Link>
         </div>
       )}
     </div>

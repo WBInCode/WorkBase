@@ -34,6 +34,12 @@ Ekranem startowym jest **Mój dzień**. Jest dostępny dla każdej zalogowanej o
 
 W górnym pasku znajdują się: zegar, dzwonek powiadomień, przycisk rejestracji czasu pracy oraz przełącznik jasnego i ciemnego motywu.
 
+### Które powiadomienia chcesz dostawać
+
+Na dole listy pod dzwonkiem jest odnośnik **Ustawienia powiadomień**. Każdy rodzaj ma osobny przełącznik: przydzielone zadanie, zadanie po terminie, anomalia czasu pracy, zbliżający się termin, termin miniony i wniosek czekający na decyzję.
+
+Ustawienia są wyłącznie Twoje — nikt inny ich nie widzi ani nie zmienia, także administrator, który może zmieniać treść powiadomień, ale nie to, kto je dostaje. Wyciszenie jednego rodzaju nie dotyka pozostałych, a domyślnie wszystkie są włączone.
+
 ### Dlaczego menu wygląda inaczej u różnych osób
 
 Menu pokazuje wyłącznie ekrany, do których masz uprawnienia. Dodatkowo administrator może wyłączyć całe moduły dla firmy, a wyłączony moduł znika wszystkim, także osobom z pełnymi uprawnieniami.

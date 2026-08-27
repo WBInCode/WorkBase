@@ -52,6 +52,25 @@ public class TerminyPrzypomnieniaTests
         await db.DisposeAsync();
     }
 
+    /// <summary>
+    /// To samo powiadomienie idzie do pracownika I do przelozonego. Bez nazwiska przelozony
+    /// dostawal „Badania lekarskie — zostalo 10 dni" i nie mial jak sie dowiedziec, czyje.
+    /// </summary>
+    [Fact]
+    public async Task Powiadomienie_mowi_czyj_to_termin()
+    {
+        var (db, powiadomienia, job) = await Przygotuj(waznyZaDni: 10, dniOstrzezenia: 30);
+
+        await job.ExecuteAsync();
+
+        await powiadomienia.Received(1).SendFromTemplateAsync(
+            Firma, Konto, "termin_zbliza",
+            Arg.Is<IReadOnlyDictionary<string, string?>>(z => z["pracownik"] == "Jan Kowalski"),
+            Arg.Any<string>(), Arg.Is<string>(tresc => tresc.Contains("Jan Kowalski")),
+            "termin_zbliza", "termin", Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+        await db.DisposeAsync();
+    }
+
     [Fact]
     public async Task Kolejny_przebieg_nie_powtarza_tego_samego_ostrzezenia()
     {

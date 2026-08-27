@@ -45,6 +45,30 @@ export function useMarkNotificationRead() {
   });
 }
 
+export interface PreferencjaPowiadomien {
+  id: string;
+  category: string;
+  inApp: boolean;
+  email: boolean;
+}
+
+/** Serwer wyprowadza konto z tokenu — nie da sie zapytac o cudze ani ich zmienic. */
+export function usePreferencjePowiadomien() {
+  return useQuery({
+    queryKey: ['notifications', 'preferences'],
+    queryFn: () => api.get<PreferencjaPowiadomien[]>('/api/notifications/preferences'),
+  });
+}
+
+export function useZapiszPreferencje() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: { category: string; inApp: boolean; email: boolean }) =>
+      api.put<void>('/api/notifications/preferences', body),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ['notifications', 'preferences'] }),
+  });
+}
+
 export function useNotificationTemplates() {
   return useQuery({
     queryKey: ['notifications', 'templates'],

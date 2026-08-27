@@ -179,7 +179,26 @@ Jeden status musi być oznaczony jako domyślny, bo dostają go nowe zadania. St
 
 ### Powiadomienia i eskalacje
 
-Szablon powiadomienia zawiera treść oraz zmienne podstawiane automatycznie, na przykład imię pracownika czy zakres dat. Reguły eskalacji określają, co się dzieje, gdy decyzja nie zapada w wyznaczonym czasie.
+Szablon powiadomienia ma kod odpowiadający rodzajowi zdarzenia, własny tytuł i treść. W treści wstawia się zmienne w podwójnych klamrach, podstawiane w chwili wysyłki.
+
+| Kod | Kiedy wychodzi | Zmienne |
+|---|---|---|
+| `task_assigned` | ktoś przypisał zadanie | `tytul` |
+| `task_overdue` | zadanie przekroczyło termin | `tytul`, `opis` |
+| `anomaly_detected` | rozbieżność grafiku i rejestracji | `pracownik`, `rodzaj`, `data` |
+| `termin_zbliza` | termin kadrowy wchodzi w okno ostrzeżenia | `pracownik`, `rodzaj`, `dni`, `data` |
+| `termin_minal` | termin kadrowy upłynął | `pracownik`, `rodzaj`, `dni`, `data` |
+| `escalation` | wniosek stoi u akceptanta ponad próg | `krok`, `godziny`, `prog` |
+
+Trzy zachowania warte zapamiętania, bo są celowe:
+
+- **Zmienna, której szablon nie zna, zostaje w tekście widoczna.** Literówka w nazwie ma rzucać się w oczy, zamiast zostawiać w zdaniu dziurę, której nie da się z niczym powiązać.
+- **Szablon wyłączony albo nieutworzony to powrót do treści domyślnej.** Błąd w konfiguracji nigdy nie wycisza powiadomienia.
+- **Treść ustala firma, ale odbiór jest decyzją pracownika.** Każdy ma własny ekran ustawień powiadomień (`/powiadomienia`) i może wyciszyć wybrany rodzaj. Administrator tego nie widzi ani nie zmienia.
+
+Reguła eskalacji wiąże **konkretny krok obiegu** z progiem w minutach. Po jego przekroczeniu akceptant dostaje przypomnienie. Sprawdzenie idzie co 15 minut, ale przypomnienie o danym wniosku wychodzi **raz** — wniosek stojący tydzień nie zasypie nikogo powtórkami. Reguła obejmuje wyłącznie krok, przy którym ją ustawiono; żeby przypilnować całego obiegu, trzeba dodać regułę do każdego kroku osobno.
+
+System nie narzuca żadnego progu. Bez ustawionej reguły nie przypomina o niczym.
 
 ---
 

@@ -54,6 +54,11 @@ public sealed class TerminyPrzypomnieniaJob(
             .Join(dbContext.Set<TypTerminu>().IgnoreQueryFilters().Where(typ => typ.Aktywny),
                 t => t.TypTerminuId, typ => typ.Id,
                 (t, typ) => new { Termin = t, Typ = typ })
+            // Nazwisko dociagniete tu, bo to samo powiadomienie idzie do pracownika I przelozonego.
+            // Bez niego przelozony dostawal "Badania lekarskie — zostalo 7 dni" i nie wiedzial, czyje.
+            .Join(dbContext.Set<Employee>().IgnoreQueryFilters(),
+                x => x.Termin.EmployeeId, e => e.Id,
+                (x, e) => new { x.Termin, x.Typ, Pracownik = e.FirstName + " " + e.LastName })
             .ToListAsync();
 
         foreach (var kandydat in kandydaci)
@@ -77,11 +82,12 @@ public sealed class TerminyPrzypomnieniaJob(
             var dni = kandydat.Termin.WaznyDo.DayNumber - dzisiaj.DayNumber;
             var tytul = stan == StanTerminu.Minal ? "Termin minął" : "Termin się zbliża";
             var tresc = stan == StanTerminu.Minal
-                ? $"{kandydat.Typ.Nazwa} — termin minął {Math.Abs(dni)} dni temu ({kandydat.Termin.WaznyDo:dd.MM.yyyy})."
-                : $"{kandydat.Typ.Nazwa} — zostało {dni} dni ({kandydat.Termin.WaznyDo:dd.MM.yyyy}).";
+                ? $"{kandydat.Pracownik}: {kandydat.Typ.Nazwa} — termin minął {Math.Abs(dni)} dni temu ({kandydat.Termin.WaznyDo:dd.MM.yyyy})."
+                : $"{kandydat.Pracownik}: {kandydat.Typ.Nazwa} — zostało {dni} dni ({kandydat.Termin.WaznyDo:dd.MM.yyyy}).";
 
             var zmienne = new Dictionary<string, string?>
             {
+                ["pracownik"] = kandydat.Pracownik,
                 ["rodzaj"] = kandydat.Typ.Nazwa,
                 ["dni"] = Math.Abs(dni).ToString(),
                 ["data"] = kandydat.Termin.WaznyDo.ToString("dd.MM.yyyy"),

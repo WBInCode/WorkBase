@@ -32,6 +32,9 @@ export const DOSTEP_DO_WIDOKOW: ReadonlyArray<readonly [string, WymaganeUprawnie
   ['/workspace', []],
   // Pomoc — dostepna zawsze, tresc sama filtruje sie po uprawnieniach.
   ['/pomoc', []],
+  // Wlasne ustawienia powiadomien. Kazdy zarzadza tylko swoimi — serwer wyprowadza konto
+  // z tokenu, wiec nie ma czego bramkowac uprawnieniem.
+  ['/powiadomienia', []],
   ['/dashboard', ['dashboard.view']],
 
   ['/org/tree', ['org.view']],
