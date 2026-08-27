@@ -24,6 +24,7 @@ import { useIsMobile } from '@/shared';
 import { colors } from '@/theme/tokens';
 import { useCurrentUser } from '@/api/hooks/useIam';
 import { useUprawnienia } from '@/auth/useUprawnienia';
+import { ZapisaneWidoki } from '@/components/shared/ZapisaneWidoki';
 
 const PAGE_SIZE = 20;
 
@@ -158,6 +159,24 @@ export function EmployeeListPage() {
               onBlur={(e) => { e.currentTarget.style.borderColor = colors.gray[300]; e.currentTarget.style.backgroundColor = colors.gray[50]; }}
             />
           </div>
+
+        {/* Zapisane widoki — nazwane zestawy filtrow. Serwer trzyma je jako nieprzezroczysty
+            JSON, wiec wrzucamy tu stan filtrow tej listy bez zadnego tlumaczenia. */}
+        <ZapisaneWidoki
+          entityType="employees"
+          filtry={{
+            search: filter.search,
+            organizationUnitId: filter.organizationUnitId,
+            status: filter.status,
+          }}
+          maFiltry={hasFilters}
+          onZastosuj={(zapisane) => {
+            setSearchInput(zapisane.search ?? '');
+            // Strona i rozmiar strony zostaja nasze: zapisany filtr ma wracac na pierwsza
+            // strone wynikow, a nie na te, na ktorej ktos byl w chwili zapisu.
+            setFilter((f) => ({ ...f, ...zapisane, page: 1, pageSize: f.pageSize }));
+          }}
+        />
 
         {/* Unit filter */}
         <select

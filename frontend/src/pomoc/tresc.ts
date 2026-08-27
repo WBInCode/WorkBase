@@ -588,6 +588,18 @@ export const SEKCJE_POMOCY: readonly SekcjaPomocy[] = [
         wymaga: ['org.create'],
       },
       {
+        id: 'zapisane-widoki',
+        pytanie: 'Czy mogę zapisać ulubione filtry listy pracowników?',
+        odpowiedz: [
+          'Tak. Ustaw filtry, kliknij „Widoki” nad listą, nadaj nazwę i zapisz. Od tej pory jedno kliknięcie przywraca cały zestaw.',
+          'Widok zaznaczony jako „widoczny dla całej firmy” pojawi się wszystkim, ale zmieniać go i kasować może wyłącznie osoba, która go utworzyła.',
+          'Zastosowanie widoku zawsze wraca na pierwszą stronę wyników.',
+        ],
+        sciezka: '/org/employees',
+        etykietaSciezki: 'Otwórz listę pracowników',
+        wymaga: ['org.view'],
+      },
+      {
         id: 'zwolnienie-pracownika',
         pytanie: 'Co się dzieje, gdy pracownik odchodzi z firmy?',
         odpowiedz: [

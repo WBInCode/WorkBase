@@ -55,6 +55,8 @@ public static class SavedViewEndpoints
                 CreatedAt = DateTime.UtcNow
             };
             db.Set<SavedView>().Add(view);
+            if (request.IsDefault)
+                await OdznaczPozostaleDomyslneAsync(db, tenantId.Value, userId, request.EntityType, view.Id);
             await db.SaveChangesAsync();
             return Results.Created($"/api/views/{view.Id}", view);
         })
@@ -78,6 +80,8 @@ public static class SavedViewEndpoints
             view.IsDefault = request.IsDefault;
             view.IsShared = request.IsShared;
             view.UpdatedAt = DateTime.UtcNow;
+            if (request.IsDefault)
+                await OdznaczPozostaleDomyslneAsync(db, tenantId.Value, userId, view.EntityType, view.Id);
             await db.SaveChangesAsync();
             return Results.Ok(view);
         })
@@ -102,6 +106,25 @@ public static class SavedViewEndpoints
         .WithSummary("Usuń zapisany widok");
 
         return endpoints;
+    }
+
+    /// <summary>
+    /// Domyślny widok ma być jeden.
+    /// </summary>
+    /// <remarks>
+    /// Lista sortuje po <c>IsDefault</c>, więc przy dwóch domyślnych wygrywał ten wcześniejszy
+    /// alfabetycznie — użytkownik ustawiał domyślny i dostawał inny, bez żadnego komunikatu.
+    /// </remarks>
+    private static async Task OdznaczPozostaleDomyslneAsync(
+        WorkBaseDbContext db, Guid tenantId, string userId, string entityType, Guid pomijanyId)
+    {
+        var pozostale = await db.Set<SavedView>()
+            .Where(v => v.TenantId == tenantId && v.UserId == userId
+                && v.EntityType == entityType && v.IsDefault && v.Id != pomijanyId)
+            .ToListAsync();
+
+        foreach (var widok in pozostale)
+            widok.IsDefault = false;
     }
 }
 
