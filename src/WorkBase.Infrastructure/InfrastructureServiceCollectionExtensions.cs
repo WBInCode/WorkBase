@@ -131,6 +131,14 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<MediatR.INotificationHandler<Modules.Tasks.Domain.Events.TaskOverdueEvent>,
             Tasks.PowiadomOZaleglymZadaniu>();
 
+        // Oba zdarzenia byly podnoszone bez handlera. Na produkcji widac to bylo wprost: w tabeli
+        // powiadomien istnialy wylacznie trzy kategorie i ANI JEDNA nie dotyczyla akceptacji —
+        // nikt nigdy nie dostal informacji, ze cos czeka na jego decyzje ani jaka zapadla.
+        services.AddScoped<MediatR.INotificationHandler<Modules.Workflow.Domain.Events.ApprovalRequestCreatedEvent>,
+            Workflow.PowiadomieniaOAkceptacjach>();
+        services.AddScoped<MediatR.INotificationHandler<Modules.Workflow.Domain.Events.ApprovalDecisionMadeEvent>,
+            Workflow.PowiadomieniaOAkceptacjach>();
+
         services.AddScoped<DomainEventInterceptor>();
         services.AddScoped<AuditSaveChangesInterceptor>();
 

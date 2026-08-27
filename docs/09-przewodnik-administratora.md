@@ -188,9 +188,11 @@ Szablon powiadomienia ma kod odpowiadający rodzajowi zdarzenia, własny tytuł 
 | `anomaly_detected` | rozbieżność grafiku i rejestracji | `pracownik`, `rodzaj`, `data` |
 | `termin_zbliza` | termin kadrowy wchodzi w okno ostrzeżenia | `pracownik`, `rodzaj`, `dni`, `data` |
 | `termin_minal` | termin kadrowy upłynął | `pracownik`, `rodzaj`, `dni`, `data` |
+| `approval_pending` | sprawa trafiła do akceptanta | `rodzaj`, `krok`, `wnioskodawca` |
+| `approval_decided` | zapadła decyzja w sprawie wnioskodawcy | `rodzaj`, `decyzja`, `akceptant` |
 | `escalation` | wniosek stoi u akceptanta ponad próg | `krok`, `godziny`, `prog` |
 
-Nowa firma dostaje **komplet sześciu szablonów** odwzorowujących domyślne teksty — po to, żeby administrator w ogóle zobaczył, jakie kody system rozpoznaje, i miał co przepisać pod siebie.
+Nowa firma dostaje **komplet ośmiu szablonów** odwzorowujących domyślne teksty — po to, żeby administrator w ogóle zobaczył, jakie kody system rozpoznaje, i miał co przepisać pod siebie.
 
 Trzy zachowania warte zapamiętania, bo są celowe:
 
@@ -205,6 +207,8 @@ Kanał pocztowy jest **opt-in**: pracownik sam zaznacza „mailem" przy wybranym
 Do działania potrzebny jest serwer pocztowy w konfiguracji instancji (`Smtp__Host`, `Smtp__Port`, `Smtp__Username`, `Smtp__Password`, `Smtp__FromEmail`, `Smtp__FromName`). Adres odbiorcy bierze się z kartoteki pracownika — konto bez kartoteki albo bez adresu nie dostanie wiadomości.
 
 Awaria poczty **nie zabiera powiadomienia w aplikacji**: wpis jest już zapisany, a nieudana wysyłka zostawia ostrzeżenie w logu i nie przerywa zadania cyklicznego, więc pozostali odbiorcy z tej samej partii dostają swoje.
+
+Dwa ostatnie kody są nowe. Wcześniej **nikt nie dostawał żadnej informacji o akceptacjach**: akceptant musiał sam zaglądać do kolejki, a wnioskodawca sam sprawdzać, czy coś się zmieniło. Powiadomienie nie idzie do osoby, która sama złożyła i sama zatwierdza — w firmie jednoosobowej byłoby to wyłącznie hałasem.
 
 Reguła eskalacji wiąże **konkretny krok obiegu** z progiem w minutach. Po jego przekroczeniu akceptant dostaje przypomnienie. Sprawdzenie idzie co 15 minut, ale przypomnienie o danym wniosku wychodzi **raz** — wniosek stojący tydzień nie zasypie nikogo powtórkami. Reguła obejmuje wyłącznie krok, przy którym ją ustawiono; żeby przypilnować całego obiegu, trzeba dodać regułę do każdego kroku osobno.
 

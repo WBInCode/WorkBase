@@ -33,7 +33,11 @@ public class SzablonySeedTests
         var kody = await db.Set<NotificationTemplate>().IgnoreQueryFilters()
             .Select(t => t.Code).ToListAsync();
         Assert.Equal(
-            new[] { "anomaly_detected", "escalation", "task_assigned", "task_overdue", "termin_minal", "termin_zbliza" },
+            new[]
+            {
+                "anomaly_detected", "approval_decided", "approval_pending", "escalation",
+                "task_assigned", "task_overdue", "termin_minal", "termin_zbliza",
+            },
             kody.OrderBy(k => k, StringComparer.Ordinal));
     }
 
@@ -91,7 +95,7 @@ public class SzablonySeedTests
         await NotificationSeeder.SeedTenantAsync(db, Firma, NullLogger.Instance);
         await NotificationSeeder.SeedTenantAsync(db, Firma, NullLogger.Instance);
 
-        Assert.Equal(6, await db.Set<NotificationTemplate>().IgnoreQueryFilters().CountAsync());
+        Assert.Equal(8, await db.Set<NotificationTemplate>().IgnoreQueryFilters().CountAsync());
     }
 
     private static WorkBaseDbContext UtworzBaze() =>

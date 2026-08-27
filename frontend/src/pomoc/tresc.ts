@@ -124,7 +124,7 @@ export const SEKCJE_POMOCY: readonly SekcjaPomocy[] = [
         pytanie: 'Gdzie znajdę powiadomienia?',
         odpowiedz: [
           'Dzwonek w górnym pasku pokazuje liczbę nieprzeczytanych powiadomień. Po kliknięciu rozwija się lista z możliwością oznaczenia wszystkich jako przeczytane.',
-          'Powiadomienia dostajesz między innymi o decyzji w sprawie wniosku urlopowego oraz o wnioskach czekających na Twoją akceptację.',
+          'Powiadomienie przychodzi, gdy sprawa trafi na Twoje biurko do decyzji oraz gdy zapadnie decyzja w Twojej własnej sprawie. Poza tym: przydzielone zadanie, zadanie po terminie, anomalia czasu pracy i zbliżający się termin kadrowy.',
         ],
       },
       {

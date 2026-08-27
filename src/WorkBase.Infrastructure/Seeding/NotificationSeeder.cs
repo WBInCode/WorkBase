@@ -39,6 +39,13 @@ public static class NotificationSeeder
         ("termin_minal", "Termin minął",
             "Termin minął", "{{pracownik}}: {{rodzaj}} — termin minął {{dni}} dni temu ({{data}}).", "termin_minal"),
 
+        ("approval_pending", "Sprawa czeka na Twoją decyzję",
+            "Czeka na Twoją decyzję",
+            "{{rodzaj}} od {{wnioskodawca}} — krok „{{krok}}”.", "approval_pending"),
+
+        ("approval_decided", "Decyzja w Twojej sprawie",
+            "{{rodzaj}}: {{decyzja}}", "{{akceptant}} — {{decyzja}}.", "approval_decided"),
+
         ("escalation", "Wniosek czeka na decyzję",
             "Wniosek czeka na Twoją decyzję",
             "Sprawa „{{krok}}” czeka {{godziny}} godz. — dłużej niż ustalone {{prog}} min.", "escalation"),
