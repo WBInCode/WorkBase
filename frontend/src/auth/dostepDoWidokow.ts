@@ -61,6 +61,9 @@ export const DOSTEP_DO_WIDOKOW: ReadonlyArray<readonly [string, WymaganeUprawnie
 
   ['/workflow/builder', ['workflow.manage']],
 
+  // Przeglad ustawien: sam filtruje kafelki po uprawnieniach, wiec brama na trasie tylko by
+  // przeszkadzala. Osoba bez zadnego ekranu administracyjnego zobaczy, ze nic tu nie ma.
+  ['/admin', []],
   // Administracja — wczesniej jeden boolean `isAdmin`. Teraz konkretne uprawnienia, wiec
   // wlasciciel moze oddac np. slowniki kadrowe kierownikowi biura bez robienia z niego admina.
   ['/admin/roles', ['identity.manage']],

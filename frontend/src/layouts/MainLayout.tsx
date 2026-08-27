@@ -2,7 +2,8 @@ import { useState, useEffect, useMemo, useCallback, type ReactNode } from 'react
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from 'react-oidc-context';
 import { useTranslation } from 'react-i18next';
-import { FolderTree, Users, FileUp, LogOut, Menu, X, Shield, Grid3X3, CalendarDays, UsersRound, CalendarClock, Palmtree, CalendarRange, ClipboardCheck, ListTodo, ClipboardList, LayoutDashboard, Briefcase, Clock, MoreHorizontal, FileArchive, FolderOpen, Flag, CircleDot, Coffee, Layers, Wallet, Building2, Palette, Type, Bell, AlarmClockCheck, ChevronDown, Sun, Moon, LifeBuoy, GitBranch, CalendarOff, FileText, FileCog, Gauge, type LucideIcon } from 'lucide-react';
+import { FolderTree, Users, FileUp, LogOut, Menu, X, CalendarDays, UsersRound, CalendarClock, Palmtree, CalendarRange, ClipboardCheck, ListTodo, ClipboardList, LayoutDashboard, Briefcase, Clock, MoreHorizontal, FileArchive, FolderOpen, Flag, Wallet, AlarmClockCheck, ChevronDown, Sun, Moon, LifeBuoy, FileText, Settings2, type LucideIcon } from 'lucide-react';
+import { GOTOWOSC, GRUPY_USTAWIEN, WSZYSTKIE_POZYCJE_USTAWIEN } from '@/nav/ustawienia';
 import { mapUserClaims } from '@/auth';
 import { useUprawnienia } from '@/auth/useUprawnienia';
 import { useFeatureFlags, useCurrentUser } from '@/api/hooks/useIam';
@@ -129,33 +130,9 @@ const navSections: NavSection[] = [
 // panel entry; the backend independently enforces the real authorization either way.
 const OPERATOR_TENANT_ID = '00000000-0000-0000-0000-000000000001';
 
-const adminNavItems: NavItem[] = [
-  { path: '/admin/roles', labelKey: 'nav.roles', icon: Shield },
-  { path: '/admin/permissions', labelKey: 'nav.permissions', icon: Grid3X3 },
-  { path: '/admin/feature-flags', labelKey: 'nav.featureFlags', icon: Flag },
-  { path: '/admin/branding', labelKey: 'nav.branding', icon: Palette },
-  { path: '/admin/gotowosc', labelKey: 'nav.gotowosc', icon: Gauge },
-  { path: '/admin/typy-terminow', labelKey: 'nav.typyTerminow', icon: Flag },
-  { path: '/admin/terminology', labelKey: 'nav.terminology', icon: Type },
-  { path: '/admin/tenants', labelKey: 'nav.tenantsOperator', icon: Building2, operatorOnly: true },
-  { path: '/admin/leave-types', labelKey: 'nav.leaveTypes', icon: Palmtree },
-  { path: '/admin/leave-policies', labelKey: 'nav.leavePolicies', icon: Palmtree },
-  { path: '/admin/task-statuses', labelKey: 'nav.taskStatuses', icon: CircleDot },
-  { path: '/admin/break-policies', labelKey: 'nav.breakPolicies', icon: Coffee },
-  { path: '/admin/dni-wolne', labelKey: 'nav.dniWolne', icon: CalendarOff },
-  { path: '/admin/typy-wnioskow', labelKey: 'nav.typyWnioskow', icon: FileCog },
-  { path: '/admin/positions', labelKey: 'nav.positions', icon: Briefcase },
-  { path: '/admin/unit-types', labelKey: 'nav.unitTypes', icon: Layers },
-  { path: '/admin/time-tracking-settings', labelKey: 'nav.timeTrackingSettings', icon: CalendarClock },
-  { path: '/admin/notification-templates', labelKey: 'nav.notificationTemplates', icon: Bell },
-  { path: '/admin/escalation-rules', labelKey: 'nav.escalationRules', icon: AlarmClockCheck },
-  { path: '/admin/document-settings', labelKey: 'nav.documentSettings', icon: FileArchive },
-  { path: '/admin/task-settings', labelKey: 'nav.taskSettings', icon: ListTodo },
-  // Kreator obiegow mial trase i wpis w mapie uprawnien, ale nie bylo do niego wejscia z
-  // aplikacji — dalo sie tam trafic tylko wklejajac adres. Obiegi akceptacji stoja pod
-  // urlopami i zadaniami, wiec jedyny interfejs do ich konfiguracji nie moze byc ukryty.
-  { path: '/workflow/builder', labelKey: 'nav.workflowBuilder', icon: GitBranch },
-];
+// Ekrany administracyjne: pogrupowane w @/nav/ustawienia.ts (jedno zrodlo dla paska bocznego
+// i ekranu przegladu). Wczesniej byla tu plaska lista 22 pozycji w kolejnosci dodawania do kodu.
+const PRZEGLAD_USTAWIEN: NavItem = { path: '/admin', labelKey: 'nav.ustawienia', icon: Settings2, exact: true };
 
 // ─── Collapsible section state (persisted) ──────────────────
 
@@ -197,14 +174,22 @@ export function MainLayout({ children }: MainLayoutProps) {
   // mapa steruje StrazWidoku, wiec menu i dostep nie moga sie rozjechac.
   const { mozeWejscNa, znane: uprawnieniaZnane } = useUprawnienia();
   const widocznaTrasa = (sciezka: string) => !uprawnieniaZnane || mozeWejscNa(sciezka);
-  const visibleAdminNavItems = adminNavItems
-    .filter((item) => !item.operatorOnly || isOperator)
-    .filter((item) => widocznaTrasa(item.path));
+  const widocznaPozycja = (p: { path: string; operatorOnly?: boolean }) =>
+    (!p.operatorOnly || isOperator) && widocznaTrasa(p.path);
+  const widoczneGrupy = GRUPY_USTAWIEN
+    .map((g) => ({ ...g, pozycje: g.pozycje.filter(widocznaPozycja) }))
+    .filter((g) => g.pozycje.length > 0);
+  const widocznaGotowosc = widocznaPozycja(GOTOWOSC);
+  const visibleAdminNavItems = [
+    ...(widocznaGotowosc ? [GOTOWOSC] : []),
+    ...widoczneGrupy.flatMap((g) => g.pozycje),
+  ];
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
 
   // Zwijane sekcje nawigacji — stan trzymany lokalnie, sekcja z aktywną trasą
-  // zawsze otwarta. Sekcja admina (17 pozycji) domyślnie zwinięta.
+  // zawsze otwarta. Sekcja admina domyślnie zwinięta, a jej grupy (klucze `adm.*`)
+  // domyślnie zwinięte z wyjątkiem tej, w której jest aktywna trasa.
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>(() => ({
     'nav.admin': !location.pathname.startsWith('/admin'),
     ...readCollapsed(),
@@ -251,7 +236,7 @@ export function MainLayout({ children }: MainLayoutProps) {
 
   // Tytuł bieżącej strony do topbara (z aktywnej pozycji nawigacji)
   const pageTitle = useMemo(() => {
-    const all: NavItem[] = [...navSections.flatMap((s) => s.items), ...adminNavItems];
+    const all: NavItem[] = [...navSections.flatMap((s) => s.items), PRZEGLAD_USTAWIEN, ...WSZYSTKIE_POZYCJE_USTAWIEN];
     const match = all
       .filter((i) => (i.exact ? location.pathname === i.path : location.pathname.startsWith(i.path)))
       .sort((a, b) => b.path.length - a.path.length)[0];
@@ -260,7 +245,8 @@ export function MainLayout({ children }: MainLayoutProps) {
 
   const isSectionActive = (section: NavSection) =>
     section.items.some((i) => (i.exact ? location.pathname === i.path : location.pathname.startsWith(i.path)));
-  const isAdminActive = location.pathname.startsWith('/admin');
+  const aktywna = (path: string) => location.pathname.startsWith(path);
+  const isAdminActive = aktywna('/admin') || WSZYSTKIE_POZYCJE_USTAWIEN.some((p) => aktywna(p.path));
 
   const appName = branding?.appName ?? 'WorkBase';
 
@@ -370,14 +356,39 @@ export function MainLayout({ children }: MainLayoutProps) {
               </button>
               {!(collapsed['nav.admin'] && !isAdminActive) && (
                 <div className="wb-nav-group">
-                  {visibleAdminNavItems.map((item) => (
-                    <NavLinkItem
-                      key={item.path}
-                      item={item}
-                      isActive={location.pathname.startsWith(item.path)}
-                      label={t(item.labelKey)}
-                    />
-                  ))}
+                  <NavLinkItem
+                    item={PRZEGLAD_USTAWIEN}
+                    isActive={location.pathname === '/admin'}
+                    label={t('nav.ustawienia')}
+                  />
+                  {widocznaGotowosc && (
+                    <NavLinkItem item={GOTOWOSC} isActive={aktywna(GOTOWOSC.path)} label={t(GOTOWOSC.labelKey)} />
+                  )}
+                  {/* Grupy zwijane: otwarta jest ta z aktywna trasa albo rozwinieta recznie.
+                      Zwiniete daja 8 wierszy zamiast 22 — tyle, ile da sie objac wzrokiem. */}
+                  {widoczneGrupy.map((grupa) => {
+                    const klucz = `adm.${grupa.id}`;
+                    const aktywnaGrupa = grupa.pozycje.some((p) => aktywna(p.path));
+                    const zamknieta = !aktywnaGrupa && collapsed[klucz] !== false;
+                    const Ikona = grupa.icon;
+                    return (
+                      <div key={grupa.id} className="wb-nav-subgroup">
+                        <button
+                          type="button"
+                          className={`wb-nav-sub${zamknieta ? ' is-closed' : ''}${aktywnaGrupa ? ' is-active' : ''}`}
+                          onClick={() => toggleSection(klucz)}
+                          aria-expanded={!zamknieta}
+                        >
+                          <span className="wb-nav-ico"><Ikona size={14} /></span>
+                          <span style={{ flex: 1, textAlign: 'left' }}>{grupa.tytul}</span>
+                          <ChevronDown size={11} className="wb-sec-chev" />
+                        </button>
+                        {!zamknieta && grupa.pozycje.map((p) => (
+                          <NavLinkItem key={p.path} item={p} isActive={aktywna(p.path)} label={t(p.labelKey)} />
+                        ))}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>

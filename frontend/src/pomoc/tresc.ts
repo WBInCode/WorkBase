@@ -102,6 +102,18 @@ export const SEKCJE_POMOCY: readonly SekcjaPomocy[] = [
           'Firma działa, zanim ktokolwiek dotknie kreatora: typy urlopów, statusy zadań i obiegi akceptacji są zakładane automatycznie przy tworzeniu firmy. Kreator służy do ich potwierdzenia i uzupełnienia, a nie do uruchomienia systemu.',
       },
       {
+        id: 'gdzie-sa-ustawienia',
+        pytanie: 'Gdzie znajdę ustawienia firmy?',
+        odpowiedz: [
+          'W sekcji „Administracja” na dole menu. Ekrany są pogrupowane według obszaru: Firma, Struktura i kadry, Czas pracy, Urlopy i wnioski, Zadania i dokumenty, Obiegi i powiadomienia, Dostęp. Kliknięcie nazwy grupy rozwija jej ekrany.',
+          'Jeśli nie wiesz, w której grupie szukać, otwórz „Przegląd ustawień” — każdy ekran ma tam jedno zdanie o tym, co ustawia i co z tego wynika.',
+          'Na górze przeglądu jest „Gotowość konfiguracji”: lista tego, co jeszcze nie zadziała, z odnośnikami tam, gdzie to ustawić.',
+        ],
+        sciezka: '/admin',
+        etykietaSciezki: 'Otwórz przegląd ustawień',
+        wymaga: ['config.manage', 'identity.manage', 'org.manage', 'leave.manage', 'tasks.manage', 'wnioski.manage', 'workflow.manage'],
+      },
+      {
         id: 'dlaczego-nie-widze',
         pytanie: 'Dlaczego nie widzę niektórych pozycji w menu?',
         odpowiedz: [

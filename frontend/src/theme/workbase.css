@@ -654,3 +654,61 @@ button {
   background-size: 200% 100%;
   animation: wb-shimmer 1.4s ease-in-out infinite;
 }
+
+/* ── Grupy w sekcji Administracja ──
+   Dwadziescia dwa ekrany w jednej liscie nie da sie objac wzrokiem; osiem grup — tak.
+   Grupa to przycisk w stylu pozycji, ale bez tla aktywnego: prowadzi do rozwiniecia, nie do trasy. */
+.wb-nav-subgroup {
+  margin-top: 2px;
+}
+
+.wb-nav-sub {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 6px 9px;
+  border: none;
+  border-radius: 10px;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--wb-g-600, #4c5570);
+  text-align: left;
+}
+
+.wb-nav-sub:hover {
+  background: var(--wb-g-100, #f1f3f8);
+  color: var(--wb-ink);
+}
+
+.wb-nav-sub.is-active {
+  color: var(--wb-ink);
+}
+
+.wb-nav-sub .wb-sec-chev {
+  transition: transform 0.2s ease;
+  opacity: 0.6;
+}
+
+.wb-nav-sub.is-closed .wb-sec-chev {
+  transform: rotate(-90deg);
+}
+
+/* Pozycje wewnatrz grupy: wciete, zeby bylo widac, do czego naleza. */
+.wb-nav-subgroup .wb-nav-item {
+  margin-left: 14px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.wb-ustawienia-kafelek {
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.wb-ustawienia-kafelek:hover {
+  border-color: var(--wb-iris, #3d6df2) !important;
+  box-shadow: 0 6px 18px -10px rgba(20, 25, 43, 0.25);
+}

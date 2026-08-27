@@ -108,6 +108,21 @@ Rola jest synchronizowana przy każdym świeżym logowaniu. Oznacza to, że:
 
 ## 5. Ekrany administracyjne
 
+Od wersji z 27 sierpnia 2026 sekcja „Administracja" w menu nie jest już jedną listą 22 pozycji, tylko ośmioma zwijanymi grupami według obszaru — otwarta jest ta, w której siedzi bieżący ekran. Nad grupami stoją dwa wejścia: **Przegląd ustawień** (`/admin`) — wszystkie ekrany jako kafelki z jednozdaniowym opisem, co ustawiają i co z tego wynika — oraz **Gotowość konfiguracji**. Kolejność grup odpowiada kolejności, w jakiej firma zwykle je konfiguruje.
+
+| Grupa | Ekrany |
+|---|---|
+| Firma | branding, nazewnictwo, moduły |
+| Struktura i kadry | typy jednostek, stanowiska, rodzaje terminów |
+| Czas pracy | zasady rejestracji, limity przerw, dni wolne |
+| Urlopy i wnioski | typy urlopów, polityki urlopowe, rodzaje wniosków |
+| Zadania i dokumenty | statusy zadań, ustawienia zadań, ustawienia dokumentów |
+| Obiegi i powiadomienia | kreator obiegów, reguły eskalacji, szablony powiadomień |
+| Dostęp | role, matryca uprawnień |
+| Platforma | firmy (tylko operator) |
+
+Nowy ekran administracyjny **musi** trafić do jednej z grup w `frontend/src/nav/ustawienia.ts` — test `ustawienia.test.ts` oblewa, jeśli trasa `/admin/*` z mapy dostępu nie ma tam miejsca. Tak przez miesiące żył Kreator obiegów: miał trasę i uprawnienie, a wejścia z menu nie.
+
 | Ekran | Co konfiguruje | Wymagane uprawnienie |
 |---|---|---|
 | `/admin/roles` | role i przypisania uprawnień | `identity.manage` |

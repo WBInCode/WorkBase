@@ -34,6 +34,7 @@ const PreferencjePowiadomienPage = lazy(() => import('@/pages/PreferencjePowiado
 const AnomaliePage = lazy(() => import('@/pages/time/AnomaliePage').then((m) => ({ default: m.AnomaliePage })));
 const TerminyPage = lazy(() => import('@/pages/terminy/TerminyPage').then((m) => ({ default: m.TerminyPage })));
 const TypyTerminowConfigPage = lazy(() => import('@/pages/admin/TypyTerminowConfigPage').then((m) => ({ default: m.TypyTerminowConfigPage })));
+const UstawieniaPage = lazy(() => import('@/pages/admin/UstawieniaPage').then((m) => ({ default: m.UstawieniaPage })));
 const GotowoscPage = lazy(() => import('@/pages/admin/GotowoscPage').then((m) => ({ default: m.GotowoscPage })));
 const DniWolneConfigPage = lazy(() => import('@/pages/admin/DniWolneConfigPage').then((m) => ({ default: m.DniWolneConfigPage })));
 const BreakPoliciesConfigPage = lazy(() => import('@/pages/admin/BreakPoliciesConfigPage').then((m) => ({ default: m.BreakPoliciesConfigPage })));
@@ -132,6 +133,7 @@ function AppRoutes() {
         <Route path="/documents" element={chroniona('/documents', <DocumentListPage />)} />
         <Route path="/documents/categories" element={chroniona('/documents/categories', <DocumentCategoriesPage />)} />
         <Route path="/workflow/builder" element={chroniona('/workflow/builder', <WorkflowBuilderPage />)} />
+        <Route path="/admin" element={chroniona('/admin', <UstawieniaPage />)} />
         <Route path="/admin/roles" element={chroniona('/admin/roles', <RolesPage />)} />
         <Route path="/admin/permissions" element={chroniona('/admin/permissions', <PermissionsMatrixPage />)} />
         <Route path="/admin/feature-flags" element={chroniona('/admin/feature-flags', <FeatureFlagsPage />)} />
