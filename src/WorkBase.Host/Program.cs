@@ -265,6 +265,14 @@ app.MapGotowoscKonfiguracjiEndpoints();
             "30 6 * * *",
             new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
 
+        // Co 15 minut, bo progi eskalacji firmy ustawiaja w MINUTACH — sprawdzanie raz na dobe
+        // czynilo by z nich fikcje.
+        RecurringJob.AddOrUpdate<WorkBase.Infrastructure.Workflow.EskalacjeObiegowJob>(
+            "eskalacje-obiegow",
+            job => job.ExecuteAsync(),
+            "*/15 * * * *",
+            new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
+
         RecurringJob.AddOrUpdate<EcosystemSyncScheduler>(
             "rytm-ecosystem-snapshot",
             job => job.EnqueueAllAsync(),

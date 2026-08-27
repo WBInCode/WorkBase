@@ -61,6 +61,7 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<IEmployeeAccessStatusService, HubPlatform.EmployeeAccessStatusService>();
         services.AddScoped<HubPlatform.HubEmployeeAccessJob>();
         services.AddScoped<Terminy.TerminyPrzypomnieniaJob>();
+        services.AddScoped<Workflow.EskalacjeObiegowJob>();
         services.AddSingleton<HubPlatform.HubUserAccessVerifier>();
         services.AddScoped<IHubNotificationForwarder, HubPlatform.HubNotificationForwarder>();
         services.AddScoped<HubPlatform.HubNotificationJob>();

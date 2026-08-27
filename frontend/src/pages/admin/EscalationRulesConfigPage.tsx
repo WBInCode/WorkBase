@@ -15,10 +15,11 @@ import type {
 import { useIsMobile } from '@/shared';
 import { colors } from '@/theme/tokens';
 
+// Tylko "notify" jest realnie wykonywane (EskalacjeObiegowJob). "create_task" i "update_entity"
+// sa w silniku obiegow zaslepkami, ktore jedynie loguja zamiar — zostaly stad usuniete, zeby
+// nie dalo sie skonfigurowac eskalacji, ktora nic nie robi. Wracaja, gdy zostana zaimplementowane.
 const ACTION_TYPES = [
   { value: 'notify', label: 'Wyślij powiadomienie' },
-  { value: 'create_task', label: 'Utwórz zadanie' },
-  { value: 'update_entity', label: 'Zaktualizuj encję' },
 ];
 
 export function EscalationRulesConfigPage() {
