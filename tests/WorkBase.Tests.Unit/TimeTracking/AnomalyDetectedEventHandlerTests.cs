@@ -38,8 +38,9 @@ public class AnomalyDetectedEventHandlerTests
         await _handler.Handle(evt, CancellationToken.None);
 
         await _supervisorLookup.Received(1).GetSupervisorEmployeeIdAsync(employeeId, Arg.Any<CancellationToken>());
-        await _notificationService.Received(1).SendAsync(
+        await _notificationService.Received(1).SendFromTemplateAsync(
             tenantId, supervisorUserId,
+            "anomaly_detected", Arg.Any<IReadOnlyDictionary<string, string?>>(),
             Arg.Any<string>(), Arg.Any<string>(),
             "anomaly_detected",
             "anomaly", evt.AnomalyId,
@@ -64,8 +65,16 @@ public class AnomalyDetectedEventHandlerTests
 
         await _handler.Handle(evt, CancellationToken.None);
 
-        await _notificationService.Received(1).SendAsync(
+        // Tresc idzie przez szablon firmy, ale wartosci awaryjne to dawne teksty z kodu —
+        // sprawdzamy wlasnie je, bo brak szablonu nie moze zmienic tego, co widzi uzytkownik.
+        // Dodatkowo pilnujemy zmiennych: to one trafiaja do szablonu, gdy firma go ustawi.
+        await _notificationService.Received(1).SendFromTemplateAsync(
             tenantId, supervisorUserId,
+            "anomaly_detected",
+            Arg.Is<IReadOnlyDictionary<string, string?>>(z =>
+                z["rodzaj"] == "brak wejścia"
+                && z["pracownik"] == "Ewa Adamczyk"
+                && z["data"] == "16.04.2026"),
             "Anomalia: brak wejścia",
             "Ewa Adamczyk: brak wejścia w dniu 16.04.2026.",
             "anomaly_detected", "anomaly", evt.AnomalyId,
@@ -86,8 +95,8 @@ public class AnomalyDetectedEventHandlerTests
 
         await _handler.Handle(evt, CancellationToken.None);
 
-        await _notificationService.DidNotReceiveWithAnyArgs().SendAsync(
-            default, default, default!, default!, default!, default, default, default);
+        await _notificationService.DidNotReceiveWithAnyArgs().SendFromTemplateAsync(
+            default, default, default!, default!, default!, default!, default!, default, default, default);
     }
 
     [Fact]
@@ -102,7 +111,7 @@ public class AnomalyDetectedEventHandlerTests
         await _handler.Handle(evt, CancellationToken.None);
 
         await _supervisorLookup.Received(1).GetSupervisorEmployeeIdAsync(employeeId, Arg.Any<CancellationToken>());
-        await _notificationService.DidNotReceiveWithAnyArgs().SendAsync(
-            default, default, default!, default!, default!, default, default, default);
+        await _notificationService.DidNotReceiveWithAnyArgs().SendFromTemplateAsync(
+            default, default, default!, default!, default!, default!, default!, default, default, default);
     }
 }

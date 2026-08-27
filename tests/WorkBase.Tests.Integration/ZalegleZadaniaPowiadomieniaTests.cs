@@ -36,8 +36,11 @@ public class ZalegleZadaniaPowiadomieniaTests
 
         await handler.Handle(Zdarzenie(), CancellationToken.None);
 
-        await powiadomienia.Received(1).SendAsync(
-            Firma, Konto, "Zadanie po terminie", Arg.Any<string>(),
+        // Tresc idzie teraz przez szablon firmy; wartosci awaryjne to dawne teksty z kodu,
+        // wiec sprawdzamy wlasnie je — brak szablonu nie moze zmienic tego, co widzi uzytkownik.
+        await powiadomienia.Received(1).SendFromTemplateAsync(
+            Firma, Konto, "task_overdue", Arg.Any<IReadOnlyDictionary<string, string?>>(),
+            "Zadanie po terminie", Arg.Any<string>(),
             "task_overdue", "task", Zadanie, Arg.Any<CancellationToken>());
     }
 
@@ -55,8 +58,8 @@ public class ZalegleZadaniaPowiadomieniaTests
 
         await handler.Handle(Zdarzenie(), CancellationToken.None);
 
-        await powiadomienia.DidNotReceiveWithAnyArgs().SendAsync(
-            default, default, default!, default!, default!, default, default, default);
+        await powiadomienia.DidNotReceiveWithAnyArgs().SendFromTemplateAsync(
+            default, default, default!, default!, default!, default!, default!, default, default, default);
     }
 
     [Fact]
@@ -72,8 +75,9 @@ public class ZalegleZadaniaPowiadomieniaTests
 
         await handler.Handle(Zdarzenie(), CancellationToken.None);
 
-        await powiadomienia.Received(1).SendAsync(
-            Firma, Konto, Arg.Any<string>(), Arg.Any<string>(),
+        await powiadomienia.Received(1).SendFromTemplateAsync(
+            Firma, Konto, "task_overdue", Arg.Any<IReadOnlyDictionary<string, string?>>(),
+            Arg.Any<string>(), Arg.Any<string>(),
             "task_overdue", "task", Zadanie, Arg.Any<CancellationToken>());
     }
 
@@ -86,8 +90,8 @@ public class ZalegleZadaniaPowiadomieniaTests
 
         await handler.Handle(Zdarzenie(), CancellationToken.None);
 
-        await powiadomienia.DidNotReceiveWithAnyArgs().SendAsync(
-            default, default, default!, default!, default!, default, default, default);
+        await powiadomienia.DidNotReceiveWithAnyArgs().SendFromTemplateAsync(
+            default, default, default!, default!, default!, default!, default!, default, default, default);
     }
 
     private static TaskOverdueEvent Zdarzenie() =>

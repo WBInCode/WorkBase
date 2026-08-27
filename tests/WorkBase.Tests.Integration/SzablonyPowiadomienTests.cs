@@ -1,0 +1,166 @@
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
+using NSubstitute;
+using WorkBase.Contracts;
+using WorkBase.Infrastructure.Persistence;
+using WorkBase.Modules.Notification.Domain.Entities;
+using WorkBase.Modules.Notification.Infrastructure.Hubs;
+using WorkBase.Modules.Notification.Infrastructure.Services;
+using Xunit;
+
+namespace WorkBase.Tests.Integration;
+
+/// <summary>
+/// Szablony powiadomien — tresc, ktora firma moze zmienic pod siebie.
+/// </summary>
+/// <remarks>
+/// Ekran szablonow istnial od dawna, mial pelny CRUD i zapisywal dane, ale NIKT NIGDY NIE
+/// RENDEROWAL SZABLONU: wszyscy wolajacy sklejali teksty na sztywno w kodzie. Administrator
+/// konfigurowal i nic sie nie dzialo.
+///
+/// Najwazniejsza wlasnosc tych testow: brak szablonu, szablon wylaczony ani literowka w nim
+/// NIE MOGA uciszyc powiadomienia. Najgorsze, co wolno sie stac, to powrot do tresci domyslnej.
+/// </remarks>
+public class SzablonyPowiadomienTests
+{
+    private static readonly Guid Firma = Guid.Parse("60000000-0000-0000-0000-000000000001");
+    private static readonly Guid Konto = Guid.Parse("60000000-0000-0000-0000-000000000002");
+
+    [Fact]
+    public async Task Bez_szablonu_uzywamy_tresci_domyslnej()
+    {
+        await using var db = UtworzBaze();
+        var serwis = Zbuduj(db);
+
+        await serwis.SendFromTemplateAsync(
+            Firma, Konto, "task_overdue",
+            new Dictionary<string, string?> { ["tytul"] = "Faktura" },
+            "Zadanie po terminie", "Faktura — termin minal", "task_overdue");
+
+        var wyslane = await db.Set<Notification>().IgnoreQueryFilters().SingleAsync();
+        Assert.Equal("Zadanie po terminie", wyslane.Title);
+        Assert.Equal("Faktura — termin minal", wyslane.Body);
+    }
+
+    [Fact]
+    public async Task Szablon_firmy_zastepuje_tresc_domyslna_i_podstawia_zmienne()
+    {
+        await using var db = UtworzBaze();
+        db.Add(NotificationTemplate.Create(
+            Firma, "task_overdue", "Po terminie",
+            "Pilne: {{tytul}}", "Zadanie {{tytul}} czeka od {{dni}} dni.", "task_overdue"));
+        await db.SaveChangesAsync();
+        var serwis = Zbuduj(db);
+
+        await serwis.SendFromTemplateAsync(
+            Firma, Konto, "task_overdue",
+            new Dictionary<string, string?> { ["tytul"] = "Faktura", ["dni"] = "3" },
+            "domyslny tytul", "domyslna tresc", "task_overdue");
+
+        var wyslane = await db.Set<Notification>().IgnoreQueryFilters().SingleAsync();
+        Assert.Equal("Pilne: Faktura", wyslane.Title);
+        Assert.Equal("Zadanie Faktura czeka od 3 dni.", wyslane.Body);
+    }
+
+    /// <summary>
+    /// Wylaczenie szablonu ma przywracac tresc domyslna, a nie uciszac powiadomienie.
+    /// </summary>
+    [Fact]
+    public async Task Szablon_wylaczony_wraca_do_tresci_domyslnej()
+    {
+        await using var db = UtworzBaze();
+        var szablon = NotificationTemplate.Create(
+            Firma, "task_overdue", "Po terminie", "Nieuzywany", "Nieuzywana", "task_overdue");
+        szablon.Deactivate();
+        db.Add(szablon);
+        await db.SaveChangesAsync();
+        var serwis = Zbuduj(db);
+
+        await serwis.SendFromTemplateAsync(
+            Firma, Konto, "task_overdue", new Dictionary<string, string?>(),
+            "Zadanie po terminie", "tresc domyslna", "task_overdue");
+
+        var wyslane = await db.Set<Notification>().IgnoreQueryFilters().SingleAsync();
+        Assert.Equal("Zadanie po terminie", wyslane.Title);
+    }
+
+    /// <summary>
+    /// Literowka w znaczniku ma zostac widoczna. Podstawienie pustki zamienialoby blad autora
+    /// szablonu w zdanie z dziura, ktorej nie da sie z niczym powiazac.
+    /// </summary>
+    [Fact]
+    public async Task Nieznany_znacznik_zostaje_w_tekscie()
+    {
+        await using var db = UtworzBaze();
+        db.Add(NotificationTemplate.Create(
+            Firma, "test", "Test", "Tytul", "Masz {{literowka}} do zrobienia.", "test"));
+        await db.SaveChangesAsync();
+        var serwis = Zbuduj(db);
+
+        await serwis.SendFromTemplateAsync(
+            Firma, Konto, "test",
+            new Dictionary<string, string?> { ["tytul"] = "cokolwiek" },
+            "domyslny", "domyslna", "test");
+
+        var wyslane = await db.Set<Notification>().IgnoreQueryFilters().SingleAsync();
+        Assert.Equal("Masz {{literowka}} do zrobienia.", wyslane.Body);
+    }
+
+    /// <summary>
+    /// Pole zostawione puste to co innego niz znacznik, ktorego nie znamy — puste podstawiamy.
+    /// </summary>
+    [Fact]
+    public async Task Zmienna_o_wartosci_null_daje_pusty_tekst()
+    {
+        await using var db = UtworzBaze();
+        db.Add(NotificationTemplate.Create(
+            Firma, "test", "Test", "Tytul", "Uwagi: {{uwagi}}.", "test"));
+        await db.SaveChangesAsync();
+        var serwis = Zbuduj(db);
+
+        await serwis.SendFromTemplateAsync(
+            Firma, Konto, "test",
+            new Dictionary<string, string?> { ["uwagi"] = null },
+            "domyslny", "domyslna", "test");
+
+        var wyslane = await db.Set<Notification>().IgnoreQueryFilters().SingleAsync();
+        Assert.Equal("Uwagi: .", wyslane.Body);
+    }
+
+    [Fact]
+    public async Task Szablon_innej_firmy_nas_nie_dotyczy()
+    {
+        await using var db = UtworzBaze();
+        db.Add(NotificationTemplate.Create(
+            Guid.NewGuid(), "task_overdue", "Cudzy", "Cudzy tytul", "Cudza tresc", "task_overdue"));
+        await db.SaveChangesAsync();
+        var serwis = Zbuduj(db);
+
+        await serwis.SendFromTemplateAsync(
+            Firma, Konto, "task_overdue", new Dictionary<string, string?>(),
+            "Zadanie po terminie", "tresc domyslna", "task_overdue");
+
+        var wyslane = await db.Set<Notification>().IgnoreQueryFilters()
+            .SingleAsync(n => n.TenantId == Firma);
+        Assert.Equal("Zadanie po terminie", wyslane.Title);
+    }
+
+    private static NotificationService Zbuduj(WorkBaseDbContext db)
+    {
+        var hub = Substitute.For<IHubContext<NotificationHub>>();
+        hub.Clients.Group(Arg.Any<string>()).Returns(Substitute.For<IClientProxy>());
+
+        return new NotificationService(
+            db, hub,
+            Substitute.For<IHubNotificationForwarder>(),
+            Substitute.For<IChatNoticeForwarder>());
+    }
+
+    private static WorkBaseDbContext UtworzBaze()
+    {
+        var options = new DbContextOptionsBuilder<WorkBaseDbContext>()
+            .UseInMemoryDatabase($"szablony-{Guid.NewGuid():N}")
+            .Options;
+        return new WorkBaseDbContext(options);
+    }
+}

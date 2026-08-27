@@ -45,15 +45,22 @@ public sealed class AnomalyDetectedEventHandler(
             notification.EmployeeId, cancellationToken) ?? notification.EmployeeId.ToString();
         var rodzaj = OpisRodzaju(notification.AnomalyType);
 
-        await notificationService.SendAsync(
+        await notificationService.SendFromTemplateAsync(
             notification.TenantId,
             supervisorUserId.Value,
-            $"Anomalia: {rodzaj}",
-            $"{pracownik}: {rodzaj} w dniu {notification.Date:dd.MM.yyyy}.",
-            "anomaly_detected",
-            "anomaly",
-            notification.AnomalyId,
-            cancellationToken);
+            templateCode: "anomaly_detected",
+            variables: new Dictionary<string, string?>
+            {
+                ["rodzaj"] = rodzaj,
+                ["pracownik"] = pracownik,
+                ["data"] = notification.Date.ToString("dd.MM.yyyy"),
+            },
+            fallbackTitle: $"Anomalia: {rodzaj}",
+            fallbackBody: $"{pracownik}: {rodzaj} w dniu {notification.Date:dd.MM.yyyy}.",
+            category: "anomaly_detected",
+            referenceType: "anomaly",
+            referenceId: notification.AnomalyId,
+            ct: cancellationToken);
 
         logger.LogInformation(
             "Anomaly notification sent: type={AnomalyType}, employee={EmployeeId}, date={Date}, supervisor={SupervisorId}",

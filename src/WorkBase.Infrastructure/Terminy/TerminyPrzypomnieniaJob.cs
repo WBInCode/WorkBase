@@ -80,11 +80,24 @@ public sealed class TerminyPrzypomnieniaJob(
                 ? $"{kandydat.Typ.Nazwa} — termin minął {Math.Abs(dni)} dni temu ({kandydat.Termin.WaznyDo:dd.MM.yyyy})."
                 : $"{kandydat.Typ.Nazwa} — zostało {dni} dni ({kandydat.Termin.WaznyDo:dd.MM.yyyy}).";
 
+            var zmienne = new Dictionary<string, string?>
+            {
+                ["rodzaj"] = kandydat.Typ.Nazwa,
+                ["dni"] = Math.Abs(dni).ToString(),
+                ["data"] = kandydat.Termin.WaznyDo.ToString("dd.MM.yyyy"),
+            };
+
             foreach (var odbiorca in odbiorcy)
             {
-                await powiadomienia.SendAsync(
-                    kandydat.Termin.TenantId, odbiorca, tytul, tresc,
-                    kategoria, TypEncji, kandydat.Termin.Id);
+                await powiadomienia.SendFromTemplateAsync(
+                    kandydat.Termin.TenantId, odbiorca,
+                    templateCode: kategoria,
+                    variables: zmienne,
+                    fallbackTitle: tytul,
+                    fallbackBody: tresc,
+                    category: kategoria,
+                    referenceType: TypEncji,
+                    referenceId: kandydat.Termin.Id);
             }
             wyslane++;
         }

@@ -32,7 +32,7 @@ public class TerminyPrzypomnieniaTests
         await job.ExecuteAsync();
 
         await powiadomienia.DidNotReceiveWithAnyArgs()
-            .SendAsync(default, default, default!, default!, default!, default, default, default);
+            .SendFromTemplateAsync(default, default, default!, default!, default!, default!, default!, default, default, default);
         await db.DisposeAsync();
     }
 
@@ -43,8 +43,11 @@ public class TerminyPrzypomnieniaTests
 
         await job.ExecuteAsync();
 
-        await powiadomienia.Received(1).SendAsync(
-            Firma, Konto, "Termin się zbliża", Arg.Any<string>(),
+        // Wartosci awaryjne to dawne teksty z kodu — sprawdzamy je, bo brak szablonu nie moze
+        // zmienic tego, co dostanie uzytkownik.
+        await powiadomienia.Received(1).SendFromTemplateAsync(
+            Firma, Konto, "termin_zbliza", Arg.Any<IReadOnlyDictionary<string, string?>>(),
+            "Termin się zbliża", Arg.Any<string>(),
             "termin_zbliza", "termin", Arg.Any<Guid>(), Arg.Any<CancellationToken>());
         await db.DisposeAsync();
     }
@@ -63,7 +66,7 @@ public class TerminyPrzypomnieniaTests
         await job.ExecuteAsync();
 
         await powiadomienia.DidNotReceiveWithAnyArgs()
-            .SendAsync(default, default, default!, default!, default!, default, default, default);
+            .SendFromTemplateAsync(default, default, default!, default!, default!, default!, default!, default, default, default);
         await db.DisposeAsync();
     }
 
@@ -83,8 +86,9 @@ public class TerminyPrzypomnieniaTests
 
         await job.ExecuteAsync();
 
-        await powiadomienia.Received(1).SendAsync(
-            Firma, Konto, "Termin minął", Arg.Any<string>(),
+        await powiadomienia.Received(1).SendFromTemplateAsync(
+            Firma, Konto, "termin_minal", Arg.Any<IReadOnlyDictionary<string, string?>>(),
+            "Termin minął", Arg.Any<string>(),
             "termin_minal", "termin", terminId, Arg.Any<CancellationToken>());
         await db.DisposeAsync();
     }
@@ -101,7 +105,7 @@ public class TerminyPrzypomnieniaTests
         await job.ExecuteAsync();
 
         await powiadomienia.DidNotReceiveWithAnyArgs()
-            .SendAsync(default, default, default!, default!, default!, default, default, default);
+            .SendFromTemplateAsync(default, default, default!, default!, default!, default!, default!, default, default, default);
         await db.DisposeAsync();
     }
 

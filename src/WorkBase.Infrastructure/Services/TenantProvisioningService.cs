@@ -269,6 +269,7 @@ public sealed class TenantProvisioningService(
             await LeaveSeeder.SeedTenantAsync(dbContext, tenantId, logger, cancellationToken);
             await TaskSeeder.SeedTenantAsync(dbContext, tenantId, logger, cancellationToken);
             await WorkflowSeeder.SeedTenantAsync(dbContext, tenantId, cancellationToken);
+            await NotificationSeeder.SeedTenantAsync(dbContext, tenantId, logger, cancellationToken);
         }
     }
 

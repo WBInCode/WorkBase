@@ -51,14 +51,16 @@ public sealed class TaskAssignedNotificationHandler(
             return;
         }
 
-        await notificationService.SendAsync(
+        await notificationService.SendFromTemplateAsync(
             tenantId,
             userId.Value,
-            "Nowe zadanie",
-            title,
-            "task_assigned",
-            "task",
-            taskId,
-            cancellationToken);
+            templateCode: "task_assigned",
+            variables: new Dictionary<string, string?> { ["tytul"] = title },
+            fallbackTitle: "Nowe zadanie",
+            fallbackBody: title,
+            category: "task_assigned",
+            referenceType: "task",
+            referenceId: taskId,
+            ct: cancellationToken);
     }
 }

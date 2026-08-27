@@ -70,14 +70,20 @@ public sealed class PowiadomOZaleglymZadaniu(
             ? "Termin minął dzisiaj."
             : $"Termin minął {dni} {(dni == 1 ? "dzień" : "dni")} temu.";
 
-        await notificationService.SendAsync(
+        await notificationService.SendFromTemplateAsync(
             notification.TenantId,
             userId.Value,
-            "Zadanie po terminie",
-            $"{notification.Title} — {opis}",
-            Kategoria,
-            TypEncji,
-            notification.TaskId,
-            cancellationToken);
+            templateCode: Kategoria,
+            variables: new Dictionary<string, string?>
+            {
+                ["tytul"] = notification.Title,
+                ["opis"] = opis,
+            },
+            fallbackTitle: "Zadanie po terminie",
+            fallbackBody: $"{notification.Title} — {opis}",
+            category: Kategoria,
+            referenceType: TypEncji,
+            referenceId: notification.TaskId,
+            ct: cancellationToken);
     }
 }
