@@ -102,6 +102,8 @@ W standardowej konfiguracji rola Kierownik ma **32 uprawnienia**. Najważniejsze
 | Dokumenty | podgląd, dodawanie, eksport |
 | Pozostałe | dashboard, powiadomienia, raporty, akceptacja kroków procesów |
 
+Gdy do Twojego zespołu dołącza nowa osoba albo ktoś odchodzi, możesz dostać zadania z listy kontrolnej firmy — np. „Przygotuj stanowisko” albo „Odbierz mienie firmy”. To zwykłe zadania z terminem; listę ustala administrator w Ustawieniach → Listy kontrolne.
+
 Czego rola Kierownik **nie** obejmuje:
 
 - zarządzania strukturą organizacyjną i stanowiskami,

@@ -84,6 +84,7 @@ export const DOSTEP_DO_WIDOKOW: ReadonlyArray<readonly [string, WymaganeUprawnie
   // Wlasne rzeczy kazdy widzi na swojej karcie bez zadnego uprawnienia.
   ['/mienie/do-zwrotu', ['org.view-team']],
   ['/admin/typy-terminow', ['org.edit']],
+  ['/admin/listy-kontrolne', ['org.manage']],
   ['/admin/gotowosc', ['org.edit']],
   ['/admin/dni-wolne', ['config.manage']],
   ['/admin/typy-wnioskow', ['wnioski.manage']],

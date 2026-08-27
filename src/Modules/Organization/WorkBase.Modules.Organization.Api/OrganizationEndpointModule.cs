@@ -13,6 +13,7 @@ public sealed class OrganizationEndpointModule : IEndpointModule
         endpoints.MapZastepstwaEndpoints();
         endpoints.MapTerminyEndpoints();
         endpoints.MapMienieEndpoints();
+        endpoints.MapListyKontrolneEndpoints();
         endpoints.MapPositionEndpoints();
         endpoints.MapUnitTypeEndpoints();
         endpoints.MapTenantEndpoints();

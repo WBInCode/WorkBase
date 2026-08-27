@@ -612,6 +612,18 @@ export const SEKCJE_POMOCY: readonly SekcjaPomocy[] = [
         wymaga: ['org.view'],
       },
       {
+        id: 'listy-kontrolne',
+        pytanie: 'Jak sprawić, żeby przy przyjęciu nowej osoby zadania założyły się same?',
+        odpowiedz: [
+          'W Ustawieniach → Listy kontrolne. Lista to szablon: co zrobić, ile dni po zdarzeniu i kto — sam pracownik, jego przełożony albo wskazana osoba. Przy dodaniu lub dezaktywacji pracownika system zakłada z niej zwykłe zadania z terminem i przypisaniem.',
+          'Nowa firma dostaje dwa przykłady wyłączone. Lista wyłączona nic nie robi — włączasz ją jednym kliknięciem, gdy pasuje.',
+          'Jeśli nowy pracownik nie ma jeszcze przełożonego, pozycje „dla przełożonego” są pomijane, a reszta powstaje. Przywrócenie pracownika nie uruchamia listy przyjęcia — to powrót, nie przyjęcie.',
+        ],
+        sciezka: '/admin/listy-kontrolne',
+        etykietaSciezki: 'Otwórz listy kontrolne',
+        wymaga: ['org.manage'],
+      },
+      {
         id: 'potwierdzenie-dokumentu',
         pytanie: 'Jak sprawdzić, kto zapoznał się z regulaminem?',
         odpowiedz: [

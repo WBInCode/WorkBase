@@ -376,6 +376,22 @@ Kogo dokument dotyczy: **firmowy** (bez powiązania) — każdego aktywnego prac
 
 Potwierdza wyłącznie sam pracownik, ze swojego konta; kadry nie mogą potwierdzić za kogoś. Nie ma cofnięcia: nowa wersja regulaminu to nowy dokument i nowe potwierdzenia. System niczego nie wymusza ani nie blokuje — to rejestr do pokazania przy kontroli, egzekwowanie należy do firmy.
 
+### Listy kontrolne przyjęcia i odejścia
+
+Szablon, który przy dodaniu albo dezaktywacji pracownika sam zakłada zadania: co zrobić, ile dni po zdarzeniu, kto. **Ustawienia → Listy kontrolne** (`org.manage`).
+
+| Wykonawca | Kto dostaje zadanie |
+|---|---|
+| sam pracownik | osoba, której dotyczy zdarzenie |
+| jego przełożony | aktualny przełożony ze struktury; bez przełożonego pozycja jest pomijana, reszta listy powstaje |
+| wskazana osoba | np. kadrowa, informatyk |
+
+Powstają zwykłe zadania — widać je w „Zadania”, mają domyślny status i priorytet „Normalny”, termin = data zdarzenia + dni z pozycji. W opisie jest nazwa listy i osoba, której dotyczą.
+
+Nowa firma dostaje **dwa przykłady wyłączone** (przyjęcie i odejście). Lista wyłączona nic nie robi; włączenie to jedno kliknięcie. Celowo nie włączamy ich za firmę — nikt nie ma dostać zadań, o które nie prosił. Przywrócenie pracownika nie uruchamia listy przyjęcia.
+
+Lista odejścia spina się z mieniem powierzonym: typowa pozycja „Odbierz mienie firmy” trafia do przełożonego tego samego dnia, a co dokładnie ma wrócić, widać na ekranie **Do zwrotu**.
+
 ---
 
 ## 9. Kreator pierwszego startu

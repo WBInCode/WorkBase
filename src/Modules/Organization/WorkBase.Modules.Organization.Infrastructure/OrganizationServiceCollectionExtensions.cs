@@ -28,6 +28,7 @@ public static class OrganizationServiceCollectionExtensions
         services.AddScoped<ITypTerminuRepository, TypTerminuRepository>();
         services.AddScoped<ITerminPracownikaRepository, TerminPracownikaRepository>();
         services.AddScoped<IMieniePowierzoneRepository, MieniePowierzoneRepository>();
+        services.AddScoped<IListaKontrolnaRepository, ListaKontrolnaRepository>();
         services.AddScoped<ISupervisorLookupService, SupervisorLookupService>();
         services.AddScoped<IOrganizationLookupService, OrganizationLookupService>();
         services.AddScoped<ITimeManagementScopeService, TimeManagementScopeService>();

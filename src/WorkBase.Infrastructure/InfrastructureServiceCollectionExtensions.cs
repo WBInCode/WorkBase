@@ -140,6 +140,12 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<MediatR.INotificationHandler<Modules.Workflow.Domain.Events.ApprovalDecisionMadeEvent>,
             Workflow.PowiadomieniaOAkceptacjach>();
 
+        // Listy kontrolne przyjecia i pozegnania: zdarzenia z Organization, zadania z Tasks.
+        services.AddScoped<MediatR.INotificationHandler<Modules.Organization.Domain.Events.EmployeeCreatedEvent>,
+            ListyKontrolne.ZalozZadaniaZListyKontrolnej>();
+        services.AddScoped<MediatR.INotificationHandler<Modules.Organization.Domain.Events.EmployeeDeactivatedEvent>,
+            ListyKontrolne.ZalozZadaniaZListyKontrolnej>();
+
         services.AddScoped<DomainEventInterceptor>();
         services.AddScoped<AuditSaveChangesInterceptor>();
 

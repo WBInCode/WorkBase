@@ -69,6 +69,7 @@ const pl = {
     workflowBuilder: 'Kreator obiegów',
     gotowosc: 'Gotowość konfiguracji',
     typyTerminow: 'Rodzaje terminów',
+    listyKontrolne: 'Listy kontrolne',
     anomalie: 'Anomalie',
     terminy: 'Terminy',
     doZwrotu: 'Do zwrotu',
