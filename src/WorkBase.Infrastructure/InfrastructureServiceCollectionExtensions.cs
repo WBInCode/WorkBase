@@ -17,7 +17,6 @@ using WorkBase.Infrastructure.Logging;
 using WorkBase.Infrastructure.Persistence;
 using WorkBase.Infrastructure.Storage;
 using WorkBase.Infrastructure.Middleware;
-using WorkBase.Infrastructure.Notifications;
 using WorkBase.Infrastructure.PublicApi;
 using WorkBase.Shared.Auth;
 using WorkBase.Shared.Domain;
@@ -224,8 +223,6 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddHttpClient("Webhook");
 
         // Push Notifications
-        services.AddScoped<Notifications.IPushSubscriptionRepository, Notifications.InMemoryPushSubscriptionRepository>();
-        services.AddScoped<IPushNotificationService, FcmPushNotificationService>();
         services.AddHttpClient("FCM");
 
         return services;

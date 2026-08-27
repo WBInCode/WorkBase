@@ -18,6 +18,21 @@ public sealed class NotificationService(
     public async Task SendAsync(Guid tenantId, Guid recipientUserId, string title, string body,
         string category, string? referenceType = null, Guid? referenceId = null, CancellationToken ct = default)
     {
+        // Preferencje istnialy jako encja, repozytorium i endpointy, ale SendAsync NIGDY ich nie
+        // czytal — wysylalismy wszystko wszystkim niezaleznie od ustawien.
+        //
+        // BRAK WIERSZA ZNACZY "WYSYLAJ". Domyslka musi byc taka, inaczej wprowadzenie preferencji
+        // uciszyloby powiadomienia wszystkim, ktorzy nigdy nic nie ustawili — czyli wszystkim.
+        var wylaczone = await db.Set<NotificationPreference>()
+            .IgnoreQueryFilters()
+            .AnyAsync(
+                p => p.TenantId == tenantId
+                    && p.UserId == recipientUserId
+                    && p.Category == category
+                    && !p.InApp,
+                ct);
+        if (wylaczone) return;
+
         var notification = Domain.Entities.Notification.Create(
             tenantId, recipientUserId, title, body, category, referenceType, referenceId);
 

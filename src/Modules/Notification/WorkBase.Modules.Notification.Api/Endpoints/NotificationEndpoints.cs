@@ -85,31 +85,56 @@ public static class NotificationEndpoints
         return endpoints;
     }
 
+    /// <summary>
+    /// Konto pytajacego, wziete Z TOKENU.
+    /// </summary>
+    /// <remarks>
+    /// Cala ta grupa endpointow brala identyfikator odbiorcy OD KLIENTA — z parametru adresu albo
+    /// z ciala zadania — przy samym RequireAuthorization, bez zadnego sprawdzenia wlasnosci.
+    /// Dowolny zalogowany pracownik mogl wiec czytac cudze powiadomienia (a te niosa tresc: kto
+    /// sie spoznil, jaki wniosek czeka na decyzje), oznaczac cudze jako przeczytane oraz
+    /// czytac i ZMIENIAC cudze preferencje — na przyklad wyciszyc przelozonemu powiadomienia
+    /// o wnioskach do akceptacji.
+    ///
+    /// Frontend i tak wysylal wlasne "sub" z tokenu, wiec wyprowadzenie tozsamosci tutaj nie
+    /// zmienia niczego w poprawnym uzyciu, a odbiera mozliwosc podstawienia cudzego konta.
+    /// </remarks>
+    private static Guid? KontoPytajacego(ClaimsPrincipal user) =>
+        Guid.TryParse(user.GetUserId(), out var id) ? id : null;
+
     private static async Task<IResult> GetNotifications(
-        Guid recipientUserId, bool? unreadOnly, int? limit, ISender sender)
+        ClaimsPrincipal user, bool? unreadOnly, int? limit, ISender sender)
     {
-        var query = new GetNotificationsQuery(recipientUserId, unreadOnly ?? false, limit ?? 50);
+        if (KontoPytajacego(user) is not Guid konto) return Results.Forbid();
+
+        var query = new GetNotificationsQuery(konto, unreadOnly ?? false, limit ?? 50);
         var result = await sender.Send(query);
         return result.ToHttpResult();
     }
 
-    private static async Task<IResult> GetUnreadCount(Guid recipientUserId, ISender sender)
+    private static async Task<IResult> GetUnreadCount(ClaimsPrincipal user, ISender sender)
     {
-        var query = new GetUnreadCountQuery(recipientUserId);
+        if (KontoPytajacego(user) is not Guid konto) return Results.Forbid();
+
+        var query = new GetUnreadCountQuery(konto);
         var result = await sender.Send(query);
         return result.ToHttpResult();
     }
 
-    private static async Task<IResult> MarkAsRead(Guid id, ISender sender)
+    private static async Task<IResult> MarkAsRead(Guid id, ClaimsPrincipal user, ISender sender)
     {
-        var command = new MarkNotificationReadCommand(id);
+        if (KontoPytajacego(user) is not Guid konto) return Results.Forbid();
+
+        var command = new MarkNotificationReadCommand(id, konto);
         var result = await sender.Send(command);
         return result.ToHttpResult();
     }
 
-    private static async Task<IResult> MarkAllRead(Guid recipientUserId, ISender sender)
+    private static async Task<IResult> MarkAllRead(ClaimsPrincipal user, ISender sender)
     {
-        var command = new MarkAllNotificationsReadCommand(recipientUserId);
+        if (KontoPytajacego(user) is not Guid konto) return Results.Forbid();
+
+        var command = new MarkAllNotificationsReadCommand(konto);
         var result = await sender.Send(command);
         return result.ToHttpResult();
     }
@@ -144,16 +169,22 @@ public static class NotificationEndpoints
     }
 
     // --- Preferences ---
-    private static async Task<IResult> GetPreferences(Guid userId, ISender sender)
+    private static async Task<IResult> GetPreferences(ClaimsPrincipal user, ISender sender)
     {
-        var result = await sender.Send(new GetNotificationPreferencesQuery(userId));
+        if (KontoPytajacego(user) is not Guid konto) return Results.Forbid();
+
+        var result = await sender.Send(new GetNotificationPreferencesQuery(konto));
         return result.ToHttpResult();
     }
 
-    private static async Task<IResult> UpdatePreference(UpdatePreferenceBody body, ISender sender)
+    private static async Task<IResult> UpdatePreference(
+        UpdatePreferenceBody body, ClaimsPrincipal user, ISender sender)
     {
+        if (KontoPytajacego(user) is not Guid konto) return Results.Forbid();
+
+        // body.UserId celowo IGNOROWANE — inaczej mozna by wyciszyc powiadomienia komus innemu.
         var result = await sender.Send(new UpdateNotificationPreferenceCommand(
-            body.UserId, body.Category, body.InApp, body.Email));
+            konto, body.Category, body.InApp, body.Email));
         return result.ToHttpResult();
     }
 
@@ -205,8 +236,9 @@ public sealed record UpdateTemplateBody(
     string Name, string TitleTemplate,
     string BodyTemplate, string Category);
 
+/// <summary>Bez UserId: preferencje ustawia sie WYLACZNIE sobie, konto bierzemy z tokenu.</summary>
 public sealed record UpdatePreferenceBody(
-    Guid UserId, string Category, bool InApp, bool Email);
+    string Category, bool InApp, bool Email);
 
 public sealed record PushSubscribeBody(
     string Endpoint, string P256dh, string Auth, string? DeviceInfo);

@@ -145,6 +145,66 @@ public class SzablonyPowiadomienTests
         Assert.Equal("Zadanie po terminie", wyslane.Title);
     }
 
+    // --- preferencje odbiorcy ---
+
+    /// <summary>
+    /// Brak wiersza preferencji ma znaczyc „wysylaj". Odwrotna domyslka uciszylaby powiadomienia
+    /// wszystkim, ktorzy nigdy nic nie ustawili — czyli wszystkim.
+    /// </summary>
+    [Fact]
+    public async Task Bez_ustawionych_preferencji_powiadomienie_dochodzi()
+    {
+        await using var db = UtworzBaze();
+        var serwis = Zbuduj(db);
+
+        await serwis.SendAsync(Firma, Konto, "Tytul", "Tresc", "task_assigned");
+
+        Assert.Equal(1, await db.Set<Notification>().IgnoreQueryFilters().CountAsync());
+    }
+
+    [Fact]
+    public async Task Wylaczona_kategoria_wycisza_powiadomienie()
+    {
+        await using var db = UtworzBaze();
+        db.Add(NotificationPreference.Create(Firma, Konto, "task_assigned", inApp: false));
+        await db.SaveChangesAsync();
+        var serwis = Zbuduj(db);
+
+        await serwis.SendAsync(Firma, Konto, "Tytul", "Tresc", "task_assigned");
+
+        Assert.Equal(0, await db.Set<Notification>().IgnoreQueryFilters().CountAsync());
+    }
+
+    /// <summary>
+    /// Wyciszenie jednej kategorii nie moze wyciszyc pozostalych — inaczej rezygnacja
+    /// z powiadomien o zadaniach zabralaby tez informacje o decyzji w sprawie wniosku.
+    /// </summary>
+    [Fact]
+    public async Task Wylaczenie_jednej_kategorii_nie_dotyka_innych()
+    {
+        await using var db = UtworzBaze();
+        db.Add(NotificationPreference.Create(Firma, Konto, "task_assigned", inApp: false));
+        await db.SaveChangesAsync();
+        var serwis = Zbuduj(db);
+
+        await serwis.SendAsync(Firma, Konto, "Tytul", "Tresc", "termin_minal");
+
+        Assert.Equal(1, await db.Set<Notification>().IgnoreQueryFilters().CountAsync());
+    }
+
+    [Fact]
+    public async Task Preferencja_innej_osoby_nas_nie_wycisza()
+    {
+        await using var db = UtworzBaze();
+        db.Add(NotificationPreference.Create(Firma, Guid.NewGuid(), "task_assigned", inApp: false));
+        await db.SaveChangesAsync();
+        var serwis = Zbuduj(db);
+
+        await serwis.SendAsync(Firma, Konto, "Tytul", "Tresc", "task_assigned");
+
+        Assert.Equal(1, await db.Set<Notification>().IgnoreQueryFilters().CountAsync());
+    }
+
     private static NotificationService Zbuduj(WorkBaseDbContext db)
     {
         var hub = Substitute.For<IHubContext<NotificationHub>>();

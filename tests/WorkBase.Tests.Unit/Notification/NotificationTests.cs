@@ -39,13 +39,14 @@ public class MarkNotificationReadHandlerTests
     public async Task Handle_NotificationExists_MarksAsRead()
     {
         var tenantId = Guid.NewGuid();
+        var odbiorca = Guid.NewGuid();
         var notification = WorkBase.Modules.Notification.Domain.Entities.Notification.Create(
-            tenantId, Guid.NewGuid(), "Title", "Body", "cat");
+            tenantId, odbiorca, "Title", "Body", "cat");
 
         _repository.GetByIdAsync(notification.Id, Arg.Any<CancellationToken>())
             .Returns(notification);
 
-        var command = new MarkNotificationReadCommand(notification.Id) { TenantId = tenantId };
+        var command = new MarkNotificationReadCommand(notification.Id, odbiorca) { TenantId = tenantId };
         var handler = new MarkNotificationReadHandler(_repository);
 
         var result = await handler.Handle(command, CancellationToken.None);
@@ -61,7 +62,7 @@ public class MarkNotificationReadHandlerTests
         _repository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns((WorkBase.Modules.Notification.Domain.Entities.Notification?)null);
 
-        var command = new MarkNotificationReadCommand(Guid.NewGuid()) { TenantId = Guid.NewGuid() };
+        var command = new MarkNotificationReadCommand(Guid.NewGuid(), Guid.NewGuid()) { TenantId = Guid.NewGuid() };
         var handler = new MarkNotificationReadHandler(_repository);
 
         var result = await handler.Handle(command, CancellationToken.None);
@@ -78,12 +79,38 @@ public class MarkNotificationReadHandlerTests
         _repository.GetByIdAsync(notification.Id, Arg.Any<CancellationToken>())
             .Returns(notification);
 
-        var command = new MarkNotificationReadCommand(notification.Id) { TenantId = Guid.NewGuid() };
+        var command = new MarkNotificationReadCommand(notification.Id, Guid.NewGuid()) { TenantId = Guid.NewGuid() };
         var handler = new MarkNotificationReadHandler(_repository);
 
         var result = await handler.Handle(command, CancellationToken.None);
 
         Assert.True(result.IsFailure);
+    }
+    /// <summary>
+    /// Handler weryfikowal wylacznie najemce, wiec w obrebie firmy kazdy mogl oznaczyc CUDZE
+    /// powiadomienie jako przeczytane. Zwracamy "nie istnieje", zeby odmowa nie potwierdzala,
+    /// ze taki wpis jest.
+    /// </summary>
+    [Fact]
+    public async Task Handle_CudzePowiadomienie_ReturnsFailure()
+    {
+        var tenantId = Guid.NewGuid();
+        var notification = WorkBase.Modules.Notification.Domain.Entities.Notification.Create(
+            tenantId, Guid.NewGuid(), "Title", "Body", "cat");
+
+        _repository.GetByIdAsync(notification.Id, Arg.Any<CancellationToken>())
+            .Returns(notification);
+
+        var command = new MarkNotificationReadCommand(notification.Id, Guid.NewGuid())
+        {
+            TenantId = tenantId,
+        };
+        var handler = new MarkNotificationReadHandler(_repository);
+
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        Assert.True(result.IsFailure);
+        Assert.False(notification.IsRead);
     }
 }
 

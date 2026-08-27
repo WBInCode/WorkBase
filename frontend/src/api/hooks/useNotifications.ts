@@ -7,9 +7,15 @@ import type {
   UpdateNotificationTemplateRequest,
 } from '@/api/types/notification';
 
+/**
+ * `recipientUserId` NIE jest juz wysylany do serwera — odbiorce serwer wyprowadza z tokenu.
+ * Zostaje tutaj jako klucz pamieci podrecznej i warunek „wiemy juz, kto jest zalogowany”,
+ * zeby nie odpytywac przed zakonczeniem logowania.
+ *
+ * Wczesniej identyfikator szedl w adresie i serwer mu ufal, wiec dalo sie podstawic cudze konto.
+ */
 export function useNotifications(recipientUserId: string | null, unreadOnly = false) {
   const params = new URLSearchParams();
-  if (recipientUserId) params.append('recipientUserId', recipientUserId);
   if (unreadOnly) params.append('unreadOnly', 'true');
 
   return useQuery({
@@ -21,12 +27,9 @@ export function useNotifications(recipientUserId: string | null, unreadOnly = fa
 }
 
 export function useUnreadCount(recipientUserId: string | null) {
-  const params = new URLSearchParams();
-  if (recipientUserId) params.append('recipientUserId', recipientUserId);
-
   return useQuery({
     queryKey: ['notifications', 'unread-count', recipientUserId],
-    queryFn: () => api.get<number>(`/api/notifications/unread-count?${params}`),
+    queryFn: () => api.get<number>('/api/notifications/unread-count'),
     enabled: !!recipientUserId,
     refetchInterval: 15_000,
   });
